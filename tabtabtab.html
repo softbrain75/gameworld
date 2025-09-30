@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ÌÌÌ - åÑ8¡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .score-board {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .score {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+        }
+
+        .label {
+            text-align: center;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .tap-area {
+            width: 300px;
+            height: 300px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4em;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+            position: relative;
+        }
+
+        .tap-area:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .tap-effect {
+            position: absolute;
+            color: #667eea;
+            font-size: 2em;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
+        }
+
+        .stats {
+            background: rgba(255,255,255,0.2);
+            padding: 15px 30px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .reset-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: #ff5252;
+        }
+
+        @media (max-width: 400px) {
+            .tap-area {
+                width: 250px;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">ê H<\</a>
+
+    <div class="header">
+        <h1>=F ÌÌÌ</h1>
+    </div>
+
+    <div class="game-container">
+        <div class="score-board">
+            <div class="score" id="score">0</div>
+            <div class="label"></div>
+        </div>
+
+        <div class="tap-area" id="tapArea">
+            =F
+        </div>
+
+        <div class="stats">
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value" id="tps">0.0</div>
+                    <div class="stat-label">Ì/</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="best">0</div>
+                    <div class="stat-label">\‡0]</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="reset-btn" id="resetBtn">¨K</button>
+    </div>
+
+    <script>
+        let score = 0;
+        let tapCount = 0;
+        let startTime = null;
+        let bestScore = localStorage.getItem('tabtabtab_best') || 0;
+
+        const scoreEl = document.getElementById('score');
+        const tpsEl = document.getElementById('tps');
+        const bestEl = document.getElementById('best');
+        const tapArea = document.getElementById('tapArea');
+        const resetBtn = document.getElementById('resetBtn');
+
+        bestEl.textContent = bestScore;
+
+        tapArea.addEventListener('click', (e) => {
+            if (startTime === null) {
+                startTime = Date.now();
+            }
+
+            score++;
+            tapCount++;
+            scoreEl.textContent = score;
+
+            // Ì ®¸
+            const effect = document.createElement('div');
+            effect.className = 'tap-effect';
+            effect.textContent = '+1';
+            effect.style.left = (e.clientX - tapArea.offsetLeft) + 'px';
+            effect.style.top = (e.clientY - tapArea.offsetTop) + 'px';
+            tapArea.appendChild(effect);
+
+            setTimeout(() => effect.remove(), 1000);
+
+            // TPS ƒ∞
+            const elapsed = (Date.now() - startTime) / 1000;
+            const tps = tapCount / elapsed;
+            tpsEl.textContent = tps.toFixed(1);
+
+            // \‡0] ≈pt∏
+            if (score > bestScore) {
+                bestScore = score;
+                bestEl.textContent = bestScore;
+                localStorage.setItem('tabtabtab_best', bestScore);
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            score = 0;
+            tapCount = 0;
+            startTime = null;
+            scoreEl.textContent = '0';
+            tpsEl.textContent = '0.0';
+        });
+    </script>
+</body>
+</html>
