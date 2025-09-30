@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>탭 매니아 - 게임세상</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-screen {
+            text-align: center;
+        }
+
+        .menu-screen, .gameover-screen {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            border-radius: 30px;
+            color: white;
+            max-width: 500px;
+        }
+
+        .menu-screen h1, .gameover-screen h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #60a5fa, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-screen .emoji {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .high-score-box {
+            background: rgba(234, 179, 8, 0.2);
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+
+        .high-score-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        .start-btn, .restart-btn {
+            width: 100%;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+
+        .start-btn:hover, .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .instructions {
+            background: rgba(31, 41, 55, 0.5);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: left;
+            line-height: 1.8;
+        }
+
+        .instructions h3 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 25px;
+            border-radius: 15px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-box.warning {
+            background: rgba(153, 27, 27, 0.9);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        #gameCanvas {
+            border: 4px solid #8b5cf6;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            max-width: 100%;
+            height: auto;
+            touch-action: none;
+        }
+
+        .hint-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            max-width: 500px;
+        }
+
+        .hint-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .final-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .final-stat-box {
+            background: rgba(139, 92, 246, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .final-stat-label {
+            font-size: 0.8em;
+            color: #d1d5db;
+            margin-top: 5px;
+        }
+
+        .final-stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .new-record {
+            background: #eab308;
+            color: #451a03;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="emoji">👆💥</div>
+        <h1>탭 매니아</h1>
+        <p style="font-size: 1.2em; color: #d1d5db; margin-bottom: 20px;">버튼을 미친듯이 눌러라!</p>
+
+        <div id="highScoreBox" class="high-score-box hidden">
+            <div style="color: #fbbf24; font-weight: bold; margin-bottom: 5px;">🏆 최고 기록</div>
+            <div class="high-score-value" id="menuHighScore">0</div>
+        </div>
+
+        <button class="start-btn" onclick="startGame()">게임 시작</button>
+
+        <div class="instructions">
+            <h3>게임 방법</h3>
+            <p>⏱️ 30초 안에 최대한 많이!</p>
+            <p>👆 나타나는 버튼들을 빠르게 탭</p>
+            <p style="color: #fbbf24; margin-top: 10px;">🎯 <strong>버튼 종류:</strong></p>
+            <div style="padding-left: 15px; font-size: 0.9em; margin-top: 5px;">
+                <p style="color: #60a5fa;">🔵 일반 (+10)</p>
+                <p style="color: #ef4444;">🔴 빠른 (+20, 빨리 사라짐)</p>
+                <p style="color: #fbbf24;">🟡 보너스 (+50)</p>
+                <p style="color: #a855f7;">🟣 메가 (+100, 시간 +2초)</p>
+                <p style="color: #ec4899;">🌈 레인보우 (+200, 시간 +2초)</p>
+            </div>
+            <p style="color: #fb923c; margin-top: 15px;">🔥 콤보 = 점수 배율 증가!</p>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="game-screen hidden">
+        <div class="stats-container">
+            <div class="stat-box">
+                <span>🏆</span>
+                <span class="stat-value" id="currentScore">0</span>
+            </div>
+            <div class="stat-box" id="timerBox">
+                <span>⏱️</span>
+                <span class="stat-value" id="timeLeft">30</span>초
+            </div>
+            <div class="stat-box">
+                <span>⭐</span>
+                <span class="stat-value" id="tapCount">0</span> 탭
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="400" height="700"></canvas>
+
+        <div class="hint-box">
+            <p class="hint-text" id="hintText">👆 버튼들을 빠르게 탭하세요!</p>
+            <p style="color: #9ca3af; font-size: 0.9em;">화면의 버튼들이 사라지기 전에 탭하세요!</p>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div style="font-size: 4em; margin-bottom: 20px;">🎯</div>
+        <h1 style="color: #ef4444;">타임 오버!</h1>
+
+        <div style="background: rgba(30, 58, 138, 0.5); padding: 30px; border-radius: 20px; margin: 20px 0;">
+            <p style="color: #d1d5db; margin-bottom: 10px;">최종 점수</p>
+            <div style="font-size: 3.5em; font-weight: bold;" id="finalScore">0</div>
+            <div id="newRecordBadge" class="new-record hidden">🎉 신기록!</div>
+        </div>
+
+        <div class="final-stats">
+            <div class="final-stat-box">
+                <div style="font-size: 2em;">⚡</div>
+                <div class="final-stat-value" id="finalTaps">0</div>
+                <div class="final-stat-label">총 탭</div>
+            </div>
+            <div class="final-stat-box">
+                <div style="font-size: 2em;">🔥</div>
+                <div class="final-stat-value" id="finalCombo">0</div>
+                <div class="final-stat-label">최대 콤보</div>
+            </div>
+            <div class="final-stat-box">
+                <div style="font-size: 2em;">📈</div>
+                <div class="final-stat-value" id="finalTPS">0</div>
+                <div class="final-stat-label">최대 TPS</div>
+            </div>
+        </div>
+
+        <div id="previousHighScore" class="hidden" style="background: rgba(31, 41, 55, 0.5); padding: 15px; border-radius: 15px; margin: 20px 0;">
+            <p style="color: #9ca3af; font-size: 0.9em;">최고 기록</p>
+            <p style="font-size: 1.8em; font-weight: bold; color: #fbbf24;" id="gameoverHighScore">0</p>
+        </div>
+
+        <button class="restart-btn" onclick="startGame()">다시 도전</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameState = 'menu';
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('tapManiaHighScore') || '0');
+        let timeLeft = 30;
+        let combo = 0;
+        let maxCombo = 0;
+        let buttons = [];
+        let effects = [];
+        let taps = 0;
+        let tapsThisSecond = 0;
+        let maxTPS = 0;
+
+        let timerInterval;
+        let tpsInterval;
+        let spawnInterval;
+        let cleanupInterval;
+        let animationFrameId;
+
+        const CANVAS_WIDTH = 400;
+        const CANVAS_HEIGHT = 700;
+
+        const buttonTypes = [
+            { type: 'normal', color: '#3498db', points: 10, size: 50, chance: 0.6, lifetime: 3000 },
+            { type: 'fast', color: '#e74c3c', points: 20, size: 40, lifetime: 1500, chance: 0.2 },
+            { type: 'bonus', color: '#f39c12', points: 50, size: 60, chance: 0.1, lifetime: 3000 },
+            { type: 'mega', color: '#9b59b6', points: 100, size: 70, chance: 0.05, lifetime: 3000 },
+            { type: 'rainbow', color: 'rainbow', points: 200, size: 55, chance: 0.05, lifetime: 3000 }
+        ];
+
+        // Initialize
+        if (highScore > 0) {
+            document.getElementById('highScoreBox').classList.remove('hidden');
+            document.getElementById('menuHighScore').textContent = highScore.toLocaleString();
+        }
+
+        function showScreen(screen) {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById(screen + 'Screen').classList.remove('hidden');
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            score = 0;
+            timeLeft = 30;
+            combo = 0;
+            maxCombo = 0;
+            buttons = [];
+            effects = [];
+            taps = 0;
+            tapsThisSecond = 0;
+            maxTPS = 0;
+
+            updateUI();
+            showScreen('game');
+
+            // Start timer
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeLeft').textContent = timeLeft;
+
+                const timerBox = document.getElementById('timerBox');
+                if (timeLeft <= 5) {
+                    timerBox.classList.add('warning');
+                } else {
+                    timerBox.classList.remove('warning');
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            // TPS counter
+            tpsInterval = setInterval(() => {
+                maxTPS = Math.max(maxTPS, tapsThisSecond);
+                tapsThisSecond = 0;
+            }, 1000);
+
+            // Spawn buttons
+            spawnInterval = setInterval(spawnButton, 400);
+
+            // Cleanup expired buttons
+            cleanupInterval = setInterval(() => {
+                const now = Date.now();
+                const beforeLength = buttons.length;
+                buttons = buttons.filter(btn => now - btn.createdAt <= btn.lifetime);
+                if (buttons.length < beforeLength) {
+                    combo = 0; // Break combo if missed
+                }
+            }, 100);
+
+            // Start game loop
+            gameLoop();
+        }
+
+        function spawnButton() {
+            const rand = Math.random();
+            let cumulativeChance = 0;
+            let selectedType = buttonTypes[0];
+
+            for (const type of buttonTypes) {
+                cumulativeChance += type.chance;
+                if (rand <= cumulativeChance) {
+                    selectedType = type;
+                    break;
+                }
+            }
+
+            const newButton = {
+                id: Date.now() + Math.random(),
+                ...selectedType,
+                x: Math.random() * (CANVAS_WIDTH - selectedType.size - 40) + 20,
+                y: Math.random() * (CANVAS_HEIGHT - selectedType.size - 40) + 20,
+                createdAt: Date.now()
+            };
+
+            buttons.push(newButton);
+        }
+
+        function gameLoop() {
+            if (gameState !== 'playing') return;
+
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Background
+            const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+            gradient.addColorStop(0, '#0f0f23');
+            gradient.addColorStop(1, '#1a1a3e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Grid pattern
+            ctx.strokeStyle = 'rgba(100, 100, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < CANVAS_WIDTH; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, CANVAS_HEIGHT);
+                ctx.stroke();
+            }
+            for (let i = 0; i < CANVAS_HEIGHT; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(CANVAS_WIDTH, i);
+                ctx.stroke();
+            }
+
+            // Draw buttons
+            const now = Date.now();
+            buttons.forEach(button => {
+                const age = now - button.createdAt;
+                const lifePercent = age / button.lifetime;
+                const isExpiring = lifePercent > 0.7;
+
+                ctx.save();
+                ctx.translate(button.x + button.size / 2, button.y + button.size / 2);
+
+                const scale = 1 + Math.sin(age * 0.01) * 0.1;
+                ctx.scale(scale, scale);
+
+                if (isExpiring && Math.floor(age / 100) % 2 === 0) {
+                    ctx.globalAlpha = 0.5;
+                }
+
+                if (button.type === 'rainbow') {
+                    const hue = (age * 0.5) % 360;
+                    ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+                    ctx.shadowColor = `hsl(${hue}, 70%, 60%)`;
+                } else {
+                    ctx.fillStyle = button.color;
+                    ctx.shadowColor = button.color;
+                }
+
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(0, 0, button.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(0, 0, button.size / 2 - 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${button.size / 3}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`+${button.points}`, 0, 0);
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, button.size / 2 + 5, -Math.PI / 2, -Math.PI / 2 + (1 - lifePercent) * Math.PI * 2);
+                ctx.stroke();
+
+                ctx.restore();
+            });
+
+            // Update and draw effects
+            effects = effects.map(effect => ({
+                ...effect,
+                y: effect.y - 2,
+                alpha: effect.alpha - 0.02
+            })).filter(effect => effect.alpha > 0);
+
+            effects.forEach(effect => {
+                ctx.save();
+                ctx.globalAlpha = effect.alpha;
+                ctx.fillStyle = effect.color;
+                ctx.font = `bold ${effect.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.shadowColor = effect.color;
+                ctx.shadowBlur = 10;
+                ctx.fillText(effect.text, effect.x, effect.y);
+                ctx.restore();
+            });
+
+            // Combo display
+            if (combo > 0) {
+                const comboScale = 1 + Math.min(combo / 50, 1);
+                ctx.save();
+                ctx.translate(CANVAS_WIDTH / 2, 80);
+                ctx.scale(comboScale, comboScale);
+
+                ctx.fillStyle = combo >= 50 ? '#ff0000' : combo >= 30 ? '#ff6b00' : combo >= 10 ? '#ffaa00' : '#ffd700';
+                ctx.font = 'bold 40px Arial';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.shadowBlur = 20;
+                ctx.fillText(`${combo}x`, 0, 0);
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText('COMBO', 0, 30);
+
+                ctx.restore();
+            }
+
+            // TPS display
+            if (tapsThisSecond > 0) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`${tapsThisSecond} TPS`, 20, 120);
+            }
+
+            // Update hint
+            const hintText = buttons.length > 5 ? '🔥 화면이 가득차고 있어요!' :
+                           combo >= 30 ? '🌟 엄청난 콤보!' :
+                           combo >= 10 ? '⚡ 좋아요! 계속!' :
+                           '👆 버튼들을 빠르게 탭하세요!';
+            document.getElementById('hintText').textContent = hintText;
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function handleCanvasClick(e) {
+            if (gameState !== 'playing') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            let hitButton = null;
+            for (const button of buttons) {
+                const dx = x - (button.x + button.size / 2);
+                const dy = y - (button.y + button.size / 2);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance <= button.size / 2) {
+                    hitButton = button;
+                    break;
+                }
+            }
+
+            if (hitButton) {
+                buttons = buttons.filter(btn => btn.id !== hitButton.id);
+
+                const comboBonus = Math.floor(combo / 10);
+                const totalPoints = hitButton.points * (1 + comboBonus);
+                score += totalPoints;
+
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                taps++;
+                tapsThisSecond++;
+
+                effects.push({
+                    id: Date.now() + Math.random(),
+                    x: hitButton.x + hitButton.size / 2,
+                    y: hitButton.y + hitButton.size / 2,
+                    text: `+${totalPoints}`,
+                    color: hitButton.type === 'rainbow' ? '#ffd700' : hitButton.color,
+                    size: 30,
+                    alpha: 1
+                });
+
+                for (let i = 0; i < 8; i++) {
+                    const angle = (Math.PI * 2 * i) / 8;
+                    effects.push({
+                        id: Date.now() + Math.random() + i,
+                        x: hitButton.x + hitButton.size / 2 + Math.cos(angle) * 10,
+                        y: hitButton.y + hitButton.size / 2 + Math.sin(angle) * 10,
+                        text: '●',
+                        color: hitButton.type === 'rainbow' ? `hsl(${i * 45}, 70%, 60%)` : hitButton.color,
+                        size: 20,
+                        alpha: 1
+                    });
+                }
+
+                if (hitButton.type === 'mega' || hitButton.type === 'rainbow') {
+                    timeLeft += 2;
+                }
+
+                updateUI();
+            } else {
+                if (combo > 0) {
+                    combo = Math.max(0, combo - 3);
+                }
+            }
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (e.touches && e.touches[0]) {
+                const touch = e.touches[0];
+                handleCanvasClick(touch);
+            }
+        }
+
+        canvas.addEventListener('click', handleCanvasClick);
+        canvas.addEventListener('touchstart', handleTouchStart);
+
+        function updateUI() {
+            document.getElementById('currentScore').textContent = score.toLocaleString();
+            document.getElementById('timeLeft').textContent = timeLeft;
+            document.getElementById('tapCount').textContent = taps;
+        }
+
+        function endGame() {
+            gameState = 'gameover';
+
+            clearInterval(timerInterval);
+            clearInterval(tpsInterval);
+            clearInterval(spawnInterval);
+            clearInterval(cleanupInterval);
+            cancelAnimationFrame(animationFrameId);
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('tapManiaHighScore', highScore.toString());
+            }
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('finalTaps').textContent = taps;
+            document.getElementById('finalCombo').textContent = maxCombo;
+            document.getElementById('finalTPS').textContent = maxTPS;
+
+            if (isNewRecord && score > 0) {
+                document.getElementById('newRecordBadge').classList.remove('hidden');
+                document.getElementById('previousHighScore').classList.add('hidden');
+            } else {
+                document.getElementById('newRecordBadge').classList.add('hidden');
+                if (highScore > 0) {
+                    document.getElementById('previousHighScore').classList.remove('hidden');
+                    document.getElementById('gameoverHighScore').textContent = highScore.toLocaleString();
+                }
+            }
+
+            showScreen('gameover');
+        }
+    </script>
+</body>
+</html>
