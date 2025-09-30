@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>��� - ��8�</title>
+    <title>탭탭탭 - 게임세상</title>
     <style>
         * {
             margin: 0;
@@ -172,36 +172,36 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-btn">� H<\</a>
+    <a href="index.html" class="back-btn">← 홈으로</a>
 
     <div class="header">
-        <h1>=F ���</h1>
+        <h1>👆 탭탭탭</h1>
     </div>
 
     <div class="game-container">
         <div class="score-board">
             <div class="score" id="score">0</div>
-            <div class="label"></div>
+            <div class="label">점수</div>
         </div>
 
         <div class="tap-area" id="tapArea">
-            =F
+            👆
         </div>
 
         <div class="stats">
             <div class="stats-row">
                 <div class="stat-item">
                     <div class="stat-value" id="tps">0.0</div>
-                    <div class="stat-label">�/</div>
+                    <div class="stat-label">탭/초</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="best">0</div>
-                    <div class="stat-label">\�0]</div>
+                    <div class="stat-label">최고기록</div>
                 </div>
             </div>
         </div>
 
-        <button class="reset-btn" id="resetBtn">�K</button>
+        <button class="reset-btn" id="resetBtn">리셋</button>
     </div>
 
     <script>
@@ -227,7 +227,7 @@
             tapCount++;
             scoreEl.textContent = score;
 
-            // � ��
+            // 탭 효과
             const effect = document.createElement('div');
             effect.className = 'tap-effect';
             effect.textContent = '+1';
@@ -237,12 +237,12 @@
 
             setTimeout(() => effect.remove(), 1000);
 
-            // TPS İ
+            // TPS 계산
             const elapsed = (Date.now() - startTime) / 1000;
             const tps = tapCount / elapsed;
             tpsEl.textContent = tps.toFixed(1);
 
-            // \�0] �pt�
+            // 최고기록 업데이트
             if (score > bestScore) {
                 bestScore = score;
                 bestEl.textContent = bestScore;
