@@ -313,13 +313,13 @@
             <button class="btn" onclick="startGame()">🚀 시작</button>
 
             <div class="instructions">
-                <p style="font-weight: bold; color: #ff00ff; margin-bottom: 10px;">🎮 게임 방법</p>
-                <p>⬆️ 회전 - 블록 돌리기</p>
-                <p>⬅️➡️ 좌우 이동</p>
-                <p>⬇️ 빠르게 내리기</p>
-                <p>⚡ 드롭 - 즉시 떨어뜨리기</p>
+                <p style="font-weight: bold; color: #ff00ff; margin-bottom: 10px;">🎮 게임 방법 (모바일)</p>
+                <p>👆 탭 - 블록 회전</p>
+                <p>⬅️➡️ 좌우 스와이프 - 블록 이동</p>
+                <p>⬆️ 위 스와이프 - 블록 회전</p>
+                <p>⬇️ 아래 스와이프 - 즉시 떨어뜨리기</p>
+                <p>🎯 버튼으로도 조작 가능!</p>
                 <p>💥 라인 클리어시 화려한 파티클 효과!</p>
-                <p>🎯 한 번에 많은 라인을 지울수록 높은 점수!</p>
             </div>
         </div>
     </div>
@@ -779,37 +779,52 @@
             }
         };
 
-        // Keyboard controls
-        document.addEventListener('keydown', (e) => {
-            if (gameState !== 'playing') return;
+        // Swipe controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
 
-            switch(e.key) {
-                case 'ArrowLeft':
-                    e.preventDefault();
-                    handleLeft();
-                    break;
-                case 'ArrowRight':
-                    e.preventDefault();
-                    handleRight();
-                    break;
-                case 'ArrowDown':
-                    e.preventDefault();
-                    handleDown();
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    handleRotate();
-                    break;
-                case ' ':
-                    e.preventDefault();
-                    handleDrop();
-                    break;
-            }
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
         });
 
-        document.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowDown') {
-                handleDownRelease();
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (gameState !== 'playing') return;
+
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            const absDiffX = Math.abs(diffX);
+            const absDiffY = Math.abs(diffY);
+
+            // Swipe detection (minimum 30px)
+            if (absDiffX > 30 || absDiffY > 30) {
+                if (absDiffX > absDiffY) {
+                    // Horizontal swipe
+                    if (diffX > 0) {
+                        handleRight();
+                    } else {
+                        handleLeft();
+                    }
+                } else {
+                    // Vertical swipe
+                    if (diffY > 0) {
+                        handleDrop(); // Swipe down = hard drop
+                    } else {
+                        handleRotate(); // Swipe up = rotate
+                    }
+                }
+            } else {
+                // Tap = rotate
+                handleRotate();
             }
         });
 
