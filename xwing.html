@@ -486,7 +486,7 @@
             spawnEnemies();
         };
 
-        // Sound effects - very short and quiet (20% of BGM volume)
+        // Sound effects - short and quiet (40% of BGM volume)
         let audioContext = null;
 
         function initAudio() {
@@ -511,34 +511,31 @@
                 switch(soundType) {
                     case 'laser':
                         oscillator.frequency.value = 800;
-                        gainNode.gain.value = 0.06; // 20% of 0.3
+                        gainNode.gain.value = 0.12; // 40% of 0.3
                         oscillator.type = 'sine';
-                        oscillator.stop(audioContext.currentTime + 0.05); // Very short
                         break;
 
                     case 'explosion':
                         oscillator.frequency.value = 100;
-                        gainNode.gain.value = 0.06;
+                        gainNode.gain.value = 0.12;
                         oscillator.type = 'sine';
-                        oscillator.stop(audioContext.currentTime + 0.08);
                         break;
 
                     case 'hit':
                         oscillator.frequency.value = 400;
-                        gainNode.gain.value = 0.04;
+                        gainNode.gain.value = 0.10;
                         oscillator.type = 'sine';
-                        oscillator.stop(audioContext.currentTime + 0.04);
                         break;
 
                     case 'shield':
                         oscillator.frequency.value = 200;
-                        gainNode.gain.value = 0.05;
+                        gainNode.gain.value = 0.12;
                         oscillator.type = 'sine';
-                        oscillator.stop(audioContext.currentTime + 0.06);
                         break;
                 }
 
                 oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
             } catch (e) {}
         }
 
