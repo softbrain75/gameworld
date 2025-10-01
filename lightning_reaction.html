@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>라이트닝 리액션 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: #1a1a1a;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: flash 0.5s ease-in-out infinite;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            touch-action: none;
+        }
+
+        .game-text {
+            font-size: 2em;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .reaction-time {
+            font-size: 4em;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .round-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5em;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">⚡💥</div>
+            <h1>라이트닝 리액션</h1>
+            <p style="color: #ffd700; margin-bottom: 20px;">당신의 반응속도는?</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">⚡ 최고 기록</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0ms</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">⚡ 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #ffd700; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>👆 화면이 초록색으로 바뀌면 즉시 터치!</p>
+                <p>⚡ 빠를수록 좋은 점수!</p>
+                <p>❌ 너무 빨리 누르면 실격!</p>
+                <p>🎯 5번의 기회로 평균 측정!</p>
+                <p>⏱️ 반응 시간을 밀리초 단위로 측정!</p>
+                <p>🏆 최고 기록에 도전하세요!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">⚡</div>
+            <h1 id="gameoverTitle">결과</h1>
+
+            <div class="score-display" id="avgTime">0ms</div>
+            <div style="opacity: 0.8; margin-bottom: 20px;">평균 반응 시간</div>
+
+            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">최고 기록</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="bestTime">0ms</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">최저 기록</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="worstTime">0ms</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">역대 최고 기록</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0ms</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="round-indicator" id="roundIndicator">1 / 5</div>
+        <div class="game-text" id="gameText">준비...</div>
+        <div class="reaction-time hidden" id="reactionTime">0ms</div>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        // Game state
+        let gameState = 'menu';
+        let round = 0;
+        let maxRounds = 5;
+        let times = [];
+        let startTime = 0;
+        let waitTimeout = null;
+        let bestRecord = localStorage.getItem('lightningReaction_best') || Infinity;
+
+        // Sound system
+        function playSound(soundType) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'go':
+                        oscillator.frequency.value = 880; // A5
+                        gainNode.gain.value = 0.2;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'good':
+                        oscillator.frequency.value = 1046.5; // C6
+                        gainNode.gain.value = 0.15;
+                        oscillator.type = 'triangle';
+                        break;
+                    case 'great':
+                        oscillator.frequency.value = 1318.51; // E6
+                        gainNode.gain.value = 0.2;
+                        oscillator.type = 'square';
+                        break;
+                    case 'fail':
+                        oscillator.frequency.value = 130.81; // C3
+                        gainNode.gain.value = 0.15;
+                        oscillator.type = 'sawtooth';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.15);
+            } catch (e) {}
+        }
+
+        // Start round
+        function startRound() {
+            round++;
+            document.getElementById('roundIndicator').textContent = `${round} / ${maxRounds}`;
+            document.getElementById('gameText').textContent = '기다려...';
+            document.getElementById('reactionTime').classList.add('hidden');
+            document.body.style.background = '#ff0000';
+
+            // Random delay 1-4 seconds
+            const delay = Math.random() * 3000 + 1000;
+
+            waitTimeout = setTimeout(() => {
+                document.body.style.background = '#00ff00';
+                document.getElementById('gameText').textContent = '지금!';
+                startTime = Date.now();
+                playSound('go');
+            }, delay);
+        }
+
+        // Handle tap
+        function handleTap() {
+            if (gameState !== 'playing') return;
+
+            if (startTime === 0) {
+                // Too early!
+                clearTimeout(waitTimeout);
+                document.body.style.background = '#1a1a1a';
+                document.getElementById('gameText').textContent = '너무 빨라요! 초록색이 되면 눌러주세요!';
+                playSound('fail');
+
+                setTimeout(() => {
+                    round--;
+                    startRound();
+                }, 2000);
+            } else {
+                // Valid tap
+                const reactionTime = Date.now() - startTime;
+                times.push(reactionTime);
+
+                document.body.style.background = '#1a1a1a';
+                document.getElementById('reactionTime').textContent = reactionTime + 'ms';
+                document.getElementById('reactionTime').classList.remove('hidden');
+                document.getElementById('gameText').textContent = getReactionMessage(reactionTime);
+
+                if (reactionTime < 200) {
+                    playSound('great');
+                } else {
+                    playSound('good');
+                }
+
+                startTime = 0;
+
+                if (round >= maxRounds) {
+                    setTimeout(() => endGame(), 2000);
+                } else {
+                    setTimeout(() => startRound(), 2000);
+                }
+            }
+        }
+
+        // Get reaction message
+        function getReactionMessage(time) {
+            if (time < 150) return '놀라워요! ⚡⚡⚡';
+            if (time < 200) return '아주 빨라요! ⚡⚡';
+            if (time < 250) return '빨라요! ⚡';
+            if (time < 300) return '좋아요!';
+            if (time < 400) return '괜찮아요';
+            return '조금 느려요';
+        }
+
+        // Touch/click events
+        document.getElementById('gameContainer').addEventListener('click', handleTap);
+        document.getElementById('gameContainer').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleTap();
+        });
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            round = 0;
+            times = [];
+            startTime = 0;
+
+            setTimeout(() => startRound(), 500);
+        };
+
+        // End game
+        function endGame() {
+            gameState = 'gameover';
+
+            const avgTime = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+            const bestTime = Math.min(...times);
+            const worstTime = Math.max(...times);
+
+            document.getElementById('avgTime').textContent = avgTime + 'ms';
+            document.getElementById('bestTime').textContent = bestTime + 'ms';
+            document.getElementById('worstTime').textContent = worstTime + 'ms';
+
+            let title = '결과';
+            if (avgTime < 200) {
+                title = '놀라운 반응속도! ⚡⚡⚡';
+            } else if (avgTime < 250) {
+                title = '훌륭해요! ⚡⚡';
+            } else if (avgTime < 300) {
+                title = '좋아요! ⚡';
+            }
+            document.getElementById('gameoverTitle').textContent = title;
+
+            const isNewRecord = avgTime < bestRecord;
+            if (isNewRecord) {
+                bestRecord = avgTime;
+                localStorage.setItem('lightningReaction_best', bestRecord);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (bestRecord < Infinity && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = bestRecord + 'ms';
+            } else {
+                document.getElementById('highScoreDisplay').classList.add('hidden');
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Initialize
+        if (bestRecord < Infinity) {
+            document.getElementById('highScore').classList.remove('hidden');
+            document.getElementById('highScoreValue').textContent = bestRecord + 'ms';
+        }
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
