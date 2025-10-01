@@ -442,6 +442,9 @@
             time = 0;
             stars = [];
 
+            // Initialize audio on first interaction
+            initAudio();
+
             // Create stars
             for (let i = 0; i < 150; i++) {
                 stars.push({
@@ -462,12 +465,25 @@
 
         // Sound effects only (no background music)
         let soundEnabled = true;
+        let audioContext = null;
+
+        // Initialize audio context once
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // Resume if suspended
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
 
         function playSound(soundType) {
             if (!soundEnabled) return;
 
             try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                initAudio();
+
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
 
