@@ -212,34 +212,6 @@
             100% { opacity: 0; }
         }
 
-        .fire-button {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(45deg, #ff4400, #ff8800);
-            color: white;
-            border: 3px solid #ffaa00;
-            padding: 20px 50px;
-            font-size: 1.5em;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(255, 136, 0, 0.6);
-            transition: transform 0.1s;
-            z-index: 10;
-        }
-
-        .fire-button:active {
-            transform: translateX(-50%) scale(0.95);
-        }
-
-        .fire-button.cooldown {
-            background: linear-gradient(45deg, #555, #777);
-            border-color: #999;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
     </style>
 </head>
 <body>
@@ -263,7 +235,7 @@
                 <p style="font-weight: bold; color: #00ffff; margin-bottom: 10px;">🎮 게임 방법</p>
                 <p>🖱️ 드래그해서 화면 이동</p>
                 <p>🎯 조준선 안에 적을 넣으세요</p>
-                <p>🔥 화면 하단 발사 버튼 클릭!</p>
+                <p>🔥 조준선 안을 클릭하면 발사!</p>
                 <p>📡 우측 하단 레이더로 적 위치 확인</p>
                 <p>💫 5가지 적 타입별 다른 폭발 효과</p>
                 <p>⚡ 적이 화면을 벗어나면 생명 감소</p>
@@ -319,7 +291,6 @@
             </div>
         </div>
         <canvas id="gameCanvas"></canvas>
-        <button id="fireButton" class="fire-button" onclick="fireProjectileButton()">🔥 발사!</button>
     </div>
 
     <script>
@@ -407,10 +378,11 @@
                 });
             }
 
-            // Canvas events - dragging only
+            // Canvas events - dragging and click to fire
             canvas.addEventListener('mousedown', startDrag);
             canvas.addEventListener('mousemove', drag);
             canvas.addEventListener('mouseup', endDrag);
+            canvas.addEventListener('click', fireProjectile);
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 startDrag(e.touches[0]);
@@ -422,6 +394,10 @@
             canvas.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 endDrag();
+                // Also fire on touch end if not dragging
+                if (!isDragging) {
+                    fireProjectile(e.changedTouches[0]);
+                }
             });
 
             gameLoop();
@@ -513,44 +489,55 @@
             isDragging = false;
         }
 
-        // Fire button click handler
-        window.fireProjectileButton = function() {
+        // Fire projectile when clicking inside crosshair
+        function fireProjectile(e) {
             if (gameState !== 'playing') return;
             if (Date.now() - lastFireTime < FIRE_COOLDOWN) return;
+            if (isDragging) return; // Don't fire while dragging
 
-            lastFireTime = Date.now();
+            const rect = canvas.getBoundingClientRect();
+            const clickX = (e.clientX || e.pageX) - rect.left;
+            const clickY = (e.clientY || e.pageY) - rect.top;
 
-            const fireBtn = document.getElementById('fireButton');
-            fireBtn.classList.add('cooldown');
-            setTimeout(() => {
-                fireBtn.classList.remove('cooldown');
-            }, FIRE_COOLDOWN);
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = clickX * scaleX;
+            const canvasY = clickY * scaleY;
 
-            // Fire from center (crosshair position)
-            projectiles.push({
-                x: cameraX,
-                y: cameraY,
-                vx: 0,
-                vy: 0,
-                speed: 15,
-                life: 60,
-                color: '#00ffff'
-            });
+            // Check if clicked inside crosshair
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const dist = Math.hypot(canvasX - centerX, canvasY - centerY);
 
-            // Muzzle flash
-            for (let i = 0; i < 10; i++) {
-                const angle = (Math.PI * 2 * i) / 10;
-                particles.push({
+            if (dist < CROSSHAIR_SIZE) {
+                lastFireTime = Date.now();
+
+                // Fire from center (crosshair position)
+                projectiles.push({
                     x: cameraX,
                     y: cameraY,
-                    vx: Math.cos(angle) * 5,
-                    vy: Math.sin(angle) * 5,
-                    life: 20,
-                    color: '#00ffff',
-                    size: 4
+                    vx: 0,
+                    vy: 0,
+                    speed: 15,
+                    life: 60,
+                    color: '#00ffff'
                 });
+
+                // Muzzle flash
+                for (let i = 0; i < 10; i++) {
+                    const angle = (Math.PI * 2 * i) / 10;
+                    particles.push({
+                        x: cameraX,
+                        y: cameraY,
+                        vx: Math.cos(angle) * 5,
+                        vy: Math.sin(angle) * 5,
+                        life: 20,
+                        color: '#00ffff',
+                        size: 4
+                    });
+                }
             }
-        };
+        }
 
         function updateGame() {
             // Smooth camera movement
