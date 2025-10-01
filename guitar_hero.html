@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>기타 히어로 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: #000;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #ff6b00;
+            box-shadow: 0 0 40px rgba(255, 107, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff6b00, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: rock 0.5s ease-in-out infinite;
+        }
+
+        @keyframes rock {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b00, #ffa500);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(255, 107, 0, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: #000;
+            touch-action: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 107, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 107, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ff6b00;
+            text-shadow: 0 0 20px #ff6b00;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 107, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 107, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🎸🔥</div>
+            <h1>기타 히어로</h1>
+            <p style="color: #ff6b00; margin-bottom: 20px;">록스타가 되어보세요!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 점수</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ff6b00;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🎸 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #ff6b00; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>🎵 4개 레인에서 노트가 내려옵니다</p>
+                <p>🎯 판정 구역에 도달할 때 터치하세요!</p>
+                <p>⭐ Perfect/Great/Good 판정으로 점수!</p>
+                <p>🔥 연속 성공으로 콤보 증가!</p>
+                <p>💥 노트를 놓치면 콤보 리셋!</p>
+                <p>⏱️ 60초 동안 최대한 높은 점수를!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">🎸</div>
+            <h1 id="gameoverTitle">게임 오버!</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div style="opacity: 0.8; margin-bottom: 20px;">최종 점수</div>
+
+            <div id="newRecord" class="hidden" style="color: #ff6b00; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">최대 콤보</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="maxCombo">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">정확도</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="accuracy">0%</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">Perfect</div>
+                    <div style="font-size: 1.8em; font-weight: bold; color: #00ff00;" id="perfectCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">Miss</div>
+                    <div style="font-size: 1.8em; font-weight: bold; color: #ff0000;" id="missCount">0</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">역대 최고 점수</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ff6b00;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <canvas id="gameCanvas" class="hidden"></canvas>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let timeLeft = 60;
+        let lastTime = 0;
+        let notes = [];
+        let particles = [];
+        let perfectHits = 0;
+        let greatHits = 0;
+        let goodHits = 0;
+        let missHits = 0;
+        let totalNotes = 0;
+        let noteSpeed = 3;
+        let spawnTimer = 0;
+        let spawnInterval = 800;
+        let bestScore = localStorage.getItem('guitarHero_best') || 0;
+
+        const lanes = 4;
+        const laneColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
+        const guitarNotes = [196.00, 246.94, 293.66, 349.23]; // G3, B3, D4, F4
+
+        // Audio system
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playNote(frequency) {
+            initAudio();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'triangle';
+            gainNode.gain.value = 0.2;
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function playSound(soundType) {
+            initAudio();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            switch(soundType) {
+                case 'perfect':
+                    oscillator.frequency.value = 1046.5; // C6
+                    gainNode.gain.value = 0.15;
+                    oscillator.type = 'sine';
+                    break;
+                case 'great':
+                    oscillator.frequency.value = 880; // A5
+                    gainNode.gain.value = 0.12;
+                    oscillator.type = 'sine';
+                    break;
+                case 'good':
+                    oscillator.frequency.value = 659.25; // E5
+                    gainNode.gain.value = 0.1;
+                    oscillator.type = 'sine';
+                    break;
+                case 'miss':
+                    oscillator.frequency.value = 130.81; // C3
+                    gainNode.gain.value = 0.15;
+                    oscillator.type = 'sawtooth';
+                    break;
+            }
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.15);
+        }
+
+        // Note class
+        class Note {
+            constructor(lane) {
+                this.lane = lane;
+                this.y = -50;
+                this.width = canvas.width / lanes - 10;
+                this.height = 30;
+                this.hit = false;
+            }
+
+            update() {
+                this.y += noteSpeed;
+            }
+
+            draw() {
+                const laneX = (canvas.width / lanes) * this.lane + 5;
+
+                ctx.fillStyle = laneColors[this.lane];
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = laneColors[this.lane];
+                ctx.fillRect(laneX, this.y, this.width, this.height);
+                ctx.shadowBlur = 0;
+
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(laneX, this.y, this.width, this.height);
+            }
+
+            isInJudgmentZone() {
+                const targetY = canvas.height - 150;
+                return Math.abs(this.y - targetY) < 80;
+            }
+
+            getJudgment() {
+                const targetY = canvas.height - 150;
+                const diff = Math.abs(this.y - targetY);
+
+                if (diff < 20) return 'perfect';
+                if (diff < 40) return 'great';
+                if (diff < 80) return 'good';
+                return 'miss';
+            }
+        }
+
+        // Particle class
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8 - 3;
+                this.life = 1;
+                this.color = color;
+                this.size = Math.random() * 6 + 3;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.3;
+                this.life -= 0.02;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Spawn note
+        function spawnNote() {
+            const lane = Math.floor(Math.random() * lanes);
+            notes.push(new Note(lane));
+            totalNotes++;
+        }
+
+        // Handle tap
+        function handleTap(x) {
+            const lane = Math.floor((x / canvas.width) * lanes);
+            const targetY = canvas.height - 150;
+
+            for (let i = notes.length - 1; i >= 0; i--) {
+                const note = notes[i];
+                if (note.lane === lane && !note.hit && note.isInJudgmentZone()) {
+                    const judgment = note.getJudgment();
+                    note.hit = true;
+
+                    const laneX = (canvas.width / lanes) * lane + (canvas.width / lanes / 2);
+
+                    if (judgment === 'perfect') {
+                        score += 100 * (1 + combo * 0.1);
+                        combo++;
+                        perfectHits++;
+                        playSound('perfect');
+                        createParticles(laneX, targetY, '#00ff00', 20);
+                    } else if (judgment === 'great') {
+                        score += 70 * (1 + combo * 0.1);
+                        combo++;
+                        greatHits++;
+                        playSound('great');
+                        createParticles(laneX, targetY, '#ffff00', 15);
+                    } else if (judgment === 'good') {
+                        score += 40 * (1 + combo * 0.1);
+                        combo++;
+                        goodHits++;
+                        playSound('good');
+                        createParticles(laneX, targetY, '#ffa500', 10);
+                    }
+
+                    playNote(guitarNotes[lane]);
+                    maxCombo = Math.max(maxCombo, combo);
+                    return;
+                }
+            }
+        }
+
+        // Create particles
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            for (let touch of e.touches) {
+                handleTap(touch.clientX);
+            }
+        });
+
+        canvas.addEventListener('click', (e) => {
+            handleTap(e.clientX);
+        });
+
+        // Update game
+        function update(deltaTime) {
+            // Spawn notes
+            spawnTimer += deltaTime;
+            if (spawnTimer >= spawnInterval) {
+                spawnNote();
+                spawnTimer = 0;
+                spawnInterval = Math.max(400, 800 - score * 0.5); // Speed up
+            }
+
+            // Update notes
+            for (let i = notes.length - 1; i >= 0; i--) {
+                const note = notes[i];
+                note.update();
+
+                if (note.y > canvas.height) {
+                    if (!note.hit) {
+                        combo = 0;
+                        missHits++;
+                        playSound('miss');
+                    }
+                    notes.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            // Update speed
+            noteSpeed = 3 + score * 0.001;
+        }
+
+        // Draw game
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw lanes
+            for (let i = 0; i < lanes; i++) {
+                const x = (canvas.width / lanes) * i;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+
+                // Lane glow
+                ctx.fillStyle = laneColors[i];
+                ctx.globalAlpha = 0.1;
+                ctx.fillRect(x, 0, canvas.width / lanes, canvas.height);
+                ctx.globalAlpha = 1;
+            }
+
+            // Draw judgment zone
+            const targetY = canvas.height - 150;
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00ff00';
+            ctx.beginPath();
+            ctx.moveTo(0, targetY);
+            ctx.lineTo(canvas.width, targetY);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+            ctx.fillRect(0, targetY - 40, canvas.width, 80);
+
+            // Draw notes
+            notes.forEach(note => note.draw());
+
+            // Draw particles
+            particles.forEach(particle => particle.draw());
+
+            // Draw UI
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`점수: ${Math.floor(score)}`, 20, 50);
+
+            ctx.font = 'bold 30px Arial';
+            ctx.fillText(`콤보: ${combo}`, 20, 90);
+
+            ctx.textAlign = 'right';
+            ctx.fillText(`⏱️ ${timeLeft}s`, canvas.width - 20, 50);
+
+            // Draw combo indicator
+            if (combo > 5) {
+                ctx.textAlign = 'center';
+                ctx.font = `bold ${30 + combo}px Arial`;
+                ctx.fillStyle = '#ff6b00';
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ff6b00';
+                ctx.fillText(`${combo} COMBO!`, canvas.width / 2, 150);
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // Game loop
+        function gameLoop(currentTime) {
+            if (gameState !== 'playing') return;
+
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            if (deltaTime < 100) {
+                update(deltaTime);
+            }
+
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Timer
+        let timerInterval;
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Start game
+        window.startGame = function() {
+            initAudio();
+
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            canvas.classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            timeLeft = 60;
+            notes = [];
+            particles = [];
+            perfectHits = 0;
+            greatHits = 0;
+            goodHits = 0;
+            missHits = 0;
+            totalNotes = 0;
+            noteSpeed = 3;
+            spawnTimer = 0;
+            spawnInterval = 800;
+            lastTime = performance.now();
+
+            startTimer();
+            requestAnimationFrame(gameLoop);
+        };
+
+        // End game
+        function endGame() {
+            gameState = 'gameover';
+            clearInterval(timerInterval);
+
+            const finalScore = Math.floor(score);
+            const hitCount = perfectHits + greatHits + goodHits;
+            const accuracy = totalNotes > 0 ? Math.floor((hitCount / totalNotes) * 100) : 0;
+
+            document.getElementById('finalScore').textContent = finalScore;
+            document.getElementById('maxCombo').textContent = maxCombo;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+            document.getElementById('perfectCount').textContent = perfectHits;
+            document.getElementById('missCount').textContent = missHits;
+
+            let title = '게임 오버!';
+            if (accuracy >= 95) {
+                title = '완벽해요! 🔥🔥🔥';
+            } else if (accuracy >= 85) {
+                title = '훌륭해요! 🔥🔥';
+            } else if (accuracy >= 70) {
+                title = '좋아요! 🔥';
+            }
+            document.getElementById('gameoverTitle').textContent = title;
+
+            const isNewRecord = finalScore > bestScore;
+            if (isNewRecord) {
+                bestScore = finalScore;
+                localStorage.setItem('guitarHero_best', bestScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (bestScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = bestScore;
+            } else {
+                document.getElementById('highScoreDisplay').classList.add('hidden');
+            }
+
+            canvas.classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Initialize
+        if (bestScore > 0) {
+            document.getElementById('highScore').classList.remove('hidden');
+            document.getElementById('highScoreValue').textContent = bestScore;
+        }
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
