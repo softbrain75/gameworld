@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단어 맞추기 - 게임세상</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+body { font-family: 'Malgun Gothic', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+.game-container { background: rgba(0, 0, 0, 0.8); padding: 40px; border-radius: 20px; color: white; text-align: center; max-width: 500px; border: 3px solid #667eea; }
+h1 { font-size: 2.5em; margin-bottom: 20px; }
+.word { font-size: 3em; letter-spacing: 10px; margin: 30px 0; }
+.keyboard { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin: 20px 0; }
+.key { padding: 15px; background: #667eea; border: none; border-radius: 10px; color: white; font-size: 1.2em; cursor: pointer; font-weight: bold; }
+.key:disabled { background: #555; }
+.lives { font-size: 2em; margin: 20px 0; }
+.back-btn { position: fixed; top: 10px; left: 10px; background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; z-index: 100; }
+</style>
+</head>
+<body>
+<a href="index.html" class="back-btn">← 홈으로</a>
+<div class="game-container">
+<h1>🔤단어 맞추기</h1>
+<div class="lives" id="lives">❤️❤️❤️❤️❤️</div>
+<div class="word" id="word"></div>
+<div class="keyboard" id="keyboard"></div>
+<button class="key" onclick="newGame()" style="grid-column: span 7;">새 게임</button>
+</div>
+<script>
+const words = ['사과','바나나','포도','딸기','수박','키위','망고','체리','복숭아','자두'];
+let currentWord = '', guessed = [], lives = 5;
+
+function newGame() {
+    currentWord = words[Math.floor(Math.random() * words.length)];
+    guessed = [];
+    lives = 5;
+    updateDisplay();
+    document.querySelectorAll('.key').forEach(btn => btn.disabled = false);
+}
+
+function updateDisplay() {
+    document.getElementById('word').textContent = currentWord.split('').map(char => guessed.includes(char) ? char : '_').join(' ');
+    document.getElementById('lives').textContent = '❤️'.repeat(lives);
+    if(!currentWord.split('').some(char => !guessed.includes(char))) {
+        alert('성공!');
+        newGame();
+    }
+    if(lives === 0) {
+        alert('게임 오버! 정답: ' + currentWord);
+        newGame();
+    }
+}
+
+const keyboard = document.getElementById('keyboard');
+'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ'.split('').forEach(char => {
+    const btn = document.createElement('button');
+    btn.className = 'key';
+    btn.textContent = char;
+    btn.onclick = () => {
+        guessed.push(char);
+        if(!currentWord.includes(char)) lives--;
+        btn.disabled = true;
+        updateDisplay();
+    };
+    keyboard.appendChild(btn);
+});
+
+newGame();
+</script>
+</body>
+</html>

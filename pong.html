@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>퐁 - 게임세상</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: #000; height: 100vh; overflow: hidden; }
+        .menu-screen, .gameover-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .menu-content, .gameover-content { background: rgba(0, 0, 0, 0.9); padding: 30px; border-radius: 20px; text-align: center; color: white; border: 3px solid #00c6ff; }
+        h1 { font-size: 2.5em; margin-bottom: 20px; color: #00c6ff; }
+        .btn { background: linear-gradient(45deg, #00c6ff, #0072ff); color: white; border: none; padding: 15px 40px; font-size: 1.5em; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; }
+        canvas { width: 100%; height: 100vh; touch-action: none; background: #000; }
+        .hidden { display: none; }
+        .back-btn { position: fixed; top: 10px; left: 10px; background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; z-index: 100; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+    <div id="menuScreen" class="menu-screen"><div class="menu-content"><h1>🏓퐁</h1><button class="btn" onclick="startGame()">시작</button></div></div>
+    <div id="gameoverScreen" class="gameover-screen hidden"><div class="gameover-content"><h1 id="winText">게임 오버</h1><button class="btn" onclick="startGame()">다시하기</button></div></div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let gameState = 'menu', ball = {x: 0, y: 0, dx: 5, dy: 5, radius: 10}, player = {x: 0, y: 0, width: 15, height: 100, score: 0}, ai = {x: 0, y: 0, width: 15, height: 100, score: 0};
+
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; ball.x = canvas.width / 2; ball.y = canvas.height / 2; player.x = 20; player.y = canvas.height / 2 - 50; ai.x = canvas.width - 35; ai.y = canvas.height / 2 - 50; }
+        resize();
+        window.addEventListener('resize', resize);
+
+        canvas.addEventListener('mousemove', (e) => { if(gameState === 'playing') player.y = e.clientY - 50; });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(gameState === 'playing') player.y = e.touches[0].clientY - 50; });
+
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            gameState = 'playing';
+            player.score = 0;
+            ai.score = 0;
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.dx = 5;
+            ball.dy = 5;
+        };
+
+        function gameLoop() {
+            if(gameState === 'playing') {
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+
+                if(ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) ball.dy *= -1;
+
+                if(ball.x - ball.radius < player.x + player.width && ball.y > player.y && ball.y < player.y + player.height) {
+                    ball.dx *= -1;
+                    ball.x = player.x + player.width + ball.radius;
+                }
+
+                if(ball.x + ball.radius > ai.x && ball.y > ai.y && ball.y < ai.y + ai.height) {
+                    ball.dx *= -1;
+                    ball.x = ai.x - ball.radius;
+                }
+
+                if(ball.x < 0) {
+                    ai.score++;
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    if(ai.score >= 5) { document.getElementById('winText').textContent = 'AI 승리!'; document.getElementById('gameoverScreen').classList.remove('hidden'); gameState = 'gameover'; }
+                }
+
+                if(ball.x > canvas.width) {
+                    player.score++;
+                    ball.x = canvas.width / 2;
+                    ball.y = canvas.height / 2;
+                    if(player.score >= 5) { document.getElementById('winText').textContent = '플레이어 승리!'; document.getElementById('gameoverScreen').classList.remove('hidden'); gameState = 'gameover'; }
+                }
+
+                ai.y += (ball.y - (ai.y + ai.height / 2)) * 0.1;
+
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.strokeStyle = '#fff';
+                ctx.setLineDashOffset(4, 4);
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, 0);
+                ctx.lineTo(canvas.width / 2, canvas.height);
+                ctx.stroke();
+
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+                ctx.fillRect(ai.x, ai.y, ai.width, ai.height);
+
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.font = '40px Arial';
+                ctx.fillText(player.score, canvas.width / 4, 50);
+                ctx.fillText(ai.score, canvas.width * 3 / 4, 50);
+            }
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>

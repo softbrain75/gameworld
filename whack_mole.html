@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>두더지 잡기 - 게임세상</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: linear-gradient(135deg, #8BC34A 0%, #4CAF50 100%); height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .menu-screen, .gameover-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .menu-content, .gameover-content { background: rgba(0, 0, 0, 0.9); padding: 30px; border-radius: 20px; text-align: center; color: white; border: 3px solid #ff9800; }
+        h1 { font-size: 2.5em; margin-bottom: 20px; color: #ff9800; }
+        .btn { background: linear-gradient(45deg, #ff9800, #ff5722); color: white; border: none; padding: 15px 40px; font-size: 1.5em; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; }
+        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 500px; margin: 20px 0; }
+        .hole { width: 100px; height: 100px; background: #654321; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 4em; cursor: pointer; position: relative; overflow: hidden; border: 5px solid #8B4513; }
+        .mole { transition: transform 0.2s; }
+        .hole.empty .mole { transform: translateY(100px); }
+        .hidden { display: none; }
+        .stats { color: white; font-size: 1.5em; text-align: center; margin-bottom: 20px; }
+        .back-btn { position: fixed; top: 10px; left: 10px; background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; z-index: 100; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+    <div id="menuScreen" class="menu-screen"><div class="menu-content"><h1>🔨두더지 잡기</h1><button class="btn" onclick="startGame()">시작</button></div></div>
+    <div id="gameoverScreen" class="gameover-screen hidden"><div class="gameover-content"><h1>게임 오버</h1><div style="font-size:3em;color:#ffd700" id="finalScore">0</div><button class="btn" onclick="startGame()">다시하기</button></div></div>
+    <div id="gameContainer" class="hidden">
+        <div class="stats"><div>점수: <span id="score">0</span> | 시간: <span id="time">30</span></div></div>
+        <div class="game-grid" id="grid"></div>
+    </div>
+    <script>
+        let score = 0, timeLeft = 30, interval, moleInterval;
+
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+            score = 0; timeLeft = 30;
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            for(let i = 0; i < 9; i++) {
+                const hole = document.createElement('div');
+                hole.className = 'hole empty';
+                hole.innerHTML = '<div class="mole">🐹</div>';
+                hole.addEventListener('click', () => {
+                    if(!hole.classList.contains('empty')) {
+                        score += 10;
+                        hole.classList.add('empty');
+                        document.getElementById('score').textContent = score;
+                    }
+                });
+                grid.appendChild(hole);
+            }
+
+            interval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time').textContent = timeLeft;
+                if(timeLeft === 0) {
+                    clearInterval(interval);
+                    clearInterval(moleInterval);
+                    document.getElementById('finalScore').textContent = score;
+                    document.getElementById('gameoverScreen').classList.remove('hidden');
+                    document.getElementById('gameContainer').classList.add('hidden');
+                }
+            }, 1000);
+
+            moleInterval = setInterval(() => {
+                const holes = document.querySelectorAll('.hole');
+                holes.forEach(h => h.classList.add('empty'));
+                const randomHole = holes[Math.floor(Math.random() * holes.length)];
+                randomHole.classList.remove('empty');
+                setTimeout(() => randomHole.classList.add('empty'), 800);
+            }, 1000);
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('time').textContent = timeLeft;
+        };
+    </script>
+</body>
+</html>
