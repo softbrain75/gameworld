@@ -364,14 +364,14 @@
                 document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
             }
 
-            // Create stars (dim, realistic night sky)
-            for (let i = 0; i < 200; i++) {
+            // Create stars (dim, realistic night sky) - MORE STARS
+            for (let i = 0; i < 800; i++) {
                 stars.push({
-                    x: (Math.random() - 0.5) * 4000,
-                    y: (Math.random() - 0.5) * 4000,
-                    size: Math.random() * 1.5 + 0.5,
-                    brightness: Math.random() * 0.3 + 0.1, // Very dim
-                    twinkleSpeed: Math.random() * 0.02 + 0.01,
+                    x: (Math.random() - 0.5) * 6000,
+                    y: (Math.random() - 0.5) * 6000,
+                    size: Math.random() * 2 + 0.3,
+                    brightness: Math.random() * 0.5 + 0.2, // Slightly brighter
+                    twinkleSpeed: Math.random() * 0.03 + 0.01,
                     twinklePhase: Math.random() * Math.PI * 2
                 });
             }
@@ -848,6 +848,26 @@
                 }
             });
 
+            // Draw crescent moon (fixed position in top right)
+            const moonX = canvas.width - 150;
+            const moonY = 100;
+            const moonRadius = 40;
+
+            // Full moon
+            ctx.fillStyle = 'rgba(255, 255, 200, 0.6)';
+            ctx.shadowColor = 'rgba(255, 255, 200, 0.5)';
+            ctx.shadowBlur = 30;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Crescent shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+            ctx.beginPath();
+            ctx.arc(moonX - 15, moonY, moonRadius, 0, Math.PI * 2);
+            ctx.fill();
+
             // Draw crosshair (center of screen)
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
@@ -875,6 +895,75 @@
             ctx.stroke();
 
             ctx.shadowBlur = 0;
+
+            // Draw radar (bottom right)
+            const radarX = canvas.width - 100;
+            const radarY = canvas.height - 100;
+            const radarRadius = 80;
+
+            // Radar background
+            ctx.fillStyle = 'rgba(0, 50, 100, 0.7)';
+            ctx.beginPath();
+            ctx.arc(radarX, radarY, radarRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Radar border
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(radarX, radarY, radarRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Radar grid
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(radarX - radarRadius, radarY);
+            ctx.lineTo(radarX + radarRadius, radarY);
+            ctx.moveTo(radarX, radarY - radarRadius);
+            ctx.lineTo(radarX, radarY + radarRadius);
+            ctx.stroke();
+
+            // Range circles
+            ctx.beginPath();
+            ctx.arc(radarX, radarY, radarRadius * 0.33, 0, Math.PI * 2);
+            ctx.arc(radarX, radarY, radarRadius * 0.66, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Player position (center dot)
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.arc(radarX, radarY, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Enemy blips on radar
+            enemies.forEach(enemy => {
+                const dx = enemy.x - cameraX;
+                const dy = enemy.y - cameraY;
+                const dist = Math.hypot(dx, dy);
+                const maxRadarDist = 1500;
+
+                if (dist < maxRadarDist) {
+                    const radarDist = (dist / maxRadarDist) * (radarRadius - 10);
+                    const angle = Math.atan2(dy, dx);
+                    const blipX = radarX + Math.cos(angle) * radarDist;
+                    const blipY = radarY + Math.sin(angle) * radarDist;
+
+                    ctx.fillStyle = enemy.color;
+                    ctx.shadowColor = enemy.color;
+                    ctx.shadowBlur = 5;
+                    ctx.beginPath();
+                    ctx.arc(blipX, blipY, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            // Radar label
+            ctx.fillStyle = '#00ffff';
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('RADAR', radarX, radarY - radarRadius - 10);
         }
 
         function gameLoop() {
