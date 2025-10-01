@@ -426,6 +426,29 @@
             crosshairY = y * scaleY;
         }
 
+        // Background music
+        let bgMusic = null;
+
+        function initBackgroundMusic() {
+            if (!bgMusic) {
+                bgMusic = new Audio('music/Across the Stars.mp3');
+                bgMusic.loop = true;
+                bgMusic.volume = 0.3;
+            }
+        }
+
+        function playBackgroundMusic() {
+            initBackgroundMusic();
+            bgMusic.play().catch(e => console.log('Music play failed:', e));
+        }
+
+        function stopBackgroundMusic() {
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+        }
+
         window.startGame = function() {
             document.getElementById('menuScreen').classList.add('hidden');
             document.getElementById('gameoverScreen').classList.add('hidden');
@@ -444,6 +467,9 @@
 
             // Initialize audio on first interaction
             initAudio();
+
+            // Start background music
+            playBackgroundMusic();
 
             // Create stars
             for (let i = 0; i < 150; i++) {
@@ -901,6 +927,9 @@
 
         function endGame() {
             gameState = 'gameover';
+
+            // Stop background music
+            stopBackgroundMusic();
 
             const avgScore = kills > 0 ? Math.round(score / kills) : 0;
 
