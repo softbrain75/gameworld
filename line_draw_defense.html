@@ -334,23 +334,6 @@
             gameLoop();
         }
 
-        function startGame() {
-            document.getElementById('menuScreen').classList.add('hidden');
-            document.getElementById('gameoverScreen').classList.add('hidden');
-            document.getElementById('gameContainer').classList.remove('hidden');
-
-            gameState = 'playing';
-            score = 0;
-            lives = 5;
-            kills = 0;
-            enemies = [];
-            lines = [];
-            particles = [];
-            startTime = Date.now();
-
-            updateUI();
-        }
-
         function startDrawing(e) {
             if (gameState !== 'playing') return;
 
@@ -680,8 +663,23 @@
         }
 
         window.startGame = function() {
-            clearInterval(spawnInterval);
-            startGame();
+            if (spawnInterval) {
+                clearInterval(spawnInterval);
+            }
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            lives = 5;
+            kills = 0;
+            enemies = [];
+            lines = [];
+            particles = [];
+            startTime = Date.now();
+
+            updateUI();
             startEnemySpawning();
         };
 
