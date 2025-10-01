@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>라인 드로우 디펜스 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .instructions p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.7em;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        canvas {
+            flex: 1;
+            width: 100%;
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🔥✍️</div>
+            <h1>라인 드로우 디펜스</h1>
+            <div class="instructions">
+                <p>✍️ 손가락으로 선을 그어 방어벽 만들기</p>
+                <p>🔥 방어벽이 불타면서 적을 태움</p>
+                <p>⚡ 적이 화면 끝에 닿으면 생명 감소</p>
+                <p>💎 최대한 오래 살아남으세요!</p>
+            </div>
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 기록</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+            <button class="btn" onclick="startGame()">🔥 시작하기</button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">💥</div>
+            <h1>게임 오버</h1>
+            <div class="score-display" id="finalScore">0</div>
+            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8;">처치한 적</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="killCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8;">생존 시간</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="survivalTime">0s</div>
+                </div>
+            </div>
+            <button class="btn" onclick="startGame()">🔄 재도전</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">점수</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">생명</div>
+                <div class="stat-value" id="lives">5</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">처치</div>
+                <div class="stat-value" id="kills">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">시간</div>
+                <div class="stat-value" id="time">0</div>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let lives = 5;
+        let kills = 0;
+        let startTime = 0;
+        let currentTime = 0;
+        let highScore = localStorage.getItem('lineDrawDefense_highScore') || 0;
+
+        // Game objects
+        let enemies = [];
+        let lines = [];
+        let particles = [];
+        let currentLine = null;
+        let isDrawing = false;
+
+        // Constants
+        const ENEMY_SPAWN_INTERVAL = 1500;
+        const LINE_LIFETIME = 3000;
+        const LINE_BURN_RATE = 0.001;
+
+        // Enemy types
+        const enemyTypes = [
+            { color: '#e74c3c', size: 20, speed: 1.5, health: 1, points: 10 },
+            { color: '#3498db', size: 18, speed: 2.5, health: 1, points: 15 },
+            { color: '#9b59b6', size: 25, speed: 1, health: 2, points: 25 },
+            { color: '#f39c12', size: 30, speed: 0.8, health: 3, points: 40 }
+        ];
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - document.querySelector('.stats').offsetHeight;
+        }
+
+        // Initialize
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Show high score
+            if (highScore > 0) {
+                document.getElementById('highScore').classList.remove('hidden');
+                document.getElementById('highScoreValue').textContent = highScore.toLocaleString();
+            }
+
+            // Touch/Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startDrawing(e.touches[0]);
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                draw(e.touches[0]);
+            });
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                stopDrawing();
+            });
+
+            gameLoop();
+        }
+
+        function startGame() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            lives = 5;
+            kills = 0;
+            enemies = [];
+            lines = [];
+            particles = [];
+            startTime = Date.now();
+
+            updateUI();
+        }
+
+        function startDrawing(e) {
+            if (gameState !== 'playing') return;
+
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.pageX) - rect.left;
+            const y = (e.clientY || e.pageY) - rect.top;
+
+            currentLine = {
+                points: [{ x, y }],
+                createdAt: Date.now(),
+                life: 1.0
+            };
+        }
+
+        function draw(e) {
+            if (!isDrawing || gameState !== 'playing') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.pageX) - rect.left;
+            const y = (e.clientY || e.pageY) - rect.top;
+
+            if (currentLine) {
+                const lastPoint = currentLine.points[currentLine.points.length - 1];
+                const distance = Math.hypot(x - lastPoint.x, y - lastPoint.y);
+
+                if (distance > 5) {
+                    currentLine.points.push({ x, y });
+                }
+            }
+        }
+
+        function stopDrawing() {
+            if (currentLine && currentLine.points.length > 1) {
+                lines.push(currentLine);
+            }
+            isDrawing = false;
+            currentLine = null;
+        }
+
+        function spawnEnemy() {
+            if (gameState !== 'playing') return;
+
+            const difficulty = Math.min(Math.floor((Date.now() - startTime) / 10000), 3);
+            const type = enemyTypes[Math.min(difficulty, Math.floor(Math.random() * (difficulty + 1)))];
+
+            const side = Math.random() < 0.5 ? 'left' : 'right';
+            const x = side === 'left' ? -type.size : canvas.width + type.size;
+            const y = Math.random() * canvas.height;
+            const targetX = side === 'left' ? canvas.width + type.size : -type.size;
+            const angle = Math.atan2(canvas.height / 2 - y, targetX - x);
+
+            enemies.push({
+                x, y,
+                vx: Math.cos(angle) * type.speed,
+                vy: Math.sin(angle) * type.speed,
+                ...type,
+                maxHealth: type.health
+            });
+        }
+
+        function updateEnemies() {
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                enemy.x += enemy.vx;
+                enemy.y += enemy.vy;
+
+                // Check if enemy reached the other side
+                if (enemy.x < -enemy.size * 2 || enemy.x > canvas.width + enemy.size * 2 ||
+                    enemy.y < -enemy.size * 2 || enemy.y > canvas.height + enemy.size * 2) {
+                    enemies.splice(i, 1);
+                    lives--;
+                    updateUI();
+
+                    if (lives <= 0) {
+                        endGame();
+                    }
+                    continue;
+                }
+
+                // Check collision with lines
+                for (let j = lines.length - 1; j >= 0; j--) {
+                    const line = lines[j];
+
+                    for (let k = 0; k < line.points.length - 1; k++) {
+                        const p1 = line.points[k];
+                        const p2 = line.points[k + 1];
+
+                        const distance = distanceToLineSegment(enemy.x, enemy.y, p1.x, p1.y, p2.x, p2.y);
+
+                        if (distance < enemy.size / 2 + 5) {
+                            enemy.health--;
+
+                            // Create hit particles
+                            for (let p = 0; p < 5; p++) {
+                                particles.push({
+                                    x: enemy.x,
+                                    y: enemy.y,
+                                    vx: (Math.random() - 0.5) * 4,
+                                    vy: (Math.random() - 0.5) * 4,
+                                    life: 1.0,
+                                    color: '#ff6600',
+                                    size: 4
+                                });
+                            }
+
+                            if (enemy.health <= 0) {
+                                // Enemy killed
+                                score += enemy.points;
+                                kills++;
+                                updateUI();
+
+                                // Death particles
+                                for (let p = 0; p < 20; p++) {
+                                    const angle = (Math.PI * 2 * p) / 20;
+                                    particles.push({
+                                        x: enemy.x,
+                                        y: enemy.y,
+                                        vx: Math.cos(angle) * 3,
+                                        vy: Math.sin(angle) * 3,
+                                        life: 1.0,
+                                        color: enemy.color,
+                                        size: 6
+                                    });
+                                }
+
+                                enemies.splice(i, 1);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateLines() {
+            for (let i = lines.length - 1; i >= 0; i--) {
+                const line = lines[i];
+                const age = Date.now() - line.createdAt;
+                line.life = Math.max(0, 1 - (age / LINE_LIFETIME));
+
+                // Create fire particles
+                if (Math.random() < 0.3 && line.points.length > 0) {
+                    const point = line.points[Math.floor(Math.random() * line.points.length)];
+                    particles.push({
+                        x: point.x,
+                        y: point.y,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: -Math.random() * 2 - 1,
+                        life: 1.0,
+                        color: Math.random() > 0.5 ? '#ff6600' : '#ffd700',
+                        size: 3
+                    });
+                }
+
+                if (line.life <= 0) {
+                    lines.splice(i, 1);
+                }
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += 0.1; // gravity
+                particle.life -= 0.02;
+
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                // Shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.beginPath();
+                ctx.arc(enemy.x + 2, enemy.y + 2, enemy.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Enemy body
+                ctx.fillStyle = enemy.color;
+                ctx.shadowColor = enemy.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Health bar
+                if (enemy.health < enemy.maxHealth) {
+                    const barWidth = enemy.size;
+                    const barHeight = 4;
+                    const barX = enemy.x - barWidth / 2;
+                    const barY = enemy.y - enemy.size / 2 - 8;
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(barX, barY, barWidth, barHeight);
+
+                    ctx.fillStyle = '#2ecc71';
+                    ctx.fillRect(barX, barY, barWidth * (enemy.health / enemy.maxHealth), barHeight);
+                }
+            });
+        }
+
+        function drawLines() {
+            // Existing lines
+            lines.forEach(line => {
+                if (line.points.length < 2) return;
+
+                ctx.strokeStyle = `rgba(255, 102, 0, ${line.life})`;
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = '#ff6600';
+                ctx.shadowBlur = 15 * line.life;
+
+                ctx.beginPath();
+                ctx.moveTo(line.points[0].x, line.points[0].y);
+                for (let i = 1; i < line.points.length; i++) {
+                    ctx.lineTo(line.points[i].x, line.points[i].y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            });
+
+            // Current drawing line
+            if (currentLine && currentLine.points.length > 1) {
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = '#ffd700';
+                ctx.shadowBlur = 20;
+
+                ctx.beginPath();
+                ctx.moveTo(currentLine.points[0].x, currentLine.points[0].y);
+                for (let i = 1; i < currentLine.points.length; i++) {
+                    ctx.lineTo(currentLine.points[i].x, currentLine.points[i].y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function drawParticles() {
+            particles.forEach(particle => {
+                ctx.fillStyle = particle.color.includes('rgb')
+                    ? particle.color.replace(')', `, ${particle.life})`).replace('rgb', 'rgba')
+                    : particle.color + Math.floor(particle.life * 255).toString(16).padStart(2, '0');
+
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing') {
+                // Update
+                updateEnemies();
+                updateLines();
+                updateParticles();
+
+                currentTime = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('time').textContent = currentTime;
+
+                // Clear canvas
+                ctx.fillStyle = '#1a1a2e';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw
+                drawLines();
+                drawEnemies();
+                drawParticles();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('kills').textContent = kills;
+        }
+
+        function endGame() {
+            gameState = 'gameover';
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('killCount').textContent = kills;
+            document.getElementById('survivalTime').textContent = currentTime + 's';
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('lineDrawDefense_highScore', highScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        function distanceToLineSegment(px, py, x1, y1, x2, y2) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const length = Math.sqrt(dx * dx + dy * dy);
+
+            if (length === 0) return Math.hypot(px - x1, py - y1);
+
+            const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (length * length)));
+            const projX = x1 + t * dx;
+            const projY = y1 + t * dy;
+
+            return Math.hypot(px - projX, py - projY);
+        }
+
+        // Enemy spawning
+        let spawnInterval;
+        function startEnemySpawning() {
+            spawnInterval = setInterval(spawnEnemy, ENEMY_SPAWN_INTERVAL);
+        }
+
+        window.startGame = function() {
+            clearInterval(spawnInterval);
+            startGame();
+            startEnemySpawning();
+        };
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
