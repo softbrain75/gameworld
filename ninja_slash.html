@@ -560,9 +560,9 @@
             const fruit = {
                 x: Math.random() * (canvas.width - 100) + 50,
                 y: canvas.height + 50,
-                vx: (Math.random() - 0.5) * 4,
-                vy: -(Math.random() * 8 + 12),
-                size: 40,
+                vx: (Math.random() - 0.5) * 5,
+                vy: -(Math.random() * 10 + 18), // 더 높이 올라감
+                size: 45, // 크기 증가
                 gravity: 0.4,
                 isBomb,
                 sliced: false,
@@ -680,6 +680,13 @@
                 ctx.save();
                 ctx.translate(fruit.x, fruit.y);
                 ctx.rotate(fruit.rotation);
+
+                // 밝은 배경 원 추가 (이모지가 더 잘 보이도록)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.beginPath();
+                ctx.arc(0, 0, fruit.size * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+
                 ctx.font = `${fruit.size * 2}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -687,6 +694,10 @@
                 if (fruit.isBomb) {
                     ctx.shadowColor = '#ff0000';
                     ctx.shadowBlur = 20;
+                } else {
+                    // 과일에 밝은 테두리 효과
+                    ctx.shadowColor = fruit.color;
+                    ctx.shadowBlur = 15;
                 }
 
                 ctx.fillText(fruit.emoji, 0, 0);
