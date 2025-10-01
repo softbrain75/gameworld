@@ -222,9 +222,9 @@
 
             <div class="instructions">
                 <p style="font-weight: bold; color: #f7b733; margin-bottom: 10px;">🎮 게임 방법</p>
-                <p>👆 4개의 드럼 패드를 터치!</p>
+                <p>👆 3개의 퍼커션 패드를 터치!</p>
                 <p>🎯 떨어지는 노트가 라인에 닿을 때 터치!</p>
-                <p>🥁 각 드럼마다 다른 소리!</p>
+                <p>👏 박수, 탬버린, 핑거스냅 소리!</p>
                 <p>⏱️ 60초 안에 최대한 많이!</p>
                 <p>✨ PERFECT(15px) > GREAT(30px) > GOOD(50px)</p>
                 <p>🔥 연속 히트로 콤보 보너스!</p>
@@ -307,7 +307,7 @@
         let misses = 0;
         let highScore = localStorage.getItem('drumBeat_highScore') || 0;
 
-        const LANES = 4;
+        const LANES = 3;
         let notes = [];
         let particles = [];
         let timerInterval = null;
@@ -315,18 +315,23 @@
         let gameTime = 0;
         let lastBeatTime = 0;
         
-        // Rhythm system
-        const BPM = 120;
+        // Rhythm system synchronized with background music
+        const BPM = 120; // Matches 'Across the Stars' tempo
         const BEAT_INTERVAL = (60 / BPM) * 1000; // ms between beats
         const PATTERNS = [
-            [1, 0, 1, 0], // Basic kick-snare
-            [1, 0, 0, 1], // Kick-cymbal
-            [0, 1, 0, 1], // Snare-cymbal
-            [1, 1, 0, 0], // Double hit
-            [1, 0, 1, 1], // Complex
+            [1, 0, 1], // Basic clap-snap
+            [1, 1, 0], // Double hit
+            [0, 1, 1], // Tambourine-snap
+            [1, 0, 0], // Single clap
+            [0, 0, 1], // Single snap
         ];
         let currentPattern = 0;
         let patternBeat = 0;
+        
+        // Background music
+        let bgMusic = null;
+        let musicStartTime = 0;
+        let isPlayingMusic = false;
         
         // Enhanced timing thresholds
         const TIMING = {
@@ -336,15 +341,14 @@
             MISS: 60
         };
 
-        // Enhanced drum sounds with envelopes
+        // Realistic percussion sounds (3 lanes for better mobile play)
         const drumSounds = [
-            { freq: 60, type: 'sine', name: 'Kick', attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.1 },
-            { freq: 200, type: 'sawtooth', name: 'Snare', attack: 0.005, decay: 0.1, sustain: 0.05, release: 0.05 },
-            { freq: 300, type: 'square', name: 'Tom', attack: 0.01, decay: 0.15, sustain: 0.1, release: 0.1 },
-            { freq: 800, type: 'sine', name: 'Cymbal', attack: 0.01, decay: 0.3, sustain: 0.2, release: 0.4 }
+            { name: 'Clap', type: 'clap' },
+            { name: 'Tambourine', type: 'tambourine' },
+            { name: 'Snap', type: 'snap' }
         ];
 
-        const laneColors = ['#ff6b6b', '#4ecdc4', '#ffd93d', '#a29bfe'];
+        const laneColors = ['#ff6b6b', '#4ecdc4', '#ffd93d'];
 
         // Enhanced sound system with ADSR envelope
         let audioContext = null;
@@ -358,49 +362,93 @@
             }
         }
         
+        // Realistic percussion sounds following CLAUDE.md guidelines
         function playDrum(laneIndex) {
             try {
                 initAudio();
                 const drum = drumSounds[laneIndex];
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                const filterNode = audioContext.createBiquadFilter();
-
-                oscillator.connect(filterNode);
-                filterNode.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                oscillator.frequency.value = drum.freq;
-                oscillator.type = drum.type;
-                
-                // Add noise for snare
-                if (laneIndex === 1) {
-                    const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.1, audioContext.sampleRate);
-                    const noiseData = noiseBuffer.getChannelData(0);
-                    for (let i = 0; i < noiseData.length; i++) {
-                        noiseData[i] = Math.random() * 2 - 1;
-                    }
-                    const noiseSource = audioContext.createBufferSource();
-                    const noiseGain = audioContext.createGain();
-                    noiseSource.buffer = noiseBuffer;
-                    noiseSource.connect(noiseGain);
-                    noiseGain.connect(gainNode);
-                    noiseGain.gain.value = 0.3;
-                    noiseSource.start();
-                }
-                
-                // ADSR envelope
                 const now = audioContext.currentTime;
-                const duration = drum.attack + drum.decay + drum.release;
                 
-                gainNode.gain.setValueAtTime(0, now);
-                gainNode.gain.linearRampToValueAtTime(0.3, now + drum.attack);
-                gainNode.gain.linearRampToValueAtTime(drum.sustain * 0.3, now + drum.attack + drum.decay);
-                gainNode.gain.linearRampToValueAtTime(0, now + duration);
-
-                oscillator.start();
-                oscillator.stop(now + duration);
+                if (drum.type === 'clap') {
+                    // Hand clap sound - multiple quick bursts
+                    for (let i = 0; i < 3; i++) {
+                        const noise = createNoiseBuffer(0.01);
+                        const source = audioContext.createBufferSource();
+                        const gain = audioContext.createGain();
+                        const filter = audioContext.createBiquadFilter();
+                        
+                        source.buffer = noise;
+                        source.connect(filter);
+                        filter.connect(gain);
+                        gain.connect(audioContext.destination);
+                        
+                        filter.type = 'bandpass';
+                        filter.frequency.value = 2000 + i * 500;
+                        filter.Q.value = 5;
+                        
+                        gain.gain.setValueAtTime(0, now + i * 0.005);
+                        gain.gain.linearRampToValueAtTime(0.10, now + i * 0.005 + 0.001); // 40% of BGM volume
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.005 + 0.01);
+                        
+                        source.start(now + i * 0.005);
+                    }
+                } else if (drum.type === 'tambourine') {
+                    // Tambourine - high frequency jingle
+                    const oscillator1 = audioContext.createOscillator();
+                    const oscillator2 = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    
+                    oscillator1.connect(gain);
+                    oscillator2.connect(gain);
+                    gain.connect(audioContext.destination);
+                    
+                    oscillator1.frequency.value = 3000;
+                    oscillator2.frequency.value = 3200;
+                    oscillator1.type = 'sine';
+                    oscillator2.type = 'sine';
+                    
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.10, now + 0.001);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    
+                    oscillator1.start();
+                    oscillator2.start();
+                    oscillator1.stop(now + 0.08);
+                    oscillator2.stop(now + 0.08);
+                } else if (drum.type === 'snap') {
+                    // Finger snap - sharp click
+                    const noise = createNoiseBuffer(0.005);
+                    const source = audioContext.createBufferSource();
+                    const gain = audioContext.createGain();
+                    const filter = audioContext.createBiquadFilter();
+                    
+                    source.buffer = noise;
+                    source.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(audioContext.destination);
+                    
+                    filter.type = 'highpass';
+                    filter.frequency.value = 4000;
+                    
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.12, now + 0.001);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    
+                    source.start();
+                }
             } catch (e) {}
+        }
+        
+        function createNoiseBuffer(duration) {
+            const bufferSize = audioContext.sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            return buffer;
         }
 
         function playSound(soundType) {
@@ -453,14 +501,16 @@
             canvas.height = window.innerHeight - stats.offsetHeight;
         }
 
-        // Create note
-        function createNote() {
-            const lane = Math.floor(Math.random() * LANES);
-            notes.push({
-                lane: lane,
-                y: -50,
-                hit: false
-            });
+        // Create note based on rhythm pattern
+        function createNote(lane) {
+            if (lane !== undefined) {
+                notes.push({
+                    lane: lane,
+                    y: -50,
+                    hit: false,
+                    targetTime: gameTime + (canvas.height + 50) / 4 * (1000/60) // Time when note should be hit
+                });
+            }
         }
 
         // Create particles
@@ -482,17 +532,26 @@
 
         // Update game
         function updateGame() {
+            gameTime += 1000/60; // Increment game time (assuming 60fps)
+            
+            // Generate notes synchronized with music
+            generateMusicSyncedNotes();
+            
             // Move notes down
             const speed = 4;
+            const hitLineY = canvas.height - 100;
+            
             for (let i = notes.length - 1; i >= 0; i--) {
                 const note = notes[i];
                 note.y += speed;
 
-                // Check if missed
-                if (note.y > canvas.height && !note.hit) {
+                // Check if missed (note passed hit line by miss threshold)
+                if (note.y > hitLineY + TIMING.MISS && !note.hit) {
                     notes.splice(i, 1);
                     combo = 0;
                     misses++;
+                    playSound('miss');
+                    createParticles(note.lane * (canvas.width / LANES) + (canvas.width / LANES) / 2, hitLineY, '#ff4444');
                     updateUI();
                 }
 
@@ -500,11 +559,6 @@
                 if (note.y > canvas.height + 100) {
                     notes.splice(i, 1);
                 }
-            }
-
-            // Spawn new notes
-            if (Math.random() < 0.02) {
-                createNote();
             }
 
             // Update particles
@@ -694,6 +748,68 @@
             canvas.dispatchEvent(mouseEvent);
         });
 
+        // Background music functions
+        function initBackgroundMusic() {
+            if (!bgMusic) {
+                bgMusic = new Audio('music/Across the Stars.mp3');
+                bgMusic.loop = true;
+                bgMusic.volume = 0.3; // Standard BGM volume as per CLAUDE.md
+                bgMusic.addEventListener('loadeddata', () => {
+                    console.log('Background music loaded');
+                });
+                bgMusic.addEventListener('error', (e) => {
+                    console.log('Music load failed:', e);
+                });
+            }
+        }
+        
+        function playBackgroundMusic() {
+            initBackgroundMusic();
+            if (bgMusic && !isPlayingMusic) {
+                bgMusic.currentTime = 0;
+                bgMusic.play().then(() => {
+                    isPlayingMusic = true;
+                    musicStartTime = Date.now();
+                }).catch(e => console.log('Music play failed:', e));
+            }
+        }
+        
+        function stopBackgroundMusic() {
+            if (bgMusic && isPlayingMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+                isPlayingMusic = false;
+            }
+        }
+        
+        // Music-synchronized note generation
+        function generateMusicSyncedNotes() {
+            if (!isPlayingMusic) return;
+            
+            const currentMusicTime = (Date.now() - musicStartTime) / 1000; // seconds
+            const beatPosition = (currentMusicTime * BPM / 60) % 4; // 4/4 time
+            
+            // Generate notes based on music beat
+            if (Math.floor(beatPosition) !== Math.floor((beatPosition - 1/60) % 4)) {
+                const pattern = PATTERNS[currentPattern];
+                const beatIndex = Math.floor(beatPosition) % pattern.length;
+                
+                if (pattern[beatIndex] === 1) {
+                    let lane;
+                    if (beatIndex % 3 === 0) lane = 0; // Clap on strong beats
+                    else if (beatIndex % 2 === 1) lane = 1; // Tambourine on off-beats  
+                    else lane = 2; // Snap
+                    
+                    createNote(lane);
+                }
+                
+                // Change pattern every 16 beats
+                if (Math.floor(currentMusicTime * BPM / 60 / 16) !== currentPattern) {
+                    currentPattern = (currentPattern + 1) % PATTERNS.length;
+                }
+            }
+        }
+
         // Start game
         window.startGame = function() {
             document.getElementById('menuScreen').classList.add('hidden');
@@ -710,13 +826,16 @@
             notes = [];
             particles = [];
             ratingTexts = [];
-            drumPadAnimations = [0, 0, 0, 0];
+            drumPadAnimations = [0, 0, 0];
             gameTime = 0;
             currentPattern = 0;
             patternBeat = -1;
 
             resizeCanvas();
             updateUI();
+            
+            // Start background music
+            playBackgroundMusic();
 
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
@@ -740,6 +859,9 @@
         function endGame() {
             gameState = 'gameover';
             if (timerInterval) clearInterval(timerInterval);
+            
+            // Stop background music
+            stopBackgroundMusic();
 
             const totalNotes = hits + misses;
             const accuracy = totalNotes > 0 ? Math.round((hits / totalNotes) * 100) : 0;
