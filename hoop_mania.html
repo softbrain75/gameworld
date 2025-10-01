@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>후프 매니아 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6a00 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #f77062 0%, #fe5196 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #f77062;
+            box-shadow: 0 0 40px rgba(247, 112, 98, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #f77062, #fe5196);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #f77062, #fe5196);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(247, 112, 98, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            position: relative;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            color: #ff9a56;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        canvas {
+            flex: 1;
+            width: 100%;
+            touch-action: none;
+            background: linear-gradient(180deg, #87ceeb 0%, #e0f6ff 100%);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(247, 112, 98, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(247, 112, 98, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🏀🔥</div>
+            <h1>후프 매니아</h1>
+            <p style="color: #ff9a56; margin-bottom: 20px;">농구공을 골대에 넣으세요!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 점수</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🏀 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #ff9a56; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>👆 공을 드래그해서 스와이프!</p>
+                <p>🏀 골대에 넣으면 점수 획득!</p>
+                <p>🔥 연속으로 넣으면 점수 배율 증가!</p>
+                <p>💨 드래그 길이와 방향이 중요!</p>
+                <p>⏱️ 제한 시간 안에 최대한 많이!</p>
+                <p>🎯 퍼펙트 슛으로 보너스 점수!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">🏀</div>
+            <h1>게임 종료</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">성공률</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="successRate">0%</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">최대 연속</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="maxStreak">0</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 점수</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">점수</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">시간</div>
+                <div class="stat-value" id="timer">60</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">연속</div>
+                <div class="stat-value" id="streak">0</div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        let timeLeft = 60;
+        let successes = 0;
+        let attempts = 0;
+        let highScore = localStorage.getItem('hoopMania_highScore') || 0;
+
+        let ball = null;
+        let hoop = null;
+        let particles = [];
+        let timerInterval = null;
+
+        let dragStart = null;
+        let isDragging = false;
+
+        // Sound system
+        function playSound(soundType) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'swish':
+                        oscillator.frequency.value = 880; // A5
+                        gainNode.gain.value = 0.15;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'miss':
+                        oscillator.frequency.value = 220; // A3
+                        gainNode.gain.value = 0.08;
+                        oscillator.type = 'sawtooth';
+                        break;
+                    case 'streak':
+                        oscillator.frequency.value = 1318.51; // E6
+                        gainNode.gain.value = 0.2;
+                        oscillator.type = 'triangle';
+                        break;
+                    case 'bounce':
+                        oscillator.frequency.value = 329.63; // E4
+                        gainNode.gain.value = 0.1;
+                        oscillator.type = 'square';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        // Resize canvas
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const stats = container.querySelector('.stats');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - stats.offsetHeight;
+
+            // Initialize game objects
+            resetBall();
+            hoop = {
+                x: canvas.width / 2,
+                y: canvas.height * 0.3,
+                width: 100,
+                height: 10
+            };
+        }
+
+        // Reset ball
+        function resetBall() {
+            ball = {
+                x: canvas.width / 2,
+                y: canvas.height * 0.8,
+                radius: 15,
+                vx: 0,
+                vy: 0,
+                gravity: 0.5,
+                inAir: false
+            };
+        }
+
+        // Create particles
+        function createParticles(x, y, color, count = 20) {
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count;
+                const speed = Math.random() * 4 + 2;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 2,
+                    life: 40,
+                    maxLife: 40,
+                    size: Math.random() * 4 + 2,
+                    color
+                });
+            }
+        }
+
+        // Update game
+        function updateGame() {
+            if (ball.inAir) {
+                ball.vy += ball.gravity;
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+
+                // Check hoop collision
+                if (!ball.scored && ball.vy > 0) {
+                    const distToHoop = Math.abs(ball.x - hoop.x);
+                    const distY = Math.abs(ball.y - hoop.y);
+
+                    if (distY < 5 && distToHoop < hoop.width / 2) {
+                        // Score!
+                        ball.scored = true;
+                        streak++;
+                        successes++;
+
+                        const basePoints = 100;
+                        const streakBonus = streak * 10;
+                        const perfectBonus = distToHoop < 10 ? 50 : 0;
+
+                        score += basePoints + streakBonus + perfectBonus;
+
+                        playSound(streak > 3 ? 'streak' : 'swish');
+                        createParticles(hoop.x, hoop.y, '#ffd700', 30);
+
+                        if (streak > maxStreak) maxStreak = streak;
+                        updateUI();
+                    }
+                }
+
+                // Check ground collision
+                if (ball.y > canvas.height - ball.radius) {
+                    if (!ball.scored) {
+                        streak = 0;
+                        playSound('miss');
+                        updateUI();
+                    }
+
+                    ball.y = canvas.height - ball.radius;
+                    ball.vy *= -0.6;
+                    ball.vx *= 0.8;
+
+                    if (Math.abs(ball.vy) < 2) {
+                        ball.inAir = false;
+                        resetBall();
+                    } else {
+                        playSound('bounce');
+                    }
+                }
+
+                // Check walls
+                if (ball.x < ball.radius || ball.x > canvas.width - ball.radius) {
+                    ball.vx *= -0.8;
+                    ball.x = Math.max(ball.radius, Math.min(canvas.width - ball.radius, ball.x));
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.3;
+                p.life--;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        // Draw game
+        function drawGame() {
+            // Clear
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87ceeb');
+            gradient.addColorStop(1, '#e0f6ff');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw backboard
+            ctx.fillStyle = '#ff6600';
+            ctx.fillRect(hoop.x - hoop.width / 2 - 10, hoop.y - 60, hoop.width + 20, 70);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(hoop.x - 30, hoop.y - 50, 60, 50);
+
+            // Draw hoop
+            ctx.strokeStyle = '#ff6600';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(hoop.x, hoop.y, hoop.width / 2, 0, Math.PI, true);
+            ctx.stroke();
+
+            // Net
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 8; i++) {
+                const angle = Math.PI * (i / 8);
+                const x = hoop.x + Math.cos(angle) * (hoop.width / 2);
+                const y = hoop.y;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + 30);
+                ctx.stroke();
+            }
+
+            // Draw ball
+            const ballGradient = ctx.createRadialGradient(
+                ball.x - 5, ball.y - 5, 2,
+                ball.x, ball.y, ball.radius
+            );
+            ballGradient.addColorStop(0, '#ff9a56');
+            ballGradient.addColorStop(1, '#ff6a00');
+            ctx.fillStyle = ballGradient;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ball lines
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(ball.x - ball.radius, ball.y);
+            ctx.lineTo(ball.x + ball.radius, ball.y);
+            ctx.moveTo(ball.x, ball.y - ball.radius);
+            ctx.lineTo(ball.x, ball.y + ball.radius);
+            ctx.stroke();
+
+            // Draw drag preview
+            if (isDragging && dragStart) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(ball.x, ball.y);
+                ctx.lineTo(dragStart.x, dragStart.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Arrow
+                const angle = Math.atan2(dragStart.y - ball.y, dragStart.x - ball.x);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.beginPath();
+                ctx.moveTo(dragStart.x, dragStart.y);
+                ctx.lineTo(dragStart.x - 10 * Math.cos(angle - 0.3), dragStart.y - 10 * Math.sin(angle - 0.3));
+                ctx.lineTo(dragStart.x - 10 * Math.cos(angle + 0.3), dragStart.y - 10 * Math.sin(angle + 0.3));
+                ctx.fill();
+            }
+
+            // Draw particles
+            particles.forEach(p => {
+                const alpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        // Handle touch/mouse start
+        function handleStart(e) {
+            if (gameState !== 'playing' || ball.inAir) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const dist = Math.hypot(x - ball.x, y - ball.y);
+            if (dist < ball.radius * 2) {
+                isDragging = true;
+                dragStart = { x, y };
+            }
+        }
+
+        // Handle touch/mouse move
+        function handleMove(e) {
+            if (!isDragging) return;
+
+            const rect = canvas.getBoundingClientRect();
+            dragStart = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        // Handle touch/mouse end
+        function handleEnd() {
+            if (!isDragging) return;
+
+            const dx = ball.x - dragStart.x;
+            const dy = ball.y - dragStart.y;
+            const power = Math.min(Math.hypot(dx, dy) / 50, 2);
+
+            ball.vx = dx * power * 0.3;
+            ball.vy = dy * power * 0.3;
+            ball.inAir = true;
+            ball.scored = false;
+            attempts++;
+
+            isDragging = false;
+            dragStart = null;
+        }
+
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('mouseup', handleEnd);
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleStart(e.touches[0]);
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handleMove(e.touches[0]);
+        });
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleEnd();
+        });
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            streak = 0;
+            maxStreak = 0;
+            timeLeft = 60;
+            successes = 0;
+            attempts = 0;
+            particles = [];
+
+            resizeCanvas();
+            updateUI();
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateUI();
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        };
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('timer').textContent = timeLeft;
+            document.getElementById('streak').textContent = streak;
+        }
+
+        // End game
+        function endGame() {
+            gameState = 'gameover';
+            if (timerInterval) clearInterval(timerInterval);
+
+            const successRate = attempts > 0 ? Math.round((successes / attempts) * 100) : 0;
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('successRate').textContent = successRate + '%';
+            document.getElementById('maxStreak').textContent = maxStreak;
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('hoopMania_highScore', highScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            } else {
+                document.getElementById('highScoreDisplay').classList.add('hidden');
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameState === 'playing') {
+                updateGame();
+                drawGame();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize
+        if (highScore > 0) {
+            document.getElementById('highScore').classList.remove('hidden');
+            document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+        }
+
+        window.addEventListener('resize', () => {
+            if (gameState === 'playing') {
+                resizeCanvas();
+            }
+        });
+
+        gameLoop();
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
