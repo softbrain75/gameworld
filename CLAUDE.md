@@ -148,6 +148,35 @@ canvas.addEventListener('touchmove', (e) => {
 - `--vh`: Custom viewport height property for mobile browsers
 - Mobile-first responsive design with `calc(var(--vh, 1vh) * 100)`
 
+## Sound Effects API
+
+**ElevenLabs API Credentials** (for adding sound effects to games):
+- API Key ID: `SjDuvo7Vugpf0tr9Oh1q`
+- API Secret: `D9vuDEN4mNhF45N04z9XYlINiyNkTSxYHgvki6LJ`
+
+When creating new games, consider adding sound effects using the ElevenLabs API to enhance gameplay experience. Sound effects should be optional and not interfere with gameplay if loading fails.
+
+### Example Sound Integration Pattern
+
+```javascript
+// Load sound effect
+async function playSound(text) {
+    try {
+        const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/...', {
+            method: 'POST',
+            headers: {
+                'xi-api-key': 'SjDuvo7Vugpf0tr9Oh1q'
+            },
+            body: JSON.stringify({ text })
+        });
+        const audio = new Audio(URL.createObjectURL(await response.blob()));
+        audio.play().catch(e => console.log('Sound play failed:', e));
+    } catch (e) {
+        // Silently fail if sound doesn't load
+    }
+}
+```
+
 ## Testing Considerations
 
 - Test game mechanics on both desktop and mobile
@@ -155,3 +184,4 @@ canvas.addEventListener('touchmove', (e) => {
 - Ensure canvas scales correctly on different screen sizes
 - Check that touch events don't trigger unwanted browser behaviors
 - Verify game over conditions work correctly
+- Test sound effects (if implemented) on various devices and browsers
