@@ -18,21 +18,178 @@
 
         body {
             font-family: 'Malgun Gothic', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff9500 100%);
             min-height: 100vh;
             padding: 0;
             overflow-x: hidden;
         }
 
         .header {
-            text-align: center;
-            padding: 30px 20px 20px;
             background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
             position: sticky;
             top: 0;
             z-index: 100;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            position: relative;
+        }
+
+        .header-content {
+            flex: 1;
+            text-align: center;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .search-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 100px;
+        }
+
+        .search-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .search-box {
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 60px 20px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-input::placeholder {
+            color: #666;
+        }
+
+        .close-search {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-search:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .search-results {
+            margin-top: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .search-result-item {
+            background: rgba(255, 255, 255, 0.9);
+            margin-bottom: 10px;
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .search-result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: white;
+        }
+
+        .search-result-icon {
+            font-size: 24px;
+            min-width: 40px;
+        }
+
+        .search-result-info h4 {
+            margin: 0 0 5px 0;
+            color: #ff6b35;
+            font-size: 16px;
+        }
+
+        .search-result-info p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .no-results {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            margin-top: 50px;
+        }
+
+        .tabs-container {
+            padding: 0 20px 20px;
         }
 
         h1 {
@@ -82,7 +239,7 @@
 
         .tab.active {
             background: white;
-            color: #667eea;
+            color: #ff6b35;
             border-color: white;
             box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
         }
@@ -145,7 +302,7 @@
             left: 0;
             width: 100%;
             height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            background: linear-gradient(90deg, #ff6b35, #f7931e);
         }
 
         .game-card:hover {
@@ -158,7 +315,7 @@
         }
 
         .game-card h3 {
-            color: #667eea;
+            color: #ff6b35;
             margin-bottom: 10px;
             font-size: 1.3em;
             display: flex;
@@ -178,7 +335,7 @@
 
         .badge {
             display: inline-block;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
             color: white;
             padding: 4px 12px;
             border-radius: 12px;
@@ -235,16 +392,35 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎮 게임세상</h1>
-        <p class="subtitle">모바일 최적화 50가지 게임 컬렉션</p>
-        <div class="tabs">
-            <div class="tab active" onclick="showCategory('all')">🌟 전체</div>
-            <div class="tab" onclick="showCategory('action')">⚡ 액션</div>
-            <div class="tab" onclick="showCategory('puzzle')">🧩 퍼즐</div>
-            <div class="tab" onclick="showCategory('arcade')">🕹️ 아케이드</div>
-            <div class="tab" onclick="showCategory('rhythm')">🎵 리듬</div>
-            <div class="tab" onclick="showCategory('casual')">😊 캐주얼</div>
-            <div class="tab" onclick="showCategory('strategy')">🎯 전략</div>
+        <div class="header-top">
+            <div style="width: 48px;"></div> <!-- Spacer for center alignment -->
+            <div class="header-content">
+                <h1>🎮 게임세상</h1>
+                <p class="subtitle">모바일 최적화 50가지 게임 컬렉션</p>
+            </div>
+            <div class="search-container">
+                <button class="search-btn" onclick="openSearch()">🔍</button>
+            </div>
+        </div>
+        <div class="tabs-container">
+            <div class="tabs">
+                <div class="tab active" onclick="showCategory('all')">🌟 전체</div>
+                <div class="tab" onclick="showCategory('action')">⚡ 액션</div>
+                <div class="tab" onclick="showCategory('puzzle')">🧩 퍼즐</div>
+                <div class="tab" onclick="showCategory('arcade')">🕹️ 아케이드</div>
+                <div class="tab" onclick="showCategory('rhythm')">🎵 리듬</div>
+                <div class="tab" onclick="showCategory('casual')">😊 캐주얼</div>
+                <div class="tab" onclick="showCategory('strategy')">🎯 전략</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Overlay -->
+    <div id="searchOverlay" class="search-overlay">
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="게임 이름을 검색하세요..." oninput="performSearch()">
+            <button class="close-search" onclick="closeSearch()">✕</button>
+            <div id="searchResults" class="search-results"></div>
         </div>
     </div>
 
@@ -446,7 +622,7 @@
                 </a>
                 <a href="drum_beat.html" class="game-card">
                     <h3><span class="game-icon">🥁</span> 드럼 비트</h3>
-                    <p>4개의 드럼패드를 터치해서 리듬을 만드세요! 화려한 비트 효과!</p>
+                    <p>3개의 퍼커션 패드를 터치해서 리듬을 만드세요! 화려한 비트 효과!</p>
                     <span class="badge new">NEW</span>
                 </a>
                 <a href="guitar_hero.html" class="game-card">
@@ -568,6 +744,117 @@
     </div>
 
     <script>
+        // Game data for search
+        const gameDatabase = [
+            { name: '갤럭시 워', url: 'galaxy_war.html', icon: '🚀', description: '3D 우주 슈팅! 다가오는 적들을 격파하세요. 5가지 적 타입별 화려한 폭발 효과!', category: 'action' },
+            { name: '스타워즈 X-Wing', url: 'xwing.html', icon: '✈️', description: '조준선을 드래그해서 타이파이터를 격추! 자동 조준 레이저로 우주 전투를 즐겨보세요!', category: 'action' },
+            { name: '대포 디펜더', url: 'cannon_defender.html', icon: '🎯', description: '5개 레인에서 낙하하는 적들을 대포로 격파! 콤보와 웨이브 시스템으로 높은 점수를 노려보세요!', category: 'action' },
+            { name: '라인 드로우 디펜스', url: 'line_draw_defense.html', icon: '🔥', description: '손가락으로 선을 그어 방어벽을 만들고, 불타는 선으로 적을 태워버리세요!', category: 'action' },
+            { name: '닌자 슬래시', url: 'ninja_slash.html', icon: '⚔️', description: '날아오는 과일을 베고, 폭탄을 피하세요! 화려한 베기 이펙트와 콤보 시스템!', category: 'action' },
+            { name: '펀치 러쉬', url: 'punch_rush.html', icon: '🥊', description: '샌드백을 빠르게 터치해서 연속 펀치! 시원한 타격감과 파티클 효과!', category: 'action' },
+            { name: '아처 마스터', url: 'archer_master.html', icon: '🏹', description: '드래그해서 화살을 쏘고 표적을 맞추세요! 바람과 거리를 계산하는 실감나는 물리 엔진!', category: 'action' },
+            { name: '엔드리스 러너', url: 'endless_runner.html', icon: '🏃', description: '끝없이 달리며 장애물을 피하고 코인을 수집하세요! 속도가 점점 빨라집니다!', category: 'action' },
+            { name: '좀비 서바이벌', url: 'zombie_survival.html', icon: '🧟', description: '좀비들을 피해 최대한 오래 생존하세요! 생존 시간을 기록하세요!', category: 'action' },
+            { name: '스페이스 인베이더', url: 'space_invaders.html', icon: '👾', description: '클래식 슈팅 게임! 외계인을 격추하고 지구를 지키세요!', category: 'action' },
+            
+            { name: '테트리스 매니아', url: 'tetris.html', icon: '🎮', description: '클래식 테트리스에 화려한 파티클 효과 추가! 라인 클리어할 때마다 폭발하는 파티클로 스트레스 해소!', category: 'puzzle' },
+            { name: '2048 익스플로전', url: '2048_explosion.html', icon: '🔢', description: '숫자를 합쳐 2048을 만드세요! 합칠 때마다 화려한 폭발 효과!', category: 'puzzle' },
+            { name: '매치 3 매니아', url: 'match3_mania.html', icon: '💎', description: '같은 색 보석을 3개 이상 맞추세요! 캐스케이드 효과와 특수 보석으로 높은 점수!', category: 'puzzle' },
+            { name: '아이스 브레이커', url: 'ice_breaker.html', icon: '🧊', description: '같은 색 블록을 터치해서 깨뜨리세요! 연쇄 효과로 큰 점수를 노려보세요!', category: 'puzzle' },
+            { name: '컬러 플로우', url: 'color_flow.html', icon: '🎨', description: '파이프를 연결해서 같은 색끼리 이어주세요! 복잡한 퍼즐을 풀어보세요!', category: 'puzzle' },
+            { name: '미로 탈출', url: 'maze_escape.html', icon: '🧩', description: '미로를 탐험하고 출구를 찾으세요! 화살표 키로 이동!', category: 'puzzle' },
+            { name: '메모리 매치', url: 'memory_match.html', icon: '🧠', description: '카드를 뒤집어 같은 그림 찾기! 기억력 테스트!', category: 'puzzle' },
+            { name: '단어 맞추기', url: 'word_guess.html', icon: '🔤', description: '숨겨진 단어를 맞추세요! 행맨 스타일 게임!', category: 'puzzle' },
+            
+            { name: '탭 매니아', url: 'tab_mania.html', icon: '💥', description: '30초 안에 나타나는 버튼들을 빠르게 탭! 콤보와 특수 버튼으로 높은 점수를 노려보세요!', category: 'arcade' },
+            { name: '탭탭탭', url: 'tabtabtab.html', icon: '👆', description: '화면을 빠르게 탭해서 점수를 얻으세요!', category: 'arcade' },
+            { name: '타겟 슈터', url: 'target_shooter.html', icon: '🎯', description: '나타나는 타겟을 빠르게 터치! 정확도와 속도를 겨루는 반사신경 게임!', category: 'arcade' },
+            { name: '스핀 마스터', url: 'spin_master.html', icon: '🌀', description: '회전하는 원판에 핀을 꽂으세요! 타이밍을 맞춰 완벽한 샷을 노려보세요!', category: 'arcade' },
+            { name: '후프 매니아', url: 'hoop_mania.html', icon: '🏀', description: '농구공을 스와이프해서 골대에 넣으세요! 연속 성공으로 점수 배율 증가!', category: 'arcade' },
+            { name: '라이트닝 리액션', url: 'lightning_reaction.html', icon: '⚡', description: '화면이 변하는 순간 터치! 반응속도를 극한까지 테스트하는 게임!', category: 'arcade' },
+            { name: '두더지 잡기', url: 'whack_mole.html', icon: '🔨', description: '나타나는 두더지를 빠르게 터치! 클래식 아케이드 게임!', category: 'arcade' },
+            { name: '브레이크아웃', url: 'breakout.html', icon: '🧱', description: '공을 튕겨 벽돌을 깨트리세요! 클래식 벽돌깨기!', category: 'arcade' },
+            { name: '퐁', url: 'pong.html', icon: '🏓', description: 'AI와 탁구 대결! 역사적인 게임의 재현!', category: 'arcade' },
+            { name: '풍선 터뜨리기', url: 'balloon_pop.html', icon: '🎈', description: '올라가는 풍선을 터치해서 터뜨리세요! 시간 안에 최대한 많이!', category: 'arcade' },
+            
+            { name: '피아노 타일즈', url: 'piano_tiles.html', icon: '🎹', description: '떨어지는 타일을 리듬에 맞춰 터치! 완벽한 타이밍으로 곡을 완성하세요!', category: 'rhythm' },
+            { name: '드럼 비트', url: 'drum_beat.html', icon: '🥁', description: '3개의 퍼커션 패드를 터치해서 리듬을 만드세요! 화려한 비트 효과!', category: 'rhythm' },
+            { name: '기타 히어로', url: 'guitar_hero.html', icon: '🎸', description: '화면에 나타나는 노트를 정확하게 터치! 록스타가 되어보세요!', category: 'rhythm' },
+            { name: '댄스 레볼루션', url: 'dance_revolution.html', icon: '💃', description: '화살표 방향으로 스와이프! 리듬에 맞춰 댄스 무브를 완성하세요!', category: 'rhythm' },
+            { name: '비트 드롭', url: 'beat_drop.html', icon: '🎤', description: '떨어지는 비트를 맞춰 터치! EDM 음악과 함께하는 화려한 리듬 게임!', category: 'rhythm' },
+            
+            { name: '스네이크 클래식', url: 'snake_classic.html', icon: '🐍', description: '먹이를 먹고 길어지는 뱀을 조종하세요! 클래식 게임의 현대적 재해석!', category: 'casual' },
+            { name: '플래피 드래곤', url: 'flappy_dragon.html', icon: '🐉', description: '장애물을 피해 날아가세요! 간단하지만 중독성 강한 게임!', category: 'casual' },
+            { name: '버블 팝', url: 'bubble_pop.html', icon: '🎈', description: '터치해서 풍선을 터뜨리세요! 시원한 터지는 소리와 함께 스트레스 해소!', category: 'casual' },
+            { name: '럭키 다이스', url: 'lucky_dice.html', icon: '🎲', description: '주사위를 굴려 행운을 시험하세요! 다양한 미니게임으로 보상 획득!', category: 'casual' },
+            { name: '캔디 크러쉬', url: 'candy_crush.html', icon: '🍬', description: '달콤한 사탕을 매치하세요! 3개 이상 매치로 연쇄 폭발!', category: 'casual' },
+            { name: '박스 오픈', url: 'box_open.html', icon: '🎁', description: '상자를 열어 보상을 획득하세요! 레전더리를 찾아라!', category: 'casual' },
+            { name: '점프 마스터', url: 'jump_master.html', icon: '🦘', description: '플랫폼을 점프하며 최대한 멀리 가세요!', category: 'casual' },
+            { name: '스피드 레이싱', url: 'speed_racing.html', icon: '🏎️', description: '도로에서 장애물을 피하며 최대한 멀리 달리세요!', category: 'casual' },
+            { name: '두들 점프', url: 'doodle_jump.html', icon: '🦘', description: '플랫폼을 점프하며 최대한 높이 올라가세요!', category: 'casual' },
+            { name: '클리커 히어로', url: 'clicker_hero.html', icon: '🎯', description: '클릭해서 점수를 모으고 업그레이드하세요!', category: 'casual' },
+            
+            { name: '타워 디펜스', url: 'tower_defense.html', icon: '🗼', description: '타워를 배치하고 적의 공격을 막으세요! 업그레이드와 전략이 핵심!', category: 'strategy' },
+            { name: '체스 마스터', url: 'chess_master.html', icon: '♟️', description: '클래식 체스 게임! 전략적 사고로 상대 킹을 잡으세요!', category: 'strategy' },
+            { name: '카드 배틀', url: 'card_battle.html', icon: '🃏', description: '카드를 선택해 전투하세요! 공격, 방어, 힐 카드로 전략적 플레이!', category: 'strategy' },
+            { name: '킹덤 빌더', url: 'kingdom_builder.html', icon: '🏰', description: '자원을 모아 왕국을 건설하세요! 건물을 지어 왕국을 발전시키세요!', category: 'strategy' },
+            { name: '배틀 택틱스', url: 'battle_tactics.html', icon: '⚔️', description: '턴제 전투에서 전략을 펼치세요! 4가지 유닛으로 전투!', category: 'strategy' },
+            { name: '브레인 퍼즐', url: 'brain_puzzle.html', icon: '🧩', description: '논리와 전략이 필요한 두뇌 게임! IQ 테스트 퍼즐 모음!', category: 'strategy' }
+        ];
+
+        // Search functionality
+        function openSearch() {
+            document.getElementById('searchOverlay').classList.add('active');
+            document.getElementById('searchInput').focus();
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSearch() {
+            document.getElementById('searchOverlay').classList.remove('active');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const resultsContainer = document.getElementById('searchResults');
+
+            if (query === '') {
+                resultsContainer.innerHTML = '';
+                return;
+            }
+
+            const filteredGames = gameDatabase.filter(game => 
+                game.name.toLowerCase().includes(query) || 
+                game.description.toLowerCase().includes(query)
+            );
+
+            if (filteredGames.length === 0) {
+                resultsContainer.innerHTML = '<div class="no-results">검색 결과가 없습니다 😅</div>';
+                return;
+            }
+
+            const resultsHTML = filteredGames.map(game => `
+                <a href="${game.url}" class="search-result-item">
+                    <div class="search-result-icon">${game.icon}</div>
+                    <div class="search-result-info">
+                        <h4>${game.name}</h4>
+                        <p>${game.description}</p>
+                    </div>
+                </a>
+            `).join('');
+
+            resultsContainer.innerHTML = resultsHTML;
+        }
+
+        // Close search on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSearch();
+            }
+        });
+
         // Tab switching
         function showCategory(category) {
             // Hide all sections
