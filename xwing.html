@@ -456,9 +456,109 @@
             crosshairX = canvas.width / 2;
             crosshairY = canvas.height / 2;
 
+            // Start background music
+            if (!bgMusic) {
+                initMusic();
+            }
+
             updateUI();
             spawnEnemies();
         };
+
+        // Background music and sound effects
+        let bgMusic = null;
+        let soundEnabled = true;
+
+        function initMusic() {
+            // Create background music (Star Wars theme-like melody)
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                // Epic theme melody pattern
+                oscillator.type = 'square';
+                gainNode.gain.value = 0.03; // Low volume for background
+
+                // Star Wars main theme frequencies (simplified)
+                const melody = [392, 392, 392, 523, 698, 659, 622, 587, 1046];
+                let noteIndex = 0;
+
+                oscillator.frequency.value = melody[0];
+                oscillator.start();
+
+                // Change notes periodically
+                setInterval(() => {
+                    if (gameState === 'playing') {
+                        noteIndex = (noteIndex + 1) % melody.length;
+                        oscillator.frequency.value = melody[noteIndex];
+                    }
+                }, 500);
+
+                bgMusic = { oscillator, gainNode, audioContext };
+            } catch (e) {
+                console.log('Music init failed:', e);
+            }
+        }
+
+        function playSound(soundType) {
+            if (!soundEnabled) return;
+
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'laser':
+                        // Laser sound - high to low sweep
+                        oscillator.frequency.value = 1000;
+                        gainNode.gain.value = 0.1;
+                        oscillator.type = 'sawtooth';
+
+                        oscillator.frequency.exponentialRampToValueAtTime(
+                            200,
+                            audioContext.currentTime + 0.1
+                        );
+                        break;
+
+                    case 'explosion':
+                        // Explosion sound - rumble
+                        oscillator.frequency.value = 100;
+                        gainNode.gain.value = 0.2;
+                        oscillator.type = 'sawtooth';
+
+                        gainNode.gain.exponentialRampToValueAtTime(
+                            0.01,
+                            audioContext.currentTime + 0.3
+                        );
+                        break;
+
+                    case 'hit':
+                        // Hit sound
+                        oscillator.frequency.value = 150;
+                        gainNode.gain.value = 0.15;
+                        oscillator.type = 'square';
+                        break;
+
+                    case 'shield':
+                        // Shield damage sound
+                        oscillator.frequency.value = 80;
+                        gainNode.gain.value = 0.2;
+                        oscillator.type = 'triangle';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } catch (e) {}
+        }
 
         let lastSpawn = 0;
         function spawnEnemies() {
@@ -510,6 +610,7 @@
                 if (enemy.y > canvas.height + enemy.size) {
                     enemies.splice(i, 1);
                     shields -= 10;
+                    playSound('shield');
                     updateUI();
 
                     if (shields <= 0) {
@@ -540,6 +641,7 @@
                     targetY: targetLocked.y + targetLocked.size / 2,
                     speed: 15
                 });
+                playSound('laser');
             }
 
             // Update lasers
@@ -577,7 +679,10 @@
                                 frame: 0
                             });
 
+                            playSound('explosion');
                             enemies.splice(j, 1);
+                        } else {
+                            playSound('hit');
                         }
                     }
                 }
