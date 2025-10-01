@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>컬러 플로우 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #fa709a;
+            box-shadow: 0 0 40px rgba(250, 112, 154, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #fa709a, #fee140);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: rainbow 3s ease-in-out infinite;
+        }
+
+        @keyframes rainbow {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(60deg); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #fa709a, #fee140);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(250, 112, 154, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            padding: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 500px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #fa709a;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.7;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #fee140;
+        }
+
+        .grid-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        canvas {
+            display: block;
+            touch-action: none;
+            border-radius: 10px;
+            background: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .level-display {
+            font-size: 1.5em;
+            margin: 10px 0;
+            color: #fa709a;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🎨🌈</div>
+            <h1>컬러 플로우</h1>
+            <p style="color: #fee140; margin-bottom: 20px;">모든 파이프를 연결하세요!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 레벨</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🎨 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #fa709a; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>👆 같은 색 점을 드래그로 연결!</p>
+                <p>🌈 모든 칸을 채워야 클리어!</p>
+                <p>❌ 파이프끼리 겹치면 안 됨!</p>
+                <p>🔄 파이프 위를 다시 드래그하면 삭제!</p>
+                <p>📈 레벨이 올라갈수록 어려워짐!</p>
+                <p>🎵 연결 완성 시 만족스러운 사운드!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">🎨</div>
+            <h1 id="gameoverTitle">레벨 클리어!</h1>
+
+            <div class="level-display" id="currentLevel">레벨 1</div>
+
+            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 레벨</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="nextLevel()">➡️ 다음 레벨</button>
+            <button class="btn" onclick="startGame()" style="font-size: 1.2em; padding: 10px 30px;">🔄 처음부터</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">레벨</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">진행도</div>
+                <div class="stat-value" id="progress">0%</div>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'menu';
+        let level = 1;
+        let highestLevel = localStorage.getItem('colorFlow_highestLevel') || 0;
+        let gridSize = 5;
+        let grid = [];
+        let endpoints = [];
+        let paths = [];
+        let currentPath = null;
+        let dragging = false;
+
+        const COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#a29bfe'];
+
+        // Sound system
+        function playSound(soundType) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'connect':
+                        oscillator.frequency.value = 523.25; // C5
+                        gainNode.gain.value = 0.1;
+                        break;
+                    case 'complete':
+                        oscillator.frequency.value = 783.99; // G5
+                        gainNode.gain.value = 0.15;
+                        break;
+                    case 'clear':
+                        oscillator.frequency.value = 1046.5; // C6
+                        gainNode.gain.value = 0.2;
+                        break;
+                    case 'erase':
+                        oscillator.frequency.value = 329.63; // E4
+                        gainNode.gain.value = 0.08;
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        // Generate level
+        function generateLevel() {
+            gridSize = Math.min(5 + Math.floor(level / 3), 8);
+            grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(null));
+            endpoints = [];
+            paths = [];
+
+            const numPairs = Math.min(2 + Math.floor(level / 2), 5);
+
+            for (let i = 0; i < numPairs; i++) {
+                let pos1, pos2;
+
+                // Find empty positions
+                do {
+                    pos1 = {
+                        row: Math.floor(Math.random() * gridSize),
+                        col: Math.floor(Math.random() * gridSize)
+                    };
+                } while (grid[pos1.row][pos1.col] !== null);
+
+                do {
+                    pos2 = {
+                        row: Math.floor(Math.random() * gridSize),
+                        col: Math.floor(Math.random() * gridSize)
+                    };
+                } while (grid[pos2.row][pos2.col] !== null ||
+                        (pos2.row === pos1.row && pos2.col === pos1.col));
+
+                grid[pos1.row][pos1.col] = { type: 'endpoint', color: i };
+                grid[pos2.row][pos2.col] = { type: 'endpoint', color: i };
+
+                endpoints.push({ color: i, start: pos1, end: pos2 });
+                paths.push({ color: i, cells: [] });
+            }
+        }
+
+        // Set canvas size
+        function resizeCanvas() {
+            const size = Math.min(window.innerWidth - 40, 500);
+            canvas.width = size;
+            canvas.height = size;
+        }
+
+        // Draw game
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const cellSize = canvas.width / gridSize;
+
+            // Draw grid background
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    ctx.strokeStyle = '#ddd';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(j * cellSize, i * cellSize, cellSize, cellSize);
+                }
+            }
+
+            // Draw paths
+            paths.forEach(path => {
+                if (path.cells.length > 0) {
+                    ctx.strokeStyle = COLORS[path.color];
+                    ctx.lineWidth = cellSize * 0.4;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+
+                    ctx.beginPath();
+                    path.cells.forEach((cell, index) => {
+                        const x = cell.col * cellSize + cellSize / 2;
+                        const y = cell.row * cellSize + cellSize / 2;
+
+                        if (index === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    });
+                    ctx.stroke();
+                }
+            });
+
+            // Draw current path
+            if (currentPath && currentPath.cells.length > 0) {
+                ctx.strokeStyle = COLORS[currentPath.color];
+                ctx.lineWidth = cellSize * 0.4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = 0.7;
+
+                ctx.beginPath();
+                currentPath.cells.forEach((cell, index) => {
+                    const x = cell.col * cellSize + cellSize / 2;
+                    const y = cell.row * cellSize + cellSize / 2;
+
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+            }
+
+            // Draw endpoints
+            endpoints.forEach(endpoint => {
+                [endpoint.start, endpoint.end].forEach(pos => {
+                    const x = pos.col * cellSize + cellSize / 2;
+                    const y = pos.row * cellSize + cellSize / 2;
+
+                    ctx.fillStyle = COLORS[endpoint.color];
+                    ctx.beginPath();
+                    ctx.arc(x, y, cellSize * 0.35, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    // Inner circle
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(x, y, cellSize * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            });
+        }
+
+        // Get cell from position
+        function getCellFromPos(x, y) {
+            const cellSize = canvas.width / gridSize;
+            const col = Math.floor(x / cellSize);
+            const row = Math.floor(y / cellSize);
+
+            if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
+                return { row, col };
+            }
+            return null;
+        }
+
+        // Check if completed
+        function checkCompletion() {
+            // Check all cells filled
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] === null) return false;
+                }
+            }
+
+            // Check all paths connected
+            for (let path of paths) {
+                if (path.cells.length === 0) return false;
+
+                const start = path.cells[0];
+                const end = path.cells[path.cells.length - 1];
+
+                const endpoint = endpoints.find(e => e.color === path.color);
+                if (!endpoint) return false;
+
+                const validStart = (start.row === endpoint.start.row && start.col === endpoint.start.col) ||
+                                 (start.row === endpoint.end.row && start.col === endpoint.end.col);
+                const validEnd = (end.row === endpoint.start.row && end.col === endpoint.start.col) ||
+                               (end.row === endpoint.end.row && end.col === endpoint.end.col);
+
+                if (!validStart || !validEnd) return false;
+            }
+
+            return true;
+        }
+
+        // Handle mouse/touch start
+        function handleStart(e) {
+            if (gameState !== 'playing') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const cell = getCellFromPos(x, y);
+            if (!cell) return;
+
+            const cellData = grid[cell.row][cell.col];
+
+            // Check if starting on endpoint
+            if (cellData && cellData.type === 'endpoint') {
+                dragging = true;
+                currentPath = {
+                    color: cellData.color,
+                    cells: [cell]
+                };
+
+                // Clear existing path of this color
+                const existingPath = paths.find(p => p.color === cellData.color);
+                if (existingPath) {
+                    existingPath.cells.forEach(c => {
+                        if (grid[c.row][c.col] && grid[c.row][c.col].type !== 'endpoint') {
+                            grid[c.row][c.col] = null;
+                        }
+                    });
+                    existingPath.cells = [];
+                }
+
+                playSound('connect');
+            }
+            // Check if starting on existing path to erase
+            else if (cellData && cellData.type === 'path') {
+                const pathToErase = paths.find(p => p.color === cellData.color);
+                if (pathToErase) {
+                    pathToErase.cells.forEach(c => {
+                        if (grid[c.row][c.col] && grid[c.row][c.col].type !== 'endpoint') {
+                            grid[c.row][c.col] = null;
+                        }
+                    });
+                    pathToErase.cells = [];
+                    playSound('erase');
+                    updateProgress();
+                }
+            }
+        }
+
+        // Handle mouse/touch move
+        function handleMove(e) {
+            if (!dragging || !currentPath) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const cell = getCellFromPos(x, y);
+            if (!cell) return;
+
+            const lastCell = currentPath.cells[currentPath.cells.length - 1];
+            if (cell.row === lastCell.row && cell.col === lastCell.col) return;
+
+            // Check if adjacent
+            const rowDiff = Math.abs(cell.row - lastCell.row);
+            const colDiff = Math.abs(cell.col - lastCell.col);
+            if (rowDiff + colDiff !== 1) return;
+
+            const cellData = grid[cell.row][cell.col];
+
+            // Can't cross other paths
+            if (cellData && cellData.type === 'path' && cellData.color !== currentPath.color) return;
+
+            // Can only end on matching endpoint
+            if (cellData && cellData.type === 'endpoint') {
+                if (cellData.color !== currentPath.color) return;
+            }
+
+            currentPath.cells.push(cell);
+            if (!cellData || cellData.type !== 'endpoint') {
+                grid[cell.row][cell.col] = { type: 'path', color: currentPath.color };
+            }
+
+            playSound('connect');
+        }
+
+        // Handle mouse/touch end
+        function handleEnd() {
+            if (!dragging) return;
+
+            dragging = false;
+
+            if (currentPath && currentPath.cells.length > 0) {
+                const pathIndex = paths.findIndex(p => p.color === currentPath.color);
+                if (pathIndex !== -1) {
+                    paths[pathIndex].cells = currentPath.cells;
+                }
+
+                const lastCell = currentPath.cells[currentPath.cells.length - 1];
+                const cellData = grid[lastCell.row][lastCell.col];
+
+                if (cellData && cellData.type === 'endpoint' && cellData.color === currentPath.color) {
+                    playSound('complete');
+                }
+            }
+
+            currentPath = null;
+            updateProgress();
+
+            if (checkCompletion()) {
+                playSound('clear');
+                setTimeout(() => levelComplete(), 500);
+            }
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('mouseup', handleEnd);
+        canvas.addEventListener('mouseleave', handleEnd);
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleStart(e.touches[0]);
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handleMove(e.touches[0]);
+        });
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleEnd();
+        });
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            level = 1;
+            resizeCanvas();
+            generateLevel();
+            updateUI();
+        };
+
+        // Next level
+        window.nextLevel = function() {
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            level++;
+            resizeCanvas();
+            generateLevel();
+            updateUI();
+        };
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('level').textContent = level;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            let filled = 0;
+            const total = gridSize * gridSize;
+
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] !== null) filled++;
+                }
+            }
+
+            const percentage = Math.round((filled / total) * 100);
+            document.getElementById('progress').textContent = percentage + '%';
+        }
+
+        // Level complete
+        function levelComplete() {
+            gameState = 'gameover';
+
+            document.getElementById('currentLevel').textContent = `레벨 ${level}`;
+
+            const isNewRecord = level > highestLevel;
+            if (isNewRecord) {
+                highestLevel = level;
+                localStorage.setItem('colorFlow_highestLevel', highestLevel);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (highestLevel > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = highestLevel;
+            } else {
+                document.getElementById('highScoreDisplay').classList.add('hidden');
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameState === 'playing') {
+                drawGame();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize
+        if (highestLevel > 0) {
+            document.getElementById('highScore').classList.remove('hidden');
+            document.getElementById('highScoreValue').textContent = highestLevel;
+        }
+
+        window.addEventListener('resize', () => {
+            if (gameState === 'playing') {
+                resizeCanvas();
+            }
+        });
+
+        gameLoop();
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
