@@ -370,9 +370,9 @@
                 const now = audioContext.currentTime;
                 
                 if (drum.type === 'clap') {
-                    // Hand clap sound - multiple quick bursts
-                    for (let i = 0; i < 3; i++) {
-                        const noise = createNoiseBuffer(0.01);
+                    // Hand clap sound - multiple quick bursts (longer and louder)
+                    for (let i = 0; i < 4; i++) {
+                        const noise = createNoiseBuffer(0.15); // Much longer noise buffer
                         const source = audioContext.createBufferSource();
                         const gain = audioContext.createGain();
                         const filter = audioContext.createBiquadFilter();
@@ -383,41 +383,41 @@
                         gain.connect(audioContext.destination);
                         
                         filter.type = 'bandpass';
-                        filter.frequency.value = 2000 + i * 500;
-                        filter.Q.value = 5;
+                        filter.frequency.value = 1500 + i * 400; // Lower frequency for more audible
+                        filter.Q.value = 3; // Less sharp filter
                         
-                        gain.gain.setValueAtTime(0, now + i * 0.005);
-                        gain.gain.linearRampToValueAtTime(0.10, now + i * 0.005 + 0.001); // 40% of BGM volume
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.005 + 0.01);
+                        gain.gain.setValueAtTime(0, now + i * 0.01);
+                        gain.gain.linearRampToValueAtTime(0.25, now + i * 0.01 + 0.005); // Much louder
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.01 + 0.15); // Longer decay
                         
-                        source.start(now + i * 0.005);
+                        source.start(now + i * 0.01);
+                        source.stop(now + i * 0.01 + 0.15);
                     }
                 } else if (drum.type === 'tambourine') {
-                    // Tambourine - high frequency jingle
-                    const oscillator1 = audioContext.createOscillator();
-                    const oscillator2 = audioContext.createOscillator();
-                    const gain = audioContext.createGain();
+                    // Tambourine - multiple frequency jingle (longer and more audible)
+                    const frequencies = [2800, 3200, 3600, 4000]; // Multiple frequencies for realistic jingle
                     
-                    oscillator1.connect(gain);
-                    oscillator2.connect(gain);
-                    gain.connect(audioContext.destination);
-                    
-                    oscillator1.frequency.value = 3000;
-                    oscillator2.frequency.value = 3200;
-                    oscillator1.type = 'sine';
-                    oscillator2.type = 'sine';
-                    
-                    gain.gain.setValueAtTime(0, now);
-                    gain.gain.linearRampToValueAtTime(0.10, now + 0.001);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-                    
-                    oscillator1.start();
-                    oscillator2.start();
-                    oscillator1.stop(now + 0.08);
-                    oscillator2.stop(now + 0.08);
+                    frequencies.forEach((freq, index) => {
+                        const oscillator = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        
+                        oscillator.connect(gain);
+                        gain.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = freq;
+                        oscillator.type = 'sine';
+                        
+                        const startTime = now + index * 0.02; // Slight stagger
+                        gain.gain.setValueAtTime(0, startTime);
+                        gain.gain.linearRampToValueAtTime(0.20, startTime + 0.01); // Louder
+                        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3); // Much longer decay
+                        
+                        oscillator.start(startTime);
+                        oscillator.stop(startTime + 0.3);
+                    });
                 } else if (drum.type === 'snap') {
-                    // Finger snap - sharp click
-                    const noise = createNoiseBuffer(0.005);
+                    // Finger snap - sharp click (much longer and more audible)
+                    const noise = createNoiseBuffer(0.2); // Much longer noise buffer
                     const source = audioContext.createBufferSource();
                     const gain = audioContext.createGain();
                     const filter = audioContext.createBiquadFilter();
@@ -428,13 +428,14 @@
                     gain.connect(audioContext.destination);
                     
                     filter.type = 'highpass';
-                    filter.frequency.value = 4000;
+                    filter.frequency.value = 2000; // Lower frequency for more audible click
                     
                     gain.gain.setValueAtTime(0, now);
-                    gain.gain.linearRampToValueAtTime(0.12, now + 0.001);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    gain.gain.linearRampToValueAtTime(0.30, now + 0.005); // Much louder and slower attack
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2); // Much longer decay
                     
                     source.start();
+                    source.stop(now + 0.2);
                 }
             } catch (e) {}
         }
