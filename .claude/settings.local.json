@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd more stars, crescent moon, and radar to Galaxy War\n\n갤럭시 워 개선:\n- 별 개수 200개 → 800개로 증가\n- 별 밝기 약간 증가 및 범위 확대\n- 우측 상단에 초승달 추가 (은은한 빛)\n- 우측 하단에 레이더 추가\n  - 플레이어 중앙 표시 (초록색)\n  - 적 위치 실시간 표시 (각 타입 색상)\n  - 거리 표시 원형 그리드\n  - 1500 범위 내 적만 표시\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nImprove Galaxy War gameplay - fire button, moving moon, bigger enemies\n\n갤럭시 워 개선:\n- 화면 하단에 큰 발사 버튼 추가 (쿨다운 표시)\n- 초승달이 카메라와 함께 움직임 (패럴랙스 효과)\n- 적 크기 대폭 증가 (더 잘 보임)\n- 적 스폰 거리 가까이 (400~700 범위)\n- 캔버스 클릭으로 발사 제거 (버튼만 사용)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
