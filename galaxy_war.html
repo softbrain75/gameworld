@@ -295,6 +295,9 @@
         <canvas id="gameCanvas"></canvas>
     </div>
 
+    <!-- Include unified points system -->
+    <script src="js/gamePoints.js"></script>
+
     <script>
         // Viewport height fix
         function setVH() {
@@ -1009,6 +1012,25 @@
                 document.getElementById('newRecord').classList.remove('hidden');
             } else {
                 document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            // Add points to unified system
+            if (typeof window.addGamePoints === 'function') {
+                const accuracy = kills > 0 ? Math.min(100, Math.round((score / (kills * 100)) * 100)) : 0;
+                const gameInfo = {
+                    score: score,
+                    accuracy: accuracy,
+                    combo: maxCombo,
+                    playTime: 120, // Estimated average playtime
+                    isNewRecord: isNewRecord
+                };
+                
+                try {
+                    const pointsEarned = window.addGamePoints(score, 'galaxy_war', gameInfo);
+                    console.log(`갤럭시 워: ${pointsEarned} 포인트 획득!`);
+                } catch (e) {
+                    console.log('Points system error:', e);
+                }
             }
 
             if (highScore > 0 && !isNewRecord) {

@@ -284,6 +284,9 @@
         <canvas id="gameCanvas"></canvas>
     </div>
 
+    <!-- Include unified points system -->
+    <script src="js/gamePoints.js"></script>
+
     <script>
         // Viewport height fix
         function setVH() {
@@ -878,6 +881,24 @@
                 document.getElementById('newRecord').classList.remove('hidden');
             } else {
                 document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            // Add points to unified system
+            if (typeof window.addGamePoints === 'function') {
+                const gameInfo = {
+                    score: Math.round(score),
+                    accuracy: accuracy,
+                    maxCombo: maxCombo,
+                    playTime: 60, // Game duration in seconds
+                    isNewRecord: isNewRecord
+                };
+                
+                try {
+                    const pointsEarned = window.addGamePoints(Math.round(score), 'drum_beat', gameInfo);
+                    console.log(`드럼 비트: ${pointsEarned} 포인트 획득!`);
+                } catch (e) {
+                    console.log('Points system error:', e);
+                }
             }
 
             if (highScore > 0 && !isNewRecord) {

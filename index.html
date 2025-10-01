@@ -46,6 +46,41 @@
             text-align: center;
         }
 
+        .points-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            color: white;
+            min-width: 120px;
+        }
+
+        .points-icon {
+            font-size: 20px;
+        }
+
+        .points-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .points-value {
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1;
+            color: #ffd700;
+        }
+
+        .points-label {
+            font-size: 11px;
+            opacity: 0.8;
+            line-height: 1;
+        }
+
         .search-container {
             position: relative;
         }
@@ -393,7 +428,13 @@
 <body>
     <div class="header">
         <div class="header-top">
-            <div style="width: 48px;"></div> <!-- Spacer for center alignment -->
+            <div class="points-display" id="pointsDisplay">
+                <div class="points-icon">🏆</div>
+                <div class="points-info">
+                    <div class="points-value" id="pointsValue">0</div>
+                    <div class="points-label">포인트</div>
+                </div>
+            </div>
             <div class="header-content">
                 <h1>🎮 게임세상</h1>
                 <p class="subtitle">모바일 최적화 50가지 게임 컬렉션</p>
@@ -743,6 +784,9 @@
         </div>
     </div>
 
+    <!-- Include unified points system -->
+    <script src="js/gamePoints.js"></script>
+
     <script>
         // Game data for search
         const gameDatabase = [
@@ -894,6 +938,35 @@
                 e.preventDefault();
                 alert('이 게임은 곧 출시될 예정입니다! 🎮');
             }
+        });
+
+        // Points system integration
+        function updatePointsDisplay() {
+            const pointsValue = window.getTotalPoints();
+            const pointsElement = document.getElementById('pointsValue');
+            if (pointsElement) {
+                // Add comma formatting for large numbers
+                pointsElement.textContent = pointsValue.toLocaleString();
+            }
+        }
+
+        // Update points display on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updatePointsDisplay();
+        });
+
+        // Listen for points earned events from games
+        window.addEventListener('pointsEarned', (event) => {
+            updatePointsDisplay();
+            
+            // Show a quick notification in header
+            const pointsDisplay = document.getElementById('pointsDisplay');
+            pointsDisplay.style.transform = 'scale(1.1)';
+            pointsDisplay.style.transition = 'transform 0.3s ease';
+            
+            setTimeout(() => {
+                pointsDisplay.style.transform = 'scale(1)';
+            }, 300);
         });
     </script>
 </body>
