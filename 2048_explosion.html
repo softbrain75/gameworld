@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>2048 폭발 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #f5576c;
+            box-shadow: 0 0 40px rgba(245, 87, 108, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(245, 87, 108, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            padding: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 500px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            color: #f093fb;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #f5576c;
+        }
+
+        .grid-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            width: min(400px, 90vw);
+            height: min(400px, 90vw);
+        }
+
+        .cell {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: white;
+            transition: all 0.15s ease-in-out;
+            position: relative;
+        }
+
+        .cell.tile {
+            animation: appear 0.2s ease-out;
+        }
+
+        @keyframes appear {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .cell.merge {
+            animation: merge 0.3s ease-out;
+        }
+
+        @keyframes merge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">💥🔢</div>
+            <h1>2048 폭발</h1>
+            <p style="color: #f5576c; margin-bottom: 20px;">숫자를 합쳐서 2048을 만드세요!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 점수</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🎮 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #f5576c; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>👆 스와이프로 타일 이동</p>
+                <p>🔢 같은 숫자끼리 합치기</p>
+                <p>💥 합칠 때마다 폭발 파티클!</p>
+                <p>🎯 2048 타일을 만들면 승리!</p>
+                <p>⚠️ 타일이 가득 차면 게임 오버</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">💥</div>
+            <h1 id="gameoverTitle">게임 종료</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 점수</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">점수</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">최고 타일</div>
+                <div class="stat-value" id="maxTile">2</div>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <canvas id="particleCanvas"></canvas>
+            <div class="grid" id="grid"></div>
+        </div>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const gridElement = document.getElementById('grid');
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let grid = [];
+        let highScore = localStorage.getItem('2048explosion_highScore') || 0;
+        let particles = [];
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        // Colors for tiles
+        const tileColors = {
+            2: '#eee4da',
+            4: '#ede0c8',
+            8: '#f2b179',
+            16: '#f59563',
+            32: '#f67c5f',
+            64: '#f65e3b',
+            128: '#edcf72',
+            256: '#edcc61',
+            512: '#edc850',
+            1024: '#edc53f',
+            2048: '#edc22e'
+        };
+
+        const textColors = {
+            2: '#776e65',
+            4: '#776e65',
+            default: '#f9f6f2'
+        };
+
+        // Initialize grid
+        function initGrid() {
+            grid = Array(4).fill(null).map(() => Array(4).fill(0));
+        }
+
+        // Add random tile
+        function addRandomTile() {
+            const empty = [];
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] === 0) empty.push({ i, j });
+                }
+            }
+            if (empty.length === 0) return false;
+
+            const { i, j } = empty[Math.floor(Math.random() * empty.length)];
+            grid[i][j] = Math.random() < 0.9 ? 2 : 4;
+            return true;
+        }
+
+        // Render grid
+        function renderGrid() {
+            gridElement.innerHTML = '';
+
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+
+                    const value = grid[i][j];
+                    if (value > 0) {
+                        cell.textContent = value;
+                        cell.classList.add('tile');
+                        cell.style.background = tileColors[value] || '#3c3a32';
+                        cell.style.color = value <= 4 ? textColors[value] : textColors.default;
+                    }
+
+                    gridElement.appendChild(cell);
+                }
+            }
+        }
+
+        // Move tiles
+        function move(direction) {
+            let moved = false;
+            let tempGrid = grid.map(row => [...row]);
+
+            if (direction === 'left' || direction === 'right') {
+                for (let i = 0; i < 4; i++) {
+                    const row = direction === 'left' ? grid[i] : grid[i].reverse();
+                    const newRow = slide(row);
+                    if (direction === 'right') newRow.reverse();
+
+                    for (let j = 0; j < 4; j++) {
+                        if (grid[i][j] !== newRow[j]) moved = true;
+                        grid[i][j] = newRow[j];
+                    }
+                }
+            } else {
+                for (let j = 0; j < 4; j++) {
+                    const col = [];
+                    for (let i = 0; i < 4; i++) {
+                        col.push(grid[i][j]);
+                    }
+
+                    const newCol = direction === 'up' ? slide(col) : slide(col.reverse()).reverse();
+
+                    for (let i = 0; i < 4; i++) {
+                        if (grid[i][j] !== newCol[i]) moved = true;
+                        grid[i][j] = newCol[i];
+                    }
+                }
+            }
+
+            return moved;
+        }
+
+        function slide(row) {
+            // Remove zeros
+            let arr = row.filter(val => val !== 0);
+
+            // Merge
+            for (let i = 0; i < arr.length - 1; i++) {
+                if (arr[i] === arr[i + 1]) {
+                    arr[i] *= 2;
+                    score += arr[i];
+                    createMergeParticles(arr[i]);
+                    arr.splice(i + 1, 1);
+                }
+            }
+
+            // Fill with zeros
+            while (arr.length < 4) {
+                arr.push(0);
+            }
+
+            return arr;
+        }
+
+        // Create particles
+        function createMergeParticles(value) {
+            const cellSize = gridElement.offsetWidth / 4;
+            const gridRect = gridElement.getBoundingClientRect();
+            const containerRect = document.querySelector('.grid-container').getBoundingClientRect();
+
+            // Find position of merged tile
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] === value) {
+                        const x = (j * cellSize) + (cellSize / 2);
+                        const y = (i * cellSize) + (cellSize / 2);
+
+                        const color = tileColors[value] || '#3c3a32';
+                        const particleCount = Math.min(value / 2, 50);
+
+                        for (let p = 0; p < particleCount; p++) {
+                            const angle = (Math.PI * 2 * p) / particleCount;
+                            const speed = Math.random() * 3 + 2;
+                            particles.push({
+                                x,
+                                y,
+                                vx: Math.cos(angle) * speed,
+                                vy: Math.sin(angle) * speed,
+                                life: 30,
+                                maxLife: 30,
+                                size: Math.random() * 4 + 2,
+                                color
+                            });
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Update particles
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vx *= 0.98;
+                p.vy *= 0.98;
+                p.life--;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        // Draw particles
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                const alpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.globalAlpha = 1;
+        }
+
+        // Check game over
+        function isGameOver() {
+            // Check for empty cells
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] === 0) return false;
+                }
+            }
+
+            // Check for possible merges
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const current = grid[i][j];
+                    if (j < 3 && grid[i][j + 1] === current) return false;
+                    if (i < 3 && grid[i + 1][j] === current) return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Check win
+        function hasWon() {
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] === 2048) return true;
+                }
+            }
+            return false;
+        }
+
+        // Get max tile
+        function getMaxTile() {
+            let max = 0;
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    if (grid[i][j] > max) max = grid[i][j];
+                }
+            }
+            return max;
+        }
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            particles = [];
+
+            initGrid();
+            addRandomTile();
+            addRandomTile();
+            renderGrid();
+            updateUI();
+
+            // Resize canvas
+            const gridContainer = document.querySelector('.grid-container');
+            canvas.width = gridContainer.offsetWidth;
+            canvas.height = gridContainer.offsetHeight;
+        };
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('maxTile').textContent = getMaxTile();
+        }
+
+        // Touch/swipe handling
+        gridElement.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        gridElement.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (gameState !== 'playing') return;
+
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+
+            if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+
+            let direction;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                direction = dx > 0 ? 'right' : 'left';
+            } else {
+                direction = dy > 0 ? 'down' : 'up';
+            }
+
+            handleMove(direction);
+        });
+
+        // Keyboard handling (for desktop)
+        document.addEventListener('keydown', (e) => {
+            if (gameState !== 'playing') return;
+
+            const keyMap = {
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right',
+                'ArrowUp': 'up',
+                'ArrowDown': 'down'
+            };
+
+            if (keyMap[e.key]) {
+                e.preventDefault();
+                handleMove(keyMap[e.key]);
+            }
+        });
+
+        function handleMove(direction) {
+            const moved = move(direction);
+
+            if (moved) {
+                addRandomTile();
+                renderGrid();
+                updateUI();
+
+                if (hasWon()) {
+                    setTimeout(() => endGame(true), 500);
+                } else if (isGameOver()) {
+                    setTimeout(() => endGame(false), 500);
+                }
+            }
+        }
+
+        // End game
+        function endGame(won) {
+            gameState = 'gameover';
+
+            document.getElementById('gameoverTitle').textContent = won ? '🎉 승리!' : '게임 종료';
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('2048explosion_highScore', highScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            } else {
+                document.getElementById('highScoreDisplay').classList.add('hidden');
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Game loop for particles
+        function gameLoop() {
+            if (gameState === 'playing') {
+                updateParticles();
+                drawParticles();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize
+        if (highScore > 0) {
+            document.getElementById('highScore').classList.remove('hidden');
+            document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+        }
+
+        gameLoop();
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
