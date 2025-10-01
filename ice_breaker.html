@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>아이스 브레이커 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #00d2ff;
+            box-shadow: 0 0 40px rgba(0, 210, 255, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            padding: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 500px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #3a7bd5;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.7;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00d2ff;
+        }
+
+        .grid-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        canvas {
+            display: block;
+            touch-action: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #e0f7ff 0%, #f0fbff 100%);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(0, 210, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(0, 210, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🧊❄️</div>
+            <h1>아이스 브레이커</h1>
+            <p style="color: #00d2ff; margin-bottom: 20px;">같은 색 얼음을 깨뜨려요!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 점수</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🧊 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #00d2ff; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>👆 같은 색 얼음 블록을 터치!</p>
+                <p>🧊 2개 이상 연결되면 깨짐!</p>
+                <p>💥 많이 연결할수록 높은 점수!</p>
+                <p>⛓️ 연쇄 반응으로 콤보!</p>
+                <p>🎯 30번의 이동으로 최고 점수!</p>
+                <p>❄️ 얼음이 깨지는 사운드와 파티클!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">❄️</div>
+            <h1>게임 종료</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">깨뜨린 블록</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="totalBlocks">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">최대 연쇄</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="maxChain">0</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 점수</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">점수</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">이동</div>
+                <div class="stat-value" id="moves">30</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">연쇄</div>
+                <div class="stat-value" id="chain">0</div>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game constants
+        const GRID_SIZE = 9;
+        const COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#ffd93d', '#a29bfe', '#fd79a8'];
+        const COLOR_NAMES = ['빨강', '청록', '파랑', '노랑', '보라', '분홍'];
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let moves = 30;
+        let chain = 0;
+        let maxChain = 0;
+        let totalBlocks = 0;
+        let highScore = localStorage.getItem('iceBreaker_highScore') || 0;
+        let grid = [];
+        let particles = [];
+        let selectedBlocks = [];
+
+        // Sound system
+        let soundEnabled = true;
+
+        function playSound(soundType) {
+            if (!soundEnabled) return;
+
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'break':
+                        // Ice breaking sound - high pitch crack
+                        oscillator.frequency.value = 880; // A5
+                        gainNode.gain.value = 0.15;
+                        oscillator.type = 'triangle';
+                        break;
+                    case 'chain':
+                        // Chain combo sound
+                        oscillator.frequency.value = 1046.5; // C6
+                        gainNode.gain.value = 0.2;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'select':
+                        // Selection sound
+                        oscillator.frequency.value = 523.25; // C5
+                        gainNode.gain.value = 0.08;
+                        oscillator.type = 'square';
+                        break;
+                    case 'fall':
+                        // Falling blocks sound
+                        oscillator.frequency.value = 329.63; // E4
+                        gainNode.gain.value = 0.05;
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.15);
+            } catch (e) {
+                // Silently fail
+            }
+        }
+
+        // Initialize grid
+        function initGrid() {
+            grid = [];
+            for (let i = 0; i < GRID_SIZE; i++) {
+                grid[i] = [];
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    grid[i][j] = {
+                        color: Math.floor(Math.random() * COLORS.length),
+                        y: i,
+                        targetY: i,
+                        falling: false
+                    };
+                }
+            }
+        }
+
+        // Set canvas size
+        function resizeCanvas() {
+            const size = Math.min(window.innerWidth - 40, 450);
+            canvas.width = size;
+            canvas.height = size;
+        }
+
+        // Draw game
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const cellSize = canvas.width / GRID_SIZE;
+
+            // Draw blocks
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    const block = grid[i][j];
+                    if (!block) continue;
+
+                    const x = j * cellSize;
+                    const y = block.y * cellSize;
+                    const isSelected = selectedBlocks.some(b => b.row === i && b.col === j);
+
+                    // Draw ice block
+                    ctx.fillStyle = COLORS[block.color];
+                    ctx.fillRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+
+                    // Draw ice effect
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.fillRect(x + 2, y + 2, cellSize - 4, (cellSize - 4) * 0.4);
+
+                    // Draw ice crystal pattern
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    const cx = x + cellSize / 2;
+                    const cy = y + cellSize / 2;
+                    const r = cellSize * 0.15;
+                    for (let k = 0; k < 6; k++) {
+                        const angle = (Math.PI / 3) * k;
+                        ctx.moveTo(cx, cy);
+                        ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r);
+                    }
+                    ctx.stroke();
+
+                    // Highlight selected blocks
+                    if (isSelected) {
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 4;
+                        ctx.strokeRect(x + 2, y + 2, cellSize - 4, cellSize - 4);
+                    }
+                }
+            }
+
+            // Draw particles
+            particles.forEach((p, index) => {
+                const alpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = alpha;
+
+                if (p.isIceShard) {
+                    // Draw ice shard
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation);
+                    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                    ctx.restore();
+                    p.rotation += 0.1;
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.globalAlpha = 1;
+
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.3;
+                p.life--;
+
+                if (p.life <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+        }
+
+        // Find connected blocks
+        function findConnected(row, col, color, visited = new Set()) {
+            const key = `${row},${col}`;
+            if (visited.has(key)) return [];
+            if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return [];
+            if (!grid[row][col] || grid[row][col].color !== color) return [];
+
+            visited.add(key);
+            const result = [{ row, col }];
+
+            // Check 4 directions
+            result.push(...findConnected(row - 1, col, color, visited));
+            result.push(...findConnected(row + 1, col, color, visited));
+            result.push(...findConnected(row, col - 1, color, visited));
+            result.push(...findConnected(row, col + 1, color, visited));
+
+            return result;
+        }
+
+        // Create particles
+        function createParticles(row, col, color) {
+            const cellSize = canvas.width / GRID_SIZE;
+            const x = col * cellSize + cellSize / 2;
+            const y = row * cellSize + cellSize / 2;
+
+            // Ice shards
+            for (let i = 0; i < 10; i++) {
+                const angle = (Math.PI * 2 * i) / 10;
+                const speed = Math.random() * 4 + 2;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 2,
+                    life: 40,
+                    maxLife: 40,
+                    size: Math.random() * 6 + 4,
+                    color: COLORS[color],
+                    isIceShard: true,
+                    rotation: Math.random() * Math.PI * 2
+                });
+            }
+
+            // Sparkles
+            for (let i = 0; i < 5; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 2 + 1;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 3,
+                    life: 30,
+                    maxLife: 30,
+                    size: Math.random() * 3 + 2,
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    isIceShard: false
+                });
+            }
+        }
+
+        // Remove blocks
+        function removeBlocks(blocks) {
+            if (blocks.length < 2) return false;
+
+            blocks.forEach(b => {
+                createParticles(b.row, b.col, grid[b.row][b.col].color);
+                grid[b.row][b.col] = null;
+            });
+
+            // Calculate score
+            const points = blocks.length * blocks.length * 10;
+            score += points * (chain + 1);
+            totalBlocks += blocks.length;
+            chain++;
+
+            playSound(chain > 1 ? 'chain' : 'break');
+            updateUI();
+            return true;
+        }
+
+        // Drop blocks
+        function dropBlocks() {
+            let dropped = false;
+
+            for (let j = 0; j < GRID_SIZE; j++) {
+                let emptyCount = 0;
+
+                // Count empty cells
+                for (let i = GRID_SIZE - 1; i >= 0; i--) {
+                    if (!grid[i][j]) emptyCount++;
+                }
+
+                // Drop blocks
+                for (let i = GRID_SIZE - 1; i >= 0; i--) {
+                    if (!grid[i][j]) {
+                        // Find block above
+                        for (let k = i - 1; k >= 0; k--) {
+                            if (grid[k][j]) {
+                                grid[i][j] = grid[k][j];
+                                grid[i][j].targetY = i;
+                                grid[i][j].falling = true;
+                                grid[k][j] = null;
+                                dropped = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Add new blocks
+                for (let i = 0; i < emptyCount; i++) {
+                    grid[i][j] = {
+                        color: Math.floor(Math.random() * COLORS.length),
+                        y: -emptyCount + i,
+                        targetY: i,
+                        falling: true
+                    };
+                    dropped = true;
+                }
+            }
+
+            if (dropped) {
+                playSound('fall');
+            }
+
+            return dropped;
+        }
+
+        // Update falling blocks
+        function updateFalling() {
+            let stillFalling = false;
+
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    const block = grid[i][j];
+                    if (block && block.falling) {
+                        if (block.y < block.targetY) {
+                            block.y += 0.4;
+                            stillFalling = true;
+                            if (block.y >= block.targetY) {
+                                block.y = block.targetY;
+                                block.falling = false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return stillFalling;
+        }
+
+        // Handle click/touch
+        canvas.addEventListener('click', (e) => {
+            if (gameState !== 'playing') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const cellSize = canvas.width / GRID_SIZE;
+            const col = Math.floor(x / cellSize);
+            const row = Math.floor(y / cellSize);
+
+            if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return;
+            if (!grid[row][col]) return;
+
+            const color = grid[row][col].color;
+            const connected = findConnected(row, col, color);
+
+            if (connected.length >= 2) {
+                selectedBlocks = connected;
+                playSound('select');
+
+                setTimeout(() => {
+                    if (removeBlocks(connected)) {
+                        moves--;
+                        updateUI();
+
+                        if (moves <= 0) {
+                            setTimeout(() => endGame(), 1000);
+                        } else {
+                            // Process falling
+                            setTimeout(() => {
+                                dropBlocks();
+                            }, 300);
+                        }
+                    }
+                    selectedBlocks = [];
+                }, 100);
+            }
+        });
+
+        // Touch handling
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('click', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            moves = 30;
+            chain = 0;
+            maxChain = 0;
+            totalBlocks = 0;
+            particles = [];
+            selectedBlocks = [];
+
+            resizeCanvas();
+            initGrid();
+            updateUI();
+        };
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('chain').textContent = chain;
+
+            if (chain > maxChain) maxChain = chain;
+
+            // Reset chain on next turn
+            setTimeout(() => {
+                if (gameState === 'playing') {
+                    chain = 0;
+                    updateUI();
+                }
+            }, 1000);
+        }
+
+        // End game
+        function endGame() {
+            gameState = 'gameover';
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('totalBlocks').textContent = totalBlocks;
+            document.getElementById('maxChain').textContent = maxChain;
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('iceBreaker_highScore', highScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            } else {
+                document.getElementById('highScoreDisplay').classList.add('hidden');
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameState === 'playing') {
+                updateFalling();
+                drawGame();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize
+        if (highScore > 0) {
+            document.getElementById('highScore').classList.remove('hidden');
+            document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+        }
+
+        window.addEventListener('resize', () => {
+            if (gameState === 'playing') {
+                resizeCanvas();
+            }
+        });
+
+        gameLoop();
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
