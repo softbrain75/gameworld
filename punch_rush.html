@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>펀치 러쉬 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #e74c3c;
+            box-shadow: 0 0 40px rgba(231, 76, 60, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #e74c3c, #ffff00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: punch 0.5s ease-in-out infinite;
+        }
+
+        @keyframes punch {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(231, 76, 60, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            position: relative;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 1em;
+            border-bottom: 2px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.7em;
+            opacity: 0.8;
+            color: #e74c3c;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffff00;
+        }
+
+        canvas {
+            flex: 1;
+            width: 100%;
+            touch-action: none;
+            background: linear-gradient(180deg, #34495e 0%, #2c3e50 100%);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(231, 76, 60, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(231, 76, 60, 0.5);
+        }
+
+        .timer-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 10px;
+            background: linear-gradient(90deg, #e74c3c, #ffff00);
+            transition: width 0.1s linear;
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🥊💥</div>
+            <h1>펀치 러쉬</h1>
+            <p style="color: #e74c3c; margin-bottom: 20px;">샌드백을 연타하세요!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 기록</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🥊 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #e74c3c; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>👊 샌드백을 빠르게 터치!</p>
+                <p>⚡ 연속 터치로 콤보 증가!</p>
+                <p>💥 타이밍 좋게 터치하면 크리티컬!</p>
+                <p>🌟 크리티컬 = 2배 점수!</p>
+                <p>⏱️ 60초 안에 최대한 많이 터치!</p>
+                <p>💨 화려한 타격 파티클 효과!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">💪</div>
+            <h1>게임 오버</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">총 펀치</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="punchCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">크리티컬</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="criticalCount">0</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 기록</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="timer-bar" id="timerBar"></div>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">점수</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">콤보</div>
+                <div class="stat-value" id="combo">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">시간</div>
+                <div class="stat-value" id="time">60</div>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let combo = 0;
+        let punchCount = 0;
+        let criticalCount = 0;
+        let timeLeft = 60;
+        let highScore = localStorage.getItem('punchRush_highScore') || 0;
+
+        // Game objects
+        let sandbag = null;
+        let particles = [];
+        let shakeAmount = 0;
+        let lastPunchTime = 0;
+        let comboTimer = 0;
+
+        // Set canvas size
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const stats = container.querySelector('.stats');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - stats.offsetHeight;
+
+            // Initialize sandbag
+            sandbag = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                radius: Math.min(canvas.width, canvas.height) * 0.25,
+                swingAngle: 0,
+                swingSpeed: 0,
+                targetAngle: 0
+            };
+        }
+
+        // Initialize
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Show high score
+            if (highScore > 0) {
+                document.getElementById('highScore').classList.remove('hidden');
+                document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            // Touch/Click events
+            canvas.addEventListener('click', handlePunch);
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handlePunch(e.touches[0]);
+            });
+
+            gameLoop();
+        }
+
+        // Handle punch
+        function handlePunch(e) {
+            if (gameState !== 'playing') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.pageX) - rect.left;
+            const y = (e.clientY || e.pageY) - rect.top;
+
+            // Check if hit sandbag
+            const dist = Math.hypot(x - sandbag.x, y - sandbag.y);
+            if (dist < sandbag.radius) {
+                const now = Date.now();
+                const timeSinceLastPunch = now - lastPunchTime;
+                const isCritical = timeSinceLastPunch > 150 && timeSinceLastPunch < 300; // Perfect timing
+
+                // Score calculation
+                let points = 10;
+                if (isCritical) {
+                    points *= 2;
+                    criticalCount++;
+                }
+                points *= (combo + 1);
+                score += points;
+
+                punchCount++;
+                combo++;
+                comboTimer = 60; // Reset combo timer
+                lastPunchTime = now;
+
+                // Shake effect
+                shakeAmount = 20;
+                sandbag.targetAngle = (Math.random() - 0.5) * 0.3;
+                sandbag.swingSpeed = (Math.random() - 0.5) * 0.4;
+
+                // Create particles
+                const angle = Math.atan2(y - sandbag.y, x - sandbag.x);
+                const particleCount = isCritical ? 50 : 30;
+                const color = isCritical ? '#ffff00' : '#ff6600';
+
+                for (let i = 0; i < particleCount; i++) {
+                    const spreadAngle = angle + (Math.random() - 0.5) * 1;
+                    const speed = Math.random() * 10 + 5;
+                    particles.push({
+                        x,
+                        y,
+                        vx: Math.cos(spreadAngle) * speed,
+                        vy: Math.sin(spreadAngle) * speed,
+                        life: 40,
+                        maxLife: 40,
+                        size: Math.random() * 6 + 3,
+                        color
+                    });
+                }
+
+                // Show critical text
+                if (isCritical) {
+                    showText('CRITICAL!', x, y, '#ffff00', 2);
+                } else if (combo > 5) {
+                    showText(`COMBO x${combo}!`, x, y, '#00ffff', 1.5);
+                }
+
+                updateUI();
+            }
+        }
+
+        // Show floating text
+        function showText(text, x, y, color, scale) {
+            particles.push({
+                x,
+                y,
+                vx: 0,
+                vy: -3,
+                life: 30,
+                maxLife: 30,
+                text,
+                color,
+                scale,
+                isText: true
+            });
+        }
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            combo = 0;
+            punchCount = 0;
+            criticalCount = 0;
+            timeLeft = 60;
+            particles = [];
+            shakeAmount = 0;
+            lastPunchTime = 0;
+            comboTimer = 0;
+
+            updateUI();
+        };
+
+        // Update game
+        function updateGame() {
+            // Update timer
+            if (gameState === 'playing') {
+                timeLeft -= 1/60;
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    endGame();
+                }
+
+                // Update timer bar
+                const timerBar = document.getElementById('timerBar');
+                timerBar.style.width = (timeLeft / 60 * 100) + '%';
+            }
+
+            // Update combo timer
+            if (comboTimer > 0) {
+                comboTimer--;
+                if (comboTimer === 0) {
+                    combo = 0;
+                    updateUI();
+                }
+            }
+
+            // Update shake
+            if (shakeAmount > 0) {
+                shakeAmount *= 0.9;
+                if (shakeAmount < 0.1) shakeAmount = 0;
+            }
+
+            // Update sandbag swing
+            sandbag.swingAngle += (sandbag.targetAngle - sandbag.swingAngle) * 0.1;
+            sandbag.swingAngle += sandbag.swingSpeed;
+            sandbag.swingSpeed *= 0.95;
+            sandbag.targetAngle *= 0.95;
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (!p.isText) {
+                    p.vy += 0.3; // gravity
+                }
+
+                p.life--;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        // Draw game
+        function drawGame() {
+            // Clear with shake
+            ctx.save();
+            const shakeX = shakeAmount * (Math.random() - 0.5);
+            const shakeY = shakeAmount * (Math.random() - 0.5);
+            ctx.translate(shakeX, shakeY);
+
+            // Background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#34495e');
+            gradient.addColorStop(1, '#2c3e50');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw rope
+            ctx.strokeStyle = '#8b7355';
+            ctx.lineWidth = 10;
+            ctx.beginPath();
+            ctx.moveTo(sandbag.x, 0);
+            ctx.lineTo(sandbag.x, sandbag.y - sandbag.radius);
+            ctx.stroke();
+
+            // Draw sandbag
+            ctx.save();
+            ctx.translate(sandbag.x, sandbag.y);
+            ctx.rotate(sandbag.swingAngle);
+
+            // Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(10, 10, sandbag.radius, sandbag.radius * 1.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sandbag body
+            const bagGradient = ctx.createRadialGradient(-20, -20, 0, 0, 0, sandbag.radius);
+            bagGradient.addColorStop(0, '#8b4513');
+            bagGradient.addColorStop(1, '#5c3317');
+            ctx.fillStyle = bagGradient;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, sandbag.radius, sandbag.radius * 1.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Stitching lines
+            ctx.strokeStyle = '#4a2511';
+            ctx.lineWidth = 3;
+            for (let i = -3; i <= 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(-sandbag.radius, i * 20);
+                ctx.lineTo(sandbag.radius, i * 20);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+
+            // Draw particles
+            particles.forEach(p => {
+                if (p.isText) {
+                    const alpha = p.life / p.maxLife;
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = alpha;
+                    ctx.font = `bold ${30 * p.scale}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 20;
+                    ctx.fillText(p.text, p.x, p.y);
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1;
+                } else {
+                    const alpha = p.life / p.maxLife;
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = alpha;
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1;
+                }
+            });
+
+            ctx.restore();
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameState === 'playing') {
+                updateGame();
+                drawGame();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('combo').textContent = combo + 'x';
+            document.getElementById('time').textContent = Math.ceil(timeLeft);
+        }
+
+        // End game
+        function endGame() {
+            gameState = 'gameover';
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('punchCount').textContent = punchCount;
+            document.getElementById('criticalCount').textContent = criticalCount;
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('punchRush_highScore', highScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
