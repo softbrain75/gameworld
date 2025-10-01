@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>배틀 택틱스 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #434343 0%, #000000 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #c31432 0%, #240b36 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #c31432;
+            box-shadow: 0 0 40px rgba(195, 20, 50, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #c31432, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: shake 1s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #c31432, #a01028);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(195, 20, 50, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+        }
+
+        .turn-info {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            text-align: center;
+            color: white;
+            font-size: 1.3em;
+            font-weight: bold;
+            border-bottom: 3px solid rgba(195, 20, 50, 0.5);
+        }
+
+        .battlefield {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: rgba(100, 100, 100, 0.3);
+            border: 2px solid rgba(150, 150, 150, 0.5);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .cell:hover {
+            background: rgba(150, 150, 150, 0.4);
+        }
+
+        .cell.player {
+            background: rgba(52, 152, 219, 0.3);
+            border-color: #3498db;
+        }
+
+        .cell.enemy {
+            background: rgba(231, 76, 60, 0.3);
+            border-color: #e74c3c;
+        }
+
+        .cell.selected {
+            background: rgba(46, 204, 113, 0.5);
+            border-color: #2ecc71;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.8);
+        }
+
+        .cell.target {
+            background: rgba(241, 196, 15, 0.3);
+            border-color: #f1c40f;
+        }
+
+        .unit-icon {
+            font-size: clamp(30px, 6vw, 50px);
+        }
+
+        .unit-hp {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        .action-btn {
+            flex: 1;
+            background: linear-gradient(45deg, #c31432, #a01028);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn:disabled:hover {
+            transform: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(195, 20, 50, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(195, 20, 50, 0.5);
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">⚔️</div>
+            <h1>배틀 택틱스</h1>
+            <p style="color: #ff6b6b; margin-bottom: 20px;">턴제 전략 전투 게임!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 기록</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">⚔️ 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #ff6b6b; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>🎯 유닛을 선택하고 이동 또는 공격</p>
+                <p>⚔️ 각 유닛마다 다른 능력</p>
+                <p>💪 전사: 높은 체력, 근접 공격</p>
+                <p>🏹 궁수: 원거리 공격</p>
+                <p>🛡️ 방어병: 방어력 높음</p>
+                <p>✨ 마법사: 강력한 마법 공격</p>
+                <p>🎯 전략적으로 유닛 배치!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon" id="gameoverIcon">💥</div>
+            <h1 id="gameoverTitle">게임 오버</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">라운드</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="finalRound">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">처치</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="killCount">0</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 기록</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="turn-info">
+            <div id="turnDisplay">플레이어 턴</div>
+        </div>
+
+        <div class="battlefield" id="battlefield"></div>
+
+        <div class="action-buttons">
+            <button class="action-btn" id="moveBtn" onclick="setAction('move')">🚶 이동</button>
+            <button class="action-btn" id="attackBtn" onclick="setAction('attack')">⚔️ 공격</button>
+            <button class="action-btn" onclick="endTurn()">✅턴 종료</button>
+        </div>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        // Unit types
+        const unitTypes = {
+            warrior: { icon: '💪', hp: 100, attack: 20, range: 1, name: '전사' },
+            archer: { icon: '🏹', hp: 60, attack: 25, range: 3, name: '궁수' },
+            defender: { icon: '🛡️', hp: 150, attack: 10, range: 1, name: '방어병' },
+            mage: { icon: '✨', hp: 50, attack: 35, range: 2, name: '마법사' }
+        };
+
+        // Game state
+        let battlefield = Array(25).fill(null); // 5x5 grid
+        let selectedUnit = null;
+        let currentAction = null;
+        let turn = 'player';
+        let round = 1;
+        let kills = 0;
+        let highScore = localStorage.getItem('battleTactics_highScore') || 0;
+
+        // Initialize
+        function init() {
+            // Show high score
+            if (highScore > 0) {
+                document.getElementById('highScore').classList.remove('hidden');
+                document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+            }
+        }
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            battlefield = Array(25).fill(null);
+            selectedUnit = null;
+            currentAction = null;
+            turn = 'player';
+            round = 1;
+            kills = 0;
+
+            // Place player units
+            battlefield[22] = { ...unitTypes.warrior, team: 'player', id: 'p1', moved: false };
+            battlefield[21] = { ...unitTypes.archer, team: 'player', id: 'p2', moved: false };
+            battlefield[23] = { ...unitTypes.defender, team: 'player', id: 'p3', moved: false };
+
+            // Place enemy units
+            battlefield[2] = { ...unitTypes.warrior, team: 'enemy', id: 'e1', moved: false };
+            battlefield[1] = { ...unitTypes.archer, team: 'enemy', id: 'e2', moved: false };
+            battlefield[3] = { ...unitTypes.mage, team: 'enemy', id: 'e3', moved: false };
+
+            renderBattlefield();
+            updateTurnDisplay();
+        };
+
+        // Render battlefield
+        function renderBattlefield() {
+            const battlefieldEl = document.getElementById('battlefield');
+            battlefieldEl.innerHTML = '';
+
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+
+                const unit = battlefield[i];
+                if (unit) {
+                    cell.classList.add(unit.team);
+                    cell.innerHTML = `
+                        <div class="unit-icon">${unit.icon}</div>
+                        <div class="unit-hp">❤️${unit.hp}</div>
+                    `;
+                }
+
+                if (selectedUnit === i) {
+                    cell.classList.add('selected');
+                }
+
+                cell.addEventListener('click', () => handleCellClick(i));
+                battlefieldEl.appendChild(cell);
+            }
+        }
+
+        // Handle cell click
+        function handleCellClick(index) {
+            if (turn !== 'player') return;
+
+            const unit = battlefield[index];
+
+            // Select unit
+            if (!currentAction && unit && unit.team === 'player' && !unit.moved) {
+                selectedUnit = index;
+                renderBattlefield();
+                return;
+            }
+
+            // Move action
+            if (currentAction === 'move' && selectedUnit !== null) {
+                const selectedUnitData = battlefield[selectedUnit];
+                if (!battlefield[index] && canMove(selectedUnit, index)) {
+                    battlefield[index] = selectedUnitData;
+                    battlefield[selectedUnit] = null;
+                    battlefield[index].moved = true;
+                    selectedUnit = null;
+                    currentAction = null;
+                    renderBattlefield();
+                }
+            }
+
+            // Attack action
+            if (currentAction === 'attack' && selectedUnit !== null) {
+                const attacker = battlefield[selectedUnit];
+                const target = battlefield[index];
+                if (target && target.team === 'enemy' && canAttack(selectedUnit, index, attacker.range)) {
+                    target.hp -= attacker.attack;
+                    attacker.moved = true;
+
+                    if (target.hp <= 0) {
+                        battlefield[index] = null;
+                        kills++;
+                    }
+
+                    selectedUnit = null;
+                    currentAction = null;
+                    renderBattlefield();
+                    checkGameEnd();
+                }
+            }
+        }
+
+        // Can move
+        function canMove(from, to) {
+            const fromRow = Math.floor(from / 5);
+            const fromCol = from % 5;
+            const toRow = Math.floor(to / 5);
+            const toCol = to % 5;
+
+            const distance = Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol);
+            return distance === 1;
+        }
+
+        // Can attack
+        function canAttack(from, to, range) {
+            const fromRow = Math.floor(from / 5);
+            const fromCol = from % 5;
+            const toRow = Math.floor(to / 5);
+            const toCol = to % 5;
+
+            const distance = Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol);
+            return distance <= range;
+        }
+
+        // Set action
+        window.setAction = function(action) {
+            if (selectedUnit === null) return;
+            currentAction = action;
+            document.getElementById('moveBtn').style.opacity = action === 'move' ? '1' : '0.5';
+            document.getElementById('attackBtn').style.opacity = action === 'attack' ? '1' : '0.5';
+        };
+
+        // End turn
+        window.endTurn = function() {
+            // Reset moved status
+            battlefield.forEach(unit => {
+                if (unit) unit.moved = false;
+            });
+
+            turn = 'enemy';
+            updateTurnDisplay();
+
+            // Enemy AI turn
+            setTimeout(() => {
+                enemyTurn();
+                turn = 'player';
+                round++;
+                updateTurnDisplay();
+            }, 1000);
+        };
+
+        // Enemy turn (simple AI)
+        function enemyTurn() {
+            const enemies = battlefield.map((unit, index) => unit && unit.team === 'enemy' ? index : null).filter(i => i !== null);
+            const players = battlefield.map((unit, index) => unit && unit.team === 'player' ? index : null).filter(i => i !== null);
+
+            for (const enemyIndex of enemies) {
+                const enemy = battlefield[enemyIndex];
+                if (!enemy) continue;
+
+                // Find closest player
+                let closestPlayer = null;
+                let minDist = Infinity;
+
+                for (const playerIndex of players) {
+                    const dist = Math.abs(Math.floor(enemyIndex / 5) - Math.floor(playerIndex / 5)) +
+                                Math.abs(enemyIndex % 5 - playerIndex % 5);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closestPlayer = playerIndex;
+                    }
+                }
+
+                if (!closestPlayer) continue;
+
+                // Attack if in range
+                if (minDist <= enemy.range) {
+                    const target = battlefield[closestPlayer];
+                    target.hp -= enemy.attack;
+                    if (target.hp <= 0) {
+                        battlefield[closestPlayer] = null;
+                    }
+                } else {
+                    // Move closer
+                    const enemyRow = Math.floor(enemyIndex / 5);
+                    const enemyCol = enemyIndex % 5;
+                    const playerRow = Math.floor(closestPlayer / 5);
+                    const playerCol = closestPlayer % 5;
+
+                    let newRow = enemyRow;
+                    let newCol = enemyCol;
+
+                    if (enemyRow < playerRow) newRow++;
+                    else if (enemyRow > playerRow) newRow--;
+                    else if (enemyCol < playerCol) newCol++;
+                    else if (enemyCol > playerCol) newCol--;
+
+                    const newIndex = newRow * 5 + newCol;
+                    if (!battlefield[newIndex]) {
+                        battlefield[newIndex] = enemy;
+                        battlefield[enemyIndex] = null;
+                    }
+                }
+            }
+
+            renderBattlefield();
+            checkGameEnd();
+        }
+
+        // Check game end
+        function checkGameEnd() {
+            const playerUnits = battlefield.filter(u => u && u.team === 'player').length;
+            const enemyUnits = battlefield.filter(u => u && u.team === 'enemy').length;
+
+            if (playerUnits === 0) {
+                endGame(false);
+            } else if (enemyUnits === 0) {
+                // Spawn new enemies
+                round++;
+                spawnEnemies();
+            }
+        }
+
+        // Spawn enemies
+        function spawnEnemies() {
+            const types = Object.keys(unitTypes);
+            for (let i = 0; i < 3; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                const index = i;
+                if (!battlefield[index]) {
+                    battlefield[index] = { ...unitTypes[type], team: 'enemy', id: `e${round}_${i}`, moved: false };
+                }
+            }
+            renderBattlefield();
+        }
+
+        // Update turn display
+        function updateTurnDisplay() {
+            document.getElementById('turnDisplay').textContent =
+                turn === 'player' ? `플레이어 턴 (라운드 ${round})` : '적 턴...';
+        }
+
+        // End game
+        function endGame(won) {
+            const score = kills * 100 + round * 50;
+
+            document.getElementById('gameoverIcon').textContent = won ? '👑' : '💥';
+            document.getElementById('gameoverTitle').textContent = won ? '승리!' : '패배!';
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('finalRound').textContent = round;
+            document.getElementById('killCount').textContent = kills;
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('battleTactics_highScore', highScore);
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

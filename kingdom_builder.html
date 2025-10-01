@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>킹덤 빌더 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #2d5016 0%, #1a3409 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #8b7355 0%, #6b5744 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #d4a574;
+            box-shadow: 0 0 40px rgba(212, 165, 116, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #d4a574, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #d4a574, #b8925a);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(212, 165, 116, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            background: linear-gradient(180deg, #1a4d2e 0%, #0f3820 100%);
+        }
+
+        .resources-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid rgba(212, 165, 116, 0.3);
+        }
+
+        .resource {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            background: rgba(212, 165, 116, 0.2);
+            border-radius: 10px;
+            border: 2px solid rgba(212, 165, 116, 0.5);
+        }
+
+        .resource-icon {
+            font-size: 2em;
+        }
+
+        .resource-amount {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-top: 5px;
+        }
+
+        .resource-label {
+            font-size: 0.7em;
+            opacity: 0.8;
+            color: white;
+        }
+
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .kingdom-status {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px solid rgba(212, 165, 116, 0.5);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            color: white;
+        }
+
+        .buildings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .building-card {
+            background: linear-gradient(135deg, #6b5744 0%, #4a3d2f 100%);
+            border: 3px solid #d4a574;
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            text-align: center;
+        }
+
+        .building-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(212, 165, 116, 0.5);
+        }
+
+        .building-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .building-card.disabled:hover {
+            transform: none;
+        }
+
+        .building-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .building-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .building-cost {
+            font-size: 0.8em;
+            color: #ffd700;
+            margin: 5px 0;
+        }
+
+        .building-effect {
+            font-size: 0.75em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .owned-buildings {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid rgba(212, 165, 116, 0.5);
+        }
+
+        .section-title {
+            color: #d4a574;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .owned-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .owned-item {
+            background: rgba(212, 165, 116, 0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(212, 165, 116, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .owned-item-icon {
+            font-size: 2em;
+        }
+
+        .owned-item-count {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(212, 165, 116, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(212, 165, 116, 0.5);
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: 2px solid #d4a574;
+            z-index: 200;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100%); }
+            to { transform: translate(-50%, 0); }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🏰</div>
+            <h1>킹덤 빌더</h1>
+            <p style="color: #d4a574; margin-bottom: 20px;">자원을 모아 왕국을 건설하세요!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 기록</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🎮 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #d4a574; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>🏠 건물을 지어 왕국 발전</p>
+                <p>⚒️ 자원을 생산하고 관리</p>
+                <p>👥 인구를 늘려 수입 증가</p>
+                <p>🏰 왕국 레벨 업그레이드</p>
+                <p>💰 자동으로 자원 생산</p>
+                <p>📈 최대한 왕국을 발전시키세요!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">👑</div>
+            <h1>왕국 평가</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">왕국 레벨</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="finalLevel">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">총 인구</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="finalPopulation">0</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 기록</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="resources-bar">
+            <div class="resource">
+                <div class="resource-icon">💰</div>
+                <div class="resource-amount" id="gold">100</div>
+                <div class="resource-label">골드</div>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">🪵</div>
+                <div class="resource-amount" id="wood">50</div>
+                <div class="resource-label">목재</div>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">🪨</div>
+                <div class="resource-amount" id="stone">30</div>
+                <div class="resource-label">석재</div>
+            </div>
+            <div class="resource">
+                <div class="resource-icon">👥</div>
+                <div class="resource-amount" id="population">10</div>
+                <div class="resource-label">인구</div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="kingdom-status">
+                <div class="section-title">🏰 왕국 상태</div>
+                <div class="status-row">
+                    <span>레벨:</span>
+                    <span id="level" style="color: #ffd700; font-weight: bold;">1</span>
+                </div>
+                <div class="status-row">
+                    <span>수입/초:</span>
+                    <span id="income" style="color: #4ade80; font-weight: bold;">+1 💰</span>
+                </div>
+                <div class="status-row">
+                    <span>행복도:</span>
+                    <span id="happiness" style="color: #60a5fa; font-weight: bold;">100%</span>
+                </div>
+            </div>
+
+            <div class="section-title">🏗️ 건물 짓기</div>
+            <div class="buildings-grid" id="buildingsGrid"></div>
+
+            <div class="owned-buildings">
+                <div class="section-title">📊 보유 건물</div>
+                <div class="owned-list" id="ownedList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        // Building types
+        const buildings = [
+            { id: 'house', name: '주택', icon: '🏠', cost: { gold: 50, wood: 20 }, effect: { population: 5, income: 1 } },
+            { id: 'farm', name: '농장', icon: '🌾', cost: { gold: 100, wood: 50 }, effect: { income: 3, food: 10 } },
+            { id: 'lumbermill', name: '제재소', icon: '🪵', cost: { gold: 150, stone: 30 }, effect: { wood: 5 } },
+            { id: 'quarry', name: '채석장', icon: '🪨', cost: { gold: 200, wood: 50 }, effect: { stone: 3 } },
+            { id: 'market', name: '시장', icon: '🏪', cost: { gold: 300, wood: 100, stone: 50 }, effect: { income: 10 } },
+            { id: 'barracks', name: '병영', icon: '⚔️', cost: { gold: 500, wood: 200, stone: 100 }, effect: { defense: 10 } },
+            { id: 'temple', name: '사원', icon: '⛪', cost: { gold: 800, wood: 300, stone: 200 }, effect: { happiness: 20 } },
+            { id: 'castle', name: '성', icon: '🏰', cost: { gold: 2000, wood: 500, stone: 500 }, effect: { level: 1, income: 50 } }
+        ];
+
+        // Game state
+        let resources = { gold: 100, wood: 50, stone: 30, population: 10 };
+        let ownedBuildings = {};
+        let income = 1;
+        let level = 1;
+        let happiness = 100;
+        let gameTime = 0;
+        let highScore = localStorage.getItem('kingdomBuilder_highScore') || 0;
+        let gameInterval = null;
+
+        // Initialize
+        function init() {
+            // Show high score
+            if (highScore > 0) {
+                document.getElementById('highScore').classList.remove('hidden');
+                document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+            }
+        }
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            resources = { gold: 100, wood: 50, stone: 30, population: 10 };
+            ownedBuildings = {};
+            income = 1;
+            level = 1;
+            happiness = 100;
+            gameTime = 0;
+
+            renderBuildings();
+            updateUI();
+
+            // Start resource generation
+            if (gameInterval) clearInterval(gameInterval);
+            gameInterval = setInterval(() => {
+                gameTime++;
+                resources.gold += income;
+
+                // Produce resources from buildings
+                if (ownedBuildings.lumbermill) {
+                    resources.wood += ownedBuildings.lumbermill * 0.1;
+                }
+                if (ownedBuildings.quarry) {
+                    resources.stone += ownedBuildings.quarry * 0.05;
+                }
+
+                updateUI();
+            }, 1000);
+        };
+
+        // Render buildings
+        function renderBuildings() {
+            const grid = document.getElementById('buildingsGrid');
+            grid.innerHTML = '';
+
+            buildings.forEach(building => {
+                const card = document.createElement('div');
+                card.className = 'building-card';
+
+                // Check if can afford
+                const canAfford = canAffordBuilding(building);
+                if (!canAfford) {
+                    card.classList.add('disabled');
+                }
+
+                card.innerHTML = `
+                    <div class="building-icon">${building.icon}</div>
+                    <div class="building-name">${building.name}</div>
+                    <div class="building-cost">
+                        ${Object.entries(building.cost).map(([res, amount]) => {
+                            const icons = { gold: '💰', wood: '🪵', stone: '🪨' };
+                            return `${icons[res]}${amount}`;
+                        }).join(' ')}
+                    </div>
+                    <div class="building-effect">
+                        ${Object.entries(building.effect).map(([key, value]) => {
+                            const labels = {
+                                population: '👥',
+                                income: '💰/초',
+                                wood: '🪵/초',
+                                stone: '🪨/초',
+                                defense: '🛡️',
+                                happiness: '😊',
+                                level: '⭐',
+                                food: '🍞'
+                            };
+                            return `${labels[key] || key} +${value}`;
+                        }).join(', ')}
+                    </div>
+                `;
+
+                card.addEventListener('click', () => buildBuilding(building));
+                grid.appendChild(card);
+            });
+        }
+
+        // Check if can afford building
+        function canAffordBuilding(building) {
+            for (const [resource, cost] of Object.entries(building.cost)) {
+                if (resources[resource] < cost) return false;
+            }
+            return true;
+        }
+
+        // Build building
+        function buildBuilding(building) {
+            if (!canAffordBuilding(building)) {
+                showNotification('자원이 부족합니다!');
+                return;
+            }
+
+            // Deduct resources
+            for (const [resource, cost] of Object.entries(building.cost)) {
+                resources[resource] -= cost;
+            }
+
+            // Apply effects
+            for (const [effect, value] of Object.entries(building.effect)) {
+                if (effect === 'population') {
+                    resources.population += value;
+                } else if (effect === 'income') {
+                    income += value;
+                } else if (effect === 'level') {
+                    level += value;
+                } else if (effect === 'happiness') {
+                    happiness = Math.min(100, happiness + value);
+                }
+            }
+
+            // Track owned buildings
+            ownedBuildings[building.id] = (ownedBuildings[building.id] || 0) + 1;
+
+            showNotification(`${building.icon} ${building.name} 건설 완료!`);
+            renderBuildings();
+            updateOwnedBuildings();
+            updateUI();
+        }
+
+        // Update owned buildings display
+        function updateOwnedBuildings() {
+            const list = document.getElementById('ownedList');
+            list.innerHTML = '';
+
+            if (Object.keys(ownedBuildings).length === 0) {
+                list.innerHTML = '<div style="color: rgba(255,255,255,0.5);">아직 건물이 없습니다</div>';
+                return;
+            }
+
+            for (const [buildingId, count] of Object.entries(ownedBuildings)) {
+                const building = buildings.find(b => b.id === buildingId);
+                const item = document.createElement('div');
+                item.className = 'owned-item';
+                item.innerHTML = `
+                    <div class="owned-item-icon">${building.icon}</div>
+                    <div>
+                        <div style="color: white;">${building.name}</div>
+                        <div class="owned-item-count">x${count}</div>
+                    </div>
+                `;
+                list.appendChild(item);
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('gold').textContent = Math.floor(resources.gold);
+            document.getElementById('wood').textContent = Math.floor(resources.wood);
+            document.getElementById('stone').textContent = Math.floor(resources.stone);
+            document.getElementById('population').textContent = resources.population;
+            document.getElementById('level').textContent = level;
+            document.getElementById('income').textContent = `+${income} 💰`;
+            document.getElementById('happiness').textContent = happiness + '%';
+        }
+
+        // Show notification
+        function showNotification(text) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = text;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 2000);
+        }
+
+        // End game (when user closes)
+        function endGame() {
+            if (gameInterval) clearInterval(gameInterval);
+
+            const score = resources.gold + resources.wood * 2 + resources.stone * 3 + resources.population * 10 + level * 100;
+
+            document.getElementById('finalScore').textContent = Math.floor(score).toLocaleString();
+            document.getElementById('finalLevel').textContent = level;
+            document.getElementById('finalPopulation').textContent = resources.population;
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('kingdomBuilder_highScore', highScore);
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
