@@ -610,16 +610,34 @@
                 }
             });
 
-            // Auto fire at locked target
+            // Auto fire at locked target - dual lasers from bottom corners
             if (targetLocked && Math.random() < 0.1) {
+                const leftWingX = canvas.width * 0.2;  // Left 20%
+                const rightWingX = canvas.width * 0.8; // Right 80%
+                const wingY = canvas.height - 50;      // Bottom
+
+                // Left laser
                 lasers.push({
                     id: Date.now() + Math.random(),
-                    x: crosshairX,
-                    y: crosshairY,
-                    targetX: targetLocked.x + targetLocked.size / 2,
-                    targetY: targetLocked.y + targetLocked.size / 2,
-                    speed: 15
+                    x: leftWingX,
+                    y: wingY,
+                    targetX: crosshairX,
+                    targetY: crosshairY,
+                    speed: 15,
+                    side: 'left'
                 });
+
+                // Right laser
+                lasers.push({
+                    id: Date.now() + Math.random() + 0.1,
+                    x: rightWingX,
+                    y: wingY,
+                    targetX: crosshairX,
+                    targetY: crosshairY,
+                    speed: 15,
+                    side: 'right'
+                });
+
                 playSound('laser');
             }
 
@@ -782,7 +800,7 @@
 
             // Draw lasers
             lasers.forEach((laser, index) => {
-                const color = index % 2 === 0 ? '#00ff00' : '#ff0000';
+                const color = laser.side === 'left' ? '#00ff00' : '#ff0000';
                 const dx = laser.targetX - laser.x;
                 const dy = laser.targetY - laser.y;
                 const angle = Math.atan2(dy, dx);
