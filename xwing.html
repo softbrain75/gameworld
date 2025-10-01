@@ -456,53 +456,12 @@
             crosshairX = canvas.width / 2;
             crosshairY = canvas.height / 2;
 
-            // Start background music
-            if (!bgMusic) {
-                initMusic();
-            }
-
             updateUI();
             spawnEnemies();
         };
 
-        // Background music and sound effects
-        let bgMusic = null;
+        // Sound effects only (no background music)
         let soundEnabled = true;
-
-        function initMusic() {
-            // Create background music (Star Wars theme-like melody)
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-
-                // Epic theme melody pattern
-                oscillator.type = 'square';
-                gainNode.gain.value = 0.03; // Low volume for background
-
-                // Star Wars main theme frequencies (simplified)
-                const melody = [392, 392, 392, 523, 698, 659, 622, 587, 1046];
-                let noteIndex = 0;
-
-                oscillator.frequency.value = melody[0];
-                oscillator.start();
-
-                // Change notes periodically
-                setInterval(() => {
-                    if (gameState === 'playing') {
-                        noteIndex = (noteIndex + 1) % melody.length;
-                        oscillator.frequency.value = melody[noteIndex];
-                    }
-                }, 500);
-
-                bgMusic = { oscillator, gainNode, audioContext };
-            } catch (e) {
-                console.log('Music init failed:', e);
-            }
-        }
 
         function playSound(soundType) {
             if (!soundEnabled) return;
