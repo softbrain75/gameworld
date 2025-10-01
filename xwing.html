@@ -644,12 +644,17 @@
             // Update lasers
             for (let i = lasers.length - 1; i >= 0; i--) {
                 const laser = lasers[i];
-                const dx = laser.targetX - laser.x;
-                const dy = laser.targetY - laser.y;
-                const angle = Math.atan2(dy, dx);
 
-                laser.x += Math.cos(angle) * laser.speed;
-                laser.y += Math.sin(angle) * laser.speed;
+                // Store initial angle if not set
+                if (!laser.angle) {
+                    const dx = laser.targetX - laser.x;
+                    const dy = laser.targetY - laser.y;
+                    laser.angle = Math.atan2(dy, dx);
+                }
+
+                // Move in straight line
+                laser.x += Math.cos(laser.angle) * laser.speed;
+                laser.y += Math.sin(laser.angle) * laser.speed;
 
                 // Check collision
                 let hit = false;
@@ -801,9 +806,6 @@
             // Draw lasers
             lasers.forEach((laser, index) => {
                 const color = laser.side === 'left' ? '#00ff00' : '#ff0000';
-                const dx = laser.targetX - laser.x;
-                const dy = laser.targetY - laser.y;
-                const angle = Math.atan2(dy, dx);
                 const length = 30;
 
                 ctx.strokeStyle = color;
@@ -814,7 +816,7 @@
 
                 ctx.beginPath();
                 ctx.moveTo(laser.x, laser.y);
-                ctx.lineTo(laser.x - Math.cos(angle) * length, laser.y - Math.sin(angle) * length);
+                ctx.lineTo(laser.x - Math.cos(laser.angle) * length, laser.y - Math.sin(laser.angle) * length);
                 ctx.stroke();
                 ctx.shadowBlur = 0;
             });
