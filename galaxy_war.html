@@ -211,6 +211,35 @@
             0%, 70% { opacity: 1; }
             100% { opacity: 0; }
         }
+
+        .fire-button {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, #ff4400, #ff8800);
+            color: white;
+            border: 3px solid #ffaa00;
+            padding: 20px 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 136, 0, 0.6);
+            transition: transform 0.1s;
+            z-index: 10;
+        }
+
+        .fire-button:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        .fire-button.cooldown {
+            background: linear-gradient(45deg, #555, #777);
+            border-color: #999;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -233,9 +262,10 @@
             <div class="instructions">
                 <p style="font-weight: bold; color: #00ffff; margin-bottom: 10px;">🎮 게임 방법</p>
                 <p>🖱️ 드래그해서 화면 이동</p>
-                <p>🎯 조준선 안에 적을 넣고 발사!</p>
+                <p>🎯 조준선 안에 적을 넣으세요</p>
+                <p>🔥 화면 하단 발사 버튼 클릭!</p>
+                <p>📡 우측 하단 레이더로 적 위치 확인</p>
                 <p>💫 5가지 적 타입별 다른 폭발 효과</p>
-                <p>🔥 연속 명중으로 콤보 증가</p>
                 <p>⚡ 적이 화면을 벗어나면 생명 감소</p>
             </div>
         </div>
@@ -289,6 +319,7 @@
             </div>
         </div>
         <canvas id="gameCanvas"></canvas>
+        <button id="fireButton" class="fire-button" onclick="fireProjectileButton()">🔥 발사!</button>
     </div>
 
     <script>
@@ -336,13 +367,13 @@
         const FIRE_COOLDOWN = 300;
         let lastFireTime = 0;
 
-        // Enemy types with unique explosion effects
+        // Enemy types with unique explosion effects - BIGGER SIZE for visibility
         const enemyTypes = [
-            { name: 'fire', color: '#ff4400', speed: 1.5, health: 1, points: 100, size: 40, effect: 'fire' },
-            { name: 'ice', color: '#00ddff', speed: 1.2, health: 2, points: 150, size: 45, effect: 'ice' },
-            { name: 'poison', color: '#88ff00', speed: 1.8, health: 1, points: 120, size: 35, effect: 'poison' },
-            { name: 'lightning', color: '#ffdd00', speed: 2.0, health: 1, points: 130, size: 38, effect: 'lightning' },
-            { name: 'void', color: '#8800ff', speed: 1.0, health: 3, points: 200, size: 50, effect: 'blackhole' }
+            { name: 'fire', color: '#ff4400', speed: 1.5, health: 1, points: 100, size: 60, effect: 'fire' },
+            { name: 'ice', color: '#00ddff', speed: 1.2, health: 2, points: 150, size: 65, effect: 'ice' },
+            { name: 'poison', color: '#88ff00', speed: 1.8, health: 1, points: 120, size: 55, effect: 'poison' },
+            { name: 'lightning', color: '#ffdd00', speed: 2.0, health: 1, points: 130, size: 58, effect: 'lightning' },
+            { name: 'void', color: '#8800ff', speed: 1.0, health: 3, points: 200, size: 70, effect: 'blackhole' }
         ];
 
         // Set canvas size
@@ -376,7 +407,7 @@
                 });
             }
 
-            // Canvas events - dragging
+            // Canvas events - dragging only
             canvas.addEventListener('mousedown', startDrag);
             canvas.addEventListener('mousemove', drag);
             canvas.addEventListener('mouseup', endDrag);
@@ -392,9 +423,6 @@
                 e.preventDefault();
                 endDrag();
             });
-
-            // Fire projectile on click/tap
-            canvas.addEventListener('click', fireProjectile);
 
             gameLoop();
         }
@@ -435,9 +463,9 @@
         function spawnEnemies() {
             if (gameState !== 'playing') return;
 
-            // Spawn enemy at random position around the camera
+            // Spawn enemy CLOSER to camera - more visible
             const angle = Math.random() * Math.PI * 2;
-            const distance = 800 + Math.random() * 400;
+            const distance = 400 + Math.random() * 300; // Much closer!
             const x = cameraX + Math.cos(angle) * distance;
             const y = cameraY + Math.sin(angle) * distance;
 
@@ -485,49 +513,44 @@
             isDragging = false;
         }
 
-        function fireProjectile(e) {
+        // Fire button click handler
+        window.fireProjectileButton = function() {
             if (gameState !== 'playing') return;
             if (Date.now() - lastFireTime < FIRE_COOLDOWN) return;
-            if (isDragging) return; // Don't fire while dragging
 
             lastFireTime = Date.now();
 
+            const fireBtn = document.getElementById('fireButton');
+            fireBtn.classList.add('cooldown');
+            setTimeout(() => {
+                fireBtn.classList.remove('cooldown');
+            }, FIRE_COOLDOWN);
+
             // Fire from center (crosshair position)
-            const rect = canvas.getBoundingClientRect();
-            const clickX = (e.clientX || e.pageX) - rect.left;
-            const clickY = (e.clientY || e.pageY) - rect.top;
+            projectiles.push({
+                x: cameraX,
+                y: cameraY,
+                vx: 0,
+                vy: 0,
+                speed: 15,
+                life: 60,
+                color: '#00ffff'
+            });
 
-            // Only fire if clicked near center
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const dist = Math.hypot(clickX - centerX, clickY - centerY);
-
-            if (dist < CROSSHAIR_SIZE) {
-                projectiles.push({
+            // Muzzle flash
+            for (let i = 0; i < 10; i++) {
+                const angle = (Math.PI * 2 * i) / 10;
+                particles.push({
                     x: cameraX,
                     y: cameraY,
-                    vx: 0,
-                    vy: 0,
-                    speed: 15,
-                    life: 60,
-                    color: '#00ffff'
+                    vx: Math.cos(angle) * 5,
+                    vy: Math.sin(angle) * 5,
+                    life: 20,
+                    color: '#00ffff',
+                    size: 4
                 });
-
-                // Muzzle flash
-                for (let i = 0; i < 10; i++) {
-                    const angle = (Math.PI * 2 * i) / 10;
-                    particles.push({
-                        x: cameraX,
-                        y: cameraY,
-                        vx: Math.cos(angle) * 5,
-                        vy: Math.sin(angle) * 5,
-                        life: 20,
-                        color: '#00ffff',
-                        size: 4
-                    });
-                }
             }
-        }
+        };
 
         function updateGame() {
             // Smooth camera movement
@@ -848,24 +871,26 @@
                 }
             });
 
-            // Draw crescent moon (fixed position in top right)
-            const moonX = canvas.width - 150;
-            const moonY = 100;
-            const moonRadius = 40;
+            // Draw crescent moon (moves with camera, but slowly)
+            const moonWorldX = cameraX * 0.1 + 2000; // Parallax effect
+            const moonWorldY = cameraY * 0.1 - 1500;
+            const moonScreenX = canvas.width / 2 + (moonWorldX - cameraX);
+            const moonScreenY = canvas.height / 2 + (moonWorldY - cameraY);
+            const moonRadius = 50;
 
             // Full moon
-            ctx.fillStyle = 'rgba(255, 255, 200, 0.6)';
-            ctx.shadowColor = 'rgba(255, 255, 200, 0.5)';
-            ctx.shadowBlur = 30;
+            ctx.fillStyle = 'rgba(255, 255, 200, 0.7)';
+            ctx.shadowColor = 'rgba(255, 255, 200, 0.6)';
+            ctx.shadowBlur = 40;
             ctx.beginPath();
-            ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+            ctx.arc(moonScreenX, moonScreenY, moonRadius, 0, Math.PI * 2);
             ctx.fill();
             ctx.shadowBlur = 0;
 
             // Crescent shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
             ctx.beginPath();
-            ctx.arc(moonX - 15, moonY, moonRadius, 0, Math.PI * 2);
+            ctx.arc(moonScreenX - 20, moonScreenY, moonRadius, 0, Math.PI * 2);
             ctx.fill();
 
             // Draw crosshair (center of screen)
