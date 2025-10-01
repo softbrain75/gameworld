@@ -486,9 +486,60 @@
             spawnEnemies();
         };
 
-        // Sound disabled
+        // Sound effects - very short and quiet (20% of BGM volume)
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
         function playSound(soundType) {
-            // All sound effects disabled
+            try {
+                initAudio();
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'laser':
+                        oscillator.frequency.value = 800;
+                        gainNode.gain.value = 0.06; // 20% of 0.3
+                        oscillator.type = 'sine';
+                        oscillator.stop(audioContext.currentTime + 0.05); // Very short
+                        break;
+
+                    case 'explosion':
+                        oscillator.frequency.value = 100;
+                        gainNode.gain.value = 0.06;
+                        oscillator.type = 'sine';
+                        oscillator.stop(audioContext.currentTime + 0.08);
+                        break;
+
+                    case 'hit':
+                        oscillator.frequency.value = 400;
+                        gainNode.gain.value = 0.04;
+                        oscillator.type = 'sine';
+                        oscillator.stop(audioContext.currentTime + 0.04);
+                        break;
+
+                    case 'shield':
+                        oscillator.frequency.value = 200;
+                        gainNode.gain.value = 0.05;
+                        oscillator.type = 'sine';
+                        oscillator.stop(audioContext.currentTime + 0.06);
+                        break;
+                }
+
+                oscillator.start();
+            } catch (e) {}
         }
 
         let lastSpawn = 0;
