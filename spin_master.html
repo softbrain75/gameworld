@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>스핀 마스터 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #434343 0%, #000000 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #8e2de2;
+            box-shadow: 0 0 40px rgba(142, 45, 226, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #8e2de2, #4a00e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #8e2de2, #4a00e0);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(142, 45, 226, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            padding: 20px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 500px;
+            padding: 15px;
+            background: rgba(142, 45, 226, 0.3);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        canvas {
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(142, 45, 226, 0.5);
+            touch-action: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(142, 45, 226, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(142, 45, 226, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🌀⚡</div>
+            <h1>스핀 마스터</h1>
+            <p style="color: #8e2de2; margin-bottom: 20px;">회전하는 원판에 핀을 꽂으세요!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 점수</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🌀 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #8e2de2; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>👆 화면을 터치해서 핀 발사!</p>
+                <p>🌀 회전하는 원판에 핀 꽂기!</p>
+                <p>❌ 다른 핀과 부딪히면 게임 오버!</p>
+                <p>📈 레벨이 올라갈수록 회전 속도 증가!</p>
+                <p>🎯 모든 핀을 꽂으면 다음 레벨!</p>
+                <p>💫 완벽한 타이밍이 핵심!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">🌀</div>
+            <h1>게임 종료</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">최종 레벨</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="finalLevel">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">총 핀</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="totalPins">0</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 점수</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">점수</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">레벨</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">남은 핀</div>
+                <div class="stat-value" id="pinsLeft">10</div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="400" height="500"></canvas>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let level = 1;
+        let pinsLeft = 10;
+        let totalPinsPlaced = 0;
+        let highScore = localStorage.getItem('spinMaster_highScore') || 0;
+
+        // Disc properties
+        let disc = {
+            x: canvas.width / 2,
+            y: canvas.height / 2 - 50,
+            radius: 80,
+            angle: 0,
+            speed: 0.02
+        };
+
+        let pins = [];
+        let flyingPin = null;
+        let particles = [];
+
+        // Sound system
+        function playSound(soundType) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'stick':
+                        oscillator.frequency.value = 659.25; // E5
+                        gainNode.gain.value = 0.15;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'fail':
+                        oscillator.frequency.value = 130.81; // C3
+                        gainNode.gain.value = 0.2;
+                        oscillator.type = 'sawtooth';
+                        break;
+                    case 'levelup':
+                        oscillator.frequency.value = 1046.5; // C6
+                        gainNode.gain.value = 0.2;
+                        oscillator.type = 'square';
+                        break;
+                    case 'shoot':
+                        oscillator.frequency.value = 440; // A4
+                        gainNode.gain.value = 0.08;
+                        oscillator.type = 'triangle';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.15);
+            } catch (e) {}
+        }
+
+        // Create particles
+        function createParticles(x, y, color, count = 15) {
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count;
+                const speed = Math.random() * 3 + 2;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 30,
+                    maxLife: 30,
+                    size: Math.random() * 3 + 2,
+                    color
+                });
+            }
+        }
+
+        // Update game
+        function updateGame() {
+            // Rotate disc
+            disc.angle += disc.speed;
+
+            // Update flying pin
+            if (flyingPin) {
+                flyingPin.y -= 8;
+
+                if (flyingPin.y <= disc.y + disc.radius) {
+                    // Check collision with other pins
+                    let collision = false;
+                    pins.forEach(pin => {
+                        const pinAngle1 = Math.atan2(
+                            Math.sin(pin.angle + disc.angle) * (disc.radius + 20),
+                            Math.cos(pin.angle + disc.angle) * (disc.radius + 20)
+                        );
+                        const pinAngle2 = Math.atan2(
+                            flyingPin.y - disc.y,
+                            flyingPin.x - disc.x
+                        );
+
+                        let diff = Math.abs(pinAngle1 - pinAngle2);
+                        if (diff > Math.PI) diff = Math.PI * 2 - diff;
+
+                        if (diff < 0.3) {
+                            collision = true;
+                        }
+                    });
+
+                    if (collision) {
+                        // Game over
+                        playSound('fail');
+                        createParticles(flyingPin.x, flyingPin.y, '#ff0000', 30);
+                        setTimeout(() => endGame(), 500);
+                    } else {
+                        // Success
+                        const angle = Math.atan2(flyingPin.y - disc.y, flyingPin.x - disc.x) - disc.angle;
+                        pins.push({ angle });
+                        pinsLeft--;
+                        totalPinsPlaced++;
+                        score += 10 * level;
+
+                        playSound('stick');
+                        createParticles(flyingPin.x, flyingPin.y, '#00ff00');
+
+                        if (pinsLeft <= 0) {
+                            // Level complete
+                            setTimeout(() => nextLevel(), 500);
+                        }
+
+                        updateUI();
+                    }
+
+                    flyingPin = null;
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.2;
+                p.life--;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        // Draw game
+        function drawGame() {
+            // Background
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw pins on disc
+            pins.forEach(pin => {
+                const angle = pin.angle + disc.angle;
+                const x1 = disc.x + Math.cos(angle) * disc.radius;
+                const y1 = disc.y + Math.sin(angle) * disc.radius;
+                const x2 = disc.x + Math.cos(angle) * (disc.radius + 40);
+                const y2 = disc.y + Math.sin(angle) * (disc.radius + 40);
+
+                ctx.strokeStyle = '#8e2de2';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+
+                // Pin head
+                ctx.fillStyle = '#4a00e0';
+                ctx.beginPath();
+                ctx.arc(x2, y2, 6, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw disc
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(disc.x, disc.y, disc.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#8e2de2';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Center dot
+            ctx.fillStyle = '#8e2de2';
+            ctx.beginPath();
+            ctx.arc(disc.x, disc.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw flying pin
+            if (flyingPin) {
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(flyingPin.x, flyingPin.y);
+                ctx.lineTo(flyingPin.x, flyingPin.y + 40);
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath();
+                ctx.arc(flyingPin.x, flyingPin.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw particles
+            particles.forEach(p => {
+                const alpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        // Shoot pin
+        function shootPin() {
+            if (gameState !== 'playing' || flyingPin) return;
+
+            flyingPin = {
+                x: disc.x,
+                y: canvas.height - 50
+            };
+
+            playSound('shoot');
+        }
+
+        canvas.addEventListener('click', shootPin);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            shootPin();
+        });
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            level = 1;
+            pinsLeft = 10;
+            totalPinsPlaced = 0;
+            pins = [];
+            flyingPin = null;
+            particles = [];
+
+            disc.speed = 0.02;
+            updateUI();
+        };
+
+        // Next level
+        function nextLevel() {
+            level++;
+            pinsLeft = 10 + level;
+            pins = [];
+            disc.speed += 0.005;
+
+            score += level * 50;
+            playSound('levelup');
+            updateUI();
+
+            // Flash effect
+            createParticles(disc.x, disc.y, '#ffd700', 50);
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('level').textContent = level;
+            document.getElementById('pinsLeft').textContent = pinsLeft;
+        }
+
+        // End game
+        function endGame() {
+            gameState = 'gameover';
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('finalLevel').textContent = level;
+            document.getElementById('totalPins').textContent = totalPinsPlaced;
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('spinMaster_highScore', highScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            } else {
+                document.getElementById('highScoreDisplay').classList.add('hidden');
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameState === 'playing') {
+                updateGame();
+                drawGame();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize
+        if (highScore > 0) {
+            document.getElementById('highScore').classList.remove('hidden');
+            document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+        }
+
+        gameLoop();
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
