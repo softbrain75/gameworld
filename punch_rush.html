@@ -649,5 +649,34 @@
         // Initialize on load
         init();
     </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+        
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+        
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
 </body>
 </html>
