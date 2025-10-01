@@ -226,8 +226,9 @@
                 <p>🎯 떨어지는 노트가 라인에 닿을 때 터치!</p>
                 <p>🥁 각 드럼마다 다른 소리!</p>
                 <p>⏱️ 60초 안에 최대한 많이!</p>
-                <p>✨ 완벽한 타이밍에 보너스!</p>
-                <p>🔥 연속 히트로 콤보!</p>
+                <p>✨ PERFECT(15px) > GREAT(30px) > GOOD(50px)</p>
+                <p>🔥 연속 히트로 콤보 보너스!</p>
+                <p>🎵 리듬 패턴이 점점 복잡해져요!</p>
             </div>
         </div>
     </div>
@@ -310,58 +311,137 @@
         let notes = [];
         let particles = [];
         let timerInterval = null;
+        let beatTimer = 0;
+        let gameTime = 0;
+        let lastBeatTime = 0;
+        
+        // Rhythm system
+        const BPM = 120;
+        const BEAT_INTERVAL = (60 / BPM) * 1000; // ms between beats
+        const PATTERNS = [
+            [1, 0, 1, 0], // Basic kick-snare
+            [1, 0, 0, 1], // Kick-cymbal
+            [0, 1, 0, 1], // Snare-cymbal
+            [1, 1, 0, 0], // Double hit
+            [1, 0, 1, 1], // Complex
+        ];
+        let currentPattern = 0;
+        let patternBeat = 0;
+        
+        // Enhanced timing thresholds
+        const TIMING = {
+            PERFECT: 15,
+            GREAT: 30,
+            GOOD: 50,
+            MISS: 60
+        };
 
-        // Drum sounds (different frequencies for each lane)
+        // Enhanced drum sounds with envelopes
         const drumSounds = [
-            { freq: 80, type: 'sine', name: 'Kick' },      // Bass drum
-            { freq: 200, type: 'triangle', name: 'Snare' }, // Snare
-            { freq: 400, type: 'square', name: 'Tom' },    // Tom
-            { freq: 800, type: 'sine', name: 'Cymbal' }    // Cymbal
+            { freq: 60, type: 'sine', name: 'Kick', attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.1 },
+            { freq: 200, type: 'sawtooth', name: 'Snare', attack: 0.005, decay: 0.1, sustain: 0.05, release: 0.05 },
+            { freq: 300, type: 'square', name: 'Tom', attack: 0.01, decay: 0.15, sustain: 0.1, release: 0.1 },
+            { freq: 800, type: 'sine', name: 'Cymbal', attack: 0.01, decay: 0.3, sustain: 0.2, release: 0.4 }
         ];
 
         const laneColors = ['#ff6b6b', '#4ecdc4', '#ffd93d', '#a29bfe'];
 
-        // Sound system
+        // Enhanced sound system with ADSR envelope
+        let audioContext = null;
+        
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+        
         function playDrum(laneIndex) {
             try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                initAudio();
+                const drum = drumSounds[laneIndex];
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
+                const filterNode = audioContext.createBiquadFilter();
 
-                oscillator.connect(gainNode);
+                oscillator.connect(filterNode);
+                filterNode.connect(gainNode);
                 gainNode.connect(audioContext.destination);
 
-                const drum = drumSounds[laneIndex];
                 oscillator.frequency.value = drum.freq;
                 oscillator.type = drum.type;
-                gainNode.gain.value = 0.2;
+                
+                // Add noise for snare
+                if (laneIndex === 1) {
+                    const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.1, audioContext.sampleRate);
+                    const noiseData = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < noiseData.length; i++) {
+                        noiseData[i] = Math.random() * 2 - 1;
+                    }
+                    const noiseSource = audioContext.createBufferSource();
+                    const noiseGain = audioContext.createGain();
+                    noiseSource.buffer = noiseBuffer;
+                    noiseSource.connect(noiseGain);
+                    noiseGain.connect(gainNode);
+                    noiseGain.gain.value = 0.3;
+                    noiseSource.start();
+                }
+                
+                // ADSR envelope
+                const now = audioContext.currentTime;
+                const duration = drum.attack + drum.decay + drum.release;
+                
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + drum.attack);
+                gainNode.gain.linearRampToValueAtTime(drum.sustain * 0.3, now + drum.attack + drum.decay);
+                gainNode.gain.linearRampToValueAtTime(0, now + duration);
 
                 oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.15);
+                oscillator.stop(now + duration);
             } catch (e) {}
         }
 
         function playSound(soundType) {
             try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                initAudio();
                 const oscillator = audioContext.createOscillator();
                 const gainNode = audioContext.createGain();
 
                 oscillator.connect(gainNode);
                 gainNode.connect(audioContext.destination);
 
+                const now = audioContext.currentTime;
+                
                 if (soundType === 'perfect') {
-                    oscillator.frequency.value = 1318.51; // E6
-                    gainNode.gain.value = 0.15;
+                    oscillator.frequency.value = 1318.51;
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.15, now + 0.01);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 0.1);
+                    oscillator.type = 'sine';
+                } else if (soundType === 'great') {
+                    oscillator.frequency.value = 987.77;
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.12, now + 0.01);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 0.08);
+                    oscillator.type = 'sine';
+                } else if (soundType === 'good') {
+                    oscillator.frequency.value = 659.25;
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.1, now + 0.01);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 0.06);
                     oscillator.type = 'sine';
                 } else if (soundType === 'miss') {
-                    oscillator.frequency.value = 110; // A2
-                    gainNode.gain.value = 0.1;
+                    oscillator.frequency.value = 110;
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.08, now + 0.01);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 0.15);
                     oscillator.type = 'sawtooth';
                 }
 
                 oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.1);
+                oscillator.stop(now + 0.2);
             } catch (e) {}
         }
 
@@ -439,6 +519,15 @@
                     particles.splice(i, 1);
                 }
             }
+            
+            // Update rating texts
+            for (let i = ratingTexts.length - 1; i >= 0; i--) {
+                const rating = ratingTexts[i];
+                rating.life--;
+                if (rating.life <= 0) {
+                    ratingTexts.splice(i, 1);
+                }
+            }
         }
 
         // Draw game
@@ -468,15 +557,21 @@
                 ctx.lineTo(x, canvas.height);
                 ctx.stroke();
 
-                // Drum pad
+                // Drum pad with animation
+                const animationIntensity = drumPadAnimations[i] / 10;
                 ctx.fillStyle = laneColors[i];
-                ctx.globalAlpha = 0.3;
+                ctx.globalAlpha = 0.3 + animationIntensity * 0.4;
                 ctx.fillRect(x + 5, hitLineY - 80, laneWidth - 10, 80);
                 ctx.globalAlpha = 1;
 
                 ctx.strokeStyle = laneColors[i];
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 3 + animationIntensity * 2;
                 ctx.strokeRect(x + 5, hitLineY - 80, laneWidth - 10, 80);
+                
+                // Decrease animation
+                if (drumPadAnimations[i] > 0) {
+                    drumPadAnimations[i]--;
+                }
 
                 // Drum name
                 ctx.fillStyle = 'white';
@@ -518,6 +613,17 @@
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                 ctx.fill();
             });
+            
+            // Draw rating texts
+            ratingTexts.forEach(rating => {
+                const alpha = rating.life / rating.maxLife;
+                ctx.fillStyle = rating.color;
+                ctx.globalAlpha = alpha;
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(rating.text, rating.x, rating.y - (rating.maxLife - rating.life) * 2);
+            });
+            
             ctx.globalAlpha = 1;
         }
 
@@ -603,14 +709,14 @@
             misses = 0;
             notes = [];
             particles = [];
+            ratingTexts = [];
+            drumPadAnimations = [0, 0, 0, 0];
+            gameTime = 0;
+            currentPattern = 0;
+            patternBeat = -1;
 
             resizeCanvas();
             updateUI();
-
-            // Create initial notes
-            for (let i = 0; i < 4; i++) {
-                setTimeout(() => createNote(), i * 500);
-            }
 
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
