@@ -148,34 +148,89 @@ canvas.addEventListener('touchmove', (e) => {
 - `--vh`: Custom viewport height property for mobile browsers
 - Mobile-first responsive design with `calc(var(--vh, 1vh) * 100)`
 
-## Sound Effects API
+## Sound Effects Guidelines
 
-**ElevenLabs API Credentials** (for adding sound effects to games):
-- API Key ID: `SjDuvo7Vugpf0tr9Oh1q`
-- API Secret: `D9vuDEN4mNhF45N04z9XYlINiyNkTSxYHgvki6LJ`
+**Sound Design Principles:**
+- **Volume**: Sound effects should be subtle and quiet, approximately 40% of background music volume (if BGM is 0.3, sound effects should be ~0.10-0.12)
+- **Duration**: Keep sound effects very short (0.1 seconds or less)
+- **Type**: Use sine wave (`oscillator.type = 'sine'`) for soft, non-intrusive sounds
+- **Balance**: Sound effects should complement gameplay, not distract from it
 
-When creating new games, consider adding sound effects using the ElevenLabs API to enhance gameplay experience. Sound effects should be optional and not interfere with gameplay if loading fails.
+### Web Audio API Pattern
 
-### Example Sound Integration Pattern
+All games use Web Audio API for sound effects (no external files needed):
 
 ```javascript
-// Load sound effect
-async function playSound(text) {
+// Sound effects - short and quiet
+let audioContext = null;
+
+function initAudio() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+}
+
+function playSound(soundType) {
     try {
-        const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/...', {
-            method: 'POST',
-            headers: {
-                'xi-api-key': 'SjDuvo7Vugpf0tr9Oh1q'
-            },
-            body: JSON.stringify({ text })
-        });
-        const audio = new Audio(URL.createObjectURL(await response.blob()));
-        audio.play().catch(e => console.log('Sound play failed:', e));
-    } catch (e) {
-        // Silently fail if sound doesn't load
+        initAudio();
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        switch(soundType) {
+            case 'hit':
+                oscillator.frequency.value = 400;
+                gainNode.gain.value = 0.10; // 40% of BGM
+                oscillator.type = 'sine';
+                break;
+            // Add more sound types as needed
+        }
+
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.1); // Very short
+    } catch (e) {}
+}
+```
+
+### Background Music Pattern
+
+For games with background music (stored in `music/` folder):
+
+```javascript
+// Background music
+let bgMusic = null;
+
+function initBackgroundMusic() {
+    if (!bgMusic) {
+        bgMusic = new Audio('music/Across the Stars.mp3');
+        bgMusic.loop = true;
+        bgMusic.volume = 0.3; // Standard BGM volume
+    }
+}
+
+function playBackgroundMusic() {
+    initBackgroundMusic();
+    bgMusic.play().catch(e => console.log('Music play failed:', e));
+}
+
+function stopBackgroundMusic() {
+    if (bgMusic) {
+        bgMusic.pause();
+        bgMusic.currentTime = 0;
     }
 }
 ```
+
+**Important**:
+- Start background music when game starts
+- Stop background music when game ends
+- Sound effects should be ~40% of BGM volume for proper balance
 
 ## Testing Considerations
 
