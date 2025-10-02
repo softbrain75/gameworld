@@ -596,8 +596,8 @@
             const x = ((e.clientX || e.pageX) - rect.left) * scaleX;
             const y = ((e.clientY || e.pageY) - rect.top) * scaleY;
 
-            // Check if clicked on cannon area
-            if (y > CANVAS_HEIGHT - 100) {
+            // Check if clicked on cannon area (expanded to 2x height)
+            if (y > CANVAS_HEIGHT - 170) {
                 const lane = Math.floor(x / LANE_WIDTH);
                 if (lane >= 0 && lane < NUM_LANES && cannons[lane]?.canFire) {
                     fireCannon(lane);
@@ -607,7 +607,7 @@
 
         function fireCannon(lane) {
             const x = lane * LANE_WIDTH + LANE_WIDTH / 2;
-            const y = CANVAS_HEIGHT - 70;
+            const y = CANVAS_HEIGHT - 140;
 
             // Play fire sound
             playSound('fire');
@@ -660,7 +660,7 @@
                 const enemy = enemies[i];
                 enemy.y += enemy.speed;
 
-                if (enemy.y > CANVAS_HEIGHT - 120) {
+                if (enemy.y > CANVAS_HEIGHT - 190) {
                     enemies.splice(i, 1);
                     lives = Math.max(0, lives - 1);
                     combo = 0;
@@ -674,7 +674,7 @@
                         effects.push({
                             id: Date.now() + Math.random(),
                             x: enemy.x,
-                            y: CANVAS_HEIGHT - 100,
+                            y: CANVAS_HEIGHT - 170,
                             vx: (Math.random() - 0.5) * 5,
                             vy: (Math.random() - 0.5) * 5,
                             life: 30,
@@ -855,7 +855,7 @@
                 ctx.setLineDash([10, 5]);
                 ctx.beginPath();
                 ctx.moveTo(x + LANE_WIDTH / 2, 0);
-                ctx.lineTo(x + LANE_WIDTH / 2, CANVAS_HEIGHT - 100);
+                ctx.lineTo(x + LANE_WIDTH / 2, CANVAS_HEIGHT - 170);
                 ctx.stroke();
                 ctx.setLineDash([]);
 
@@ -865,20 +865,20 @@
                 ctx.fillText(`${i + 1}`, x + LANE_WIDTH / 2, 40);
             }
 
-            // Draw cannons
-            const cannonY = CANVAS_HEIGHT - 70;
+            // Draw cannons (2x longer)
+            const cannonY = CANVAS_HEIGHT - 140;
             cannons.forEach((cannon, i) => {
                 const x = i * LANE_WIDTH + LANE_WIDTH / 2;
 
                 // Cannon base
                 ctx.fillStyle = '#555';
-                ctx.fillRect(x - 25, cannonY + 20, 50, 30);
+                ctx.fillRect(x - 25, cannonY + 90, 50, 30);
 
-                // Cannon barrel
+                // Cannon barrel (2x longer: 100 height instead of 50)
                 ctx.fillStyle = cannon.canFire ? '#4CAF50' : '#999';
                 ctx.shadowColor = cannon.canFire ? '#4CAF50' : 'transparent';
                 ctx.shadowBlur = cannon.canFire ? 15 : 0;
-                ctx.fillRect(x - 15, cannonY - 30, 30, 50);
+                ctx.fillRect(x - 15, cannonY - 30, 30, 100);
                 ctx.shadowBlur = 0;
 
                 // Cannon tip
@@ -891,7 +891,7 @@
                 if (!cannon.canFire) {
                     const cooldownPercent = (Date.now() - cannon.lastFired) / CANNON_COOLDOWN;
                     ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
-                    ctx.fillRect(x - 25, cannonY + 55, 50 * (1 - cooldownPercent), 5);
+                    ctx.fillRect(x - 25, cannonY + 125, 50 * (1 - cooldownPercent), 5);
                 }
 
                 // Ready indicator
@@ -899,7 +899,7 @@
                     ctx.fillStyle = '#4CAF50';
                     ctx.font = 'bold 12px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText('READY', x, cannonY + 70);
+                    ctx.fillText('READY', x, cannonY + 140);
                 }
             });
 
