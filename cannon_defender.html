@@ -421,10 +421,10 @@
         }
 
         // Constants
-        const CANVAS_WIDTH = 800;
-        const CANVAS_HEIGHT = 600;
+        let CANVAS_WIDTH = 800;
+        let CANVAS_HEIGHT = 600;
         const NUM_LANES = 5;
-        const LANE_WIDTH = CANVAS_WIDTH / NUM_LANES;
+        let LANE_WIDTH = CANVAS_WIDTH / NUM_LANES;
         const CANNON_COOLDOWN = 800;
 
         // Game state
@@ -455,23 +455,38 @@
             { type: 'powerup', color: '#2ecc71', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true }
         ];
 
-        // Set canvas size
+        // Set canvas size dynamically based on screen
         function resizeCanvas() {
             const container = document.getElementById('gameContainer');
+            if (!container) return;
+
             const stats = container.querySelector('.stats');
             const hint = container.querySelector('.game-hint');
-            const availableHeight = window.innerHeight - stats.offsetHeight - hint.offsetHeight;
+
+            // Calculate available space
+            const statsHeight = stats ? stats.offsetHeight : 0;
+            const hintHeight = hint ? hint.offsetHeight : 0;
+            const availableHeight = window.innerHeight - statsHeight - hintHeight;
+            const availableWidth = window.innerWidth;
+
+            // Set canvas dimensions to fill available space
+            CANVAS_WIDTH = availableWidth;
+            CANVAS_HEIGHT = availableHeight;
+            LANE_WIDTH = CANVAS_WIDTH / NUM_LANES;
 
             canvas.width = CANVAS_WIDTH;
             canvas.height = CANVAS_HEIGHT;
-            canvas.style.maxWidth = '100%';
-            canvas.style.height = 'auto';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
         }
 
         // Initialize
         function init() {
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('orientationchange', () => {
+                setTimeout(resizeCanvas, 100);
+            });
 
             // Show high score
             if (highScore > 0) {
