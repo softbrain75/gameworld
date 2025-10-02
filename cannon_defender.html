@@ -487,8 +487,14 @@
 
         // Initialize
         function init() {
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
+            // Delay initial resize to ensure DOM is fully rendered
+            setTimeout(() => {
+                resizeCanvas();
+            }, 0);
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+            });
             window.addEventListener('orientationchange', () => {
                 setTimeout(resizeCanvas, 100);
             });
@@ -515,6 +521,11 @@
             document.getElementById('menuScreen').classList.add('hidden');
             document.getElementById('gameoverScreen').classList.add('hidden');
             document.getElementById('gameContainer').classList.remove('hidden');
+
+            // Resize canvas after container is visible
+            setTimeout(() => {
+                resizeCanvas();
+            }, 0);
 
             gameState = 'playing';
             score = 0;
