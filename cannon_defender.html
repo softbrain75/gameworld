@@ -265,7 +265,8 @@
                     <p><span style="color: #3498db;">●</span> 빠름 (HP 1, 빠른 속도, +20점)</p>
                     <p><span style="color: #9b59b6;">●</span> 탱크 (HP 3, 느림, +30점)</p>
                     <p><span style="color: #f39c12;">●</span> 보스 (HP 5, 매우 느림, +100점)</p>
-                    <p><span style="color: #2ecc71;">⚡</span> 파워업 (HP 4, 파괴시 10초간 재장전 2배 속도, +50점)</p>
+                    <p><span style="color: #2ecc71;">⚡</span> 파워업-속도 (HP 4, 10초간 재장전 2배 속도, +50점)</p>
+                    <p><span style="color: #ff6600;">🔥</span> 파워업-연사 (HP 4, 8초간 자동 연사, +50점)</p>
                 </div>
             </div>
         </div>
@@ -441,6 +442,9 @@
         let highScore = localStorage.getItem('cannonDefender_highScore') || 0;
         let powerUpActive = false;
         let powerUpEndTime = 0;
+        let rapidFireActive = false;
+        let rapidFireEndTime = 0;
+        let rapidFireInterval = null;
 
         // Game objects
         let enemies = [];
@@ -455,7 +459,8 @@
             { type: 'fast', color: '#3498db', health: 1, speed: 3, points: 20, size: 25 },
             { type: 'tank', color: '#9b59b6', health: 3, speed: 1, points: 30, size: 40 },
             { type: 'boss', color: '#f39c12', health: 5, speed: 0.7, points: 100, size: 50 },
-            { type: 'powerup', color: '#2ecc71', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true }
+            { type: 'powerup_speed', color: '#2ecc71', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'speed' },
+            { type: 'powerup_rapid', color: '#ff6600', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'rapid' }
         ];
 
         // Set canvas size dynamically based on screen
@@ -536,6 +541,12 @@
             maxCombo = 0;
             powerUpActive = false;
             powerUpEndTime = 0;
+            rapidFireActive = false;
+            rapidFireEndTime = 0;
+            if (rapidFireInterval) {
+                clearInterval(rapidFireInterval);
+                rapidFireInterval = null;
+            }
             enemies = [];
             projectiles = [];
             effects = [];
@@ -577,7 +588,8 @@
 
             // Powerup enemy spawns occasionally (5% chance after wave 3)
             if (wave >= 3 && rand < 0.05) {
-                enemyType = enemyTypes[4]; // powerup
+                // 50% chance for speed powerup, 50% for rapid fire
+                enemyType = Math.random() < 0.5 ? enemyTypes[4] : enemyTypes[5];
             } else if (wave < 3) {
                 enemyType = enemyTypes[0];
             } else if (wave < 6) {
@@ -671,6 +683,15 @@
                 powerUpActive = false;
             }
 
+            // Check rapid fire expiration
+            if (rapidFireActive && Date.now() > rapidFireEndTime) {
+                rapidFireActive = false;
+                if (rapidFireInterval) {
+                    clearInterval(rapidFireInterval);
+                    rapidFireInterval = null;
+                }
+            }
+
             // Update enemies
             for (let i = enemies.length - 1; i >= 0; i--) {
                 const enemy = enemies[i];
@@ -757,22 +778,57 @@
 
                                 // Activate power-up if this was a power-up enemy
                                 if (enemy.isPowerUp) {
-                                    powerUpActive = true;
-                                    powerUpEndTime = Date.now() + 10000; // 10 seconds
+                                    if (enemy.powerUpType === 'speed') {
+                                        powerUpActive = true;
+                                        powerUpEndTime = Date.now() + 10000; // 10 seconds
 
-                                    // Power-up notification
-                                    effects.push({
-                                        id: Date.now() + Math.random(),
-                                        x: enemy.x,
-                                        y: enemy.y,
-                                        vx: 0,
-                                        vy: -3,
-                                        life: 60,
-                                        color: '#2ecc71',
-                                        size: 1,
-                                        text: '⚡ 2배 속도!',
-                                        isText: true
-                                    });
+                                        // Power-up notification
+                                        effects.push({
+                                            id: Date.now() + Math.random(),
+                                            x: enemy.x,
+                                            y: enemy.y,
+                                            vx: 0,
+                                            vy: -3,
+                                            life: 60,
+                                            color: '#2ecc71',
+                                            size: 1,
+                                            text: '⚡ 2배 속도!',
+                                            isText: true
+                                        });
+                                    } else if (enemy.powerUpType === 'rapid') {
+                                        rapidFireActive = true;
+                                        rapidFireEndTime = Date.now() + 8000; // 8 seconds
+
+                                        // Start rapid fire
+                                        if (rapidFireInterval) clearInterval(rapidFireInterval);
+                                        rapidFireInterval = setInterval(() => {
+                                            if (!rapidFireActive || gameState !== 'playing') {
+                                                clearInterval(rapidFireInterval);
+                                                rapidFireInterval = null;
+                                                return;
+                                            }
+                                            // Fire all cannons that are ready
+                                            for (let i = 0; i < NUM_LANES; i++) {
+                                                if (cannons[i]?.canFire) {
+                                                    fireCannon(i);
+                                                }
+                                            }
+                                        }, 150); // Fire every 150ms
+
+                                        // Power-up notification
+                                        effects.push({
+                                            id: Date.now() + Math.random(),
+                                            x: enemy.x,
+                                            y: enemy.y,
+                                            vx: 0,
+                                            vy: -3,
+                                            life: 60,
+                                            color: '#ff6600',
+                                            size: 1,
+                                            text: '🔥 연사 모드!',
+                                            isText: true
+                                        });
+                                    }
                                 }
 
                                 // Check wave progression
@@ -932,13 +988,17 @@
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // Power-up indicator (lightning bolt icon for power-up enemies)
+                // Power-up indicator (different icons for different power-ups)
                 if (enemy.isPowerUp) {
                     ctx.fillStyle = '#ffff00';
                     ctx.font = 'bold 30px Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText('⚡', enemy.x, enemy.y);
+                    if (enemy.powerUpType === 'speed') {
+                        ctx.fillText('⚡', enemy.x, enemy.y);
+                    } else if (enemy.powerUpType === 'rapid') {
+                        ctx.fillText('🔥', enemy.x, enemy.y);
+                    }
                 }
 
                 // Eyes (not for power-up enemies - they have the lightning icon instead)
@@ -1040,12 +1100,14 @@
                 ctx.restore();
             }
 
-            // Power-up status indicator
+            // Power-up status indicators
+            let yOffset = 130;
+
             if (powerUpActive) {
                 const timeLeft = Math.ceil((powerUpEndTime - Date.now()) / 1000);
 
                 ctx.save();
-                ctx.translate(CANVAS_WIDTH / 2, 130);
+                ctx.translate(CANVAS_WIDTH / 2, yOffset);
 
                 ctx.fillStyle = '#2ecc71';
                 ctx.shadowColor = '#2ecc71';
@@ -1053,6 +1115,24 @@
                 ctx.font = 'bold 30px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(`⚡ 2배 속도 ${timeLeft}초`, 0, 0);
+                ctx.shadowBlur = 0;
+
+                ctx.restore();
+                yOffset += 40;
+            }
+
+            if (rapidFireActive) {
+                const timeLeft = Math.ceil((rapidFireEndTime - Date.now()) / 1000);
+
+                ctx.save();
+                ctx.translate(CANVAS_WIDTH / 2, yOffset);
+
+                ctx.fillStyle = '#ff6600';
+                ctx.shadowColor = '#ff6600';
+                ctx.shadowBlur = 15;
+                ctx.font = 'bold 30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`🔥 연사 모드 ${timeLeft}초`, 0, 0);
                 ctx.shadowBlur = 0;
 
                 ctx.restore();
