@@ -332,7 +332,7 @@
                 💡 초록색 대포 = 발사 가능 • 회색 = 재장전 중
             </div>
         </div>
-        <div style="background: rgba(0, 0, 0, 0.7); color: rgba(255, 255, 255, 0.5); text-align: center; padding: 8px; font-size: 0.7em;">
+        <div class="copyright" style="background: rgba(0, 0, 0, 0.7); color: rgba(255, 255, 255, 0.5); text-align: center; padding: 8px; font-size: 0.7em;">
             © 2024 게임세상 | Made with ❤️
         </div>
     </div>
@@ -465,7 +465,7 @@
 
             const stats = container.querySelector('.stats');
             const hint = container.querySelector('.game-hint');
-            const copyright = container.nextElementSibling;
+            const copyright = container.querySelector('.copyright');
 
             // Calculate available space (excluding stats, hint, and copyright)
             const statsHeight = stats ? stats.offsetHeight : 0;
