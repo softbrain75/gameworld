@@ -265,6 +265,7 @@
                     <p><span style="color: #3498db;">●</span> 빠름 (HP 1, 빠른 속도, +20점)</p>
                     <p><span style="color: #9b59b6;">●</span> 탱크 (HP 3, 느림, +30점)</p>
                     <p><span style="color: #f39c12;">●</span> 보스 (HP 5, 매우 느림, +100점)</p>
+                    <p><span style="color: #2ecc71;">⚡</span> 파워업 (HP 4, 파괴시 10초간 재장전 2배 속도, +50점)</p>
                 </div>
             </div>
         </div>
@@ -346,6 +347,79 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
+        // Audio - Background Music
+        let bgMusic = null;
+
+        function initBackgroundMusic() {
+            if (!bgMusic) {
+                bgMusic = new Audio('music/Across the Stars.mp3');
+                bgMusic.loop = true;
+                bgMusic.volume = 0.3;
+            }
+        }
+
+        function playBackgroundMusic() {
+            initBackgroundMusic();
+            bgMusic.play().catch(e => console.log('Music play failed:', e));
+        }
+
+        function stopBackgroundMusic() {
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+        }
+
+        // Audio - Sound Effects
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(soundType) {
+            try {
+                initAudio();
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'fire':
+                        oscillator.frequency.value = 300;
+                        gainNode.gain.value = 0.10;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'hit':
+                        oscillator.frequency.value = 600;
+                        gainNode.gain.value = 0.11;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'explosion':
+                        oscillator.frequency.value = 150;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'lifeLost':
+                        oscillator.frequency.value = 100;
+                        gainNode.gain.value = 0.11;
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
         // Constants
         const CANVAS_WIDTH = 800;
         const CANVAS_HEIGHT = 600;
@@ -362,6 +436,8 @@
         let combo = 0;
         let maxCombo = 0;
         let highScore = localStorage.getItem('cannonDefender_highScore') || 0;
+        let powerUpActive = false;
+        let powerUpEndTime = 0;
 
         // Game objects
         let enemies = [];
@@ -375,7 +451,8 @@
             { type: 'normal', color: '#e74c3c', health: 1, speed: 1.5, points: 10, size: 30 },
             { type: 'fast', color: '#3498db', health: 1, speed: 3, points: 20, size: 25 },
             { type: 'tank', color: '#9b59b6', health: 3, speed: 1, points: 30, size: 40 },
-            { type: 'boss', color: '#f39c12', health: 5, speed: 0.7, points: 100, size: 50 }
+            { type: 'boss', color: '#f39c12', health: 5, speed: 0.7, points: 100, size: 50 },
+            { type: 'powerup', color: '#2ecc71', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true }
         ];
 
         // Set canvas size
@@ -426,6 +503,8 @@
             kills = 0;
             combo = 0;
             maxCombo = 0;
+            powerUpActive = false;
+            powerUpEndTime = 0;
             enemies = [];
             projectiles = [];
             effects = [];
@@ -435,6 +514,9 @@
             for (let i = 0; i < NUM_LANES; i++) {
                 cannons.push({ lane: i, canFire: true, lastFired: 0 });
             }
+
+            // Start background music
+            playBackgroundMusic();
 
             updateUI();
             startEnemySpawning();
@@ -462,7 +544,10 @@
             let enemyType;
             const rand = Math.random();
 
-            if (wave < 3) {
+            // Powerup enemy spawns occasionally (5% chance after wave 3)
+            if (wave >= 3 && rand < 0.05) {
+                enemyType = enemyTypes[4]; // powerup
+            } else if (wave < 3) {
                 enemyType = enemyTypes[0];
             } else if (wave < 6) {
                 enemyType = rand < 0.7 ? enemyTypes[0] : enemyTypes[1];
@@ -509,6 +594,9 @@
             const x = lane * LANE_WIDTH + LANE_WIDTH / 2;
             const y = CANVAS_HEIGHT - 70;
 
+            // Play fire sound
+            playSound('fire');
+
             // Create projectile
             projectiles.push({
                 id: Date.now(),
@@ -533,18 +621,25 @@
                 });
             }
 
-            // Update cannon cooldown
+            // Update cannon cooldown (2x faster if power-up active)
             cannons[lane].canFire = false;
             cannons[lane].lastFired = Date.now();
+
+            const cooldown = powerUpActive ? CANNON_COOLDOWN / 2 : CANNON_COOLDOWN;
 
             setTimeout(() => {
                 if (cannons[lane]) {
                     cannons[lane].canFire = true;
                 }
-            }, CANNON_COOLDOWN);
+            }, cooldown);
         }
 
         function updateGame() {
+            // Check power-up expiration
+            if (powerUpActive && Date.now() > powerUpEndTime) {
+                powerUpActive = false;
+            }
+
             // Update enemies
             for (let i = enemies.length - 1; i >= 0; i--) {
                 const enemy = enemies[i];
@@ -555,6 +650,9 @@
                     lives = Math.max(0, lives - 1);
                     combo = 0;
                     updateUI();
+
+                    // Play life lost sound
+                    playSound('lifeLost');
 
                     // Life lost particles
                     for (let p = 0; p < 10; p++) {
@@ -597,6 +695,9 @@
                             hit = true;
                             enemy.health -= 1;
 
+                            // Play hit sound
+                            playSound('hit');
+
                             // Hit particles
                             for (let p = 0; p < 8; p++) {
                                 const angle = (Math.PI * 2 * p) / 8;
@@ -619,6 +720,29 @@
                                 kills++;
                                 combo++;
                                 maxCombo = Math.max(maxCombo, combo);
+
+                                // Play explosion sound
+                                playSound('explosion');
+
+                                // Activate power-up if this was a power-up enemy
+                                if (enemy.isPowerUp) {
+                                    powerUpActive = true;
+                                    powerUpEndTime = Date.now() + 10000; // 10 seconds
+
+                                    // Power-up notification
+                                    effects.push({
+                                        id: Date.now() + Math.random(),
+                                        x: enemy.x,
+                                        y: enemy.y,
+                                        vx: 0,
+                                        vy: -3,
+                                        life: 60,
+                                        color: '#2ecc71',
+                                        size: 1,
+                                        text: '⚡ 2배 속도!',
+                                        isText: true
+                                    });
+                                }
 
                                 // Check wave progression
                                 if (kills % 15 === 0) {
@@ -781,18 +905,29 @@
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // Eyes
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                ctx.beginPath();
-                ctx.arc(enemy.x - 8, enemy.y - 5, 5, 0, Math.PI * 2);
-                ctx.arc(enemy.x + 8, enemy.y - 5, 5, 0, Math.PI * 2);
-                ctx.fill();
+                // Power-up indicator (lightning bolt icon for power-up enemies)
+                if (enemy.isPowerUp) {
+                    ctx.fillStyle = '#ffff00';
+                    ctx.font = 'bold 30px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('⚡', enemy.x, enemy.y);
+                }
 
-                ctx.fillStyle = '#ff0000';
-                ctx.beginPath();
-                ctx.arc(enemy.x - 8, enemy.y - 5, 3, 0, Math.PI * 2);
-                ctx.arc(enemy.x + 8, enemy.y - 5, 3, 0, Math.PI * 2);
-                ctx.fill();
+                // Eyes (not for power-up enemies - they have the lightning icon instead)
+                if (!enemy.isPowerUp) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(enemy.x - 8, enemy.y - 5, 5, 0, Math.PI * 2);
+                    ctx.arc(enemy.x + 8, enemy.y - 5, 5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.arc(enemy.x - 8, enemy.y - 5, 3, 0, Math.PI * 2);
+                    ctx.arc(enemy.x + 8, enemy.y - 5, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
 
                 // Health bar
                 if (enemy.health < enemy.maxHealth) {
@@ -877,6 +1012,24 @@
 
                 ctx.restore();
             }
+
+            // Power-up status indicator
+            if (powerUpActive) {
+                const timeLeft = Math.ceil((powerUpEndTime - Date.now()) / 1000);
+
+                ctx.save();
+                ctx.translate(CANVAS_WIDTH / 2, 130);
+
+                ctx.fillStyle = '#2ecc71';
+                ctx.shadowColor = '#2ecc71';
+                ctx.shadowBlur = 15;
+                ctx.font = 'bold 30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`⚡ 2배 속도 ${timeLeft}초`, 0, 0);
+                ctx.shadowBlur = 0;
+
+                ctx.restore();
+            }
         }
 
         function gameLoop() {
@@ -905,6 +1058,9 @@
         function endGame() {
             gameState = 'gameover';
             if (spawnInterval) clearInterval(spawnInterval);
+
+            // Stop background music
+            stopBackgroundMusic();
 
             document.getElementById('finalScore').textContent = score.toLocaleString();
             document.getElementById('killCount').textContent = kills;
