@@ -282,56 +282,6 @@
             margin-bottom: 5px;
         }
 
-        .upgrade-section {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px 10px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .upgrade-btn {
-            background: linear-gradient(45deg, #2ecc71, #27ae60);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 0.75em;
-            cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
-            min-width: 60px;
-            text-align: center;
-        }
-
-        .upgrade-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .upgrade-btn:active {
-            transform: scale(0.95);
-        }
-
-        .upgrade-btn.upgraded {
-            background: linear-gradient(45deg, #f39c12, #e67e22);
-        }
-
-        .upgrade-btn.max-level {
-            background: linear-gradient(45deg, #9b59b6, #8e44ad);
-            cursor: default;
-        }
-
-        .upgrade-btn.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .upgrade-info {
-            font-size: 0.7em;
-            color: #ffd700;
-            margin-top: 15px;
-        }
     </style>
 </head>
 <body>
@@ -441,32 +391,7 @@
         <div class="game-hint">
             <div class="hint-title" id="hintText">하단의 대포를 탭해서 발사하세요!</div>
             <div style="font-size: 0.8em; opacity: 0.8;" id="hintDetail">
-                💡 초록색 대포 = 발사 가능 • 회색 = 재장전 중
-            </div>
-        </div>
-        <div class="upgrade-section" id="upgradeSection">
-            <button class="upgrade-btn" onclick="upgradeCannon(0)" id="upgrade0">
-                <div>대포 1</div>
-                <div style="font-size: 0.9em;">💰 100</div>
-            </button>
-            <button class="upgrade-btn" onclick="upgradeCannon(1)" id="upgrade1">
-                <div>대포 2</div>
-                <div style="font-size: 0.9em;">💰 100</div>
-            </button>
-            <button class="upgrade-btn" onclick="upgradeCannon(2)" id="upgrade2">
-                <div>대포 3</div>
-                <div style="font-size: 0.9em;">💰 100</div>
-            </button>
-            <button class="upgrade-btn" onclick="upgradeCannon(3)" id="upgrade3">
-                <div>대포 4</div>
-                <div style="font-size: 0.9em;">💰 100</div>
-            </button>
-            <button class="upgrade-btn" onclick="upgradeCannon(4)" id="upgrade4">
-                <div>대포 5</div>
-                <div style="font-size: 0.9em;">💰 100</div>
-            </button>
-            <div class="upgrade-info" id="upgradeInfo">
-                🔧 업그레이드로 재장전 속도 향상! • 최대 5레벨
+                💡 초록색 대포 = 발사 가능 • 회색 = 재장전 중 • UP = 업그레이드 가능
             </div>
         </div>
         <div class="copyright" style="background: rgba(0, 0, 0, 0.7); color: rgba(255, 255, 255, 0.5); text-align: center; padding: 8px; font-size: 0.7em;">
@@ -810,7 +735,29 @@
             const x = ((e.clientX || e.pageX) - rect.left) * scaleX;
             const y = ((e.clientY || e.pageY) - rect.top) * scaleY;
 
-            // Check if clicked on cannon area
+            // Check if clicked on upgrade button
+            const cannonY = CANVAS_HEIGHT - 70;
+            const upgradeY = cannonY - 90;
+
+            for (let i = 0; i < NUM_LANES; i++) {
+                const laneX = i * LANE_WIDTH + LANE_WIDTH / 2;
+                const cannon = cannons[i];
+
+                // Check upgrade button click
+                if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
+                    const cost = UPGRADE_COSTS[cannon.upgradeLevel];
+                    if (score >= cost) {
+                        // Upgrade button area
+                        if (x >= laneX - 25 && x <= laneX + 25 &&
+                            y >= upgradeY - 15 && y <= upgradeY + 15) {
+                            upgradeCannon(i);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Check if clicked on cannon area for firing
             if (y > CANVAS_HEIGHT - 100) {
                 const lane = Math.floor(x / LANE_WIDTH);
                 if (lane >= 0 && lane < NUM_LANES && cannons[lane]?.canFire) {
@@ -1131,6 +1078,49 @@
             cannons.forEach((cannon, i) => {
                 const x = i * LANE_WIDTH + LANE_WIDTH / 2;
 
+                // Draw upgrade button above cannon if available
+                if (cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
+                    const cost = UPGRADE_COSTS[cannon.upgradeLevel];
+                    const canAfford = score >= cost;
+
+                    if (canAfford) {
+                        const upgradeY = cannonY - 90;
+
+                        // Button background
+                        ctx.fillStyle = 'rgba(46, 204, 113, 0.9)';
+                        ctx.shadowColor = '#2ecc71';
+                        ctx.shadowBlur = 10;
+                        ctx.fillRect(x - 25, upgradeY - 15, 50, 30);
+                        ctx.shadowBlur = 0;
+
+                        // Border
+                        ctx.strokeStyle = '#27ae60';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x - 25, upgradeY - 15, 50, 30);
+
+                        // "UP" text
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 14px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('UP', x, upgradeY - 5);
+
+                        // Cost
+                        ctx.font = 'bold 10px Arial';
+                        ctx.fillStyle = '#ffd700';
+                        ctx.fillText(`${cost}`, x, upgradeY + 8);
+                    }
+                }
+
+                // Show upgrade level if upgraded
+                if (cannon.upgradeLevel > 0) {
+                    ctx.fillStyle = '#ffd700';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`Lv${cannon.upgradeLevel}`, x, cannonY - 55);
+                }
+
                 // Cannon base
                 ctx.fillStyle = '#555';
                 ctx.fillRect(x - 25, cannonY + 20, 50, 30);
@@ -1424,32 +1414,7 @@
         }
 
         function updateUpgradeUI() {
-            for (let i = 0; i < NUM_LANES; i++) {
-                const btn = document.getElementById(`upgrade${i}`);
-                const cannon = cannons[i];
-
-                if (!btn || !cannon) continue;
-
-                if (cannon.upgradeLevel >= MAX_UPGRADE_LEVEL) {
-                    btn.className = 'upgrade-btn max-level';
-                    btn.innerHTML = `<div>대포 ${i + 1}</div><div style="font-size: 0.9em;">⭐ MAX</div>`;
-                    btn.disabled = true;
-                } else {
-                    const cost = UPGRADE_COSTS[cannon.upgradeLevel];
-                    const canAfford = score >= cost;
-
-                    btn.className = 'upgrade-btn';
-                    if (cannon.upgradeLevel > 0) {
-                        btn.classList.add('upgraded');
-                    }
-                    if (!canAfford) {
-                        btn.classList.add('disabled');
-                    }
-
-                    btn.innerHTML = `<div>대포 ${i + 1} ${cannon.upgradeLevel > 0 ? `Lv${cannon.upgradeLevel}` : ''}</div><div style="font-size: 0.9em;">💰 ${cost}</div>`;
-                    btn.disabled = false;
-                }
-            }
+            // No longer needed - upgrade buttons are drawn on canvas
         }
 
         // Initialize on load
