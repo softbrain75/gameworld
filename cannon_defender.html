@@ -711,6 +711,16 @@
 
             const key = e.key.toLowerCase();
 
+            // Fire all cannons with G key
+            if (key === 'g') {
+                for (let i = 0; i < NUM_LANES; i++) {
+                    if (cannons[i]?.canFire) {
+                        fireCannon(i);
+                    }
+                }
+                return;
+            }
+
             // Fire cannons: h, j, k, l, ; (lanes 0-4)
             const fireKeys = ['h', 'j', 'k', 'l', ';'];
             const fireIndex = fireKeys.indexOf(key);
@@ -879,22 +889,31 @@
         function fireCannon(lane) {
             const x = lane * LANE_WIDTH + LANE_WIDTH / 2;
             const y = CANVAS_HEIGHT - 70;
+            const cannon = cannons[lane];
 
             // Play fire sound
             playSound('fire');
 
-            // Create projectile
-            projectiles.push({
-                id: Date.now(),
-                lane,
-                x,
-                y: y - 30,
-                speed: 10,
-                color: '#ffd700'
-            });
+            // Level 5+ cannons fire 2 projectiles
+            const projectileCount = cannon.upgradeLevel >= 5 ? 2 : 1;
+            const spread = 10; // Spread distance for dual projectiles
+
+            for (let p = 0; p < projectileCount; p++) {
+                const offsetX = projectileCount === 2 ? (p === 0 ? -spread : spread) : 0;
+
+                projectiles.push({
+                    id: Date.now() + Math.random(),
+                    lane,
+                    x: x + offsetX,
+                    y: y - 30,
+                    speed: 10,
+                    color: '#ffd700'
+                });
+            }
 
             // Cannon fire effect
-            for (let i = 0; i < 5; i++) {
+            const effectCount = projectileCount === 2 ? 10 : 5;
+            for (let i = 0; i < effectCount; i++) {
                 effects.push({
                     id: Date.now() + Math.random(),
                     x,
