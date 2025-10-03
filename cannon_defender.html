@@ -374,6 +374,32 @@
             font-weight: bold;
         }
 
+        .level-clear-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.95) 0%, rgba(52, 152, 219, 0.95) 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .level-clear-overlay.active {
+            display: flex;
+        }
+
+        .level-clear-text {
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
     </style>
 </head>
 <body>
@@ -635,6 +661,11 @@
         const SPEED_BOOST_COST = 500;
         const SPEED_BOOST_DURATION = 15000; // 15 seconds
         let isPaused = false;
+        let currentLevel = 1;
+        let levelKills = 0;
+        const KILLS_PER_LEVEL = 100;
+        let isBossWave = false;
+        let bossActive = false;
 
         // Game objects
         let enemies = [];
@@ -650,7 +681,8 @@
             { type: 'tank', color: '#9b59b6', health: 3, speed: 1, points: 30, size: 40 },
             { type: 'boss', color: '#f39c12', health: 5, speed: 0.7, points: 100, size: 50 },
             { type: 'powerup_speed', color: '#2ecc71', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'speed' },
-            { type: 'powerup_rapid', color: '#ff6600', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'rapid' }
+            { type: 'powerup_rapid', color: '#ff6600', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'rapid' },
+            { type: 'level_boss', color: '#ff1744', health: 50, speed: 0.5, points: 1000, size: 80, isBoss: true }
         ];
 
         // Set canvas size dynamically based on screen
