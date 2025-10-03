@@ -277,6 +277,11 @@
                 <div id="deviceType" style="font-size: 0.9em;"></div>
             </div>
 
+            <div id="saveInfo" class="hidden" style="background: rgba(80, 227, 194, 0.2); padding: 12px; border-radius: 10px; margin: 15px 0; border: 2px solid rgba(80, 227, 194, 0.5);">
+                <div style="font-weight: bold; color: #ffd700; margin-bottom: 5px;">💾 저장된 게임</div>
+                <div id="saveDetails" style="font-size: 0.9em;"></div>
+            </div>
+
             <button class="btn" onclick="startGame()">🎮 시작</button>
 
             <div class="instructions">
@@ -290,7 +295,7 @@
                 <p>💰 적을 처치하면 골드 획득</p>
                 <p style="color: #ffd700;">🏆 보스 처치 시 +100 포인트!</p>
                 <p>📈 웨이브마다 적이 강해집니다</p>
-                <p style="color: #ff6600;">⚠️ 2웨이브마다 타워 하나 붕괴!</p>
+                <p style="color: #ff6600;">⚠️ 타워는 설치 후 2웨이브 뒤 붕괴!</p>
                 <p>🎯 전략적으로 타워 배치!</p>
 
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(80, 227, 194, 0.3);">
@@ -351,6 +356,11 @@
             <div class="stat-item">
                 <div class="stat-label">생명</div>
                 <div class="stat-value" id="lives">❤️ 5</div>
+            </div>
+            <div class="stat-item">
+                <button id="speedBtn" onclick="toggleSpeed()" style="background: rgba(255, 215, 0, 0.3); border: 2px solid #ffd700; color: #ffd700; padding: 8px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1em;">
+                    ⚡ 1x
+                </button>
             </div>
         </div>
         <canvas id="gameCanvas"></canvas>
@@ -466,6 +476,8 @@
         let highScore = localStorage.getItem('towerDefense_highScore') || 0;
         let canvasScale = 1;
         let isMobile = false;
+        let autoSaveInterval = null;
+        let gameSpeed = 1; // 1x, 2x, 3x
 
         // Game objects
         let towers = [];
@@ -488,7 +500,7 @@
         // Tower types
         const towerTypes = {
             basic: { cost: 50, range: 120, damage: 10, fireRate: 60, emoji: '🗼', color: '#4a90e2' },
-            fast: { cost: 75, range: 100, damage: 7, fireRate: 30, emoji: '⚡', color: '#ffff00' },
+            fast: { cost: 75, range: 100, damage: 12, fireRate: 30, emoji: '⚡', color: '#ffff00' },
             sniper: { cost: 100, range: 200, damage: 30, fireRate: 120, emoji: '🎯', color: '#ff0000' }
         };
 
@@ -590,6 +602,23 @@
                 deviceTypeEl.innerHTML = '💻 <strong>PC</strong> - 맵 1.5배 확대';
             }
 
+            // Show save info if available
+            const saved = localStorage.getItem('towerDefense_autoSave');
+            if (saved) {
+                try {
+                    const saveData = JSON.parse(saved);
+                    const saveAge = Date.now() - saveData.timestamp;
+
+                    if (saveAge < 3600000) { // Less than 1 hour old
+                        const minutes = Math.floor(saveAge / 60000);
+                        document.getElementById('saveInfo').classList.remove('hidden');
+                        document.getElementById('saveDetails').innerHTML =
+                            `웨이브 ${saveData.wave} | 생명 ${saveData.lives} | 골드 ${saveData.gold}<br>` +
+                            `<span style="opacity: 0.8; font-size: 0.85em;">${minutes}분 전 저장</span>`;
+                    }
+                } catch (e) {}
+            }
+
             // Canvas click/touch for placing towers
             canvas.addEventListener('click', handleCanvasClick);
             canvas.addEventListener('touchstart', (e) => {
@@ -681,7 +710,9 @@
                 type: selectedTowerType,
                 ...towerType,
                 cooldown: 0,
-                target: null
+                target: null,
+                createdWave: wave, // Track when tower was built
+                expiresWave: wave + 2 // Tower expires after 2 waves
             });
 
             // Set cooldown (3 seconds)
@@ -719,6 +750,90 @@
             event.target.closest('.tower-btn').classList.add('selected');
         };
 
+        // Toggle game speed
+        window.toggleSpeed = function() {
+            gameSpeed = gameSpeed === 1 ? 2 : gameSpeed === 2 ? 3 : 1;
+
+            const speedBtn = document.getElementById('speedBtn');
+            if (gameSpeed === 1) {
+                speedBtn.innerHTML = '⚡ 1x';
+                speedBtn.style.background = 'rgba(255, 215, 0, 0.3)';
+            } else if (gameSpeed === 2) {
+                speedBtn.innerHTML = '⚡⚡ 2x';
+                speedBtn.style.background = 'rgba(255, 140, 0, 0.5)';
+            } else {
+                speedBtn.innerHTML = '⚡⚡⚡ 3x';
+                speedBtn.style.background = 'rgba(255, 69, 0, 0.7)';
+            }
+        };
+
+        // Auto save game
+        function saveGame() {
+            if (gameState !== 'playing') return;
+
+            const saveData = {
+                gold,
+                lives,
+                wave,
+                kills,
+                towers: towers.map(t => ({
+                    x: t.x,
+                    y: t.y,
+                    type: t.type,
+                    createdWave: t.createdWave,
+                    expiresWave: t.expiresWave
+                })),
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem('towerDefense_autoSave', JSON.stringify(saveData));
+        }
+
+        // Load saved game
+        function loadGame() {
+            const saved = localStorage.getItem('towerDefense_autoSave');
+            if (!saved) return false;
+
+            try {
+                const saveData = JSON.parse(saved);
+
+                // Check if save is less than 1 hour old
+                if (Date.now() - saveData.timestamp > 3600000) {
+                    localStorage.removeItem('towerDefense_autoSave');
+                    return false;
+                }
+
+                gold = saveData.gold;
+                lives = saveData.lives;
+                wave = saveData.wave;
+                kills = saveData.kills;
+
+                // Restore towers
+                towers = saveData.towers.map(t => ({
+                    x: t.x,
+                    y: t.y,
+                    type: t.type,
+                    ...towerTypes[t.type],
+                    cooldown: 0,
+                    target: null,
+                    createdWave: t.createdWave || wave,
+                    expiresWave: t.expiresWave || wave + 2
+                }));
+
+                enemiesToSpawn = 8 + wave * 3;
+                if (wave > 20) {
+                    enemiesToSpawn = enemiesToSpawn * 20;
+                } else if (wave > 10) {
+                    enemiesToSpawn = enemiesToSpawn * 5;
+                }
+
+                return true;
+            } catch (e) {
+                localStorage.removeItem('towerDefense_autoSave');
+                return false;
+            }
+        }
+
         // Start game
         window.startGame = function() {
             document.getElementById('menuScreen').classList.add('hidden');
@@ -731,17 +846,25 @@
             }, 0);
 
             gameState = 'playing';
-            gold = 100;
-            lives = 5;
-            wave = 1;
-            kills = 0;
-            towers = [];
+
+            // Try to load saved game
+            const loaded = loadGame();
+
+            if (!loaded) {
+                // New game
+                gold = 100;
+                lives = 5;
+                wave = 1;
+                kills = 0;
+                towers = [];
+                enemiesToSpawn = 8;
+            }
+
             enemies = [];
             projectiles = [];
             particles = [];
             effects = [];
             enemiesSpawned = 0;
-            enemiesToSpawn = 8; // Start with more enemies
             spawnTimer = 0;
             selectedTowerType = null;
             towerCooldowns = {
@@ -749,6 +872,10 @@
                 fast: 0,
                 sniper: 0
             };
+
+            // Start auto-save (every 5 seconds)
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+            autoSaveInterval = setInterval(saveGame, 5000);
 
             updateUI();
         };
@@ -869,6 +996,13 @@
 
         // Update game
         function updateGame() {
+            // Apply game speed - update multiple times per frame for higher speeds
+            for (let speedLoop = 0; speedLoop < gameSpeed; speedLoop++) {
+                updateGameLogic();
+            }
+        }
+
+        function updateGameLogic() {
             // Spawn enemies
             spawnTimer++;
             if (spawnTimer > 100 && enemiesSpawned < enemiesToSpawn) {
@@ -878,34 +1012,45 @@
             // Check wave complete
             if (enemiesSpawned >= enemiesToSpawn && enemies.length === 0) {
                 wave++;
-                enemiesToSpawn = 8 + wave * 3; // More enemies per wave
+
+                // Calculate enemy count
+                let baseEnemies = 8 + wave * 3;
+                if (wave > 20) {
+                    // 20x spawn after wave 20
+                    baseEnemies = baseEnemies * 20;
+                } else if (wave > 10) {
+                    // 5x spawn after wave 10
+                    baseEnemies = baseEnemies * 5;
+                }
+                enemiesToSpawn = baseEnemies;
+
                 enemiesSpawned = 0;
                 gold += 30; // Reduced wave bonus
 
-                // Remove random tower every 2 waves
-                if (wave % 2 === 0 && towers.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * towers.length);
-                    const removedTower = towers[randomIndex];
+                // Remove towers that have expired (2 waves after creation)
+                for (let i = towers.length - 1; i >= 0; i--) {
+                    const tower = towers[i];
+                    if (tower.expiresWave && wave >= tower.expiresWave) {
+                        // Create explosion effect
+                        playSound('towerDestroy');
+                        createExplosion(tower.x, tower.y, '#ff6600', 40);
 
-                    // Create explosion effect
-                    playSound('towerDestroy');
-                    createExplosion(removedTower.x, removedTower.y, '#ff6600', 40);
+                        // Show warning text
+                        effects.push({
+                            id: Date.now() + Math.random(),
+                            x: tower.x,
+                            y: tower.y,
+                            vx: 0,
+                            vy: -2,
+                            life: 60,
+                            color: '#ff0000',
+                            size: 1,
+                            text: '⚠️ 타워 붕괴!',
+                            isText: true
+                        });
 
-                    // Show warning text
-                    effects.push({
-                        id: Date.now() + Math.random(),
-                        x: removedTower.x,
-                        y: removedTower.y,
-                        vx: 0,
-                        vy: -2,
-                        life: 60,
-                        color: '#ff0000',
-                        size: 1,
-                        text: '⚠️ 타워 붕괴!',
-                        isText: true
-                    });
-
-                    towers.splice(randomIndex, 1);
+                        towers.splice(i, 1);
+                    }
                 }
 
                 updateUI();
@@ -1406,6 +1551,7 @@
             if (gameState === 'playing') {
                 updateGame();
                 drawGame();
+                updateTowerButtonCooldowns(); // Update cooldown UI every frame
             }
 
             requestAnimationFrame(gameLoop);
@@ -1473,6 +1619,15 @@
         // End game
         function endGame() {
             gameState = 'gameover';
+
+            // Stop auto-save
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+                autoSaveInterval = null;
+            }
+
+            // Clear auto-save
+            localStorage.removeItem('towerDefense_autoSave');
 
             const finalScore = wave * 100 + kills * 10;
             document.getElementById('finalScore').textContent = finalScore.toLocaleString();

@@ -177,7 +177,9 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 15px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .kingdom-status {
@@ -482,6 +484,50 @@
         let gameTime = 0;
         let highScore = localStorage.getItem('kingdomBuilder_highScore') || 0;
         let gameInterval = null;
+        let autoSaveInterval = null;
+
+        // Auto save game
+        function saveGame() {
+            const saveData = {
+                resources,
+                ownedBuildings,
+                income,
+                level,
+                happiness,
+                gameTime,
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem('kingdomBuilder_autoSave', JSON.stringify(saveData));
+        }
+
+        // Load saved game
+        function loadGame() {
+            const saved = localStorage.getItem('kingdomBuilder_autoSave');
+            if (!saved) return false;
+
+            try {
+                const saveData = JSON.parse(saved);
+
+                // Check if save is less than 24 hours old
+                if (Date.now() - saveData.timestamp > 86400000) {
+                    localStorage.removeItem('kingdomBuilder_autoSave');
+                    return false;
+                }
+
+                resources = saveData.resources;
+                ownedBuildings = saveData.ownedBuildings;
+                income = saveData.income;
+                level = saveData.level;
+                happiness = saveData.happiness;
+                gameTime = saveData.gameTime;
+
+                return true;
+            } catch (e) {
+                localStorage.removeItem('kingdomBuilder_autoSave');
+                return false;
+            }
+        }
 
         // Initialize
         function init() {
@@ -489,6 +535,33 @@
             if (highScore > 0) {
                 document.getElementById('highScore').classList.remove('hidden');
                 document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            // Show save info if available
+            const saved = localStorage.getItem('kingdomBuilder_autoSave');
+            if (saved) {
+                try {
+                    const saveData = JSON.parse(saved);
+                    const saveAge = Date.now() - saveData.timestamp;
+
+                    if (saveAge < 86400000) { // Less than 24 hours old
+                        const hours = Math.floor(saveAge / 3600000);
+                        const minutes = Math.floor((saveAge % 3600000) / 60000);
+
+                        const saveInfo = document.createElement('div');
+                        saveInfo.className = 'high-score';
+                        saveInfo.style.cssText = 'background: rgba(80, 227, 194, 0.2); border-color: rgba(80, 227, 194, 0.5);';
+                        saveInfo.innerHTML = `
+                            <div style="font-weight: bold; color: #ffd700; margin-bottom: 5px;">💾 저장된 게임</div>
+                            <div style="font-size: 0.9em;">레벨 ${saveData.level} | 골드 ${saveData.resources.gold}</div>
+                            <div style="opacity: 0.8; font-size: 0.85em;">${hours > 0 ? hours + '시간 ' : ''}${minutes}분 전 저장</div>
+                        `;
+
+                        const menuContent = document.querySelector('.menu-content');
+                        const startButton = menuContent.querySelector('.btn');
+                        menuContent.insertBefore(saveInfo, startButton);
+                    }
+                } catch (e) {}
             }
         }
 
@@ -498,12 +571,18 @@
             document.getElementById('gameoverScreen').classList.add('hidden');
             document.getElementById('gameContainer').classList.remove('hidden');
 
-            resources = { gold: 100, wood: 50, stone: 30, population: 10 };
-            ownedBuildings = {};
-            income = 1;
-            level = 1;
-            happiness = 100;
-            gameTime = 0;
+            // Try to load saved game
+            const loaded = loadGame();
+
+            if (!loaded) {
+                // New game
+                resources = { gold: 100, wood: 50, stone: 30, population: 10 };
+                ownedBuildings = {};
+                income = 1;
+                level = 1;
+                happiness = 100;
+                gameTime = 0;
+            }
 
             renderBuildings();
             updateUI();
@@ -514,16 +593,22 @@
                 gameTime++;
                 resources.gold += income;
 
-                // Produce resources from buildings
-                if (ownedBuildings.lumbermill) {
-                    resources.wood += ownedBuildings.lumbermill * 0.1;
-                }
-                if (ownedBuildings.quarry) {
-                    resources.stone += ownedBuildings.quarry * 0.05;
+                // Produce resources from buildings every 5 seconds
+                if (gameTime % 5 === 0) {
+                    if (ownedBuildings.lumbermill) {
+                        resources.wood += ownedBuildings.lumbermill * 6; // 6 wood per lumbermill every 5 seconds
+                    }
+                    if (ownedBuildings.quarry) {
+                        resources.stone += ownedBuildings.quarry * 3; // 3 stone per quarry every 5 seconds
+                    }
                 }
 
                 updateUI();
             }, 1000);
+
+            // Start auto-save (every 10 seconds)
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+            autoSaveInterval = setInterval(saveGame, 10000);
         };
 
         // Render buildings
