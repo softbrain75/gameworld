@@ -155,6 +155,46 @@
             color: #ffd700;
         }
 
+        .speed-boost-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: transform 0.2s, opacity 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speed-boost-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .speed-boost-btn:active {
+            transform: scale(0.95);
+        }
+
+        .speed-boost-btn.active {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            animation: pulse-glow 0.5s infinite;
+        }
+
+        .speed-boost-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+        }
+
         .header-lives {
             font-size: 1em;
             display: flex;
@@ -287,11 +327,50 @@
             margin-bottom: 5px;
         }
 
+        .video-break {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .video-break.active {
+            display: flex;
+        }
+
+        .video-break video {
+            max-width: 90%;
+            max-height: 80vh;
+        }
+
+        .video-skip {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .video-skip:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
     </style>
 </head>
 <body>
     <div class="app-header">
         <a href="index.html" class="back-btn">←</a>
+        <button id="speedBoostBtn" class="speed-boost-btn" onclick="buySpeedBoost()" title="속도 부스트 (500포인트)">⚡</button>
         <div class="header-score" id="headerScore">0</div>
         <div class="header-lives">❤️ <span id="headerLives">10</span></div>
         <select id="musicSelect" class="music-select" onchange="handleMusicChange()">
@@ -383,6 +462,14 @@
         </div>
     </div>
 
+    <!-- Video Break Screen -->
+    <div id="videoBreak" class="video-break">
+        <video id="breakVideo" controls autoplay>
+            <source src="video/bandicam 2025-10-03 17-35-51-818.mp4" type="video/mp4">
+        </video>
+        <button class="video-skip" onclick="skipVideo()">건너뛰기</button>
+    </div>
+
     <script>
         // Viewport height fix
         function setVH() {
@@ -420,7 +507,7 @@
         function initBackgroundMusic() {
             if (!bgMusic) {
                 bgMusic = new Audio(musicFiles[currentMusicIndex]);
-                bgMusic.loop = true;
+                bgMusic.loop = true; // Loop music
                 bgMusic.volume = 0.3;
             }
         }
@@ -534,6 +621,10 @@
         let rapidFireActive = false;
         let rapidFireEndTime = 0;
         let rapidFireInterval = null;
+        let speedBoostActive = false;
+        let speedBoostEndTime = 0;
+        const SPEED_BOOST_COST = 500;
+        const SPEED_BOOST_DURATION = 15000; // 15 seconds
 
         // Game objects
         let enemies = [];
@@ -847,10 +938,18 @@
                 }
             }
 
+            // Check speed boost expiration
+            if (speedBoostActive && Date.now() > speedBoostEndTime) {
+                speedBoostActive = false;
+                updateUI();
+            }
+
             // Update enemies
             for (let i = enemies.length - 1; i >= 0; i--) {
                 const enemy = enemies[i];
-                enemy.y += enemy.speed;
+                // Speed boost makes enemies move slower (easier to hit)
+                const speedMultiplier = speedBoostActive ? 0.5 : 1;
+                enemy.y += enemy.speed * speedMultiplier;
 
                 if (enemy.y > CANVAS_HEIGHT - 120) {
                     enemies.splice(i, 1);
@@ -984,6 +1083,11 @@
                                             isText: true
                                         });
                                     }
+                                }
+
+                                // Check for video break every 100 kills
+                                if (kills % 100 === 0) {
+                                    showVideoBreak();
                                 }
 
                                 // Check wave progression
@@ -1389,8 +1493,54 @@
             document.getElementById('headerScore').textContent = score.toLocaleString();
             document.getElementById('headerLives').textContent = lives;
 
+            // Update speed boost button
+            const speedBtn = document.getElementById('speedBoostBtn');
+            if (speedBtn) {
+                if (speedBoostActive) {
+                    speedBtn.classList.add('active');
+                    speedBtn.classList.remove('disabled');
+                    const timeLeft = Math.ceil((speedBoostEndTime - Date.now()) / 1000);
+                    speedBtn.textContent = `${timeLeft}`;
+                } else {
+                    speedBtn.classList.remove('active');
+                    speedBtn.textContent = '⚡';
+                    if (score >= SPEED_BOOST_COST && gameState === 'playing') {
+                        speedBtn.classList.remove('disabled');
+                    } else {
+                        speedBtn.classList.add('disabled');
+                    }
+                }
+            }
+
             // Update upgrade buttons affordability
             updateUpgradeUI();
+        }
+
+        function buySpeedBoost() {
+            if (gameState !== 'playing') return;
+            if (speedBoostActive) return;
+            if (score < SPEED_BOOST_COST) return;
+
+            score -= SPEED_BOOST_COST;
+            speedBoostActive = true;
+            speedBoostEndTime = Date.now() + SPEED_BOOST_DURATION;
+
+            updateUI();
+            playSound('hit');
+
+            // Visual notification
+            effects.push({
+                id: Date.now() + Math.random(),
+                x: CANVAS_WIDTH / 2,
+                y: 100,
+                vx: 0,
+                vy: -2,
+                life: 60,
+                color: '#ff6b6b',
+                size: 1,
+                text: '⚡ 속도 부스트 활성화!',
+                isText: true
+            });
         }
 
         function endGame() {
@@ -1469,6 +1619,53 @@
 
         function updateUpgradeUI() {
             // No longer needed - upgrade buttons are drawn on canvas
+        }
+
+        // Video break functions
+        function showVideoBreak() {
+            gameState = 'videoBreak';
+            const videoBreak = document.getElementById('videoBreak');
+            const video = document.getElementById('breakVideo');
+
+            videoBreak.classList.add('active');
+            video.currentTime = 0;
+            video.play();
+
+            // When video ends, resume game
+            video.addEventListener('ended', () => {
+                resumeFromVideoBreak();
+            }, { once: true });
+        }
+
+        function skipVideo() {
+            resumeFromVideoBreak();
+        }
+
+        function resumeFromVideoBreak() {
+            const videoBreak = document.getElementById('videoBreak');
+            const video = document.getElementById('breakVideo');
+
+            videoBreak.classList.remove('active');
+            video.pause();
+
+            gameState = 'playing';
+
+            // Play next random music
+            currentMusicIndex = Math.floor(Math.random() * 6);
+            const select = document.getElementById('musicSelect');
+            if (select) {
+                select.value = currentMusicIndex.toString();
+            }
+
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic = null;
+            }
+
+            if (isMusicEnabled) {
+                initBackgroundMusic();
+                playBackgroundMusic();
+            }
         }
 
         // Initialize on load
