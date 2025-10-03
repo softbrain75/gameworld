@@ -327,42 +327,51 @@
             margin-bottom: 5px;
         }
 
-        .video-break {
+        .pause-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pause-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .paused-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(0, 0, 0, 0.8);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            z-index: 1500;
             flex-direction: column;
+            gap: 20px;
         }
 
-        .video-break.active {
+        .paused-overlay.active {
             display: flex;
         }
 
-        .video-break video {
-            max-width: 90%;
-            max-height: 80vh;
-        }
-
-        .video-skip {
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.2);
+        .paused-text {
             color: white;
-            border: none;
-            padding: 10px 30px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 1em;
-        }
-
-        .video-skip:hover {
-            background: rgba(255, 255, 255, 0.3);
+            font-size: 3em;
+            font-weight: bold;
         }
 
     </style>
@@ -371,6 +380,7 @@
     <div class="app-header">
         <a href="index.html" class="back-btn">←</a>
         <button id="speedBoostBtn" class="speed-boost-btn" onclick="buySpeedBoost()" title="속도 부스트 (500포인트)">⚡</button>
+        <button id="pauseBtn" class="pause-btn" onclick="togglePause()" title="일시정지">⏸</button>
         <div class="header-score" id="headerScore">0</div>
         <div class="header-lives">❤️ <span id="headerLives">10</span></div>
         <select id="musicSelect" class="music-select" onchange="handleMusicChange()">
@@ -382,6 +392,12 @@
             <option value="4">🎵 5</option>
             <option value="5">🎵 6</option>
         </select>
+    </div>
+
+    <!-- Paused Overlay -->
+    <div id="pausedOverlay" class="paused-overlay" onclick="togglePause()">
+        <div class="paused-text">⏸ 일시정지</div>
+        <div style="color: white; font-size: 1.2em;">클릭하여 재개</div>
     </div>
 
     <!-- Menu Screen -->
@@ -462,13 +478,6 @@
         </div>
     </div>
 
-    <!-- Video Break Screen -->
-    <div id="videoBreak" class="video-break">
-        <video id="breakVideo" controls autoplay>
-            <source src="video/bandicam 2025-10-03 17-35-51-818.mp4" type="video/mp4">
-        </video>
-        <button class="video-skip" onclick="skipVideo()">건너뛰기</button>
-    </div>
 
     <script>
         // Viewport height fix
@@ -625,6 +634,7 @@
         let speedBoostEndTime = 0;
         const SPEED_BOOST_COST = 500;
         const SPEED_BOOST_DURATION = 15000; // 15 seconds
+        let isPaused = false;
 
         // Game objects
         let enemies = [];
@@ -707,15 +717,35 @@
         }
 
         function handleKeyPress(e) {
-            if (gameState !== 'playing') return;
-
             const key = e.key.toLowerCase();
+
+            // ESC or P key for pause (works anytime during playing)
+            if ((key === 'escape' || key === 'p') && gameState === 'playing') {
+                togglePause();
+                return;
+            }
+
+            if (gameState !== 'playing' || isPaused) return;
 
             // Fire all cannons with G key
             if (key === 'g') {
                 for (let i = 0; i < NUM_LANES; i++) {
                     if (cannons[i]?.canFire) {
                         fireCannon(i);
+                    }
+                }
+                return;
+            }
+
+            // Upgrade all cannons with T key
+            if (key === 't') {
+                for (let i = 0; i < NUM_LANES; i++) {
+                    const cannon = cannons[i];
+                    if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
+                        const cost = getUpgradeCost(cannon.upgradeLevel);
+                        if (score >= cost) {
+                            upgradeCannon(i);
+                        }
                     }
                 }
                 return;
@@ -740,6 +770,24 @@
                         upgradeCannon(upgradeIndex);
                     }
                 }
+            }
+        }
+
+        function togglePause() {
+            if (gameState !== 'playing') return;
+
+            isPaused = !isPaused;
+            const overlay = document.getElementById('pausedOverlay');
+            const pauseBtn = document.getElementById('pauseBtn');
+
+            if (isPaused) {
+                overlay.classList.add('active');
+                pauseBtn.textContent = '▶';
+                if (bgMusic) bgMusic.pause();
+            } else {
+                overlay.classList.remove('active');
+                pauseBtn.textContent = '⏸';
+                if (bgMusic && isMusicEnabled) bgMusic.play();
             }
         }
 
@@ -1102,11 +1150,6 @@
                                             isText: true
                                         });
                                     }
-                                }
-
-                                // Check for video break every 100 kills
-                                if (kills % 100 === 0) {
-                                    showVideoBreak();
                                 }
 
                                 // Check wave progression
@@ -1500,8 +1543,11 @@
         }
 
         function gameLoop() {
-            if (gameState === 'playing') {
+            if (gameState === 'playing' && !isPaused) {
                 updateGame();
+                drawGame();
+            } else if (gameState === 'playing' && isPaused) {
+                // Still draw when paused, just don't update
                 drawGame();
             }
 
@@ -1638,53 +1684,6 @@
 
         function updateUpgradeUI() {
             // No longer needed - upgrade buttons are drawn on canvas
-        }
-
-        // Video break functions
-        function showVideoBreak() {
-            gameState = 'videoBreak';
-            const videoBreak = document.getElementById('videoBreak');
-            const video = document.getElementById('breakVideo');
-
-            videoBreak.classList.add('active');
-            video.currentTime = 0;
-            video.play();
-
-            // When video ends, resume game
-            video.addEventListener('ended', () => {
-                resumeFromVideoBreak();
-            }, { once: true });
-        }
-
-        function skipVideo() {
-            resumeFromVideoBreak();
-        }
-
-        function resumeFromVideoBreak() {
-            const videoBreak = document.getElementById('videoBreak');
-            const video = document.getElementById('breakVideo');
-
-            videoBreak.classList.remove('active');
-            video.pause();
-
-            gameState = 'playing';
-
-            // Play next random music
-            currentMusicIndex = Math.floor(Math.random() * 6);
-            const select = document.getElementById('musicSelect');
-            if (select) {
-                select.value = currentMusicIndex.toString();
-            }
-
-            if (bgMusic) {
-                bgMusic.pause();
-                bgMusic = null;
-            }
-
-            if (isMusicEnabled) {
-                initBackgroundMusic();
-                playBackgroundMusic();
-            }
         }
 
         // Initialize on load
