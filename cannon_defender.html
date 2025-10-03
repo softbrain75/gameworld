@@ -132,17 +132,23 @@
             font-size: 0.9em;
         }
 
-        .music-toggle {
+        .music-controls {
             position: fixed;
             top: 10px;
             right: 10px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .music-toggle {
             background: rgba(255, 255, 255, 0.2);
             color: white;
             padding: 10px 20px;
             border-radius: 20px;
             border: none;
             cursor: pointer;
-            z-index: 100;
             font-size: 0.9em;
             transition: background 0.3s;
         }
@@ -153,6 +159,26 @@
 
         .music-toggle.off {
             background: rgba(255, 100, 100, 0.3);
+        }
+
+        .music-select {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .music-select:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .music-select option {
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
         }
 
         .game-container {
@@ -255,11 +281,72 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
+
+        .upgrade-section {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 10px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .upgrade-btn:active {
+            transform: scale(0.95);
+        }
+
+        .upgrade-btn.upgraded {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+
+        .upgrade-btn.max-level {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            cursor: default;
+        }
+
+        .upgrade-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-info {
+            font-size: 0.7em;
+            color: #ffd700;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
     <a href="index.html" class="back-btn">← 홈으로</a>
-    <button id="musicToggle" class="music-toggle" onclick="toggleMusic()">🎵 음악 ON</button>
+    <div class="music-controls">
+        <select id="musicSelect" class="music-select hidden" onchange="changeMusic()">
+            <option value="0">1</option>
+            <option value="1">2</option>
+            <option value="2">3</option>
+            <option value="3">4</option>
+            <option value="4">5</option>
+            <option value="5">6</option>
+        </select>
+        <button id="musicToggle" class="music-toggle" onclick="toggleMusic()">🎵 음악 ON</button>
+    </div>
 
     <!-- Menu Screen -->
     <div id="menuScreen" class="menu-screen">
@@ -357,6 +444,31 @@
                 💡 초록색 대포 = 발사 가능 • 회색 = 재장전 중
             </div>
         </div>
+        <div class="upgrade-section" id="upgradeSection">
+            <button class="upgrade-btn" onclick="upgradeCannon(0)" id="upgrade0">
+                <div>대포 1</div>
+                <div style="font-size: 0.9em;">💰 100</div>
+            </button>
+            <button class="upgrade-btn" onclick="upgradeCannon(1)" id="upgrade1">
+                <div>대포 2</div>
+                <div style="font-size: 0.9em;">💰 100</div>
+            </button>
+            <button class="upgrade-btn" onclick="upgradeCannon(2)" id="upgrade2">
+                <div>대포 3</div>
+                <div style="font-size: 0.9em;">💰 100</div>
+            </button>
+            <button class="upgrade-btn" onclick="upgradeCannon(3)" id="upgrade3">
+                <div>대포 4</div>
+                <div style="font-size: 0.9em;">💰 100</div>
+            </button>
+            <button class="upgrade-btn" onclick="upgradeCannon(4)" id="upgrade4">
+                <div>대포 5</div>
+                <div style="font-size: 0.9em;">💰 100</div>
+            </button>
+            <div class="upgrade-info" id="upgradeInfo">
+                🔧 업그레이드로 재장전 속도 향상! • 최대 5레벨
+            </div>
+        </div>
         <div class="copyright" style="background: rgba(0, 0, 0, 0.7); color: rgba(255, 255, 255, 0.5); text-align: center; padding: 8px; font-size: 0.7em;">
             © 2024 게임세상 | Made with ❤️
         </div>
@@ -378,10 +490,19 @@
         // Audio - Background Music
         let bgMusic = null;
         let isMusicEnabled = true;
+        let currentMusicIndex = 0;
+        const musicFiles = [
+            'music/Across the Stars.mp3',
+            'music/전쟁의 노래.mp3',
+            'music/집중 시간.mp3',
+            'music/대포 발사.mp3',
+            'music/타워 디펜스.mp3',
+            'music/Galactic Fanfare.mp3'
+        ];
 
         function initBackgroundMusic() {
             if (!bgMusic) {
-                bgMusic = new Audio('music/Across the Stars.mp3');
+                bgMusic = new Audio(musicFiles[currentMusicIndex]);
                 bgMusic.loop = true;
                 bgMusic.volume = 0.3;
             }
@@ -400,19 +521,39 @@
             }
         }
 
+        function changeMusic() {
+            const select = document.getElementById('musicSelect');
+            currentMusicIndex = parseInt(select.value);
+
+            // Stop current music and dispose
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic = null;
+            }
+
+            // Start new music if enabled and playing
+            if (isMusicEnabled && gameState === 'playing') {
+                initBackgroundMusic();
+                playBackgroundMusic();
+            }
+        }
+
         function toggleMusic() {
             isMusicEnabled = !isMusicEnabled;
             const toggleBtn = document.getElementById('musicToggle');
+            const musicSelect = document.getElementById('musicSelect');
 
             if (isMusicEnabled) {
                 toggleBtn.textContent = '🎵 음악 ON';
                 toggleBtn.classList.remove('off');
+                musicSelect.classList.remove('hidden');
                 if (gameState === 'playing') {
                     playBackgroundMusic();
                 }
             } else {
                 toggleBtn.textContent = '🔇 음악 OFF';
                 toggleBtn.classList.add('off');
+                musicSelect.classList.add('hidden');
                 stopBackgroundMusic();
             }
         }
@@ -597,8 +738,10 @@
             // Initialize cannons
             cannons = [];
             for (let i = 0; i < NUM_LANES; i++) {
-                cannons.push({ lane: i, canFire: true, lastFired: 0 });
+                cannons.push({ lane: i, canFire: true, lastFired: 0, upgradeLevel: 0 });
             }
+
+            updateUpgradeUI();
 
             // Start background music
             playBackgroundMusic();
@@ -707,11 +850,14 @@
                 });
             }
 
-            // Update cannon cooldown (2x faster if power-up active)
+            // Update cannon cooldown (2x faster if power-up active, reduced by upgrade level)
             cannons[lane].canFire = false;
             cannons[lane].lastFired = Date.now();
 
-            const cooldown = powerUpActive ? CANNON_COOLDOWN / 2 : CANNON_COOLDOWN;
+            // Calculate cooldown: base * (power-up multiplier) * (upgrade multiplier)
+            const upgradeMultiplier = 1 - (cannons[lane].upgradeLevel * 0.08); // 8% faster per level
+            let cooldown = CANNON_COOLDOWN * upgradeMultiplier;
+            if (powerUpActive) cooldown = cooldown / 2;
 
             setTimeout(() => {
                 if (cannons[lane]) {
@@ -1203,6 +1349,9 @@
             } else {
                 comboDisplay.classList.add('hidden');
             }
+
+            // Update upgrade buttons affordability
+            updateUpgradeUI();
         }
 
         function endGame() {
@@ -1232,6 +1381,75 @@
             }
 
             document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Upgrade system
+        const UPGRADE_COSTS = [100, 200, 400, 800, 1600]; // Cost for levels 1-5
+        const MAX_UPGRADE_LEVEL = 5;
+
+        function upgradeCannon(laneIndex) {
+            if (gameState !== 'playing') return;
+
+            const cannon = cannons[laneIndex];
+            if (!cannon) return;
+
+            if (cannon.upgradeLevel >= MAX_UPGRADE_LEVEL) {
+                return; // Already max level
+            }
+
+            const cost = UPGRADE_COSTS[cannon.upgradeLevel];
+
+            if (score >= cost) {
+                score -= cost;
+                cannon.upgradeLevel++;
+                updateUI();
+                updateUpgradeUI();
+
+                // Visual feedback
+                effects.push({
+                    id: Date.now() + Math.random(),
+                    x: laneIndex * LANE_WIDTH + LANE_WIDTH / 2,
+                    y: CANVAS_HEIGHT - 100,
+                    vx: 0,
+                    vy: -3,
+                    life: 60,
+                    color: '#2ecc71',
+                    size: 1,
+                    text: '⬆️ 업그레이드!',
+                    isText: true
+                });
+
+                playSound('hit');
+            }
+        }
+
+        function updateUpgradeUI() {
+            for (let i = 0; i < NUM_LANES; i++) {
+                const btn = document.getElementById(`upgrade${i}`);
+                const cannon = cannons[i];
+
+                if (!btn || !cannon) continue;
+
+                if (cannon.upgradeLevel >= MAX_UPGRADE_LEVEL) {
+                    btn.className = 'upgrade-btn max-level';
+                    btn.innerHTML = `<div>대포 ${i + 1}</div><div style="font-size: 0.9em;">⭐ MAX</div>`;
+                    btn.disabled = true;
+                } else {
+                    const cost = UPGRADE_COSTS[cannon.upgradeLevel];
+                    const canAfford = score >= cost;
+
+                    btn.className = 'upgrade-btn';
+                    if (cannon.upgradeLevel > 0) {
+                        btn.classList.add('upgraded');
+                    }
+                    if (!canAfford) {
+                        btn.classList.add('disabled');
+                    }
+
+                    btn.innerHTML = `<div>대포 ${i + 1} ${cannon.upgradeLevel > 0 ? `Lv${cannon.upgradeLevel}` : ''}</div><div style="font-size: 0.9em;">💰 ${cost}</div>`;
+                    btn.disabled = false;
+                }
+            }
         }
 
         // Initialize on load
