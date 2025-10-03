@@ -119,65 +119,65 @@
             transform: scale(0.95);
         }
 
-        .back-btn {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            text-decoration: none;
-            z-index: 100;
-            font-size: 0.9em;
-        }
-
-        .music-controls {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 100;
+        .app-header {
             display: flex;
-            gap: 10px;
             align-items: center;
-        }
-
-        .music-toggle {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.85);
             color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 8px 12px;
+            gap: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: none;
             border: none;
+            color: white;
+            font-size: 1.2em;
             cursor: pointer;
-            font-size: 0.9em;
-            transition: background 0.3s;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            min-width: 32px;
         }
 
-        .music-toggle:hover {
-            background: rgba(255, 255, 255, 0.3);
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
         }
 
-        .music-toggle.off {
-            background: rgba(255, 100, 100, 0.3);
+        .header-score {
+            flex: 1;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .header-lives {
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .music-select {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             cursor: pointer;
-            font-size: 0.9em;
-            transition: background 0.3s;
+            font-size: 0.85em;
         }
 
         .music-select:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .music-select option {
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             color: white;
         }
 
@@ -191,13 +191,18 @@
 
         .stats {
             display: flex;
-            justify-content: space-around;
-            padding: 10px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
             background: rgba(0, 0, 0, 0.7);
             color: white;
             font-size: 1em;
-            flex-wrap: wrap;
-            gap: 10px;
+        }
+
+        .stats-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
         }
 
         .stat-item {
@@ -285,17 +290,19 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-btn">← 홈으로</a>
-    <div class="music-controls">
-        <select id="musicSelect" class="music-select hidden" onchange="changeMusic()">
-            <option value="0">1</option>
-            <option value="1">2</option>
-            <option value="2">3</option>
-            <option value="3">4</option>
-            <option value="4">5</option>
-            <option value="5">6</option>
+    <div class="app-header">
+        <a href="index.html" class="back-btn">←</a>
+        <div class="header-score" id="headerScore">0</div>
+        <div class="header-lives">❤️ <span id="headerLives">10</span></div>
+        <select id="musicSelect" class="music-select" onchange="handleMusicChange()">
+            <option value="off">🔇 OFF</option>
+            <option value="0" selected>🎵 1</option>
+            <option value="1">🎵 2</option>
+            <option value="2">🎵 3</option>
+            <option value="3">🎵 4</option>
+            <option value="4">🎵 5</option>
+            <option value="5">🎵 6</option>
         </select>
-        <button id="musicToggle" class="music-toggle" onclick="toggleMusic()">🎵 음악 ON</button>
     </div>
 
     <!-- Menu Screen -->
@@ -370,30 +377,7 @@
 
     <!-- Game Screen -->
     <div id="gameContainer" class="game-container hidden">
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-label">점수</div>
-                <div class="stat-value" id="score">0</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">웨이브</div>
-                <div class="stat-value" id="wave">1</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-label">생명</div>
-                <div class="stat-value" id="lives">10</div>
-            </div>
-            <div id="comboDisplay" class="stat-item combo-indicator hidden">
-                <div class="stat-value" id="combo">0x</div>
-            </div>
-        </div>
         <canvas id="gameCanvas"></canvas>
-        <div class="game-hint">
-            <div class="hint-title" id="hintText">하단의 대포를 탭해서 발사하세요!</div>
-            <div style="font-size: 0.8em; opacity: 0.8;" id="hintDetail">
-                💡 초록색 대포 = 발사 가능 • 회색 = 재장전 중 • UP = 업그레이드 가능
-            </div>
-        </div>
         <div class="copyright" style="background: rgba(0, 0, 0, 0.7); color: rgba(255, 255, 255, 0.5); text-align: center; padding: 8px; font-size: 0.7em;">
             © 2024 게임세상 | Made with ❤️
         </div>
@@ -415,7 +399,7 @@
         // Audio - Background Music
         let bgMusic = null;
         let isMusicEnabled = true;
-        let currentMusicIndex = 0;
+        let currentMusicIndex = Math.floor(Math.random() * 6); // Random start
         const musicFiles = [
             'music/Across the Stars.mp3',
             'music/전쟁의 노래.mp3',
@@ -424,6 +408,14 @@
             'music/타워 디펜스.mp3',
             'music/Galactic Fanfare.mp3'
         ];
+
+        // Set initial music selection to random
+        window.addEventListener('load', () => {
+            const select = document.getElementById('musicSelect');
+            if (select) {
+                select.value = currentMusicIndex.toString();
+            }
+        });
 
         function initBackgroundMusic() {
             if (!bgMusic) {
@@ -446,9 +438,9 @@
             }
         }
 
-        function changeMusic() {
+        function handleMusicChange() {
             const select = document.getElementById('musicSelect');
-            currentMusicIndex = parseInt(select.value);
+            const value = select.value;
 
             // Stop current music and dispose
             if (bgMusic) {
@@ -456,30 +448,18 @@
                 bgMusic = null;
             }
 
-            // Start new music if enabled and playing
-            if (isMusicEnabled && gameState === 'playing') {
-                initBackgroundMusic();
-                playBackgroundMusic();
-            }
-        }
+            if (value === 'off') {
+                isMusicEnabled = false;
+                stopBackgroundMusic();
+            } else {
+                isMusicEnabled = true;
+                currentMusicIndex = parseInt(value);
 
-        function toggleMusic() {
-            isMusicEnabled = !isMusicEnabled;
-            const toggleBtn = document.getElementById('musicToggle');
-            const musicSelect = document.getElementById('musicSelect');
-
-            if (isMusicEnabled) {
-                toggleBtn.textContent = '🎵 음악 ON';
-                toggleBtn.classList.remove('off');
-                musicSelect.classList.remove('hidden');
+                // Start new music if playing
                 if (gameState === 'playing') {
+                    initBackgroundMusic();
                     playBackgroundMusic();
                 }
-            } else {
-                toggleBtn.textContent = '🔇 음악 OFF';
-                toggleBtn.classList.add('off');
-                musicSelect.classList.add('hidden');
-                stopBackgroundMusic();
             }
         }
 
@@ -623,10 +603,43 @@
             canvas.addEventListener('click', handleCannonClick);
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
-                handleCannonClick(e.touches[0]);
+                // Handle multi-touch
+                for (let i = 0; i < e.touches.length; i++) {
+                    handleCannonClick(e.touches[i]);
+                }
             });
 
+            // Keyboard controls
+            document.addEventListener('keydown', handleKeyPress);
+
             gameLoop();
+        }
+
+        function handleKeyPress(e) {
+            if (gameState !== 'playing') return;
+
+            const key = e.key.toLowerCase();
+
+            // Fire cannons: h, j, k, l, ; (lanes 0-4)
+            const fireKeys = ['h', 'j', 'k', 'l', ';'];
+            const fireIndex = fireKeys.indexOf(key);
+            if (fireIndex !== -1 && cannons[fireIndex]?.canFire) {
+                fireCannon(fireIndex);
+                return;
+            }
+
+            // Upgrade cannons: y, u, i, o, p (lanes 0-4)
+            const upgradeKeys = ['y', 'u', 'i', 'o', 'p'];
+            const upgradeIndex = upgradeKeys.indexOf(key);
+            if (upgradeIndex !== -1) {
+                const cannon = cannons[upgradeIndex];
+                if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
+                    const cost = getUpgradeCost(cannon.upgradeLevel);
+                    if (score >= cost) {
+                        upgradeCannon(upgradeIndex);
+                    }
+                }
+            }
         }
 
         window.startGame = function() {
@@ -712,9 +725,13 @@
             } else {
                 if (rand < 0.4) enemyType = enemyTypes[0];
                 else if (rand < 0.7) enemyType = enemyTypes[1];
-                else if (rand < 0.95) enemyType = enemyTypes[2];
+                else if (rand < 0.95) enemyTypes[2];
                 else enemyType = enemyTypes[3];
             }
+
+            // Scale difficulty with wave (more HP and speed after wave 5)
+            const healthMultiplier = wave > 5 ? 1 + Math.floor((wave - 5) / 3) : 1;
+            const speedMultiplier = wave > 10 ? 1 + (wave - 10) * 0.05 : 1;
 
             enemies.push({
                 id: Date.now() + Math.random(),
@@ -722,7 +739,9 @@
                 lane,
                 x: lane * LANE_WIDTH + LANE_WIDTH / 2,
                 y: -enemyType.size,
-                maxHealth: enemyType.health
+                health: enemyType.health * healthMultiplier,
+                maxHealth: enemyType.health * healthMultiplier,
+                speed: enemyType.speed * speedMultiplier
             });
         }
 
@@ -745,7 +764,7 @@
 
                 // Check upgrade button click
                 if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
-                    const cost = UPGRADE_COSTS[cannon.upgradeLevel];
+                    const cost = getUpgradeCost(cannon.upgradeLevel);
                     if (score >= cost) {
                         // Upgrade button area
                         if (x >= laneX - 25 && x <= laneX + 25 &&
@@ -1027,18 +1046,6 @@
                 }
             }
 
-            // Update hint text
-            const enemyCount = enemies.length;
-            const hintText = document.getElementById('hintText');
-            if (enemyCount > 10) {
-                hintText.textContent = '⚠️ 대규모 공격!';
-            } else if (enemyCount > 5) {
-                hintText.textContent = '🎯 적이 다가옵니다!';
-            } else {
-                hintText.textContent = '✨ 다음 웨이브 준비...';
-            }
-            document.getElementById('hintDetail').textContent =
-                `하단의 대포를 탭해서 발사하세요! • 적군: ${enemyCount} • 처치: ${kills}`;
         }
 
         function drawGame() {
@@ -1080,7 +1087,7 @@
 
                 // Draw upgrade button above cannon if available
                 if (cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
-                    const cost = UPGRADE_COSTS[cannon.upgradeLevel];
+                    const cost = getUpgradeCost(cannon.upgradeLevel);
                     const canAfford = score >= cost;
 
                     if (canAfford) {
@@ -1121,22 +1128,73 @@
                     ctx.fillText(`Lv${cannon.upgradeLevel}`, x, cannonY - 55);
                 }
 
+                // Upgrade visual enhancement
+                const upgradeScale = 1 + (cannon.upgradeLevel * 0.1); // 10% bigger per level
+                const baseWidth = 25;
+                const baseHeight = 30;
+                const barrelWidth = 15;
+                const barrelHeight = 50;
+                const tipRadius = 15;
+
+                // Upgrade color tiers
+                let cannonColor = cannon.canFire ? '#4CAF50' : '#999';
+                let cannonTipColor = cannon.canFire ? '#66BB6A' : '#aaa';
+
+                if (cannon.upgradeLevel >= 4) {
+                    cannonColor = cannon.canFire ? '#9C27B0' : '#999'; // Purple for level 4-5
+                    cannonTipColor = cannon.canFire ? '#BA68C8' : '#aaa';
+                } else if (cannon.upgradeLevel >= 2) {
+                    cannonColor = cannon.canFire ? '#FF9800' : '#999'; // Orange for level 2-3
+                    cannonTipColor = cannon.canFire ? '#FFB74D' : '#aaa';
+                }
+
                 // Cannon base
                 ctx.fillStyle = '#555';
-                ctx.fillRect(x - 25, cannonY + 20, 50, 30);
+                ctx.fillRect(
+                    x - baseWidth * upgradeScale,
+                    cannonY + 20,
+                    baseWidth * 2 * upgradeScale,
+                    baseHeight
+                );
 
-                // Cannon barrel (original: 50 height)
-                ctx.fillStyle = cannon.canFire ? '#4CAF50' : '#999';
-                ctx.shadowColor = cannon.canFire ? '#4CAF50' : 'transparent';
-                ctx.shadowBlur = cannon.canFire ? 15 : 0;
-                ctx.fillRect(x - 15, cannonY - 30, 30, 50);
+                // Cannon barrel with upgrade size
+                ctx.fillStyle = cannonColor;
+                ctx.shadowColor = cannon.canFire ? cannonColor : 'transparent';
+                ctx.shadowBlur = cannon.canFire ? 15 + cannon.upgradeLevel * 3 : 0;
+                ctx.fillRect(
+                    x - barrelWidth * upgradeScale,
+                    cannonY - 30,
+                    barrelWidth * 2 * upgradeScale,
+                    barrelHeight
+                );
                 ctx.shadowBlur = 0;
 
-                // Cannon tip
-                ctx.fillStyle = cannon.canFire ? '#66BB6A' : '#aaa';
+                // Cannon tip with upgrade size
+                ctx.fillStyle = cannonTipColor;
                 ctx.beginPath();
-                ctx.arc(x, cannonY - 30, 15, 0, Math.PI * 2);
+                ctx.arc(x, cannonY - 30, tipRadius * upgradeScale, 0, Math.PI * 2);
                 ctx.fill();
+
+                // Upgrade visual effects (glow rings for high levels)
+                if (cannon.upgradeLevel >= 3 && cannon.canFire) {
+                    ctx.strokeStyle = cannonColor;
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.5;
+                    ctx.beginPath();
+                    ctx.arc(x, cannonY - 30, tipRadius * upgradeScale + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+
+                if (cannon.upgradeLevel >= 5 && cannon.canFire) {
+                    ctx.strokeStyle = cannonTipColor;
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.3;
+                    ctx.beginPath();
+                    ctx.arc(x, cannonY - 30, tipRadius * upgradeScale + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
 
                 // Cooldown status bar (always shown)
                 const cooldownPercent = cannon.canFire ? 1 : (Date.now() - cannon.lastFired) / CANNON_COOLDOWN;
@@ -1328,17 +1386,8 @@
         }
 
         function updateUI() {
-            document.getElementById('score').textContent = score.toLocaleString();
-            document.getElementById('wave').textContent = wave;
-            document.getElementById('lives').textContent = lives;
-
-            const comboDisplay = document.getElementById('comboDisplay');
-            if (combo > 0) {
-                comboDisplay.classList.remove('hidden');
-                document.getElementById('combo').textContent = combo + 'x';
-            } else {
-                comboDisplay.classList.add('hidden');
-            }
+            document.getElementById('headerScore').textContent = score.toLocaleString();
+            document.getElementById('headerLives').textContent = lives;
 
             // Update upgrade buttons affordability
             updateUpgradeUI();
@@ -1374,8 +1423,13 @@
         }
 
         // Upgrade system
-        const UPGRADE_COSTS = [100, 200, 400, 800, 1600]; // Cost for levels 1-5
-        const MAX_UPGRADE_LEVEL = 5;
+        const BASE_UPGRADE_COST = 100;
+        const MAX_UPGRADE_LEVEL = 999; // Essentially unlimited
+
+        function getUpgradeCost(level) {
+            // Exponential cost: 100, 200, 400, 800, 1600, 3200...
+            return BASE_UPGRADE_COST * Math.pow(2, level);
+        }
 
         function upgradeCannon(laneIndex) {
             if (gameState !== 'playing') return;
@@ -1387,7 +1441,7 @@
                 return; // Already max level
             }
 
-            const cost = UPGRADE_COSTS[cannon.upgradeLevel];
+            const cost = getUpgradeCost(cannon.upgradeLevel);
 
             if (score >= cost) {
                 score -= cost;
