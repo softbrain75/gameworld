@@ -132,6 +132,29 @@
             font-size: 0.9em;
         }
 
+        .music-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .music-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .music-toggle.off {
+            background: rgba(255, 100, 100, 0.3);
+        }
+
         .game-container {
             flex: 1;
             display: flex;
@@ -236,6 +259,7 @@
 </head>
 <body>
     <a href="index.html" class="back-btn">← 홈으로</a>
+    <button id="musicToggle" class="music-toggle" onclick="toggleMusic()">🎵 음악 ON</button>
 
     <!-- Menu Screen -->
     <div id="menuScreen" class="menu-screen">
@@ -353,6 +377,7 @@
 
         // Audio - Background Music
         let bgMusic = null;
+        let isMusicEnabled = true;
 
         function initBackgroundMusic() {
             if (!bgMusic) {
@@ -363,6 +388,7 @@
         }
 
         function playBackgroundMusic() {
+            if (!isMusicEnabled) return;
             initBackgroundMusic();
             bgMusic.play().catch(e => console.log('Music play failed:', e));
         }
@@ -371,6 +397,23 @@
             if (bgMusic) {
                 bgMusic.pause();
                 bgMusic.currentTime = 0;
+            }
+        }
+
+        function toggleMusic() {
+            isMusicEnabled = !isMusicEnabled;
+            const toggleBtn = document.getElementById('musicToggle');
+
+            if (isMusicEnabled) {
+                toggleBtn.textContent = '🎵 음악 ON';
+                toggleBtn.classList.remove('off');
+                if (gameState === 'playing') {
+                    playBackgroundMusic();
+                }
+            } else {
+                toggleBtn.textContent = '🔇 음악 OFF';
+                toggleBtn.classList.add('off');
+                stopBackgroundMusic();
             }
         }
 
