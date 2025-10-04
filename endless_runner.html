@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>엔드리스 러너 - 게임세상</title>
+    <title>스페이스 러너 - 게임세상</title>
     <style>
         :root {
             --vh: 1vh;
@@ -24,7 +24,7 @@
 
         body {
             font-family: 'Malgun Gothic', sans-serif;
-            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4d 100%);
             height: 100vh;
             height: calc(var(--vh, 1vh) * 100);
             overflow: hidden;
@@ -39,7 +39,7 @@
             width: 100%;
             height: 100vh;
             height: calc(var(--vh, 1vh) * 100);
-            background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4d 50%, #2a2f5d 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -47,21 +47,21 @@
         }
 
         .menu-content, .gameover-content {
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(10, 14, 39, 0.95);
             padding: 30px;
             border-radius: 20px;
             text-align: center;
             color: white;
             max-width: 90%;
             width: 400px;
-            border: 3px solid #f857a6;
-            box-shadow: 0 0 40px rgba(248, 87, 166, 0.5);
+            border: 3px solid #5a5aff;
+            box-shadow: 0 0 40px rgba(90, 90, 255, 0.5);
         }
 
         h1 {
             font-size: 2.5em;
             margin-bottom: 20px;
-            background: linear-gradient(45deg, #f857a6, #ff5858);
+            background: linear-gradient(45deg, #5a5aff, #8a8aff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -93,7 +93,7 @@
         }
 
         .btn {
-            background: linear-gradient(45deg, #f857a6, #ff5858);
+            background: linear-gradient(45deg, #5a5aff, #7a7aff);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -195,9 +195,9 @@
     <!-- Menu Screen -->
     <div id="menuScreen" class="menu-screen">
         <div class="menu-content">
-            <div class="game-icon">🏃</div>
-            <h1>엔드리스 러너</h1>
-            <p style="color: #f857a6; margin-bottom: 20px;">끝없이 달려라!</p>
+            <div class="game-icon">🚀</div>
+            <h1>스페이스 러너</h1>
+            <p style="color: #5a5aff; margin-bottom: 20px;">우주를 달려라!</p>
 
             <div id="highScore" class="high-score hidden">
                 <div style="opacity: 0.8;">🏆 최고 기록</div>
@@ -207,12 +207,12 @@
             <button class="btn" onclick="startGame()">🏃 시작</button>
 
             <div class="instructions">
-                <p style="font-weight: bold; color: #f857a6; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p style="font-weight: bold; color: #5a5aff; margin-bottom: 10px;">🎮 게임 방법</p>
                 <p>👆 화면 터치로 점프</p>
-                <p>🚧 장애물 피하기</p>
-                <p>💎 코인 수집</p>
+                <p>☄️ 운석 피하기</p>
+                <p>⭐ 별 수집</p>
                 <p>⚡ 속도가 점점 빨라짐</p>
-                <p>🏆 최대한 멀리 달리세요!</p>
+                <p>🚀 우주를 끝없이 달리세요!</p>
             </div>
         </div>
     </div>
@@ -440,20 +440,41 @@
 
         // Draw game
         function drawGame() {
-            // Clear canvas
+            // Draw space background
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#87CEEB');
-            gradient.addColorStop(1, '#98D8E8');
+            gradient.addColorStop(0, '#0a0e27');
+            gradient.addColorStop(0.5, '#1a1f4d');
+            gradient.addColorStop(1, '#2a2f5d');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw ground
-            ctx.fillStyle = '#8B4513';
+            // Draw stars
+            ctx.fillStyle = 'white';
+            for (let i = 0; i < 50; i++) {
+                const x = (i * 50 + distance * 0.5) % canvas.width;
+                const y = (i * 37) % canvas.height;
+                ctx.beginPath();
+                ctx.arc(x, y, 1 + Math.random(), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw platform (space station floor)
+            ctx.fillStyle = '#4a4a6a';
             ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
 
-            // Draw grass
-            ctx.fillStyle = '#228B22';
-            ctx.fillRect(0, groundY, canvas.width, 10);
+            // Platform lines (tech look)
+            ctx.strokeStyle = '#6a6a8a';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, groundY);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+
+            // Platform edge glow
+            ctx.fillStyle = '#5a5aff';
+            ctx.fillRect(0, groundY, canvas.width, 3);
 
             // Draw player
             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
@@ -464,26 +485,45 @@
             ctx.font = '40px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('🏃', player.x + player.width / 2, player.y + player.height / 2);
+            ctx.save();
+            ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+            ctx.scale(-1, 1); // Flip horizontally to face right
+            ctx.fillText('🏃', 0, 0);
+            ctx.restore();
 
-            // Draw obstacles
+            // Draw obstacles (asteroids/meteors)
             obstacles.forEach(obs => {
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
-                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                // Meteor glow
+                ctx.fillStyle = 'rgba(255, 100, 0, 0.3)';
+                ctx.beginPath();
+                ctx.arc(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 2 + 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Meteor body
+                ctx.fillStyle = 'rgba(139, 69, 19, 0.9)';
+                ctx.beginPath();
+                ctx.arc(obs.x + obs.width / 2, obs.y + obs.height / 2, obs.width / 2, 0, Math.PI * 2);
+                ctx.fill();
 
                 ctx.font = '40px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText('🚧', obs.x + obs.width / 2, obs.y + obs.height / 2);
+                ctx.fillText('☄️', obs.x + obs.width / 2, obs.y + obs.height / 2);
             });
 
-            // Draw coins
+            // Draw coins (stars/crystals)
             coinsList.forEach(coin => {
                 if (!coin.collected) {
+                    // Coin glow
+                    ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+                    ctx.beginPath();
+                    ctx.arc(coin.x + coin.width / 2, coin.y + coin.height / 2, coin.width / 2 + 3, 0, Math.PI * 2);
+                    ctx.fill();
+
                     ctx.font = '30px Arial';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText('💰', coin.x + coin.width / 2, coin.y + coin.height / 2);
+                    ctx.fillText('⭐', coin.x + coin.width / 2, coin.y + coin.height / 2);
                 }
             });
         }
