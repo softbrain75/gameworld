@@ -353,13 +353,15 @@
             player.velocityY = 0;
             player.jumping = false;
             player.onPlatform = false;
-            lastSpawnX = canvas.width;
+            lastSpawnX = 0;
             nextIsObstacle = Math.random() < 0.5;
             obstaclePatternIndex = 0;
             platformPatternIndex = 0;
 
             // Spawn initial content
-            spawnNext();
+            for (let i = 0; i < 5; i++) {
+                spawnNext();
+            }
         };
 
         // Spawn next (alternates between obstacle and platform)
