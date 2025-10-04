@@ -293,7 +293,42 @@
         let platforms = [];
         let groundY = 0;
         let lastSpawnX = 0;
-        let nextIsObstacle = true;
+        let mapIndex = 0;
+
+        // 고정 맵 패턴 (수정 가능)
+        // O = 장애물, P = 플랫폼
+        const gameMap = [
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'P',  // 플랫폼
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'P',  // 플랫폼
+            'O',  // 장애물
+            'P'   // 플랫폼
+        ];
 
         // Set canvas size
         function resizeCanvas() {
@@ -354,7 +389,7 @@
             player.jumping = false;
             player.onPlatform = false;
             lastSpawnX = 0;
-            nextIsObstacle = Math.random() < 0.5;
+            mapIndex = 0;
             obstaclePatternIndex = 0;
             platformPatternIndex = 0;
 
@@ -364,14 +399,16 @@
             }
         };
 
-        // Spawn next (alternates between obstacle and platform)
+        // Spawn next (맵 패턴에 따라)
         function spawnNext() {
-            if (nextIsObstacle) {
+            const currentMapItem = gameMap[mapIndex % gameMap.length];
+            mapIndex++;
+
+            if (currentMapItem === 'O') {
                 spawnObstacle();
-            } else {
+            } else if (currentMapItem === 'P') {
                 spawnPlatform();
             }
-            nextIsObstacle = !nextIsObstacle;
         }
 
         // Obstacle patterns
