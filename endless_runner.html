@@ -292,6 +292,8 @@
         let coinsList = [];
         let platforms = [];
         let groundY = 0;
+        let lastSpawnX = 0;
+        let nextIsObstacle = true;
 
         // Set canvas size
         function resizeCanvas() {
@@ -351,66 +353,141 @@
             player.velocityY = 0;
             player.jumping = false;
             player.onPlatform = false;
+            lastSpawnX = canvas.width;
+            nextIsObstacle = Math.random() < 0.5;
+            obstaclePatternIndex = 0;
+            platformPatternIndex = 0;
 
-            // Spawn initial obstacles and platforms
-            for (let i = 0; i < 3; i++) {
-                spawnObstacle();
-                if (i % 2 === 0) spawnPlatform();
-            }
+            // Spawn initial content
+            spawnNext();
         };
+
+        // Spawn next (alternates between obstacle and platform)
+        function spawnNext() {
+            if (nextIsObstacle) {
+                spawnObstacle();
+            } else {
+                spawnPlatform();
+            }
+            nextIsObstacle = !nextIsObstacle;
+        }
+
+        // Obstacle patterns
+        let obstaclePatternIndex = 0;
+        const obstaclePatterns = [
+            // Pattern 1: Single obstacle
+            [{gap: 600}],
+
+            // Pattern 2: Three in a row
+            [{gap: 500}, {gap: 180}, {gap: 180}],
+
+            // Pattern 3: Long gap
+            [{gap: 900}],
+
+            // Pattern 4: Two obstacles
+            [{gap: 600}, {gap: 250}],
+
+            // Pattern 5: Close cluster
+            [{gap: 550}, {gap: 150}, {gap: 150}, {gap: 150}],
+
+            // Pattern 6: Spaced obstacles
+            [{gap: 700}, {gap: 300}],
+
+            // Pattern 7: Single far
+            [{gap: 800}]
+        ];
 
         // Spawn obstacle
         function spawnObstacle() {
-            const lastObstacle = obstacles[obstacles.length - 1];
-            const minDistance = 300;
-            const maxDistance = 600;
-            const startX = lastObstacle ? lastObstacle.x + minDistance + Math.random() * (maxDistance - minDistance) : canvas.width;
+            const pattern = obstaclePatterns[obstaclePatternIndex % obstaclePatterns.length];
+            obstaclePatternIndex++;
 
-            obstacles.push({
-                x: startX,
-                y: groundY - 40,
-                width: 40,
-                height: 40
-            });
+            let startX = lastSpawnX + 300;
 
-            // Sometimes spawn coin above obstacle
-            if (Math.random() < 0.5) {
-                coinsList.push({
+            pattern.forEach(p => {
+                startX += p.gap;
+
+                obstacles.push({
                     x: startX,
-                    y: groundY - 100,
-                    width: 30,
-                    height: 30,
-                    collected: false
+                    y: groundY - 40,
+                    width: 40,
+                    height: 40
                 });
-            }
+
+                // Sometimes spawn coin above obstacle
+                if (Math.random() < 0.4) {
+                    coinsList.push({
+                        x: startX,
+                        y: groundY - 100,
+                        width: 30,
+                        height: 30,
+                        collected: false
+                    });
+                }
+
+                lastSpawnX = startX;
+            });
         }
+
+        // Platform patterns
+        let platformPatternIndex = 0;
+        const platformPatterns = [
+            // Pattern 1: Single high platform
+            [{height: 150, width: 100, gap: 600}],
+
+            // Pattern 2: Staircase up
+            [{height: 100, width: 80, gap: 200}, {height: 150, width: 80, gap: 180}, {height: 200, width: 80, gap: 180}],
+
+            // Pattern 3: Long gap with single platform
+            [{height: 120, width: 60, gap: 800}],
+
+            // Pattern 4: Multiple short platforms
+            [{height: 120, width: 60, gap: 250}, {height: 130, width: 60, gap: 200}, {height: 110, width: 60, gap: 220}],
+
+            // Pattern 5: High jump challenge
+            [{height: 180, width: 90, gap: 400}, {height: 190, width: 70, gap: 350}],
+
+            // Pattern 6: Low platforms
+            [{height: 80, width: 100, gap: 300}, {height: 75, width: 100, gap: 280}],
+
+            // Pattern 7: Single far platform
+            [{height: 140, width: 70, gap: 700}],
+
+            // Pattern 8: Close platforms
+            [{height: 100, width: 80, gap: 180}, {height: 100, width: 80, gap: 170}, {height: 100, width: 80, gap: 180}]
+        ];
 
         // Spawn platform
         function spawnPlatform() {
-            const lastPlatform = platforms[platforms.length - 1];
-            const minDistance = 400;
-            const maxDistance = 700;
-            const startX = lastPlatform ? lastPlatform.x + minDistance + Math.random() * (maxDistance - minDistance) : canvas.width + 500;
+            const pattern = platformPatterns[platformPatternIndex % platformPatterns.length];
+            platformPatternIndex++;
 
-            const platformHeight = groundY - 120 - Math.random() * 80;
+            let startX = lastSpawnX + 300;
 
-            platforms.push({
-                x: startX,
-                y: platformHeight,
-                width: 80 + Math.random() * 40,
-                height: 15
-            });
+            pattern.forEach((p, index) => {
+                startX += p.gap;
+                const platformHeight = groundY - p.height;
 
-            // Spawn coin on platform
-            if (Math.random() < 0.7) {
-                coinsList.push({
-                    x: startX + 20,
-                    y: platformHeight - 40,
-                    width: 30,
-                    height: 30,
-                    collected: false
+                platforms.push({
+                    x: startX,
+                    y: platformHeight,
+                    width: p.width,
+                    height: 15
                 });
-            }
+
+                // Spawn coin on platform
+                if (Math.random() < 0.6) {
+                    coinsList.push({
+                        x: startX + p.width / 2 - 15,
+                        y: platformHeight - 40,
+                        width: 30,
+                        height: 30,
+                        collected: false
+                    });
+                }
+
+                lastSpawnX = startX + p.width;
+            });
         }
 
         // Update game
@@ -462,7 +539,6 @@
                 // Remove off-screen obstacles
                 if (obstacles[i].x + obstacles[i].width < 0) {
                     obstacles.splice(i, 1);
-                    spawnObstacle();
                 }
             }
 
@@ -473,8 +549,12 @@
                 // Remove off-screen platforms
                 if (platforms[i].x + platforms[i].width < 0) {
                     platforms.splice(i, 1);
-                    spawnPlatform();
                 }
+            }
+
+            // Spawn new content when needed
+            if (lastSpawnX < canvas.width + 500) {
+                spawnNext();
             }
 
             // Update coins
