@@ -198,6 +198,49 @@
         setVh();
         window.addEventListener('resize', setVh);
 
+        // Audio
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(soundType) {
+            try {
+                initAudio();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'place':
+                        oscillator.frequency.value = 440;
+                        gainNode.gain.value = 0.08;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'win':
+                        oscillator.frequency.value = 800;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'draw':
+                        oscillator.frequency.value = 300;
+                        gainNode.gain.value = 0.10;
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const menuScreen = document.getElementById('menuScreen');
@@ -395,16 +438,19 @@
 
         function placeStone(row, col) {
             board[row][col] = currentPlayer;
+            playSound('place');
             drawBoard();
 
             // Check win
             if (checkWin(row, col)) {
+                playSound('win');
                 gameOver(currentPlayer);
                 return;
             }
 
             // Check draw
             if (isBoardFull()) {
+                playSound('draw');
                 gameOver(null);
                 return;
             }
@@ -420,10 +466,49 @@
         }
 
         function makeAIMove() {
-            // Simple AI: find best position
+            // Enhanced AI with threat detection
             let bestScore = -Infinity;
             let bestMove = null;
 
+            // First check for immediate win or block
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    if (!board[i][j]) {
+                        // Check if AI can win
+                        board[i][j] = 'white';
+                        if (checkWin(i, j)) {
+                            board[i][j] = null;
+                            placeStone(i, j);
+                            return;
+                        }
+                        board[i][j] = null;
+
+                        // Check if must block player from winning
+                        board[i][j] = 'black';
+                        if (checkWin(i, j)) {
+                            board[i][j] = null;
+                            placeStone(i, j);
+                            return;
+                        }
+                        board[i][j] = null;
+                    }
+                }
+            }
+
+            // Check for critical threats (4 in a row with one end open)
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    if (!board[i][j]) {
+                        const threatLevel = checkThreatLevel(i, j);
+                        if (threatLevel.playerThreat >= 4) {
+                            placeStone(i, j);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Evaluate all positions
             for (let i = 0; i < boardSize; i++) {
                 for (let j = 0; j < boardSize; j++) {
                     if (!board[i][j]) {
@@ -441,46 +526,34 @@
             }
         }
 
-        function evaluatePosition(row, col) {
-            let score = 0;
-
-            // Check if can win
-            board[row][col] = 'white';
-            if (checkWin(row, col)) {
-                board[row][col] = null;
-                return 10000;
-            }
-            board[row][col] = null;
-
-            // Check if need to block
-            board[row][col] = 'black';
-            if (checkWin(row, col)) {
-                board[row][col] = null;
-                return 5000;
-            }
-            board[row][col] = null;
-
-            // Evaluate all directions
+        function checkThreatLevel(row, col) {
             const directions = [[1,0], [0,1], [1,1], [1,-1]];
+            let maxAIThreat = 0;
+            let maxPlayerThreat = 0;
+
             directions.forEach(([dx, dy]) => {
-                score += evaluateDirection(row, col, dx, dy, 'white') * 10;
-                score += evaluateDirection(row, col, dx, dy, 'black') * 5;
+                // Check AI threat
+                board[row][col] = 'white';
+                const aiCount = countInDirection(row, col, dx, dy, 'white');
+                maxAIThreat = Math.max(maxAIThreat, aiCount);
+                board[row][col] = null;
+
+                // Check player threat
+                board[row][col] = 'black';
+                const playerCount = countInDirection(row, col, dx, dy, 'black');
+                maxPlayerThreat = Math.max(maxPlayerThreat, playerCount);
+                board[row][col] = null;
             });
 
-            // Prefer center
-            const centerDist = Math.abs(row - 7) + Math.abs(col - 7);
-            score += (14 - centerDist) * 2;
-
-            return score;
+            return { aiThreat: maxAIThreat, playerThreat: maxPlayerThreat };
         }
 
-        function evaluateDirection(row, col, dx, dy, color) {
+        function countInDirection(row, col, dx, dy, color) {
             let count = 1;
-            let openEnds = 0;
 
-            // Check positive direction
+            // Count in positive direction
             let i = 1;
-            while (true) {
+            while (i < 5) {
                 const newRow = row + dx * i;
                 const newCol = col + dy * i;
                 if (newRow < 0 || newRow >= boardSize || newCol < 0 || newCol >= boardSize) break;
@@ -488,14 +561,13 @@
                     count++;
                     i++;
                 } else {
-                    if (!board[newRow][newCol]) openEnds++;
                     break;
                 }
             }
 
-            // Check negative direction
+            // Count in negative direction
             i = 1;
-            while (true) {
+            while (i < 5) {
                 const newRow = row - dx * i;
                 const newCol = col - dy * i;
                 if (newRow < 0 || newRow >= boardSize || newCol < 0 || newCol >= boardSize) break;
@@ -503,10 +575,113 @@
                     count++;
                     i++;
                 } else {
-                    if (!board[newRow][newCol]) openEnds++;
                     break;
                 }
             }
+
+            return count;
+        }
+
+        function evaluatePosition(row, col) {
+            let score = 0;
+
+            const threatLevel = checkThreatLevel(row, col);
+
+            // Prioritize blocking dangerous threats
+            if (threatLevel.playerThreat >= 3) {
+                score += 8000;
+            } else if (threatLevel.playerThreat >= 2) {
+                score += 500;
+            }
+
+            // Prioritize creating threats
+            if (threatLevel.aiThreat >= 3) {
+                score += 6000;
+            } else if (threatLevel.aiThreat >= 2) {
+                score += 300;
+            }
+
+            // Evaluate pattern quality
+            const directions = [[1,0], [0,1], [1,1], [1,-1]];
+            directions.forEach(([dx, dy]) => {
+                score += evaluateDirection(row, col, dx, dy, 'white') * 15;
+                score += evaluateDirection(row, col, dx, dy, 'black') * 10;
+            });
+
+            // Strategic positioning
+            const centerDist = Math.abs(row - 7) + Math.abs(col - 7);
+            score += (14 - centerDist) * 3;
+
+            // Prefer positions near existing stones
+            let adjacentStones = 0;
+            for (let dr = -2; dr <= 2; dr++) {
+                for (let dc = -2; dc <= 2; dc++) {
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize) {
+                        if (board[nr][nc]) adjacentStones++;
+                    }
+                }
+            }
+            score += adjacentStones * 20;
+
+            return score;
+        }
+
+        function evaluateDirection(row, col, dx, dy, color) {
+            let count = 1;
+            let openEnds = 0;
+            let blocked = 0;
+
+            // Check positive direction
+            let i = 1;
+            while (i <= 4) {
+                const newRow = row + dx * i;
+                const newCol = col + dy * i;
+                if (newRow < 0 || newRow >= boardSize || newCol < 0 || newCol >= boardSize) {
+                    blocked++;
+                    break;
+                }
+                if (board[newRow][newCol] === color) {
+                    count++;
+                    i++;
+                } else if (!board[newRow][newCol]) {
+                    openEnds++;
+                    break;
+                } else {
+                    blocked++;
+                    break;
+                }
+            }
+
+            // Check negative direction
+            i = 1;
+            while (i <= 4) {
+                const newRow = row - dx * i;
+                const newCol = col - dy * i;
+                if (newRow < 0 || newRow >= boardSize || newCol < 0 || newCol >= boardSize) {
+                    blocked++;
+                    break;
+                }
+                if (board[newRow][newCol] === color) {
+                    count++;
+                    i++;
+                } else if (!board[newRow][newCol]) {
+                    openEnds++;
+                    break;
+                } else {
+                    blocked++;
+                    break;
+                }
+            }
+
+            // Scoring based on pattern quality
+            if (blocked === 2) return 0; // Dead pattern
+            if (count >= 4) return 10000; // Almost winning
+            if (count === 3 && openEnds === 2) return 5000; // Open three
+            if (count === 3 && openEnds === 1) return 1000; // Semi-open three
+            if (count === 2 && openEnds === 2) return 500; // Open two
+            if (count === 2 && openEnds === 1) return 100; // Semi-open two
 
             return count * count * (openEnds + 1);
         }
