@@ -189,21 +189,25 @@
             <strong>게임 방법:</strong><br>
             • 2명이서 동시에 플레이하는 격투 게임!<br>
             • 상대의 체력을 0으로 만들거나 시간 내에 더 많은 체력을 유지하세요!<br>
-            • 공격과 방어를 적절히 사용하세요!<br>
-            • 방어 중에는 데미지를 50% 감소시킵니다!<br><br>
+            • <strong>앉기:</strong> 서서 하는 공격 회피 가능!<br>
+            • <strong>점프:</strong> 앉아서 하는 공격 회피 가능!<br>
+            • <strong>방어:</strong> 데미지 50% 감소, 방어 성공 시 1초 쿨타임!<br>
+            • 방어 중에는 공격 불가!<br><br>
         </div>
         <div class="controls">
             <div class="player-controls">
                 <h3>🔴 플레이어 1 (빨강)</h3>
-                • W, A, S, D - 이동<br>
-                • Space - 공격<br>
+                • W - 점프 / S - 앉기<br>
+                • A, D - 좌우 이동<br>
+                • F - 공격<br>
                 • Shift - 방어
             </div>
             <div class="player-controls">
                 <h3>🔵 플레이어 2 (파랑)</h3>
-                • ↑, ←, ↓, → - 이동<br>
+                • ↑ - 점프 / ↓ - 앉기<br>
+                • ←, → - 좌우 이동<br>
                 • Enter - 공격<br>
-                • Ctrl - 방어
+                • 우측 Shift - 방어
             </div>
         </div>
         <div class="highscore">최다 승리: <span id="menuHighScore">P1: 0 / P2: 0</span></div>
@@ -318,8 +322,10 @@
         const player1 = {
             x: 200,
             y: canvas.height - 200,
-            width: 60,
+            width: 50,
             height: 100,
+            standingHeight: 100,
+            crouchingHeight: 60,
             color: '#ff4444',
             health: 100,
             maxHealth: 100,
@@ -329,9 +335,11 @@
             jumpPower: 15,
             gravity: 0.8,
             isJumping: false,
+            isCrouching: false,
             isAttacking: false,
             isDefending: false,
             attackCooldown: 0,
+            defendCooldown: 0,
             facing: 1, // 1 = right, -1 = left
             keys: {}
         };
@@ -339,8 +347,10 @@
         const player2 = {
             x: canvas.width - 260,
             y: canvas.height - 200,
-            width: 60,
+            width: 50,
             height: 100,
+            standingHeight: 100,
+            crouchingHeight: 60,
             color: '#4444ff',
             health: 100,
             maxHealth: 100,
@@ -350,9 +360,11 @@
             jumpPower: 15,
             gravity: 0.8,
             isJumping: false,
+            isCrouching: false,
             isAttacking: false,
             isDefending: false,
             attackCooldown: 0,
+            defendCooldown: 0,
             facing: -1,
             keys: {}
         };
@@ -381,9 +393,12 @@
             player1.velocityX = 0;
             player1.velocityY = 0;
             player1.isJumping = false;
+            player1.isCrouching = false;
             player1.isAttacking = false;
             player1.isDefending = false;
             player1.attackCooldown = 0;
+            player1.defendCooldown = 0;
+            player1.height = player1.standingHeight;
             player1.facing = 1;
 
             player2.x = canvas.width - 260;
@@ -392,9 +407,12 @@
             player2.velocityX = 0;
             player2.velocityY = 0;
             player2.isJumping = false;
+            player2.isCrouching = false;
             player2.isAttacking = false;
             player2.isDefending = false;
             player2.attackCooldown = 0;
+            player2.defendCooldown = 0;
+            player2.height = player2.standingHeight;
             player2.facing = -1;
 
             document.getElementById('menuScreen').style.display = 'none';
@@ -476,58 +494,83 @@
 
             // Player 1 controls
             if (e.key === 'w' || e.key === 'W') {
-                if (!player1.isJumping) {
+                if (!player1.isJumping && !player1.isCrouching) {
                     player1.velocityY = -player1.jumpPower;
                     player1.isJumping = true;
                 }
             }
+            if (e.key === 's' || e.key === 'S') {
+                if (!player1.isJumping) {
+                    player1.isCrouching = true;
+                    player1.keys.crouch = true;
+                }
+            }
             if (e.key === 'a' || e.key === 'A') player1.keys.left = true;
             if (e.key === 'd' || e.key === 'D') player1.keys.right = true;
-            if (e.key === ' ') {
+            if (e.key === 'f' || e.key === 'F') {
                 e.preventDefault();
-                if (player1.attackCooldown <= 0) {
+                if (player1.attackCooldown <= 0 && !player1.isDefending) {
                     player1.isAttacking = true;
                     player1.attackCooldown = 30;
                 }
             }
-            if (e.key === 'Shift') {
+            if (e.key === 'Shift' && e.location === 1) { // Left Shift
                 e.preventDefault();
-                player1.isDefending = true;
+                if (player1.defendCooldown <= 0) {
+                    player1.isDefending = true;
+                }
             }
 
             // Player 2 controls
             if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                if (!player2.isJumping) {
+                if (!player2.isJumping && !player2.isCrouching) {
                     player2.velocityY = -player2.jumpPower;
                     player2.isJumping = true;
+                }
+            }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (!player2.isJumping) {
+                    player2.isCrouching = true;
+                    player2.keys.crouch = true;
                 }
             }
             if (e.key === 'ArrowLeft') player2.keys.left = true;
             if (e.key === 'ArrowRight') player2.keys.right = true;
             if (e.key === 'Enter') {
                 e.preventDefault();
-                if (player2.attackCooldown <= 0) {
+                if (player2.attackCooldown <= 0 && !player2.isDefending) {
                     player2.isAttacking = true;
                     player2.attackCooldown = 30;
                 }
             }
-            if (e.key === 'Control') {
+            if (e.key === 'Shift' && e.location === 2) { // Right Shift
                 e.preventDefault();
-                player2.isDefending = true;
+                if (player2.defendCooldown <= 0) {
+                    player2.isDefending = true;
+                }
             }
         });
 
         window.addEventListener('keyup', (e) => {
             // Player 1
+            if (e.key === 's' || e.key === 'S') {
+                player1.isCrouching = false;
+                player1.keys.crouch = false;
+            }
             if (e.key === 'a' || e.key === 'A') player1.keys.left = false;
             if (e.key === 'd' || e.key === 'D') player1.keys.right = false;
-            if (e.key === 'Shift') player1.isDefending = false;
+            if (e.key === 'Shift' && e.location === 1) player1.isDefending = false;
 
             // Player 2
+            if (e.key === 'ArrowDown') {
+                player2.isCrouching = false;
+                player2.keys.crouch = false;
+            }
             if (e.key === 'ArrowLeft') player2.keys.left = false;
             if (e.key === 'ArrowRight') player2.keys.right = false;
-            if (e.key === 'Control') player2.isDefending = false;
+            if (e.key === 'Shift' && e.location === 2) player2.isDefending = false;
         });
 
         // Mobile controls
@@ -561,14 +604,23 @@
         setupMobileControls();
 
         function updatePlayer(player) {
-            // Horizontal movement
+            // Crouching
+            if (player.isCrouching && !player.isJumping) {
+                player.height = player.crouchingHeight;
+            } else {
+                player.height = player.standingHeight;
+            }
+
+            // Horizontal movement (slower when crouching)
             player.velocityX = 0;
+            const moveSpeed = player.isCrouching ? player.speed * 0.5 : player.speed;
+
             if (player.keys.left) {
-                player.velocityX = -player.speed;
+                player.velocityX = -moveSpeed;
                 player.facing = -1;
             }
             if (player.keys.right) {
-                player.velocityX = player.speed;
+                player.velocityX = moveSpeed;
                 player.facing = 1;
             }
 
@@ -596,6 +648,11 @@
                 player.attackCooldown--;
             }
 
+            // Defend cooldown
+            if (player.defendCooldown > 0) {
+                player.defendCooldown--;
+            }
+
             // Attack duration
             if (player.isAttacking) {
                 setTimeout(() => {
@@ -604,77 +661,213 @@
             }
         }
 
-        function checkCollision(p1, p2) {
-            if (p1.isAttacking && !p2.isDefending) {
-                // Check if attack range overlaps
-                const attackRange = 80;
-                const p1AttackX = p1.x + (p1.facing === 1 ? p1.width : -attackRange);
+        function checkCollision(attacker, defender) {
+            if (!attacker.isAttacking) return false;
 
-                if (Math.abs(p1.x - p2.x) < attackRange && Math.abs(p1.y - p2.y) < 120) {
-                    return true;
-                }
+            const attackRange = 80;
+            const horizontalDist = Math.abs(attacker.x - defender.x);
+
+            if (horizontalDist > attackRange) return false;
+
+            // Attacker is crouching (low attack)
+            if (attacker.isCrouching) {
+                // Low attacks miss jumping opponents
+                if (defender.isJumping) return false;
             }
-            return false;
+            // Attacker is standing (high attack)
+            else {
+                // High attacks miss crouching opponents
+                if (defender.isCrouching) return false;
+            }
+
+            // Defender is blocking
+            if (defender.isDefending) {
+                // Successful block - apply defend cooldown
+                defender.defendCooldown = 60; // 1 second cooldown
+                return 'blocked';
+            }
+
+            return true;
         }
 
         function handleCombat() {
             // Player 1 attacks Player 2
-            if (checkCollision(player1, player2)) {
-                const damage = player2.isDefending ? 5 : 10;
-                player2.health -= damage;
-                playSound(player2.isDefending ? 'defend' : 'hit');
+            const p1Hit = checkCollision(player1, player2);
+            if (p1Hit === true) {
+                player2.health -= 10;
+                playSound('hit');
+                updateHealthDisplay();
+                player1.isAttacking = false;
+            } else if (p1Hit === 'blocked') {
+                player2.health -= 5;
+                playSound('defend');
                 updateHealthDisplay();
                 player1.isAttacking = false;
             }
 
             // Player 2 attacks Player 1
-            if (checkCollision(player2, player1)) {
-                const damage = player1.isDefending ? 5 : 10;
-                player1.health -= damage;
-                playSound(player1.isDefending ? 'defend' : 'hit');
+            const p2Hit = checkCollision(player2, player1);
+            if (p2Hit === true) {
+                player1.health -= 10;
+                playSound('hit');
+                updateHealthDisplay();
+                player2.isAttacking = false;
+            } else if (p2Hit === 'blocked') {
+                player1.health -= 5;
+                playSound('defend');
                 updateHealthDisplay();
                 player2.isAttacking = false;
             }
         }
 
         function drawPlayer(player) {
+            const centerX = player.x + player.width / 2;
+            const centerY = player.y + player.height / 2;
+
             // Shadow
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
             ctx.beginPath();
-            ctx.ellipse(player.x + player.width / 2, canvas.height - 95, player.width / 2, 10, 0, 0, Math.PI * 2);
+            ctx.ellipse(centerX, canvas.height - 95, player.width / 2, 10, 0, 0, Math.PI * 2);
             ctx.fill();
-
-            // Body
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x, player.y, player.width, player.height);
 
             // Head
+            const headY = player.isCrouching ? player.y + 10 : player.y - 15;
+            ctx.fillStyle = player.color;
             ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y - 15, 20, 0, Math.PI * 2);
+            ctx.arc(centerX, headY, 18, 0, Math.PI * 2);
             ctx.fill();
 
-            // Defending shield
-            if (player.isDefending) {
-                ctx.strokeStyle = '#ffd700';
-                ctx.lineWidth = 5;
+            // Eyes
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(centerX - 6, headY - 3, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + 6, headY - 3, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pupils
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(centerX - 6 + (player.facing * 2), headY - 3, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX + 6 + (player.facing * 2), headY - 3, 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body (torso)
+            const bodyY = player.isCrouching ? player.y + 25 : player.y + 5;
+            const bodyHeight = player.isCrouching ? 35 : 50;
+            ctx.fillStyle = player.color;
+            ctx.fillRect(centerX - 15, bodyY, 30, bodyHeight);
+
+            // Arms
+            ctx.strokeStyle = player.color;
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+
+            if (player.isAttacking) {
+                // Punching arm
+                const armX = centerX + (player.facing * 15);
+                const armEndX = armX + (player.facing * 30);
                 ctx.beginPath();
-                ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 50, 0, Math.PI * 2);
+                ctx.moveTo(armX, bodyY + 15);
+                ctx.lineTo(armEndX, bodyY + 15);
                 ctx.stroke();
-                playSound('defend');
+            } else if (player.isDefending) {
+                // Both arms up defending
+                ctx.beginPath();
+                ctx.moveTo(centerX - 15, bodyY + 10);
+                ctx.lineTo(centerX - 20, headY + 10);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(centerX + 15, bodyY + 10);
+                ctx.lineTo(centerX + 20, headY + 10);
+                ctx.stroke();
+            } else {
+                // Normal arms
+                ctx.beginPath();
+                ctx.moveTo(centerX - 15, bodyY + 15);
+                ctx.lineTo(centerX - 20, bodyY + 35);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(centerX + 15, bodyY + 15);
+                ctx.lineTo(centerX + 20, bodyY + 35);
+                ctx.stroke();
+            }
+
+            // Legs
+            const legY = bodyY + bodyHeight;
+            if (player.isCrouching) {
+                // Crouching legs
+                ctx.beginPath();
+                ctx.moveTo(centerX - 10, legY);
+                ctx.lineTo(centerX - 15, legY + 20);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(centerX + 10, legY);
+                ctx.lineTo(centerX + 15, legY + 20);
+                ctx.stroke();
+            } else if (player.isJumping) {
+                // Jumping legs
+                ctx.beginPath();
+                ctx.moveTo(centerX - 10, legY);
+                ctx.lineTo(centerX - 8, legY + 25);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(centerX + 10, legY);
+                ctx.lineTo(centerX + 8, legY + 25);
+                ctx.stroke();
+            } else {
+                // Standing legs
+                ctx.beginPath();
+                ctx.moveTo(centerX - 10, legY);
+                ctx.lineTo(centerX - 10, legY + 30);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(centerX + 10, legY);
+                ctx.lineTo(centerX + 10, legY + 30);
+                ctx.stroke();
+            }
+
+            // Defending shield
+            if (player.isDefending && player.defendCooldown <= 0) {
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 45, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Defend cooldown indicator
+            if (player.defendCooldown > 0) {
+                ctx.fillStyle = 'rgba(255,0,0,0.5)';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('쿨타임', centerX, player.y - 45);
             }
 
             // Attack effect
             if (player.isAttacking) {
-                ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                const attackX = player.x + (player.facing === 1 ? player.width : -60);
-                ctx.fillRect(attackX, player.y + 20, 60, 20);
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                const attackX = centerX + (player.facing * 40);
+                const attackY = player.isCrouching ? bodyY + 20 : bodyY + 15;
+
+                // Impact effect
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.arc(attackX + (player.facing * i * 10), attackY, 8 - i * 2, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
             }
 
             // Health bar above player
             const barWidth = 60;
             const barHeight = 8;
-            const barX = player.x;
-            const barY = player.y - 30;
+            const barX = centerX - barWidth / 2;
+            const barY = player.y - 40;
 
             ctx.fillStyle = '#333';
             ctx.fillRect(barX, barY, barWidth, barHeight);
