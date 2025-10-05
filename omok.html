@@ -158,6 +158,56 @@
         .mode-btn:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+
+        .ai-settings {
+            display: none;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .ai-settings.show {
+            display: block;
+        }
+
+        .difficulty-selector, .color-selector {
+            margin: 15px 0;
+        }
+
+        .difficulty-selector label, .color-selector label {
+            display: block;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .difficulty-btns, .color-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .difficulty-btn, .color-btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .difficulty-btn.selected, .color-btn.selected {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-color: #f5576c;
+            transform: scale(1.05);
+        }
+
+        .difficulty-btn:hover, .color-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -171,6 +221,23 @@
         <div class="mode-selector">
             <button class="mode-btn selected" id="vsPlayerBtn">👥 2인 대전</button>
             <button class="mode-btn" id="vsAIBtn">🤖 AI 대전</button>
+        </div>
+        <div id="aiSettings" class="ai-settings">
+            <div class="difficulty-selector">
+                <label>난이도 선택:</label>
+                <div class="difficulty-btns">
+                    <button class="difficulty-btn" id="easyBtn">😊 초급</button>
+                    <button class="difficulty-btn selected" id="mediumBtn">🤔 중급</button>
+                    <button class="difficulty-btn" id="hardBtn">😈 상급</button>
+                </div>
+            </div>
+            <div class="color-selector">
+                <label>돌 색상 선택:</label>
+                <div class="color-btns">
+                    <button class="color-btn selected" id="blackBtn">● 흑돌 (선공)</button>
+                    <button class="color-btn" id="whiteBtn">○ 백돌 (후공)</button>
+                </div>
+            </div>
         </div>
         <div class="highscore">최고 승수: <span id="menuHighScore">0</span>승</div>
         <button class="btn" id="startBtn">게임 시작</button>
@@ -257,6 +324,9 @@
         let totalWins = 0;
         let highScore = 0;
         let gameMode = 'vsPlayer'; // 'vsPlayer' or 'vsAI'
+        let aiDifficulty = 'medium'; // 'easy', 'medium', 'hard'
+        let playerColor = 'black'; // 'black' or 'white'
+        let aiColor = 'white';
 
         // Load high score
         const savedHighScore = localStorage.getItem('omok_highScore');
@@ -270,12 +340,48 @@
             gameMode = 'vsPlayer';
             document.getElementById('vsPlayerBtn').classList.add('selected');
             document.getElementById('vsAIBtn').classList.remove('selected');
+            document.getElementById('aiSettings').classList.remove('show');
         });
 
         document.getElementById('vsAIBtn').addEventListener('click', () => {
             gameMode = 'vsAI';
             document.getElementById('vsAIBtn').classList.add('selected');
             document.getElementById('vsPlayerBtn').classList.remove('selected');
+            document.getElementById('aiSettings').classList.add('show');
+        });
+
+        // Difficulty selection
+        document.getElementById('easyBtn').addEventListener('click', () => {
+            aiDifficulty = 'easy';
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('easyBtn').classList.add('selected');
+        });
+
+        document.getElementById('mediumBtn').addEventListener('click', () => {
+            aiDifficulty = 'medium';
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('mediumBtn').classList.add('selected');
+        });
+
+        document.getElementById('hardBtn').addEventListener('click', () => {
+            aiDifficulty = 'hard';
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('hardBtn').classList.add('selected');
+        });
+
+        // Color selection
+        document.getElementById('blackBtn').addEventListener('click', () => {
+            playerColor = 'black';
+            aiColor = 'white';
+            document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('blackBtn').classList.add('selected');
+        });
+
+        document.getElementById('whiteBtn').addEventListener('click', () => {
+            playerColor = 'white';
+            aiColor = 'black';
+            document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('whiteBtn').classList.add('selected');
         });
 
         // Start button
@@ -323,6 +429,11 @@
             updateTurnIndicator();
 
             drawBoard();
+
+            // AI makes first move if player chose white
+            if (gameMode === 'vsAI' && aiColor === 'black') {
+                setTimeout(makeAIMove, 500);
+            }
         }
 
         function drawBoard() {
@@ -418,7 +529,7 @@
 
         function handleCanvasClick(e) {
             if (gameState !== 'playing') return;
-            if (gameMode === 'vsAI' && currentPlayer === 'white') return; // Wait for AI
+            if (gameMode === 'vsAI' && currentPlayer === aiColor) return; // Wait for AI
 
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -460,31 +571,37 @@
             updateTurnIndicator();
 
             // AI move
-            if (gameMode === 'vsAI' && currentPlayer === 'white' && gameState === 'playing') {
+            if (gameMode === 'vsAI' && currentPlayer === aiColor && gameState === 'playing') {
                 setTimeout(makeAIMove, 500);
             }
         }
 
         function makeAIMove() {
-            // Enhanced AI with threat detection
-            let bestScore = -Infinity;
-            let bestMove = null;
+            // Easy mode: Random valid move with basic blocking
+            if (aiDifficulty === 'easy') {
+                // 30% chance to make random move
+                if (Math.random() < 0.3) {
+                    const validMoves = [];
+                    for (let i = 0; i < boardSize; i++) {
+                        for (let j = 0; j < boardSize; j++) {
+                            if (!board[i][j]) {
+                                validMoves.push([i, j]);
+                            }
+                        }
+                    }
+                    if (validMoves.length > 0) {
+                        const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                        placeStone(randomMove[0], randomMove[1]);
+                        return;
+                    }
+                }
+            }
 
-            // First check for immediate win or block
+            // Medium/Hard: Check for immediate win
             for (let i = 0; i < boardSize; i++) {
                 for (let j = 0; j < boardSize; j++) {
                     if (!board[i][j]) {
-                        // Check if AI can win
-                        board[i][j] = 'white';
-                        if (checkWin(i, j)) {
-                            board[i][j] = null;
-                            placeStone(i, j);
-                            return;
-                        }
-                        board[i][j] = null;
-
-                        // Check if must block player from winning
-                        board[i][j] = 'black';
+                        board[i][j] = aiColor;
                         if (checkWin(i, j)) {
                             board[i][j] = null;
                             placeStone(i, j);
@@ -495,29 +612,68 @@
                 }
             }
 
-            // Check for critical threats (4 in a row with one end open)
+            // Check if must block player from winning
             for (let i = 0; i < boardSize; i++) {
                 for (let j = 0; j < boardSize; j++) {
                     if (!board[i][j]) {
-                        const threatLevel = checkThreatLevel(i, j);
-                        if (threatLevel.playerThreat >= 4) {
+                        board[i][j] = playerColor;
+                        if (checkWin(i, j)) {
+                            board[i][j] = null;
                             placeStone(i, j);
                             return;
+                        }
+                        board[i][j] = null;
+                    }
+                }
+            }
+
+            // Hard mode: Check for critical threats (4 in a row)
+            if (aiDifficulty === 'hard') {
+                for (let i = 0; i < boardSize; i++) {
+                    for (let j = 0; j < boardSize; j++) {
+                        if (!board[i][j]) {
+                            const threatLevel = checkThreatLevel(i, j);
+                            if (threatLevel.playerThreat >= 4 || threatLevel.aiThreat >= 4) {
+                                placeStone(i, j);
+                                return;
+                            }
                         }
                     }
                 }
             }
 
             // Evaluate all positions
+            let bestScore = -Infinity;
+            let bestMove = null;
+            const candidates = [];
+
             for (let i = 0; i < boardSize; i++) {
                 for (let j = 0; j < boardSize; j++) {
                     if (!board[i][j]) {
                         const score = evaluatePosition(i, j);
+
                         if (score > bestScore) {
                             bestScore = score;
-                            bestMove = [i, j];
+                            candidates.length = 0;
+                            candidates.push([i, j]);
+                        } else if (score === bestScore) {
+                            candidates.push([i, j]);
                         }
                     }
+                }
+            }
+
+            // Easy mode: Pick randomly from top 5 moves
+            if (aiDifficulty === 'easy' && candidates.length > 0) {
+                bestMove = candidates[Math.floor(Math.random() * Math.min(5, candidates.length))];
+            }
+            // Medium/Hard mode: Pick best move (with slight randomness for medium)
+            else if (candidates.length > 0) {
+                if (aiDifficulty === 'medium' && candidates.length > 1 && Math.random() < 0.2) {
+                    // 20% chance to pick second best
+                    bestMove = candidates[Math.floor(Math.random() * Math.min(3, candidates.length))];
+                } else {
+                    bestMove = candidates[0];
                 }
             }
 
@@ -533,14 +689,14 @@
 
             directions.forEach(([dx, dy]) => {
                 // Check AI threat
-                board[row][col] = 'white';
-                const aiCount = countInDirection(row, col, dx, dy, 'white');
+                board[row][col] = aiColor;
+                const aiCount = countInDirection(row, col, dx, dy, aiColor);
                 maxAIThreat = Math.max(maxAIThreat, aiCount);
                 board[row][col] = null;
 
                 // Check player threat
-                board[row][col] = 'black';
-                const playerCount = countInDirection(row, col, dx, dy, 'black');
+                board[row][col] = playerColor;
+                const playerCount = countInDirection(row, col, dx, dy, playerColor);
                 maxPlayerThreat = Math.max(maxPlayerThreat, playerCount);
                 board[row][col] = null;
             });
@@ -587,30 +743,33 @@
 
             const threatLevel = checkThreatLevel(row, col);
 
+            // Difficulty-based scoring adjustments
+            const difficultyMultiplier = aiDifficulty === 'hard' ? 1.5 : aiDifficulty === 'medium' ? 1.0 : 0.5;
+
             // Prioritize blocking dangerous threats
             if (threatLevel.playerThreat >= 3) {
-                score += 8000;
+                score += 8000 * difficultyMultiplier;
             } else if (threatLevel.playerThreat >= 2) {
-                score += 500;
+                score += 500 * difficultyMultiplier;
             }
 
             // Prioritize creating threats
             if (threatLevel.aiThreat >= 3) {
-                score += 6000;
+                score += 6000 * difficultyMultiplier;
             } else if (threatLevel.aiThreat >= 2) {
-                score += 300;
+                score += 300 * difficultyMultiplier;
             }
 
             // Evaluate pattern quality
             const directions = [[1,0], [0,1], [1,1], [1,-1]];
             directions.forEach(([dx, dy]) => {
-                score += evaluateDirection(row, col, dx, dy, 'white') * 15;
-                score += evaluateDirection(row, col, dx, dy, 'black') * 10;
+                score += evaluateDirection(row, col, dx, dy, aiColor) * 15 * difficultyMultiplier;
+                score += evaluateDirection(row, col, dx, dy, playerColor) * 10 * difficultyMultiplier;
             });
 
-            // Strategic positioning
+            // Strategic positioning (more important in hard mode)
             const centerDist = Math.abs(row - 7) + Math.abs(col - 7);
-            score += (14 - centerDist) * 3;
+            score += (14 - centerDist) * 3 * (aiDifficulty === 'hard' ? 1.5 : 1);
 
             // Prefer positions near existing stones
             let adjacentStones = 0;
@@ -623,9 +782,81 @@
                     }
                 }
             }
-            score += adjacentStones * 20;
+            score += adjacentStones * 20 * difficultyMultiplier;
+
+            // Hard mode: Add advanced pattern recognition
+            if (aiDifficulty === 'hard') {
+                score += evaluateAdvancedPatterns(row, col);
+            }
 
             return score;
+        }
+
+        function evaluateAdvancedPatterns(row, col) {
+            let score = 0;
+            const directions = [[1,0], [0,1], [1,1], [1,-1]];
+
+            directions.forEach(([dx, dy]) => {
+                // Check for double threat opportunities
+                board[row][col] = aiColor;
+                let threats = 0;
+
+                for (let [ddx, ddy] of directions) {
+                    if (ddx === dx && ddy === dy) continue;
+                    const pattern = analyzePattern(row, col, ddx, ddy, aiColor);
+                    if (pattern.count >= 3 && pattern.openEnds >= 1) threats++;
+                }
+
+                if (threats >= 2) score += 15000; // Double threat - very strong
+                board[row][col] = null;
+
+                // Check for fork opportunities
+                const aiPattern = analyzePattern(row, col, dx, dy, aiColor);
+                if (aiPattern.count === 3 && aiPattern.openEnds === 2) {
+                    score += 7000; // Open three
+                }
+            });
+
+            return score;
+        }
+
+        function analyzePattern(row, col, dx, dy, color) {
+            board[row][col] = color;
+            let count = 1;
+            let openEnds = 0;
+
+            // Check positive direction
+            let i = 1;
+            while (i <= 4) {
+                const nr = row + dx * i;
+                const nc = col + dy * i;
+                if (nr < 0 || nr >= boardSize || nc < 0 || nc >= boardSize) break;
+                if (board[nr][nc] === color) {
+                    count++;
+                    i++;
+                } else {
+                    if (!board[nr][nc]) openEnds++;
+                    break;
+                }
+            }
+
+            // Check negative direction
+            i = 1;
+            while (i <= 4) {
+                const nr = row - dx * i;
+                const nc = col - dy * i;
+                if (nr < 0 || nr >= boardSize || nc < 0 || nc >= boardSize) break;
+                if (board[nr][nc] === color) {
+                    count++;
+                    i++;
+                } else {
+                    if (!board[nr][nc]) openEnds++;
+                    break;
+                }
+            }
+
+            board[row][col] = null;
+            return { count, openEnds };
         }
 
         function evaluateDirection(row, col, dx, dy, color) {
