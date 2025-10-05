@@ -272,8 +272,6 @@
         canvas.height = window.innerHeight;
 
         let gameState = 'menu';
-        let timeLeft = 60;
-        let timerInterval;
 
         // Audio
         let audioContext = null;
@@ -340,6 +338,8 @@
             isDefending: false,
             attackCooldown: 0,
             defendCooldown: 0,
+            knockbackX: 0,
+            walkFrame: 0,
             facing: 1, // 1 = right, -1 = left
             keys: {}
         };
@@ -365,6 +365,8 @@
             isDefending: false,
             attackCooldown: 0,
             defendCooldown: 0,
+            knockbackX: 0,
+            walkFrame: 0,
             facing: -1,
             keys: {}
         };
@@ -385,7 +387,6 @@
 
         function startGame() {
             gameState = 'playing';
-            timeLeft = 60;
 
             player1.x = 200;
             player1.y = canvas.height - 200;
@@ -398,6 +399,8 @@
             player1.isDefending = false;
             player1.attackCooldown = 0;
             player1.defendCooldown = 0;
+            player1.knockbackX = 0;
+            player1.walkFrame = 0;
             player1.height = player1.standingHeight;
             player1.facing = 1;
 
@@ -412,24 +415,17 @@
             player2.isDefending = false;
             player2.attackCooldown = 0;
             player2.defendCooldown = 0;
+            player2.knockbackX = 0;
+            player2.walkFrame = 0;
             player2.height = player2.standingHeight;
             player2.facing = -1;
 
             document.getElementById('menuScreen').style.display = 'none';
             document.getElementById('gameoverScreen').style.display = 'none';
             document.getElementById('gameInfo').style.display = 'flex';
-            document.getElementById('timer').style.display = 'block';
+            document.getElementById('timer').style.display = 'none';
 
             updateHealthDisplay();
-
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').textContent = timeLeft;
-                if (timeLeft <= 0) {
-                    gameOver();
-                }
-            }, 1000);
         }
 
         function showMenu() {
@@ -442,7 +438,6 @@
 
         function gameOver() {
             gameState = 'gameover';
-            if (timerInterval) clearInterval(timerInterval);
 
             let winner;
             if (player1.health <= 0 && player2.health <= 0) {
@@ -453,12 +448,6 @@
             } else if (player2.health <= 0) {
                 winner = '🔴 플레이어 1 승리!';
                 wins.p1++;
-            } else if (player1.health > player2.health) {
-                winner = '🔴 플레이어 1 승리!';
-                wins.p1++;
-            } else if (player2.health > player1.health) {
-                winner = '🔵 플레이어 2 승리!';
-                wins.p2++;
             } else {
                 winner = '무승부!';
             }
@@ -511,7 +500,7 @@
                 e.preventDefault();
                 if (player1.attackCooldown <= 0 && !player1.isDefending) {
                     player1.isAttacking = true;
-                    player1.attackCooldown = 30;
+                    player1.attackCooldown = 60; // 2배로 증가
                 }
             }
             if (e.key === 'Shift' && e.location === 1) { // Left Shift
@@ -542,7 +531,7 @@
                 e.preventDefault();
                 if (player2.attackCooldown <= 0 && !player2.isDefending) {
                     player2.isAttacking = true;
-                    player2.attackCooldown = 30;
+                    player2.attackCooldown = 60; // 2배로 증가
                 }
             }
             if (e.key === 'Shift' && e.location === 2) { // Right Shift
@@ -618,10 +607,25 @@
             if (player.keys.left) {
                 player.velocityX = -moveSpeed;
                 player.facing = -1;
+                player.walkFrame += 0.2;
             }
             if (player.keys.right) {
                 player.velocityX = moveSpeed;
                 player.facing = 1;
+                player.walkFrame += 0.2;
+            }
+
+            // Stop walk animation when not moving
+            if (player.velocityX === 0 && !player.isJumping) {
+                player.walkFrame = 0;
+            }
+
+            // Apply knockback
+            if (Math.abs(player.knockbackX) > 0.1) {
+                player.x += player.knockbackX;
+                player.knockbackX *= 0.8; // Friction
+            } else {
+                player.knockbackX = 0;
             }
 
             // Apply gravity
@@ -701,6 +705,10 @@
             } else if (p1Hit === 'blocked') {
                 player2.health -= 5;
                 playSound('defend');
+                // Knockback for defender
+                player2.knockbackX = (player2.x - player1.x > 0 ? 15 : -15);
+                // Attacker gets 2 second cooldown when blocked
+                player1.attackCooldown = 120; // 2초
                 updateHealthDisplay();
                 player1.isAttacking = false;
             }
@@ -715,6 +723,10 @@
             } else if (p2Hit === 'blocked') {
                 player1.health -= 5;
                 playSound('defend');
+                // Knockback for defender
+                player1.knockbackX = (player1.x - player2.x > 0 ? 15 : -15);
+                // Attacker gets 2 second cooldown when blocked
+                player2.attackCooldown = 120; // 2초
                 updateHealthDisplay();
                 player2.isAttacking = false;
             }
@@ -724,6 +736,9 @@
             const centerX = player.x + player.width / 2;
             const centerY = player.y + player.height / 2;
 
+            // Walking animation
+            const walkBob = Math.sin(player.walkFrame) * 3;
+
             // Shadow
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
             ctx.beginPath();
@@ -731,7 +746,7 @@
             ctx.fill();
 
             // Head
-            const headY = player.isCrouching ? player.y + 10 : player.y - 15;
+            const headY = player.isCrouching ? player.y + 10 : player.y - 15 + walkBob;
             ctx.fillStyle = player.color;
             ctx.beginPath();
             ctx.arc(centerX, headY, 18, 0, Math.PI * 2);
@@ -756,48 +771,142 @@
             ctx.fill();
 
             // Body (torso)
-            const bodyY = player.isCrouching ? player.y + 25 : player.y + 5;
+            const bodyY = player.isCrouching ? player.y + 25 : player.y + 5 + walkBob;
             const bodyHeight = player.isCrouching ? 35 : 50;
             ctx.fillStyle = player.color;
             ctx.fillRect(centerX - 15, bodyY, 30, bodyHeight);
 
-            // Arms
+            // Arms and weapons
             ctx.strokeStyle = player.color;
             ctx.lineWidth = 8;
             ctx.lineCap = 'round';
 
             if (player.isAttacking) {
-                // Punching arm
+                // Sword attack - arm extended with sword
                 const armX = centerX + (player.facing * 15);
-                const armEndX = armX + (player.facing * 30);
+                const swordEndX = armX + (player.facing * 45);
+                const attackY = player.isCrouching ? bodyY + 20 : bodyY + 15;
+
+                // Arm
                 ctx.beginPath();
-                ctx.moveTo(armX, bodyY + 15);
-                ctx.lineTo(armEndX, bodyY + 15);
+                ctx.moveTo(armX, attackY);
+                ctx.lineTo(armX + (player.facing * 20), attackY);
                 ctx.stroke();
+
+                // Sword
+                ctx.strokeStyle = '#c0c0c0';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(armX + (player.facing * 20), attackY);
+                ctx.lineTo(swordEndX, attackY);
+                ctx.stroke();
+
+                // Sword tip
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(swordEndX, attackY, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sword slash effect
+                ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.arc(swordEndX - (player.facing * i * 8), attackY, 6 - i, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                // Other arm
+                ctx.strokeStyle = player.color;
+                ctx.lineWidth = 8;
+                ctx.beginPath();
+                ctx.moveTo(centerX - (player.facing * 15), bodyY + 15);
+                ctx.lineTo(centerX - (player.facing * 20), bodyY + 35);
+                ctx.stroke();
+
             } else if (player.isDefending) {
-                // Both arms up defending
+                // Shield defense - arm holding shield
+                const shieldX = centerX + (player.facing * 25);
+                const shieldY = bodyY + 20;
+
+                // Shield arm
                 ctx.beginPath();
-                ctx.moveTo(centerX - 15, bodyY + 10);
-                ctx.lineTo(centerX - 20, headY + 10);
+                ctx.moveTo(centerX + (player.facing * 15), bodyY + 15);
+                ctx.lineTo(shieldX, shieldY);
                 ctx.stroke();
+
+                // Shield
+                ctx.fillStyle = '#8B4513';
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 3;
                 ctx.beginPath();
-                ctx.moveTo(centerX + 15, bodyY + 10);
-                ctx.lineTo(centerX + 20, headY + 10);
+                ctx.ellipse(shieldX, shieldY, 18, 25, 0, 0, Math.PI * 2);
+                ctx.fill();
                 ctx.stroke();
+
+                // Shield emblem
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(shieldX, shieldY, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sword arm (ready position)
+                ctx.strokeStyle = player.color;
+                ctx.lineWidth = 8;
+                ctx.beginPath();
+                ctx.moveTo(centerX - (player.facing * 15), bodyY + 15);
+                ctx.lineTo(centerX - (player.facing * 18), bodyY + 30);
+                ctx.stroke();
+
+                // Sword (sheathed)
+                ctx.strokeStyle = '#808080';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(centerX - (player.facing * 18), bodyY + 30);
+                ctx.lineTo(centerX - (player.facing * 18), bodyY + 50);
+                ctx.stroke();
+
             } else {
-                // Normal arms
-                ctx.beginPath();
-                ctx.moveTo(centerX - 15, bodyY + 15);
-                ctx.lineTo(centerX - 20, bodyY + 35);
-                ctx.stroke();
+                // Normal stance - walking animation
+                const armSwing = Math.sin(player.walkFrame) * 5;
+
+                // Right arm with sword
                 ctx.beginPath();
                 ctx.moveTo(centerX + 15, bodyY + 15);
-                ctx.lineTo(centerX + 20, bodyY + 35);
+                ctx.lineTo(centerX + 20, bodyY + 35 + armSwing);
+                ctx.stroke();
+
+                // Sword at side
+                ctx.strokeStyle = '#808080';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(centerX + 20, bodyY + 35 + armSwing);
+                ctx.lineTo(centerX + 22, bodyY + 55 + armSwing);
+                ctx.stroke();
+
+                // Left arm with shield
+                ctx.strokeStyle = player.color;
+                ctx.lineWidth = 8;
+                ctx.beginPath();
+                ctx.moveTo(centerX - 15, bodyY + 15);
+                ctx.lineTo(centerX - 20, bodyY + 35 - armSwing);
+                ctx.stroke();
+
+                // Small shield on back/side
+                ctx.fillStyle = '#654321';
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.ellipse(centerX - 25, bodyY + 25, 8, 12, 0, 0, Math.PI * 2);
+                ctx.fill();
                 ctx.stroke();
             }
 
-            // Legs
+            // Legs with walking animation
             const legY = bodyY + bodyHeight;
+            ctx.strokeStyle = player.color;
+            ctx.lineWidth = 8;
+
             if (player.isCrouching) {
                 // Crouching legs
                 ctx.beginPath();
@@ -819,48 +928,32 @@
                 ctx.lineTo(centerX + 8, legY + 25);
                 ctx.stroke();
             } else {
-                // Standing legs
+                // Walking legs
+                const legSwing = Math.sin(player.walkFrame) * 8;
                 ctx.beginPath();
                 ctx.moveTo(centerX - 10, legY);
-                ctx.lineTo(centerX - 10, legY + 30);
+                ctx.lineTo(centerX - 10 - legSwing, legY + 30);
                 ctx.stroke();
                 ctx.beginPath();
                 ctx.moveTo(centerX + 10, legY);
-                ctx.lineTo(centerX + 10, legY + 30);
-                ctx.stroke();
-            }
-
-            // Defending shield
-            if (player.isDefending && player.defendCooldown <= 0) {
-                ctx.strokeStyle = '#ffd700';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 45, 0, Math.PI * 2);
+                ctx.lineTo(centerX + 10 + legSwing, legY + 30);
                 ctx.stroke();
             }
 
             // Defend cooldown indicator
             if (player.defendCooldown > 0) {
-                ctx.fillStyle = 'rgba(255,0,0,0.5)';
+                ctx.fillStyle = 'rgba(255,0,0,0.7)';
                 ctx.font = 'bold 12px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('쿨타임', centerX, player.y - 45);
+                ctx.fillText('방어 쿨타임', centerX, player.y - 50);
             }
 
-            // Attack effect
-            if (player.isAttacking) {
-                ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 3;
-                const attackX = centerX + (player.facing * 40);
-                const attackY = player.isCrouching ? bodyY + 20 : bodyY + 15;
-
-                // Impact effect
-                for (let i = 0; i < 3; i++) {
-                    ctx.beginPath();
-                    ctx.arc(attackX + (player.facing * i * 10), attackY, 8 - i * 2, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
+            // Attack cooldown indicator
+            if (player.attackCooldown > 60) {
+                ctx.fillStyle = 'rgba(255,100,0,0.7)';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('공격 쿨타임', centerX, player.y - 60);
             }
 
             // Health bar above player
