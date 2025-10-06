@@ -651,8 +651,9 @@
                     y = 1000 - y;
                 }
 
-                // Update paddle position
+                // Update paddle position with previous position for velocity calculation
                 const paddleKey = playerNumber === 1 ? 'paddle1' : 'paddle2';
+                const currentPaddle = gameState[paddleKey];
 
                 // Allow paddles to move in their half of the field
                 const paddleY = playerNumber === 1 ?
@@ -661,7 +662,10 @@
 
                 const newX = Math.max(PADDLE_RADIUS, Math.min(600 - PADDLE_RADIUS, x));
 
+                // Update both current and previous positions for velocity tracking
                 database.ref('airhockey_rooms/' + currentRoom + '/gameState/' + paddleKey).update({
+                    prevX: currentPaddle.x,
+                    prevY: currentPaddle.y,
                     x: newX,
                     y: paddleY
                 });
@@ -813,20 +817,12 @@
 
                         // Record collision time to prevent double hits
                         gameState[collisionKey] = now;
-
-                        // Update paddle previous position for next frame
-                        paddle.prevX = paddle.x;
-                        paddle.prevY = paddle.y;
                     }
                 }
             });
 
-            // Update Firebase with collision timestamps and paddle positions (only if defined)
-            const updates = {
-                puck: puck,
-                paddle1: paddle1,
-                paddle2: paddle2
-            };
+            // Update Firebase - only puck and collision timestamps (paddles updated by each player)
+            const updates = { puck: puck };
             if (gameState.lastCollision1 !== undefined) {
                 updates.lastCollision1 = gameState.lastCollision1;
             }
