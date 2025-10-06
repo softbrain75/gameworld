@@ -731,9 +731,27 @@
             }
 
             // Listen to game state changes
+            let previousGameState = null;
+
             database.ref('rooms/' + currentRoom + '/gameState').on('value', (snapshot) => {
-                gameState = snapshot.val();
-                if (gameState) {
+                const newGameState = snapshot.val();
+
+                if (newGameState) {
+                    // Check if a hand card was just played (selectedHandCard changed from null to a card)
+                    if (previousGameState &&
+                        !previousGameState.selectedHandCard &&
+                        newGameState.selectedHandCard) {
+                        // Card was just played - wait a bit then auto-draw from deck
+                        setTimeout(() => {
+                            // Only the player whose turn it is should draw
+                            if (newGameState.currentTurn === playerNumber) {
+                                drawCardFromDeck();
+                            }
+                        }, 500);
+                    }
+
+                    gameState = newGameState;
+                    previousGameState = { ...newGameState };
                     renderGame();
                 }
             });
@@ -1022,13 +1040,14 @@
                 selectedHandCard: handCard
             });
 
-            // Now draw from deck
-            setTimeout(() => drawCardFromDeck(), 500);
+            // Deck draw will be automatically triggered by Firebase listener
         }
 
-        // Draw card from deck
+        // Draw card from deck - automatically triggered by Firebase listener
         async function drawCardFromDeck() {
             if (!gameState || !gameState.selectedHandCard) return;
+
+            // This function is only called on the current turn player's device (checked in listener)
 
             if (gameState.deckIndex >= gameState.deck.length) {
                 // Deck is empty - end game
