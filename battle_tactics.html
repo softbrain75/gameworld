@@ -489,6 +489,7 @@
                             kills++;
                         }
                         renderBattlefield();
+                        updateTurnDisplay();
                         checkGameEnd();
                         return;
                     }
@@ -519,6 +520,7 @@
                 // Attack if adjacent
                 if (dist === 1) {
                     playerUnit.hp -= enemy.attack;
+                    updateTurnDisplay();
                     if (playerUnit.hp <= 0) {
                         endGame(false);
                         return;
@@ -584,7 +586,8 @@
 
         // Update turn display
         function updateTurnDisplay() {
-            document.getElementById('turnDisplay').textContent = `라운드 ${round} | HP: ${playerUnit.hp} | 처치: ${kills}`;
+            const hp = playerUnit ? playerUnit.hp : 0;
+            document.getElementById('turnDisplay').textContent = `라운드 ${round} | HP: ${hp} | 처치: ${kills}`;
         }
 
         // End game
