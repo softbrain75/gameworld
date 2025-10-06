@@ -149,8 +149,8 @@
         .battlefield {
             flex: 1;
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 5px;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 3px;
             padding: 10px;
             overflow-y: auto;
         }
@@ -297,13 +297,13 @@
 
             <div class="instructions">
                 <p style="font-weight: bold; color: #ff6b6b; margin-bottom: 10px;">🎮 게임 방법</p>
-                <p>🎯 유닛을 선택하고 이동 또는 공격</p>
-                <p>⚔️ 각 유닛마다 다른 능력</p>
+                <p>⌨️ WASD 키로 이동, 스페이스바로 공격</p>
+                <p>🎯 적을 모두 처치하면 다음 라운드!</p>
                 <p>💪 전사: 높은 체력, 근접 공격</p>
                 <p>🏹 궁수: 원거리 공격</p>
                 <p>🛡️ 방어병: 방어력 높음</p>
                 <p>✨ 마법사: 강력한 마법 공격</p>
-                <p>🎯 전략적으로 유닛 배치!</p>
+                <p>⚡ 실시간 전략 전투!</p>
             </div>
         </div>
     </div>
@@ -344,10 +344,8 @@
 
         <div class="battlefield" id="battlefield"></div>
 
-        <div class="action-buttons">
-            <button class="action-btn" id="moveBtn" onclick="setAction('move')">🚶 이동</button>
-            <button class="action-btn" id="attackBtn" onclick="setAction('attack')">⚔️ 공격</button>
-            <button class="action-btn" onclick="endTurn()">✅턴 종료</button>
+        <div class="action-buttons" style="justify-content: center; font-size: 0.9em; color: white;">
+            ⌨️ WASD: 이동 | 스페이스: 공격
         </div>
     </div>
 
@@ -370,13 +368,13 @@
         };
 
         // Game state
-        let battlefield = Array(25).fill(null); // 5x5 grid
-        let selectedUnit = null;
-        let currentAction = null;
+        let battlefield = Array(100).fill(null); // 10x10 grid
+        let playerPos = 0;
         let turn = 'player';
         let round = 1;
         let kills = 0;
         let highScore = localStorage.getItem('battleTactics_highScore') || 0;
+        let playerUnit = null;
 
         // Initialize
         function init() {
@@ -393,25 +391,24 @@
             document.getElementById('gameoverScreen').classList.add('hidden');
             document.getElementById('gameContainer').classList.remove('hidden');
 
-            battlefield = Array(25).fill(null);
-            selectedUnit = null;
-            currentAction = null;
+            battlefield = Array(100).fill(null);
             turn = 'player';
             round = 1;
             kills = 0;
 
-            // Place player units
-            battlefield[22] = { ...unitTypes.warrior, team: 'player', id: 'p1', moved: false };
-            battlefield[21] = { ...unitTypes.archer, team: 'player', id: 'p2', moved: false };
-            battlefield[23] = { ...unitTypes.defender, team: 'player', id: 'p3', moved: false };
+            // Place player at bottom center
+            playerPos = 94; // Row 9, Column 4 (bottom center)
+            playerUnit = { ...unitTypes.warrior, team: 'player', hp: 100 };
+            battlefield[playerPos] = playerUnit;
 
-            // Place enemy units
-            battlefield[2] = { ...unitTypes.warrior, team: 'enemy', id: 'e1', moved: false };
-            battlefield[1] = { ...unitTypes.archer, team: 'enemy', id: 'e2', moved: false };
-            battlefield[3] = { ...unitTypes.mage, team: 'enemy', id: 'e3', moved: false };
+            // Place enemies at top
+            battlefield[1] = { ...unitTypes.warrior, team: 'enemy', id: 'e1' };
+            battlefield[5] = { ...unitTypes.archer, team: 'enemy', id: 'e2' };
+            battlefield[8] = { ...unitTypes.mage, team: 'enemy', id: 'e3' };
 
             renderBattlefield();
             updateTurnDisplay();
+            startEnemyAI();
         };
 
         // Render battlefield
@@ -419,7 +416,7 @@
             const battlefieldEl = document.getElementById('battlefield');
             battlefieldEl.innerHTML = '';
 
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 100; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.dataset.index = i;
@@ -433,148 +430,105 @@
                     `;
                 }
 
-                if (selectedUnit === i) {
+                if (playerPos === i) {
                     cell.classList.add('selected');
                 }
 
-                cell.addEventListener('click', () => handleCellClick(i));
                 battlefieldEl.appendChild(cell);
             }
         }
 
-        // Handle cell click
-        function handleCellClick(index) {
+        // WASD Controls
+        document.addEventListener('keydown', (e) => {
             if (turn !== 'player') return;
 
-            const unit = battlefield[index];
+            const row = Math.floor(playerPos / 10);
+            const col = playerPos % 10;
+            let newRow = row;
+            let newCol = col;
 
-            // Select unit
-            if (!currentAction && unit && unit.team === 'player' && !unit.moved) {
-                selectedUnit = index;
-                renderBattlefield();
+            if (e.key === 'w' || e.key === 'W') newRow--;
+            else if (e.key === 's' || e.key === 'S') newRow++;
+            else if (e.key === 'a' || e.key === 'A') newCol--;
+            else if (e.key === 'd' || e.key === 'D') newCol++;
+            else if (e.key === ' ') {
+                e.preventDefault();
+                attackNearbyEnemy();
                 return;
             }
 
-            // Move action
-            if (currentAction === 'move' && selectedUnit !== null) {
-                const selectedUnitData = battlefield[selectedUnit];
-                if (!battlefield[index] && canMove(selectedUnit, index)) {
-                    battlefield[index] = selectedUnitData;
-                    battlefield[selectedUnit] = null;
-                    battlefield[index].moved = true;
-                    selectedUnit = null;
-                    currentAction = null;
+            // Check bounds
+            if (newRow >= 0 && newRow < 10 && newCol >= 0 && newCol < 10) {
+                const newPos = newRow * 10 + newCol;
+                if (!battlefield[newPos]) {
+                    battlefield[playerPos] = null;
+                    playerPos = newPos;
+                    battlefield[playerPos] = playerUnit;
                     renderBattlefield();
                 }
             }
+        });
 
-            // Attack action
-            if (currentAction === 'attack' && selectedUnit !== null) {
-                const attacker = battlefield[selectedUnit];
-                const target = battlefield[index];
-                if (target && target.team === 'enemy' && canAttack(selectedUnit, index, attacker.range)) {
-                    target.hp -= attacker.attack;
-                    attacker.moved = true;
+        // Attack nearby enemy
+        function attackNearbyEnemy() {
+            const row = Math.floor(playerPos / 10);
+            const col = playerPos % 10;
 
-                    if (target.hp <= 0) {
-                        battlefield[index] = null;
-                        kills++;
+            // Check all adjacent cells
+            const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+            for (const [dr, dc] of directions) {
+                const newRow = row + dr;
+                const newCol = col + dc;
+                if (newRow >= 0 && newRow < 10 && newCol >= 0 && newCol < 10) {
+                    const targetPos = newRow * 10 + newCol;
+                    const target = battlefield[targetPos];
+                    if (target && target.team === 'enemy') {
+                        target.hp -= playerUnit.attack;
+                        if (target.hp <= 0) {
+                            battlefield[targetPos] = null;
+                            kills++;
+                        }
+                        renderBattlefield();
+                        checkGameEnd();
+                        return;
                     }
-
-                    selectedUnit = null;
-                    currentAction = null;
-                    renderBattlefield();
-                    checkGameEnd();
                 }
             }
         }
 
-        // Can move
-        function canMove(from, to) {
-            const fromRow = Math.floor(from / 5);
-            const fromCol = from % 5;
-            const toRow = Math.floor(to / 5);
-            const toCol = to % 5;
-
-            const distance = Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol);
-            return distance === 1;
-        }
-
-        // Can attack
-        function canAttack(from, to, range) {
-            const fromRow = Math.floor(from / 5);
-            const fromCol = from % 5;
-            const toRow = Math.floor(to / 5);
-            const toCol = to % 5;
-
-            const distance = Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol);
-            return distance <= range;
-        }
-
-        // Set action
-        window.setAction = function(action) {
-            if (selectedUnit === null) return;
-            currentAction = action;
-            document.getElementById('moveBtn').style.opacity = action === 'move' ? '1' : '0.5';
-            document.getElementById('attackBtn').style.opacity = action === 'attack' ? '1' : '0.5';
-        };
-
-        // End turn
-        window.endTurn = function() {
-            // Reset moved status
-            battlefield.forEach(unit => {
-                if (unit) unit.moved = false;
-            });
-
-            turn = 'enemy';
-            updateTurnDisplay();
-
-            // Enemy AI turn
-            setTimeout(() => {
-                enemyTurn();
-                turn = 'player';
-                round++;
-                updateTurnDisplay();
+        // Start Enemy AI
+        function startEnemyAI() {
+            setInterval(() => {
+                if (turn === 'player') {
+                    enemyTurn();
+                }
             }, 1000);
-        };
+        }
 
         // Enemy turn (simple AI)
         function enemyTurn() {
             const enemies = battlefield.map((unit, index) => unit && unit.team === 'enemy' ? index : null).filter(i => i !== null);
-            const players = battlefield.map((unit, index) => unit && unit.team === 'player' ? index : null).filter(i => i !== null);
 
             for (const enemyIndex of enemies) {
                 const enemy = battlefield[enemyIndex];
                 if (!enemy) continue;
 
-                // Find closest player
-                let closestPlayer = null;
-                let minDist = Infinity;
+                const dist = Math.abs(Math.floor(enemyIndex / 10) - Math.floor(playerPos / 10)) +
+                            Math.abs(enemyIndex % 10 - playerPos % 10);
 
-                for (const playerIndex of players) {
-                    const dist = Math.abs(Math.floor(enemyIndex / 5) - Math.floor(playerIndex / 5)) +
-                                Math.abs(enemyIndex % 5 - playerIndex % 5);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        closestPlayer = playerIndex;
-                    }
-                }
-
-                if (!closestPlayer) continue;
-
-                // Attack if in range
-                if (minDist <= enemy.range) {
-                    const target = battlefield[closestPlayer];
-                    target.hp -= enemy.attack;
-                    if (target.hp <= 0) {
-                        battlefield[closestPlayer] = null;
+                // Attack if adjacent
+                if (dist === 1) {
+                    playerUnit.hp -= enemy.attack;
+                    if (playerUnit.hp <= 0) {
+                        endGame(false);
+                        return;
                     }
                 } else {
                     // Move closer
-                    const enemyRow = Math.floor(enemyIndex / 5);
-                    const enemyCol = enemyIndex % 5;
-                    const playerRow = Math.floor(closestPlayer / 5);
-                    const playerCol = closestPlayer % 5;
+                    const enemyRow = Math.floor(enemyIndex / 10);
+                    const enemyCol = enemyIndex % 10;
+                    const playerRow = Math.floor(playerPos / 10);
+                    const playerCol = playerPos % 10;
 
                     let newRow = enemyRow;
                     let newCol = enemyCol;
@@ -584,7 +538,7 @@
                     else if (enemyCol < playerCol) newCol++;
                     else if (enemyCol > playerCol) newCol--;
 
-                    const newIndex = newRow * 5 + newCol;
+                    const newIndex = newRow * 10 + newCol;
                     if (!battlefield[newIndex]) {
                         battlefield[newIndex] = enemy;
                         battlefield[enemyIndex] = null;
@@ -593,17 +547,13 @@
             }
 
             renderBattlefield();
-            checkGameEnd();
         }
 
         // Check game end
         function checkGameEnd() {
-            const playerUnits = battlefield.filter(u => u && u.team === 'player').length;
             const enemyUnits = battlefield.filter(u => u && u.team === 'enemy').length;
 
-            if (playerUnits === 0) {
-                endGame(false);
-            } else if (enemyUnits === 0) {
+            if (enemyUnits === 0) {
                 // Spawn new enemies
                 round++;
                 spawnEnemies();
@@ -613,11 +563,20 @@
         // Spawn enemies
         function spawnEnemies() {
             const types = Object.keys(unitTypes);
-            for (let i = 0; i < 3; i++) {
+            const spawnCount = Math.min(3 + round, 10);
+
+            for (let i = 0; i < spawnCount; i++) {
                 const type = types[Math.floor(Math.random() * types.length)];
-                const index = i;
-                if (!battlefield[index]) {
-                    battlefield[index] = { ...unitTypes[type], team: 'enemy', id: `e${round}_${i}`, moved: false };
+                // Spawn at top rows
+                let spawnPos;
+                let attempts = 0;
+                do {
+                    spawnPos = Math.floor(Math.random() * 20); // Top 2 rows
+                    attempts++;
+                } while (battlefield[spawnPos] && attempts < 50);
+
+                if (!battlefield[spawnPos]) {
+                    battlefield[spawnPos] = { ...unitTypes[type], team: 'enemy', id: `e${round}_${i}` };
                 }
             }
             renderBattlefield();
@@ -625,8 +584,7 @@
 
         // Update turn display
         function updateTurnDisplay() {
-            document.getElementById('turnDisplay').textContent =
-                turn === 'player' ? `플레이어 턴 (라운드 ${round})` : '적 턴...';
+            document.getElementById('turnDisplay').textContent = `라운드 ${round} | HP: ${playerUnit.hp} | 처치: ${kills}`;
         }
 
         // End game
