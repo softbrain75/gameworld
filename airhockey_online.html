@@ -754,42 +754,54 @@
             }
 
             // Paddle collisions
-            [paddle1, paddle2].forEach(paddle => {
+            [paddle1, paddle2].forEach((paddle, index) => {
                 const dx = puck.x - paddle.x;
                 const dy = puck.y - paddle.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
                 if (dist < PUCK_RADIUS + PADDLE_RADIUS) {
-                    // Collision detected
-                    const angle = Math.atan2(dy, dx);
+                    // Check if this is a new collision (prevent double hits)
+                    const collisionKey = index === 0 ? 'lastCollision1' : 'lastCollision2';
+                    const now = Date.now();
+                    if (!gameState[collisionKey] || now - gameState[collisionKey] > 100) {
+                        // Collision detected
+                        const angle = Math.atan2(dy, dx);
 
-                    // Calculate paddle velocity
-                    const paddleVx = (paddle.x - (paddle.prevX || paddle.x)) * 0.8;
-                    const paddleVy = (paddle.y - (paddle.prevY || paddle.y)) * 0.8;
+                        // Calculate paddle velocity
+                        const paddleVx = (paddle.x - (paddle.prevX || paddle.x)) * 0.8;
+                        const paddleVy = (paddle.y - (paddle.prevY || paddle.y)) * 0.8;
 
-                    // Transfer paddle momentum to puck with minimum bounce speed
-                    const bounceSpeed = 6;  // Minimum bounce speed
-                    puck.vx = Math.cos(angle) * bounceSpeed + paddleVx;
-                    puck.vy = Math.sin(angle) * bounceSpeed + paddleVy;
+                        // Transfer paddle momentum to puck with minimum bounce speed
+                        const bounceSpeed = 6;  // Minimum bounce speed
+                        puck.vx = Math.cos(angle) * bounceSpeed + paddleVx;
+                        puck.vy = Math.sin(angle) * bounceSpeed + paddleVy;
 
-                    // Limit speed
-                    const speed = Math.sqrt(puck.vx * puck.vx + puck.vy * puck.vy);
-                    if (speed > PUCK_MAX_SPEED) {
-                        puck.vx = (puck.vx / speed) * PUCK_MAX_SPEED;
-                        puck.vy = (puck.vy / speed) * PUCK_MAX_SPEED;
+                        // Limit speed
+                        const speed = Math.sqrt(puck.vx * puck.vx + puck.vy * puck.vy);
+                        if (speed > PUCK_MAX_SPEED) {
+                            puck.vx = (puck.vx / speed) * PUCK_MAX_SPEED;
+                            puck.vy = (puck.vy / speed) * PUCK_MAX_SPEED;
+                        }
+
+                        // Separate puck from paddle
+                        const overlap = PUCK_RADIUS + PADDLE_RADIUS - dist;
+                        puck.x += Math.cos(angle) * overlap;
+                        puck.y += Math.sin(angle) * overlap;
+
+                        playSound('hit');
+
+                        // Record collision time to prevent double hits
+                        gameState[collisionKey] = now;
                     }
-
-                    // Separate puck from paddle
-                    const overlap = PUCK_RADIUS + PADDLE_RADIUS - dist;
-                    puck.x += Math.cos(angle) * overlap;
-                    puck.y += Math.sin(angle) * overlap;
-
-                    playSound('hit');
                 }
             });
 
-            // Update Firebase
-            database.ref('airhockey_rooms/' + currentRoom + '/gameState/puck').update(puck);
+            // Update Firebase with collision timestamps
+            database.ref('airhockey_rooms/' + currentRoom + '/gameState').update({
+                puck: puck,
+                lastCollision1: gameState.lastCollision1,
+                lastCollision2: gameState.lastCollision2
+            });
         }
 
         // Render game
