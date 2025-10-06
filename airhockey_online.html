@@ -558,7 +558,9 @@
                     score1: 0,
                     score2: 0,
                     gamePhase: 'playing',
-                    lastUpdate: Date.now()
+                    lastUpdate: Date.now(),
+                    lastCollision1: 0,
+                    lastCollision2: 0
                 };
 
                 await database.ref('airhockey_rooms/' + currentRoom + '/gameState').set(initialState);
@@ -649,9 +651,8 @@
                     y = 1000 - y;
                 }
 
-                // Update paddle position with previous position for velocity calculation
+                // Update paddle position
                 const paddleKey = playerNumber === 1 ? 'paddle1' : 'paddle2';
-                const currentPaddle = gameState[paddleKey];
 
                 // Allow paddles to move in their half of the field
                 const paddleY = playerNumber === 1 ?
@@ -661,8 +662,6 @@
                 const newX = Math.max(PADDLE_RADIUS, Math.min(600 - PADDLE_RADIUS, x));
 
                 database.ref('airhockey_rooms/' + currentRoom + '/gameState/' + paddleKey).update({
-                    prevX: currentPaddle.x,
-                    prevY: currentPaddle.y,
                     x: newX,
                     y: paddleY
                 });
@@ -753,55 +752,88 @@
                 }
             }
 
-            // Paddle collisions
+            // Paddle collisions - using elastic collision physics
             [paddle1, paddle2].forEach((paddle, index) => {
                 const dx = puck.x - paddle.x;
                 const dy = puck.y - paddle.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < PUCK_RADIUS + PADDLE_RADIUS) {
+                // Collision detection - check if edges are touching
+                const collisionDist = PUCK_RADIUS + PADDLE_RADIUS;
+
+                if (dist < collisionDist && dist > 0) {
                     // Check if this is a new collision (prevent double hits)
                     const collisionKey = index === 0 ? 'lastCollision1' : 'lastCollision2';
                     const now = Date.now();
                     if (!gameState[collisionKey] || now - gameState[collisionKey] > 100) {
-                        // Collision detected
-                        const angle = Math.atan2(dy, dx);
+                        // Normalize collision vector
+                        const nx = dx / dist;
+                        const ny = dy / dist;
 
-                        // Calculate paddle velocity
-                        const paddleVx = (paddle.x - (paddle.prevX || paddle.x)) * 0.8;
-                        const paddleVy = (paddle.y - (paddle.prevY || paddle.y)) * 0.8;
+                        // Calculate paddle velocity from position difference (amplify for responsiveness)
+                        const paddleVx = (paddle.x - (paddle.prevX || paddle.x)) * 80;
+                        const paddleVy = (paddle.y - (paddle.prevY || paddle.y)) * 80;
 
-                        // Transfer paddle momentum to puck with minimum bounce speed
-                        const bounceSpeed = 6;  // Minimum bounce speed
-                        puck.vx = Math.cos(angle) * bounceSpeed + paddleVx;
-                        puck.vy = Math.sin(angle) * bounceSpeed + paddleVy;
+                        // Relative velocity (puck relative to paddle)
+                        const relVx = puck.vx - paddleVx;
+                        const relVy = puck.vy - paddleVy;
 
-                        // Limit speed
+                        // Relative velocity in collision normal direction
+                        const velAlongNormal = relVx * nx + relVy * ny;
+
+                        // Always resolve collision (remove separating check for more responsive hits)
+                        // Elastic collision: coefficient of restitution = 1.8 for arcade feel
+                        const restitution = 1.8;
+                        const impulse = -(1 + restitution) * velAlongNormal;
+
+                        // Apply impulse to puck velocity with paddle momentum transfer
+                        puck.vx += impulse * nx + paddleVx * 1.5; // 1.5x paddle velocity boost
+                        puck.vy += impulse * ny + paddleVy * 1.5;
+
+                        // Limit maximum speed
                         const speed = Math.sqrt(puck.vx * puck.vx + puck.vy * puck.vy);
                         if (speed > PUCK_MAX_SPEED) {
                             puck.vx = (puck.vx / speed) * PUCK_MAX_SPEED;
                             puck.vy = (puck.vy / speed) * PUCK_MAX_SPEED;
                         }
 
-                        // Separate puck from paddle
-                        const overlap = PUCK_RADIUS + PADDLE_RADIUS - dist;
-                        puck.x += Math.cos(angle) * overlap;
-                        puck.y += Math.sin(angle) * overlap;
+                        // Minimum speed after hit for better gameplay
+                        if (speed < 3) {
+                            const minSpeed = 3;
+                            puck.vx = nx * minSpeed + paddleVx * 0.5;
+                            puck.vy = ny * minSpeed + paddleVy * 0.5;
+                        }
+
+                        // Separate puck from paddle to prevent sticking
+                        const overlap = collisionDist - dist;
+                        puck.x += nx * (overlap + 2);
+                        puck.y += ny * (overlap + 2);
 
                         playSound('hit');
 
                         // Record collision time to prevent double hits
                         gameState[collisionKey] = now;
+
+                        // Update paddle previous position for next frame
+                        paddle.prevX = paddle.x;
+                        paddle.prevY = paddle.y;
                     }
                 }
             });
 
-            // Update Firebase with collision timestamps
-            database.ref('airhockey_rooms/' + currentRoom + '/gameState').update({
+            // Update Firebase with collision timestamps and paddle positions (only if defined)
+            const updates = {
                 puck: puck,
-                lastCollision1: gameState.lastCollision1,
-                lastCollision2: gameState.lastCollision2
-            });
+                paddle1: paddle1,
+                paddle2: paddle2
+            };
+            if (gameState.lastCollision1 !== undefined) {
+                updates.lastCollision1 = gameState.lastCollision1;
+            }
+            if (gameState.lastCollision2 !== undefined) {
+                updates.lastCollision2 = gameState.lastCollision2;
+            }
+            database.ref('airhockey_rooms/' + currentRoom + '/gameState').update(updates);
         }
 
         // Render game
