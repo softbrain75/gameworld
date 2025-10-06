@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>온라인 에어하키 - 2인 대전</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            width: 100vw;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            touch-action: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .room-code {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            letter-spacing: 3px;
+        }
+
+        .waiting-message {
+            color: #666;
+            margin: 20px 0;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Game Screen */
+        #gameScreen {
+            background: linear-gradient(135deg, #0a1f2e 0%, #1a3a4a 100%);
+            padding: 0;
+        }
+
+        #canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            touch-action: none;
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+            pointer-events: none;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 30px;
+            border-radius: 15px;
+            border: 3px solid #00ff88;
+        }
+
+        .game-over-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            border: 3px solid #00ff88;
+        }
+
+        .game-over-panel.show {
+            display: block;
+        }
+
+        .game-over-panel h2 {
+            color: #00ff88;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .game-over-panel p {
+            color: white;
+            font-size: 1.5em;
+            margin-bottom: 30px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff88;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            z-index: 1000;
+            display: none;
+            border: 2px solid #00ff88;
+        }
+
+        .notification.show {
+            display: block;
+            animation: fadeInOut 2s;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            10%, 90% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="screen active">
+        <div class="panel">
+            <h1>🏒 온라인 에어하키</h1>
+            <p class="subtitle">친구와 함께하는 실시간 대전</p>
+            <button class="btn" onclick="createRoom()">🎮 방 만들기</button>
+            <button class="btn secondary" onclick="showJoinRoom()">🔗 방 참가하기</button>
+        </div>
+    </div>
+
+    <!-- Join Room Screen -->
+    <div id="joinScreen" class="screen">
+        <div class="panel">
+            <h1>방 참가하기</h1>
+            <p class="subtitle">방 코드를 입력하세요</p>
+            <input type="text" id="roomCodeInput" placeholder="4자리 숫자 입력" maxlength="4" inputmode="numeric">
+            <input type="text" id="playerNameInput" placeholder="닉네임 입력" maxlength="10">
+            <button class="btn" onclick="joinRoom()">참가하기</button>
+            <button class="btn secondary" onclick="backToMenu()">뒤로가기</button>
+        </div>
+    </div>
+
+    <!-- Waiting Room Screen -->
+    <div id="waitingScreen" class="screen">
+        <div class="panel">
+            <h1>대기실</h1>
+            <p class="subtitle">친구를 기다리는 중...</p>
+            <div class="room-code" id="displayRoomCode">----</div>
+            <p style="color: #666;">이 코드를 친구에게 공유하세요!</p>
+            <p class="waiting-message">⏳ 상대방을 기다리는 중...</p>
+            <button class="btn secondary" onclick="cancelWaiting()">취소</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <div class="game-ui" id="scoreDisplay">0 : 0</div>
+        <canvas id="canvas"></canvas>
+        <div class="game-over-panel" id="gameOverPanel">
+            <h2 id="winnerText">플레이어 승리!</h2>
+            <p id="finalScoreText">최종 점수</p>
+            <button class="btn" onclick="backToMenu()">메뉴로 돌아가기</button>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+        // Viewport height fix for mobile
+        function setVH() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setVH, 100);
+        });
+
+        // Firebase configuration (same as gostop)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAmp_hEOB64yZTWrDYXquooJ46OireyMkI",
+            authDomain: "gostop-59957.firebaseapp.com",
+            databaseURL: "https://gostop-59957-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "gostop-59957",
+            storageBucket: "gostop-59957.firebasestorage.app",
+            messagingSenderId: "684659335295",
+            appId: "1:684659335295:web:fff2006b8b8f4644645f4a"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Game state
+        let currentRoom = null;
+        let playerId = null;
+        let playerNumber = null;
+        let gameState = null;
+
+        // Canvas
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game constants
+        const WINNING_SCORE = 7;
+        const PUCK_RADIUS = 15;
+        const PADDLE_RADIUS = 30;
+        const PUCK_MAX_SPEED = 15;
+        const FRICTION = 0.995;  // Very low friction for air hockey table
+
+        // Audio context
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(type) {
+                    case 'hit':
+                        oscillator.frequency.value = 300;
+                        gainNode.gain.value = 0.08;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'wall':
+                        oscillator.frequency.value = 200;
+                        gainNode.gain.value = 0.06;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'goal':
+                        oscillator.frequency.value = 500;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        // Resize canvas to fill screen optimally
+        function resizeCanvas() {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+
+            // Canvas logical size (game coordinates)
+            const gameWidth = 600;
+            const gameHeight = 800;
+
+            // Calculate scale to fit screen while maintaining aspect ratio
+            const scaleX = screenWidth / gameWidth;
+            const scaleY = screenHeight / gameHeight;
+            const scale = Math.min(scaleX, scaleY);
+
+            // Set canvas display size (CSS pixels)
+            canvas.style.width = (gameWidth * scale) + 'px';
+            canvas.style.height = (gameHeight * scale) + 'px';
+
+            // Set canvas internal resolution (stays at 600x800 for consistent game logic)
+            canvas.width = gameWidth;
+            canvas.height = gameHeight;
+        }
+
+        // Generate random room code (4 digit number)
+        function generateRoomCode() {
+            return Math.floor(1000 + Math.random() * 9000).toString();
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 2000);
+        }
+
+        // Show screen
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+
+            if (screenId === 'gameScreen') {
+                setTimeout(() => {
+                    resizeCanvas();
+                }, 100);
+                window.addEventListener('resize', resizeCanvas);
+                window.addEventListener('orientationchange', () => {
+                    setTimeout(resizeCanvas, 200);
+                });
+            }
+        }
+
+        // Create room
+        async function createRoom() {
+            const roomCode = generateRoomCode();
+            playerId = 'player_' + Date.now();
+            playerNumber = 1;
+
+            const roomData = {
+                roomCode: roomCode,
+                status: 'waiting',
+                player1: {
+                    id: playerId,
+                    name: '플레이어 1',
+                    ready: true
+                },
+                player2: null,
+                createdAt: Date.now()
+            };
+
+            try {
+                await database.ref('airhockey_rooms/' + roomCode).set(roomData);
+                currentRoom = roomCode;
+                document.getElementById('displayRoomCode').textContent = roomCode;
+                showScreen('waitingScreen');
+
+                // Listen for player 2 joining
+                database.ref('airhockey_rooms/' + roomCode + '/player2').on('value', (snapshot) => {
+                    if (snapshot.val()) {
+                        startGame();
+                    }
+                });
+            } catch (error) {
+                alert('방 생성 실패: ' + error.message);
+            }
+        }
+
+        // Show join room screen
+        function showJoinRoom() {
+            showScreen('joinScreen');
+        }
+
+        // Join room
+        async function joinRoom() {
+            const roomCode = document.getElementById('roomCodeInput').value.trim();
+            const playerName = document.getElementById('playerNameInput').value.trim() || '플레이어 2';
+
+            if (!roomCode || roomCode.length !== 4) {
+                alert('4자리 숫자를 입력하세요!');
+                return;
+            }
+
+            playerId = 'player_' + Date.now();
+            playerNumber = 2;
+
+            try {
+                const roomSnapshot = await database.ref('airhockey_rooms/' + roomCode).once('value');
+                const roomData = roomSnapshot.val();
+
+                if (!roomData) {
+                    alert('존재하지 않는 방입니다!');
+                    return;
+                }
+
+                if (roomData.player2) {
+                    alert('이미 게임이 진행 중입니다!');
+                    return;
+                }
+
+                await database.ref('airhockey_rooms/' + roomCode + '/player2').set({
+                    id: playerId,
+                    name: playerName,
+                    ready: true
+                });
+
+                currentRoom = roomCode;
+                startGame();
+            } catch (error) {
+                alert('방 참가 실패: ' + error.message);
+            }
+        }
+
+        // Start game
+        async function startGame() {
+            showScreen('gameScreen');
+            initAudio();
+
+            if (playerNumber === 1) {
+                // Player 1 initializes the game state
+                const initialState = {
+                    puck: {
+                        x: 300,
+                        y: 400,
+                        vx: 0,
+                        vy: 0
+                    },
+                    paddle1: {
+                        x: 300,
+                        y: 650,
+                        prevX: 300,
+                        prevY: 650
+                    },
+                    paddle2: {
+                        x: 300,
+                        y: 150,
+                        prevX: 300,
+                        prevY: 150
+                    },
+                    score1: 0,
+                    score2: 0,
+                    gamePhase: 'playing',
+                    lastUpdate: Date.now()
+                };
+
+                await database.ref('airhockey_rooms/' + currentRoom + '/gameState').set(initialState);
+                await database.ref('airhockey_rooms/' + currentRoom + '/status').set('playing');
+            }
+
+            // Listen to game state changes
+            database.ref('airhockey_rooms/' + currentRoom + '/gameState').on('value', (snapshot) => {
+                gameState = snapshot.val();
+                if (gameState) {
+                    updateUI();
+                }
+            });
+
+
+            // Setup input handlers
+            setupInputHandlers();
+
+            // Start game loop
+            gameLoop();
+        }
+
+        // Update UI
+        function updateUI() {
+            if (!gameState) return;
+
+            // Update score display - simple format "0 : 0"
+            document.getElementById('scoreDisplay').textContent =
+                gameState.score1 + ' : ' + gameState.score2;
+
+            // Check for game over
+            if (gameState.score1 >= WINNING_SCORE || gameState.score2 >= WINNING_SCORE) {
+                showGameOver();
+            }
+        }
+
+        // Show game over
+        function showGameOver() {
+            const panel = document.getElementById('gameOverPanel');
+            const winnerText = document.getElementById('winnerText');
+            const finalScoreText = document.getElementById('finalScoreText');
+
+            const winner = gameState.score1 >= WINNING_SCORE ? 1 : 2;
+
+            database.ref('airhockey_rooms/' + currentRoom).once('value', (snapshot) => {
+                const roomData = snapshot.val();
+                const winnerName = winner === 1 ?
+                    (roomData.player1?.name || '플레이어 1') :
+                    (roomData.player2?.name || '플레이어 2');
+
+                winnerText.textContent = winnerName + ' 승리!';
+                finalScoreText.textContent = `${gameState.score1} : ${gameState.score2}`;
+                panel.classList.add('show');
+            });
+        }
+
+        // Setup input handlers
+        function setupInputHandlers() {
+            let isDragging = false;
+
+            function handleStart(e) {
+                isDragging = true;
+                handleMove(e);
+            }
+
+            function handleMove(e) {
+                if (!isDragging || !gameState) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = 600 / rect.width;
+                const scaleY = 800 / rect.height;
+
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                const x = (clientX - rect.left) * scaleX;
+                const y = (clientY - rect.top) * scaleY;
+
+                // Update paddle position with previous position for velocity calculation
+                const paddleKey = playerNumber === 1 ? 'paddle1' : 'paddle2';
+                const currentPaddle = gameState[paddleKey];
+
+                // Allow paddles to move in their half of the field
+                const paddleY = playerNumber === 1 ?
+                    Math.max(400, Math.min(800 - PADDLE_RADIUS, y)) :  // Bottom half
+                    Math.max(PADDLE_RADIUS, Math.min(400, y));         // Top half
+
+                const newX = Math.max(PADDLE_RADIUS, Math.min(600 - PADDLE_RADIUS, x));
+
+                database.ref('airhockey_rooms/' + currentRoom + '/gameState/' + paddleKey).update({
+                    prevX: currentPaddle.x,
+                    prevY: currentPaddle.y,
+                    x: newX,
+                    y: paddleY
+                });
+            }
+
+            function handleEnd() {
+                isDragging = false;
+            }
+
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('mousemove', handleMove);
+            canvas.addEventListener('mouseup', handleEnd);
+            canvas.addEventListener('mouseleave', handleEnd);
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleStart(e);
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                handleMove(e);
+            });
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                handleEnd();
+            });
+        }
+
+        // Game physics (only player 1 calculates)
+        function updatePhysics() {
+            if (!gameState || playerNumber !== 1) return;
+
+            const puck = gameState.puck;
+            const paddle1 = gameState.paddle1;
+            const paddle2 = gameState.paddle2;
+
+            // Move puck
+            puck.x += puck.vx;
+            puck.y += puck.vy;
+
+            // Apply friction
+            puck.vx *= FRICTION;
+            puck.vy *= FRICTION;
+
+            // Wall collisions - elastic bounce with minimal energy loss
+            if (puck.x - PUCK_RADIUS < 0 || puck.x + PUCK_RADIUS > 600) {
+                puck.vx *= -0.95;  // More elastic bounce
+                puck.x = Math.max(PUCK_RADIUS, Math.min(600 - PUCK_RADIUS, puck.x));
+                playSound('wall');
+            }
+
+            // Goal detection
+            const goalWidth = 200;
+            const goalLeft = (600 - goalWidth) / 2;
+            const goalRight = goalLeft + goalWidth;
+
+            // Player 2 goal (top)
+            if (puck.y - PUCK_RADIUS < 0) {
+                if (puck.x > goalLeft && puck.x < goalRight) {
+                    // Goal scored by player 1
+                    database.ref('airhockey_rooms/' + currentRoom + '/gameState').update({
+                        score1: gameState.score1 + 1,
+                        puck: { x: 300, y: 400, vx: 0, vy: 0 }
+                    });
+                    playSound('goal');
+                    showNotification('플레이어 1 득점!');
+                    return;
+                } else {
+                    puck.vy *= -0.95;  // More elastic bounce
+                    puck.y = PUCK_RADIUS;
+                }
+            }
+
+            // Player 1 goal (bottom)
+            if (puck.y + PUCK_RADIUS > 800) {
+                if (puck.x > goalLeft && puck.x < goalRight) {
+                    // Goal scored by player 2
+                    database.ref('airhockey_rooms/' + currentRoom + '/gameState').update({
+                        score2: gameState.score2 + 1,
+                        puck: { x: 300, y: 400, vx: 0, vy: 0 }
+                    });
+                    playSound('goal');
+                    showNotification('플레이어 2 득점!');
+                    return;
+                } else {
+                    puck.vy *= -0.95;  // More elastic bounce
+                    puck.y = 800 - PUCK_RADIUS;
+                }
+            }
+
+            // Paddle collisions
+            [paddle1, paddle2].forEach(paddle => {
+                const dx = puck.x - paddle.x;
+                const dy = puck.y - paddle.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < PUCK_RADIUS + PADDLE_RADIUS) {
+                    // Collision detected
+                    const angle = Math.atan2(dy, dx);
+
+                    // Calculate paddle velocity
+                    const paddleVx = (paddle.x - (paddle.prevX || paddle.x)) * 0.8;
+                    const paddleVy = (paddle.y - (paddle.prevY || paddle.y)) * 0.8;
+
+                    // Transfer paddle momentum to puck with minimum bounce speed
+                    const bounceSpeed = 6;  // Minimum bounce speed
+                    puck.vx = Math.cos(angle) * bounceSpeed + paddleVx;
+                    puck.vy = Math.sin(angle) * bounceSpeed + paddleVy;
+
+                    // Limit speed
+                    const speed = Math.sqrt(puck.vx * puck.vx + puck.vy * puck.vy);
+                    if (speed > PUCK_MAX_SPEED) {
+                        puck.vx = (puck.vx / speed) * PUCK_MAX_SPEED;
+                        puck.vy = (puck.vy / speed) * PUCK_MAX_SPEED;
+                    }
+
+                    // Separate puck from paddle
+                    const overlap = PUCK_RADIUS + PADDLE_RADIUS - dist;
+                    puck.x += Math.cos(angle) * overlap;
+                    puck.y += Math.sin(angle) * overlap;
+
+                    playSound('hit');
+                }
+            });
+
+            // Update Firebase
+            database.ref('airhockey_rooms/' + currentRoom + '/gameState/puck').update(puck);
+        }
+
+        // Render game
+        function render() {
+            if (!gameState) return;
+
+            // Save context
+            ctx.save();
+
+            // Rotate canvas 180 degrees for player 2
+            if (playerNumber === 2) {
+                ctx.translate(600, 800);
+                ctx.rotate(Math.PI);
+            }
+
+            // Clear canvas
+            ctx.fillStyle = '#0a1520';
+            ctx.fillRect(0, 0, 600, 800);
+
+            // Draw center line
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(0, 400);
+            ctx.lineTo(600, 400);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw center circle
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(300, 400, 80, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw goals
+            const goalWidth = 200;
+            const goalLeft = (600 - goalWidth) / 2;
+
+            // Top goal (player 2)
+            ctx.fillStyle = 'rgba(255, 100, 100, 0.3)';
+            ctx.fillRect(goalLeft, 0, goalWidth, 5);
+            ctx.strokeStyle = '#ff6464';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(goalLeft, 0, goalWidth, 5);
+
+            // Bottom goal (player 1)
+            ctx.fillStyle = 'rgba(100, 100, 255, 0.3)';
+            ctx.fillRect(goalLeft, 795, goalWidth, 5);
+            ctx.strokeStyle = '#6464ff';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(goalLeft, 795, goalWidth, 5);
+
+            // Draw paddle 2 (top - opponent or player)
+            const paddle2 = gameState.paddle2;
+            ctx.fillStyle = playerNumber === 2 ? '#00ff88' : '#ff6464';
+            ctx.beginPath();
+            ctx.arc(paddle2.x, paddle2.y, PADDLE_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = playerNumber === 2 ? '#00cc66' : '#ff3333';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw paddle 1 (bottom - player or opponent)
+            const paddle1 = gameState.paddle1;
+            ctx.fillStyle = playerNumber === 1 ? '#00ff88' : '#6464ff';
+            ctx.beginPath();
+            ctx.arc(paddle1.x, paddle1.y, PADDLE_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = playerNumber === 1 ? '#00cc66' : '#3333ff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Draw puck
+            const puck = gameState.puck;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(puck.x, puck.y, PUCK_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#cccccc';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Add glow effect to puck
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(puck.x, puck.y, PUCK_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Restore context
+            ctx.restore();
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameState && gameState.gamePhase === 'playing') {
+                updatePhysics();
+                render();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Cancel waiting
+        async function cancelWaiting() {
+            if (currentRoom) {
+                await database.ref('airhockey_rooms/' + currentRoom).remove();
+            }
+            backToMenu();
+        }
+
+        // Back to menu
+        function backToMenu() {
+            if (currentRoom) {
+                database.ref('airhockey_rooms/' + currentRoom).off();
+            }
+            showScreen('menuScreen');
+            currentRoom = null;
+            playerId = null;
+            playerNumber = null;
+            gameState = null;
+            document.getElementById('gameOverPanel').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
