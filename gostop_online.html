@@ -219,45 +219,86 @@
         }
 
         .card {
-            width: 50px;
-            height: 70px;
-            background: white;
-            border-radius: 5px;
-            border: 2px solid #333;
+            width: 70px;
+            height: 100px;
+            background: #FFF8DC;
+            border-radius: 8px;
+            border: 3px solid #8B4513;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
             position: relative;
             font-size: 0.7em;
+            padding: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            right: 3px;
+            bottom: 3px;
+            border: 1px solid rgba(139,69,19,0.2);
+            border-radius: 5px;
+            pointer-events: none;
         }
 
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px) scale(1.1);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            z-index: 10;
         }
 
         .card.selected {
-            border-color: #ffd700;
-            box-shadow: 0 0 10px #ffd700;
+            border-color: #FFD700;
+            box-shadow: 0 0 20px #FFD700, 0 8px 16px rgba(255,215,0,0.5);
+            transform: translateY(-10px) scale(1.15);
+            z-index: 20;
+        }
+
+        .card-emoji {
+            font-size: 2.5em;
+            margin: 5px 0;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
         }
 
         .card-month {
             font-weight: bold;
-            margin-bottom: 3px;
+            font-size: 0.85em;
+            color: #333;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.8);
         }
 
-        .card-type {
-            font-size: 0.8em;
+        .card-name {
+            font-size: 0.65em;
             color: #666;
+            text-align: center;
+            line-height: 1.2;
+            font-weight: 500;
         }
 
         /* Card types colors */
-        .card.gwang { background: linear-gradient(135deg, #FFD700, #FFA500); }
-        .card.animal { background: linear-gradient(135deg, #FF6B6B, #FF8E53); }
-        .card.ribbon { background: linear-gradient(135deg, #4ECDC4, #44A08D); }
-        .card.junk { background: linear-gradient(135deg, #95E1D3, #EAFFD0); }
+        .card.gwang {
+            background: linear-gradient(135deg, #FFE5B4 0%, #FFD700 50%, #FFA500 100%);
+            border-color: #B8860B;
+        }
+        .card.animal {
+            background: linear-gradient(135deg, #FFE4E1 0%, #FFB6C1 50%, #FF69B4 100%);
+            border-color: #C71585;
+        }
+        .card.ribbon {
+            background: linear-gradient(135deg, #E0F2F1 0%, #80CBC4 50%, #4DB6AC 100%);
+            border-color: #00695C;
+        }
+        .card.junk {
+            background: linear-gradient(135deg, #F1F8E9 0%, #C5E1A5 50%, #9CCC65 100%);
+            border-color: #558B2F;
+        }
 
         .collected-cards {
             display: flex;
@@ -758,7 +799,35 @@
             });
         }
 
-        // Create card element
+        // Card emoji mapping
+        const CARD_EMOJIS = {
+            // 1월 송학
+            '송학광': '🌲', '송학띠': '🎋', '송학피1': '🌿', '송학피2': '🍃',
+            // 2월 매조
+            '매조': '🐦', '매띠': '🌸', '매피1': '🌺', '매피2': '💮',
+            // 3월 벚꽃
+            '벚꽃광': '🌸', '벚꽃띠': '🎌', '벚꽃피1': '🌷', '벚꽃피2': '🏵️',
+            // 4월 흑싸리
+            '흑싸리': '🐦', '싸리띠': '🎋', '싸리피1': '🌿', '싸리피2': '🍃',
+            // 5월 난초
+            '난초': '🌼', '난초띠': '🎋', '난초피1': '🌿', '난초피2': '🍃',
+            // 6월 목단
+            '목단': '🦋', '목단띠': '🎋', '목단피1': '🌺', '목단피2': '🌻',
+            // 7월 홍싸리
+            '홍싸리': '🐗', '홍싸리띠': '🎋', '홍싸리피1': '🌿', '홍싸리피2': '🍃',
+            // 8월 공산
+            '공산광': '🌕', '공산': '🦆', '공산피1': '🌾', '공산피2': '🌾',
+            // 9월 국진
+            '국진': '🍶', '국진띠': '🎋', '국진피1': '🌿', '국진피2': '🍃',
+            // 10월 단풍
+            '단풍': '🦌', '단풍띠': '🎋', '단풍피1': '🍁', '단풍피2': '🍂',
+            // 11월 오동
+            '오동광': '🦜', '오동피1': '🍃', '오동피2': '🍃', '오동피3': '🍃',
+            // 12월 비
+            '비광': '🌧️', '비싸리': '🌂', '비띠': '🎋', '비피': '☔'
+        };
+
+        // Create card element with emoji
         function createCardElement(card, clickable) {
             const cardEl = document.createElement('div');
             cardEl.className = 'card ' + card.type;
@@ -770,12 +839,17 @@
             monthEl.className = 'card-month';
             monthEl.textContent = MONTHS[card.month];
 
-            const typeEl = document.createElement('div');
-            typeEl.className = 'card-type';
-            typeEl.textContent = card.name;
+            const emojiEl = document.createElement('div');
+            emojiEl.className = 'card-emoji';
+            emojiEl.textContent = CARD_EMOJIS[card.name] || '🎴';
+
+            const nameEl = document.createElement('div');
+            nameEl.className = 'card-name';
+            nameEl.textContent = card.name;
 
             cardEl.appendChild(monthEl);
-            cardEl.appendChild(typeEl);
+            cardEl.appendChild(emojiEl);
+            cardEl.appendChild(nameEl);
 
             return cardEl;
         }
