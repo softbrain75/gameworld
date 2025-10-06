@@ -153,19 +153,47 @@
 
         .game-ui {
             position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 10px;
+            right: 10px;
             color: white;
-            font-size: 2.5em;
+            font-size: 1.2em;
             font-weight: bold;
             text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
             pointer-events: none;
             z-index: 10;
             background: rgba(0, 0, 0, 0.7);
-            padding: 15px 30px;
-            border-radius: 15px;
-            border: 3px solid #00ff88;
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 2px solid #00ff88;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff88;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            z-index: 10;
+            pointer-events: auto;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 255, 136, 0.3);
+            transform: scale(1.1);
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
         }
 
         .game-over-panel {
@@ -261,6 +289,7 @@
 
     <!-- Game Screen -->
     <div id="gameScreen" class="screen">
+        <button class="back-btn" onclick="backToMenu()">←</button>
         <div class="game-ui" id="scoreDisplay">0 : 0</div>
         <canvas id="canvas"></canvas>
         <div class="game-over-panel" id="gameOverPanel">
@@ -369,9 +398,9 @@
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
 
-            // Canvas logical size (game coordinates)
+            // Canvas logical size (game coordinates) - longer field
             const gameWidth = 600;
-            const gameHeight = 800;
+            const gameHeight = 1000;
 
             // Calculate scale to fit screen while maintaining aspect ratio
             const scaleX = screenWidth / gameWidth;
@@ -382,7 +411,7 @@
             canvas.style.width = (gameWidth * scale) + 'px';
             canvas.style.height = (gameHeight * scale) + 'px';
 
-            // Set canvas internal resolution (stays at 600x800 for consistent game logic)
+            // Set canvas internal resolution (stays at 600x1000 for consistent game logic)
             canvas.width = gameWidth;
             canvas.height = gameHeight;
         }
@@ -510,15 +539,15 @@
                 const initialState = {
                     puck: {
                         x: 300,
-                        y: 400,
+                        y: 500,
                         vx: 0,
                         vy: 0
                     },
                     paddle1: {
                         x: 300,
-                        y: 650,
+                        y: 850,
                         prevX: 300,
-                        prevY: 650
+                        prevY: 850
                     },
                     paddle2: {
                         x: 300,
@@ -600,7 +629,7 @@
 
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = 600 / rect.width;
-                const scaleY = 800 / rect.height;
+                const scaleY = 1000 / rect.height;
 
                 let clientX, clientY;
                 if (e.touches) {
@@ -611,8 +640,14 @@
                     clientY = e.clientY;
                 }
 
-                const x = (clientX - rect.left) * scaleX;
-                const y = (clientY - rect.top) * scaleY;
+                let x = (clientX - rect.left) * scaleX;
+                let y = (clientY - rect.top) * scaleY;
+
+                // For player 2, flip coordinates since their view is rotated 180 degrees
+                if (playerNumber === 2) {
+                    x = 600 - x;
+                    y = 1000 - y;
+                }
 
                 // Update paddle position with previous position for velocity calculation
                 const paddleKey = playerNumber === 1 ? 'paddle1' : 'paddle2';
@@ -620,8 +655,8 @@
 
                 // Allow paddles to move in their half of the field
                 const paddleY = playerNumber === 1 ?
-                    Math.max(400, Math.min(800 - PADDLE_RADIUS, y)) :  // Bottom half
-                    Math.max(PADDLE_RADIUS, Math.min(400, y));         // Top half
+                    Math.max(500, Math.min(1000 - PADDLE_RADIUS, y)) :  // Bottom half
+                    Math.max(PADDLE_RADIUS, Math.min(500, y));         // Top half
 
                 const newX = Math.max(PADDLE_RADIUS, Math.min(600 - PADDLE_RADIUS, x));
 
@@ -690,7 +725,7 @@
                     // Goal scored by player 1
                     database.ref('airhockey_rooms/' + currentRoom + '/gameState').update({
                         score1: gameState.score1 + 1,
-                        puck: { x: 300, y: 400, vx: 0, vy: 0 }
+                        puck: { x: 300, y: 500, vx: 0, vy: 0 }
                     });
                     playSound('goal');
                     showNotification('플레이어 1 득점!');
@@ -702,19 +737,19 @@
             }
 
             // Player 1 goal (bottom)
-            if (puck.y + PUCK_RADIUS > 800) {
+            if (puck.y + PUCK_RADIUS > 1000) {
                 if (puck.x > goalLeft && puck.x < goalRight) {
                     // Goal scored by player 2
                     database.ref('airhockey_rooms/' + currentRoom + '/gameState').update({
                         score2: gameState.score2 + 1,
-                        puck: { x: 300, y: 400, vx: 0, vy: 0 }
+                        puck: { x: 300, y: 500, vx: 0, vy: 0 }
                     });
                     playSound('goal');
                     showNotification('플레이어 2 득점!');
                     return;
                 } else {
                     puck.vy *= -0.95;  // More elastic bounce
-                    puck.y = 800 - PUCK_RADIUS;
+                    puck.y = 1000 - PUCK_RADIUS;
                 }
             }
 
@@ -766,21 +801,21 @@
 
             // Rotate canvas 180 degrees for player 2
             if (playerNumber === 2) {
-                ctx.translate(600, 800);
+                ctx.translate(600, 1000);
                 ctx.rotate(Math.PI);
             }
 
             // Clear canvas
             ctx.fillStyle = '#0a1520';
-            ctx.fillRect(0, 0, 600, 800);
+            ctx.fillRect(0, 0, 600, 1000);
 
             // Draw center line
             ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
             ctx.lineWidth = 2;
             ctx.setLineDash([10, 10]);
             ctx.beginPath();
-            ctx.moveTo(0, 400);
-            ctx.lineTo(600, 400);
+            ctx.moveTo(0, 500);
+            ctx.lineTo(600, 500);
             ctx.stroke();
             ctx.setLineDash([]);
 
@@ -788,7 +823,7 @@
             ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(300, 400, 80, 0, Math.PI * 2);
+            ctx.arc(300, 500, 80, 0, Math.PI * 2);
             ctx.stroke();
 
             // Draw goals
@@ -804,10 +839,10 @@
 
             // Bottom goal (player 1)
             ctx.fillStyle = 'rgba(100, 100, 255, 0.3)';
-            ctx.fillRect(goalLeft, 795, goalWidth, 5);
+            ctx.fillRect(goalLeft, 995, goalWidth, 5);
             ctx.strokeStyle = '#6464ff';
             ctx.lineWidth = 3;
-            ctx.strokeRect(goalLeft, 795, goalWidth, 5);
+            ctx.strokeRect(goalLeft, 995, goalWidth, 5);
 
             // Draw paddle 2 (top - opponent or player)
             const paddle2 = gameState.paddle2;
