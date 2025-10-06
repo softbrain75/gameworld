@@ -808,6 +808,8 @@
             const container = document.getElementById(containerId);
             container.innerHTML = '';
 
+            if (!cards || !Array.isArray(cards)) return;
+
             cards.forEach(card => {
                 const cardEl = createCardElement(card, clickable && enabled);
                 if (clickable && enabled) {
@@ -876,6 +878,8 @@
         function renderCollectedCards(containerId, collected) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
+
+            if (!collected || !Array.isArray(collected)) return;
 
             // Group by type
             const gwang = collected.filter(c => c.type === CARD_TYPES.GWANG);
@@ -988,13 +992,13 @@
             }
 
             // Find matching cards on center
-            const matchingCards = gameState.centerCards.filter(c => c.month === card.month);
+            const matchingCards = (gameState.centerCards || []).filter(c => c.month === card.month);
 
             if (matchingCards.length === 0) {
                 // No match - card goes to center
-                const newCenterCards = [...gameState.centerCards, card];
+                const newCenterCards = [...(gameState.centerCards || []), card];
                 const playerHandKey = playerNumber === 1 ? 'player1Hand' : 'player2Hand';
-                const newPlayerHand = gameState[playerHandKey].filter(c => c.id !== card.id);
+                const newPlayerHand = (gameState[playerHandKey] || []).filter(c => c.id !== card.id);
 
                 await database.ref('rooms/' + currentRoom + '/gameState').update({
                     [playerHandKey]: newPlayerHand,
@@ -1029,9 +1033,9 @@
             const playerHandKey = playerNumber === 1 ? 'player1Hand' : 'player2Hand';
             const playerCollectedKey = playerNumber === 1 ? 'player1Collected' : 'player2Collected';
 
-            const newPlayerHand = gameState[playerHandKey].filter(c => c.id !== handCard.id);
-            const newCenterCards = gameState.centerCards.filter(c => !matchedCards.find(m => m.id === c.id));
-            const newCollected = [...gameState[playerCollectedKey], handCard, ...matchedCards];
+            const newPlayerHand = (gameState[playerHandKey] || []).filter(c => c.id !== handCard.id);
+            const newCenterCards = (gameState.centerCards || []).filter(c => !matchedCards.find(m => m.id === c.id));
+            const newCollected = [...(gameState[playerCollectedKey] || []), handCard, ...matchedCards];
 
             await database.ref('rooms/' + currentRoom + '/gameState').update({
                 [playerHandKey]: newPlayerHand,
