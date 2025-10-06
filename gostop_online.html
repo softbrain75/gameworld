@@ -438,7 +438,7 @@
                     <div>
                         <div class="area-label">뒤집을 카드 더미</div>
                         <div class="cards-row">
-                            <div class="card" style="background: #333; cursor: default;" onclick="drawCard()">
+                            <div class="card" style="background: #333; cursor: default;">
                                 <span style="color: white;">🎴</span>
                                 <span style="color: white; font-size: 0.7em;" id="deckCount">40</span>
                             </div>
@@ -1056,13 +1056,13 @@
             }
 
             const drawnCard = gameState.deck[gameState.deckIndex];
-            const matchingCards = gameState.centerCards.filter(c => c.month === drawnCard.month);
+            const matchingCards = (gameState.centerCards || []).filter(c => c.month === drawnCard.month);
 
             const playerCollectedKey = playerNumber === 1 ? 'player1Collected' : 'player2Collected';
             const playerScoreKey = playerNumber === 1 ? 'player1Score' : 'player2Score';
 
-            let newCenterCards = [...gameState.centerCards];
-            let newCollected = [...gameState[playerCollectedKey]];
+            let newCenterCards = [...(gameState.centerCards || [])];
+            let newCollected = [...(gameState[playerCollectedKey] || [])];
 
             if (matchingCards.length === 0) {
                 // No match - card goes to center
