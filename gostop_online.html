@@ -430,21 +430,16 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
-        // Firebase configuration - USER NEEDS TO REPLACE THIS
+        // Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyAmp_hEOB64yZTWrDYXquooJ46OireyMkI",
+            authDomain: "gostop-59957.firebaseapp.com",
+            databaseURL: "https://gostop-59957-default-rtdb.firebaseio.com",
+            projectId: "gostop-59957",
+            storageBucket: "gostop-59957.firebasestorage.app",
+            messagingSenderId: "684659335295",
+            appId: "1:684659335295:web:fff2006b8b8f4644645f4a"
         };
-
-        // Check if Firebase config is set
-        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-            alert("⚠️ Firebase 설정이 필요합니다!\n\n1. Firebase Console에서 프로젝트 생성\n2. Realtime Database 활성화\n3. 웹 앱 추가하여 config 정보 받기\n4. 이 파일의 firebaseConfig를 수정하세요");
-        }
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
