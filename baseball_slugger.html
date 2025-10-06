@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>베이스볼 슬러거 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #2E8B57 0%, #228B22 50%, #32CD32 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            touch-action: none;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #ffd700;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffd700, #ffb347);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-weight: bold;
+        }
+
+        .score-info, .game-info {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #87CEEB 0%, #228B22 60%, #8B4513 100%);
+        }
+
+        .high-score {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 10px;
+            border: 1px solid #ffd700;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            font-size: 0.9em;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .new-record {
+            color: #ffd700;
+            font-weight: bold;
+            margin: 10px 0;
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #ffd700; }
+            to { text-shadow: 0 0 20px #ffd700; }
+        }
+
+        .batting-guide {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            z-index: 10;
+        }
+
+        .result-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .result-text.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">⚾🏏</div>
+            <h1>베이스볼 슬러거</h1>
+            <p style="color: #f7931e; margin-bottom: 20px;">완벽한 타이밍으로 홈런을 노려보세요!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 점수</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">⚾ 게임 시작</button>
+
+            <div class="instructions">
+                <p><strong>🎯 게임 방법:</strong></p>
+                <p>• 공이 날아올 때 클릭/터치로 배트 스윙</p>
+                <p>• 정확한 타이밍이 승부의 열쇠!</p>
+                <p>• 완벽한 적중 → 홈런 (100점)</p>
+                <p>• 약간 벗어남 → 파울볼 (10점)</p>
+                <p>• 많이 벗어남 → 땅볼 아웃 (0점)</p>
+                <p>• 놓침 → 스트라이크 (-5점)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">🏆⚾</div>
+            <h1>게임 종료!</h1>
+            
+            <div id="newRecord" class="new-record hidden">🎉 새로운 기록입니다! 🎉</div>
+            
+            <div style="margin: 20px 0;">
+                <div style="display: flex; justify-content: space-around; margin: 20px 0;">
+                    <div style="text-align: center;">
+                        <div style="opacity: 0.8; font-size: 0.8em;">최종 점수</div>
+                        <div style="font-size: 2.5em; font-weight: bold; color: #ffd700;" id="finalScore">0</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="opacity: 0.8; font-size: 0.8em;">홈런</div>
+                        <div style="font-size: 1.8em; font-weight: bold;" id="homeRuns">0</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="opacity: 0.8; font-size: 0.8em;">타율</div>
+                        <div style="font-size: 1.8em; font-weight: bold;" id="battingAvg">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 점수</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game UI -->
+    <div class="game-ui" id="gameUI" style="display: none;">
+        <div class="score-info">
+            <div>점수: <span id="score">0</span></div>
+            <div>홈런: <span id="homeRunCount">0</span></div>
+        </div>
+        <div class="game-info">
+            <div>볼 카운트: <span id="ballCount">0</span>/10</div>
+            <div>스트라이크: <span id="strikeCount">0</span></div>
+        </div>
+    </div>
+
+    <!-- Batting Guide -->
+    <div class="batting-guide" id="battingGuide" style="display: none;">
+        클릭/터치로 배트 스윙! 타이밍이 중요해요!
+    </div>
+
+    <!-- Result Text -->
+    <div class="result-text" id="resultText"></div>
+
+    <!-- Game Canvas -->
+    <div style="flex: 1; position: relative;">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- Include unified points system -->
+    <script src="js/gamePoints.js"></script>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        // Game variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameState = 'menu'; // 'menu', 'playing', 'gameover'
+        
+        // Game stats
+        let score = 0;
+        let homeRuns = 0;
+        let hits = 0;
+        let totalPitches = 0;
+        let strikes = 0;
+        let ballCount = 0;
+        let maxBalls = 10;
+        let highScore = localStorage.getItem('baseballSlugger_highScore') || 0;
+
+        // Game objects
+        let ball = null;
+        let bat = null;
+        let particles = [];
+        let pitcher = null;
+
+        // Audio context for sounds
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        // Sound effects
+        function playSound(type) {
+            try {
+                initAudio();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                const filterNode = audioContext.createBiquadFilter();
+
+                oscillator.connect(filterNode);
+                filterNode.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(type) {
+                    case 'homerun':
+                        // Crack of the bat + crowd cheer
+                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+                        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        oscillator.type = 'sawtooth';
+                        filterNode.frequency.value = 2000;
+                        break;
+                    case 'foul':
+                        // Different bat sound
+                        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.08);
+                        gainNode.gain.setValueAtTime(0.10, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                        oscillator.type = 'square';
+                        break;
+                    case 'groundout':
+                        // Thud sound
+                        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.05);
+                        gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                        oscillator.type = 'triangle';
+                        break;
+                    case 'strike':
+                        // Whoosh + glove pop
+                        oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.06);
+                        gainNode.gain.setValueAtTime(0.06, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+                        oscillator.type = 'sine';
+                        break;
+                    case 'pitch':
+                        // Whoosh of ball
+                        oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(180, audioContext.currentTime + 0.05);
+                        gainNode.gain.setValueAtTime(0.04, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + (type === 'homerun' ? 0.3 : 0.15));
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        // Ball class
+        class Ball {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = canvas.width * 0.1; // Start from pitcher
+                this.y = canvas.height * 0.4;
+                this.targetX = canvas.width * 0.8; // Home plate area
+                this.targetY = canvas.height * 0.7 + (Math.random() - 0.5) * 100; // Strike zone variation
+                this.speed = 3 + Math.random() * 4; // Variable speed
+                this.isActive = false;
+                this.trail = [];
+            }
+
+            update() {
+                if (!this.isActive) return;
+
+                // Move ball towards target
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance > 5) {
+                    this.x += (dx / distance) * this.speed;
+                    this.y += (dy / distance) * this.speed;
+
+                    // Add to trail
+                    this.trail.push({x: this.x, y: this.y});
+                    if (this.trail.length > 8) {
+                        this.trail.shift();
+                    }
+                } else {
+                    // Ball reached plate - strike if not hit
+                    this.isActive = false;
+                    if (gameState === 'playing') {
+                        handleStrike();
+                    }
+                }
+            }
+
+            draw() {
+                // Draw trail
+                for (let i = 0; i < this.trail.length; i++) {
+                    const alpha = (i + 1) / this.trail.length * 0.3;
+                    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(this.trail[i].x, this.trail[i].y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Draw ball with baseball stitching
+                if (this.isActive) {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.strokeStyle = '#FF0000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Baseball stitching
+                    ctx.beginPath();
+                    ctx.arc(this.x - 3, this.y - 3, 6, 0, Math.PI);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(this.x + 3, this.y + 3, 6, Math.PI, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            pitch() {
+                this.reset();
+                this.isActive = true;
+                playSound('pitch');
+            }
+        }
+
+        // Bat class
+        class Bat {
+            constructor() {
+                this.x = canvas.width * 0.85;
+                this.y = canvas.height * 0.7;
+                this.angle = 0;
+                this.swinging = false;
+                this.swingTimer = 0;
+                this.swingDuration = 15; // frames
+            }
+
+            swing() {
+                if (!this.swinging) {
+                    this.swinging = true;
+                    this.swingTimer = 0;
+                }
+            }
+
+            update() {
+                if (this.swinging) {
+                    this.swingTimer++;
+                    // Swing animation
+                    const progress = this.swingTimer / this.swingDuration;
+                    this.angle = Math.sin(progress * Math.PI) * Math.PI / 3; // 60 degree swing
+
+                    if (this.swingTimer >= this.swingDuration) {
+                        this.swinging = false;
+                        this.angle = 0;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+
+                // Draw bat handle
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(-5, -40, 10, 30);
+
+                // Draw bat barrel
+                ctx.fillStyle = '#D2B48C';
+                ctx.fillRect(-8, -40, 16, -60);
+
+                ctx.restore();
+            }
+
+            // Check if bat hits ball
+            checkHit(ball) {
+                if (!this.swinging || !ball.isActive) return null;
+
+                const dx = ball.x - this.x;
+                const dy = ball.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 30 && this.swingTimer > 5 && this.swingTimer < 12) {
+                    // Calculate hit accuracy based on timing and position
+                    const timingAccuracy = 1 - Math.abs(this.swingTimer - 8.5) / 8.5;
+                    const positionAccuracy = 1 - distance / 30;
+                    const overallAccuracy = (timingAccuracy + positionAccuracy) / 2;
+
+                    return overallAccuracy;
+                }
+                return null;
+            }
+        }
+
+        // Pitcher class
+        class Pitcher {
+            constructor() {
+                this.x = canvas.width * 0.1;
+                this.y = canvas.height * 0.4;
+                this.pitching = false;
+                this.pitchTimer = 0;
+            }
+
+            update() {
+                if (this.pitching) {
+                    this.pitchTimer++;
+                    if (this.pitchTimer >= 30) { // Wind up time
+                        ball.pitch();
+                        this.pitching = false;
+                        this.pitchTimer = 0;
+                    }
+                }
+            }
+
+            draw() {
+                // Simple pitcher representation
+                ctx.fillStyle = '#4169E1'; // Blue uniform
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Pitching motion
+                if (this.pitching) {
+                    const armAngle = (this.pitchTimer / 30) * Math.PI;
+                    ctx.strokeStyle = '#4169E1';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x + Math.cos(armAngle) * 20, this.y + Math.sin(armAngle) * 20);
+                    ctx.stroke();
+                }
+            }
+
+            startPitch() {
+                if (!this.pitching && !ball.isActive) {
+                    this.pitching = true;
+                    this.pitchTimer = 0;
+                }
+            }
+        }
+
+        // Particle system for effects
+        class Particle {
+            constructor(x, y, color = '#FFD700') {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.02 + 0.01;
+                this.color = color;
+                this.size = Math.random() * 4 + 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.life -= this.decay;
+                return this.life > 0;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function createParticles(x, y, count, color) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function showResult(text, color = '#FFD700') {
+            const resultElement = document.getElementById('resultText');
+            resultElement.textContent = text;
+            resultElement.style.color = color;
+            resultElement.classList.add('show');
+            
+            setTimeout(() => {
+                resultElement.classList.remove('show');
+            }, 1500);
+        }
+
+        function handleHit(accuracy) {
+            ball.isActive = false;
+            hits++;
+            totalPitches++;
+
+            if (accuracy >= 0.8) {
+                // Home run!
+                score += 100;
+                homeRuns++;
+                createParticles(ball.x, ball.y, 20, '#FFD700');
+                playSound('homerun');
+                showResult('🏠 홈런! 🏠', '#FFD700');
+            } else if (accuracy >= 0.5) {
+                // Foul ball
+                score += 10;
+                createParticles(ball.x, ball.y, 10, '#FFA500');
+                playSound('foul');
+                showResult('파울볼', '#FFA500');
+            } else if (accuracy >= 0.1) {
+                // Ground out
+                createParticles(ball.x, ball.y, 5, '#8B4513');
+                playSound('groundout');
+                showResult('땅볼 아웃', '#8B4513');
+            }
+
+            updateUI();
+            setTimeout(() => {
+                if (gameState === 'playing') {
+                    nextPitch();
+                }
+            }, 1500);
+        }
+
+        function handleStrike() {
+            strikes++;
+            totalPitches++;
+            score = Math.max(0, score - 5);
+            playSound('strike');
+            showResult('스트라이크!', '#FF4500');
+            updateUI();
+            
+            setTimeout(() => {
+                if (gameState === 'playing') {
+                    nextPitch();
+                }
+            }, 1500);
+        }
+
+        function nextPitch() {
+            ballCount++;
+            if (ballCount >= maxBalls) {
+                endGame();
+            } else {
+                // Random delay before next pitch
+                setTimeout(() => {
+                    if (gameState === 'playing') {
+                        pitcher.startPitch();
+                    }
+                }, 1000 + Math.random() * 2000);
+            }
+        }
+
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameUI').style.display = 'flex';
+            document.getElementById('battingGuide').style.display = 'block';
+
+            // Reset game state
+            score = 0;
+            homeRuns = 0;
+            hits = 0;
+            totalPitches = 0;
+            strikes = 0;
+            ballCount = 0;
+            particles = [];
+
+            // Initialize game objects
+            ball = new Ball();
+            bat = new Bat();
+            pitcher = new Pitcher();
+
+            resizeCanvas();
+            updateUI();
+
+            // Start first pitch
+            setTimeout(() => {
+                pitcher.startPitch();
+            }, 1000);
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('homeRunCount').textContent = homeRuns;
+            document.getElementById('ballCount').textContent = ballCount;
+            document.getElementById('strikeCount').textContent = strikes;
+        }
+
+        function endGame() {
+            gameState = 'gameover';
+            document.getElementById('gameUI').style.display = 'none';
+            document.getElementById('battingGuide').style.display = 'none';
+
+            const battingAverage = totalPitches > 0 ? Math.round((hits / totalPitches) * 100) : 0;
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('homeRuns').textContent = homeRuns;
+            document.getElementById('battingAvg').textContent = battingAverage + '%';
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('baseballSlugger_highScore', highScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            // Add points to unified system
+            if (typeof window.addGamePoints === 'function') {
+                const gameInfo = {
+                    score: score,
+                    accuracy: battingAverage,
+                    homeRuns: homeRuns,
+                    playTime: 180, // Estimated game duration
+                    isNewRecord: isNewRecord
+                };
+                
+                try {
+                    const pointsEarned = window.addGamePoints(score, 'baseball_slugger', gameInfo);
+                    console.log(`베이스볼 슬러거: ${pointsEarned} 포인트 획득!`);
+                } catch (e) {
+                    console.log('Points system error:', e);
+                }
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = Math.round(highScore).toLocaleString();
+            } else {
+                document.getElementById('highScoreDisplay').classList.add('hidden');
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        function drawField() {
+            // Draw baseball field background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB'); // Sky blue
+            gradient.addColorStop(0.6, '#228B22'); // Forest green
+            gradient.addColorStop(1, '#8B4513'); // Saddle brown (dirt)
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw pitcher's mound
+            ctx.fillStyle = '#CD853F';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width * 0.1, canvas.height * 0.4, 20, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw home plate area
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(canvas.width * 0.75, canvas.height * 0.68, 10, 4);
+
+            // Draw batter's box
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(canvas.width * 0.8, canvas.height * 0.6, 40, 80);
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing') {
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw background
+                drawField();
+
+                // Update game objects
+                if (ball) ball.update();
+                if (bat) bat.update();
+                if (pitcher) pitcher.update();
+
+                // Update particles
+                particles = particles.filter(particle => {
+                    particle.update();
+                    particle.draw();
+                    return particle.life > 0;
+                });
+
+                // Draw game objects
+                if (pitcher) pitcher.draw();
+                if (ball) ball.draw();
+                if (bat) bat.draw();
+
+                // Check for bat-ball collision
+                if (bat && ball && bat.swinging) {
+                    const hitAccuracy = bat.checkHit(ball);
+                    if (hitAccuracy !== null) {
+                        handleHit(hitAccuracy);
+                    }
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Input handling
+        canvas.addEventListener('click', (e) => {
+            if (gameState === 'playing' && bat) {
+                bat.swing();
+            }
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameState === 'playing' && bat) {
+                bat.swing();
+            }
+        });
+
+        // Initialize
+        if (highScore > 0) {
+            document.getElementById('highScore').classList.remove('hidden');
+            document.getElementById('highScoreValue').textContent = Math.round(highScore).toLocaleString();
+        }
+
+        window.addEventListener('resize', () => {
+            if (gameState === 'playing') {
+                resizeCanvas();
+            }
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
