@@ -377,18 +377,20 @@
             }
         }
 
-        // Ball class
+        // Ball class - Batter's perspective (ball comes toward screen)
         class Ball {
             constructor() {
                 this.reset();
             }
 
             reset() {
-                this.x = canvas.width * 0.1; // Start from pitcher
-                this.y = canvas.height * 0.4;
-                this.targetX = canvas.width * 0.8; // Home plate area
-                this.targetY = canvas.height * 0.7 + (Math.random() - 0.5) * 100; // Strike zone variation
-                this.speed = 3 + Math.random() * 4; // Variable speed
+                // Ball starts far away (small) and comes closer (bigger)
+                this.z = 1000; // Distance from batter (far = 1000, near = 0)
+                this.x = canvas.width / 2 + (Math.random() - 0.5) * 200; // Horizontal variation
+                this.y = canvas.height * 0.4 + (Math.random() - 0.5) * 100; // Vertical variation (strike zone)
+                this.targetX = canvas.width / 2 + (Math.random() - 0.5) * 150; // Final position
+                this.targetY = canvas.height * 0.5 + (Math.random() - 0.5) * 120; // Strike zone
+                this.speed = 15 + Math.random() * 10; // Speed toward batter
                 this.isActive = false;
                 this.trail = [];
             }
@@ -396,22 +398,22 @@
             update() {
                 if (!this.isActive) return;
 
-                // Move ball towards target
-                const dx = this.targetX - this.x;
-                const dy = this.targetY - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                // Move ball toward batter (z decreases)
+                this.z -= this.speed;
 
-                if (distance > 5) {
-                    this.x += (dx / distance) * this.speed;
-                    this.y += (dy / distance) * this.speed;
+                // Move toward target position as it gets closer
+                const progress = 1 - (this.z / 1000);
+                this.x = canvas.width / 2 + (this.targetX - canvas.width / 2) * progress;
+                this.y = canvas.height * 0.3 + (this.targetY - canvas.height * 0.3) * progress;
 
-                    // Add to trail
-                    this.trail.push({x: this.x, y: this.y});
-                    if (this.trail.length > 8) {
-                        this.trail.shift();
-                    }
-                } else {
-                    // Ball reached plate - strike if not hit
+                // Add to trail
+                this.trail.push({x: this.x, y: this.y, z: this.z});
+                if (this.trail.length > 10) {
+                    this.trail.shift();
+                }
+
+                // Ball reached plate
+                if (this.z <= 0) {
                     this.isActive = false;
                     if (gameState === 'playing') {
                         handleStrike();
@@ -422,29 +424,38 @@
             draw() {
                 // Draw trail
                 for (let i = 0; i < this.trail.length; i++) {
+                    const t = this.trail[i];
+                    const scale = Math.max(0.1, 1 - t.z / 1000);
                     const alpha = (i + 1) / this.trail.length * 0.3;
+                    const size = 3 * scale;
+
                     ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
                     ctx.beginPath();
-                    ctx.arc(this.trail[i].x, this.trail[i].y, 3, 0, Math.PI * 2);
+                    ctx.arc(t.x, t.y, size, 0, Math.PI * 2);
                     ctx.fill();
                 }
 
-                // Draw ball with baseball stitching
-                if (this.isActive) {
+                // Draw ball with perspective scaling
+                if (this.isActive && this.z > 0) {
+                    const scale = Math.max(0.1, 1 - this.z / 1000);
+                    const size = 8 + scale * 20; // Ball grows as it gets closer
+
                     ctx.fillStyle = '#FFFFFF';
                     ctx.strokeStyle = '#FF0000';
-                    ctx.lineWidth = 2;
+                    ctx.lineWidth = 2 * scale;
                     ctx.beginPath();
-                    ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+                    ctx.arc(this.x, this.y, size, 0, Math.PI * 2);
                     ctx.fill();
-                    
+
                     // Baseball stitching
-                    ctx.beginPath();
-                    ctx.arc(this.x - 3, this.y - 3, 6, 0, Math.PI);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.arc(this.x + 3, this.y + 3, 6, Math.PI, Math.PI * 2);
-                    ctx.stroke();
+                    if (size > 10) {
+                        ctx.beginPath();
+                        ctx.arc(this.x - size * 0.3, this.y - size * 0.3, size * 0.6, 0, Math.PI);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.arc(this.x + size * 0.3, this.y + size * 0.3, size * 0.6, Math.PI, Math.PI * 2);
+                        ctx.stroke();
+                    }
                 }
             }
 
@@ -453,17 +464,26 @@
                 this.isActive = true;
                 playSound('pitch');
             }
+
+            // Get ball size for hit detection
+            getSize() {
+                if (this.z <= 0) return 0;
+                const scale = Math.max(0.1, 1 - this.z / 1000);
+                return 8 + scale * 20;
+            }
         }
 
-        // Bat class
+        // Bat class - Vertical swing from batter's perspective
         class Bat {
             constructor() {
-                this.x = canvas.width * 0.85;
-                this.y = canvas.height * 0.7;
-                this.angle = 0;
+                this.startY = canvas.height * 0.85; // Starting position (low)
+                this.endY = canvas.height * 0.25; // End position (high)
+                this.y = this.startY;
+                this.x = canvas.width * 0.65; // Right side of screen
+                this.angle = -20; // Slight angle for realism
                 this.swinging = false;
                 this.swingTimer = 0;
-                this.swingDuration = 15; // frames
+                this.swingDuration = 12; // frames
             }
 
             swing() {
@@ -476,13 +496,17 @@
             update() {
                 if (this.swinging) {
                     this.swingTimer++;
-                    // Swing animation
+                    // Vertical swing animation (bottom to top)
                     const progress = this.swingTimer / this.swingDuration;
-                    this.angle = Math.sin(progress * Math.PI) * Math.PI / 3; // 60 degree swing
+                    const easeProgress = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                    this.y = this.startY + (this.endY - this.startY) * easeProgress;
+                    this.angle = -20 + easeProgress * 80; // Rotate during swing
 
                     if (this.swingTimer >= this.swingDuration) {
                         this.swinging = false;
-                        this.angle = 0;
+                        this.y = this.startY;
+                        this.angle = -20;
                     }
                 }
             }
@@ -490,15 +514,32 @@
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
-                ctx.rotate(this.angle);
+                ctx.rotate(this.angle * Math.PI / 180);
 
-                // Draw bat handle
-                ctx.fillStyle = '#8B4513';
-                ctx.fillRect(-5, -40, 10, 30);
-
-                // Draw bat barrel
+                // Draw bat barrel (thicker part) - much longer
                 ctx.fillStyle = '#D2B48C';
-                ctx.fillRect(-8, -40, 16, -60);
+                ctx.beginPath();
+                ctx.roundRect(-180, -10, 200, 20, 10);
+                ctx.fill();
+                ctx.strokeStyle = '#A0826D';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw bat handle (thinner part)
+                ctx.fillStyle = '#8B4513';
+                ctx.beginPath();
+                ctx.roundRect(20, -7, 80, 14, 7);
+                ctx.fill();
+
+                // Draw grip tape
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 7; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(30 + i * 10, -7);
+                    ctx.lineTo(30 + i * 10, 7);
+                    ctx.stroke();
+                }
 
                 ctx.restore();
             }
@@ -506,16 +547,20 @@
             // Check if bat hits ball
             checkHit(ball) {
                 if (!this.swinging || !ball.isActive) return null;
+                if (ball.z > 150) return null; // Ball too far away
 
                 const dx = ball.x - this.x;
                 const dy = ball.y - this.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
+                const batLength = 200; // Increased hit range
 
-                if (distance < 30 && this.swingTimer > 5 && this.swingTimer < 12) {
-                    // Calculate hit accuracy based on timing and position
-                    const timingAccuracy = 1 - Math.abs(this.swingTimer - 8.5) / 8.5;
-                    const positionAccuracy = 1 - distance / 30;
-                    const overallAccuracy = (timingAccuracy + positionAccuracy) / 2;
+                // Check if ball is in bat's swing path
+                if (distance < batLength && this.swingTimer > 4 && this.swingTimer < 10) {
+                    // Calculate hit accuracy
+                    const timingAccuracy = 1 - Math.abs(this.swingTimer - 7) / 7;
+                    const distanceAccuracy = 1 - Math.min(ball.z / 150, 1);
+                    const positionAccuracy = 1 - distance / batLength;
+                    const overallAccuracy = (timingAccuracy * 0.5 + distanceAccuracy * 0.3 + positionAccuracy * 0.2);
 
                     return overallAccuracy;
                 }
@@ -523,11 +568,11 @@
             }
         }
 
-        // Pitcher class
+        // Pitcher class - Distant view from batter's perspective
         class Pitcher {
             constructor() {
-                this.x = canvas.width * 0.1;
-                this.y = canvas.height * 0.4;
+                this.x = canvas.width / 2;
+                this.y = canvas.height * 0.25;
                 this.pitching = false;
                 this.pitchTimer = 0;
             }
@@ -535,7 +580,7 @@
             update() {
                 if (this.pitching) {
                     this.pitchTimer++;
-                    if (this.pitchTimer >= 30) { // Wind up time
+                    if (this.pitchTimer >= 25) { // Wind up time
                         ball.pitch();
                         this.pitching = false;
                         this.pitchTimer = 0;
@@ -544,21 +589,47 @@
             }
 
             draw() {
-                // Simple pitcher representation
+                // Draw pitcher in distance (smaller)
+                const size = 12;
+
+                // Body
                 ctx.fillStyle = '#4169E1'; // Blue uniform
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, 15, 0, Math.PI * 2);
+                ctx.ellipse(this.x, this.y + 5, size * 0.6, size * 0.8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Head
+                ctx.fillStyle = '#FFD4A3'; // Skin tone
+                ctx.beginPath();
+                ctx.arc(this.x, this.y - 5, size * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cap
+                ctx.fillStyle = '#003087'; // Dark blue cap
+                ctx.beginPath();
+                ctx.arc(this.x, this.y - 7, size * 0.5, Math.PI, 0, true);
                 ctx.fill();
 
                 // Pitching motion
                 if (this.pitching) {
-                    const armAngle = (this.pitchTimer / 30) * Math.PI;
-                    ctx.strokeStyle = '#4169E1';
-                    ctx.lineWidth = 4;
+                    const progress = this.pitchTimer / 25;
+                    const armAngle = progress * Math.PI * 2;
+
+                    // Arm
+                    ctx.strokeStyle = '#FFD4A3';
+                    ctx.lineWidth = 3;
                     ctx.beginPath();
                     ctx.moveTo(this.x, this.y);
-                    ctx.lineTo(this.x + Math.cos(armAngle) * 20, this.y + Math.sin(armAngle) * 20);
+                    const armX = this.x + Math.cos(armAngle - Math.PI / 2) * size;
+                    const armY = this.y + Math.sin(armAngle - Math.PI / 2) * size;
+                    ctx.lineTo(armX, armY);
                     ctx.stroke();
+
+                    // Glove hand
+                    ctx.fillStyle = '#8B4513';
+                    ctx.beginPath();
+                    ctx.arc(armX, armY, 3, 0, Math.PI * 2);
+                    ctx.fill();
                 }
             }
 
@@ -772,29 +843,62 @@
         }
 
         function drawField() {
-            // Draw baseball field background
+            // Draw batter's view background
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             gradient.addColorStop(0, '#87CEEB'); // Sky blue
-            gradient.addColorStop(0.6, '#228B22'); // Forest green
-            gradient.addColorStop(1, '#8B4513'); // Saddle brown (dirt)
-            
+            gradient.addColorStop(0.3, '#B0C4DE'); // Light steel blue
+            gradient.addColorStop(0.7, '#228B22'); // Forest green
+            gradient.addColorStop(1, '#CD853F'); // Sandy brown (dirt at bottom)
+
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw pitcher's mound
-            ctx.fillStyle = '#CD853F';
+            // Draw pitcher's mound in distance (small)
+            const moundX = canvas.width / 2;
+            const moundY = canvas.height * 0.25;
+            ctx.fillStyle = '#8B7355';
             ctx.beginPath();
-            ctx.ellipse(canvas.width * 0.1, canvas.height * 0.4, 20, 8, 0, 0, Math.PI * 2);
+            ctx.ellipse(moundX, moundY, 40, 15, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Draw home plate area
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(canvas.width * 0.75, canvas.height * 0.68, 10, 4);
+            // Draw strike zone box (9 sections)
+            const zoneX = canvas.width / 2 - 75;
+            const zoneY = canvas.height * 0.35;
+            const zoneWidth = 150;
+            const zoneHeight = 180;
 
-            // Draw batter's box
-            ctx.strokeStyle = '#FFFFFF';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.lineWidth = 2;
-            ctx.strokeRect(canvas.width * 0.8, canvas.height * 0.6, 40, 80);
+
+            // Outer box
+            ctx.strokeRect(zoneX, zoneY, zoneWidth, zoneHeight);
+
+            // Vertical lines (3 columns)
+            ctx.beginPath();
+            ctx.moveTo(zoneX + zoneWidth / 3, zoneY);
+            ctx.lineTo(zoneX + zoneWidth / 3, zoneY + zoneHeight);
+            ctx.moveTo(zoneX + zoneWidth * 2 / 3, zoneY);
+            ctx.lineTo(zoneX + zoneWidth * 2 / 3, zoneY + zoneHeight);
+            ctx.stroke();
+
+            // Horizontal lines (3 rows)
+            ctx.beginPath();
+            ctx.moveTo(zoneX, zoneY + zoneHeight / 3);
+            ctx.lineTo(zoneX + zoneWidth, zoneY + zoneHeight / 3);
+            ctx.moveTo(zoneX, zoneY + zoneHeight * 2 / 3);
+            ctx.lineTo(zoneX + zoneWidth, zoneY + zoneHeight * 2 / 3);
+            ctx.stroke();
+
+            // Draw home plate at bottom
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, canvas.height - 30);
+            ctx.lineTo(canvas.width / 2 - 30, canvas.height - 50);
+            ctx.lineTo(canvas.width / 2 - 30, canvas.height - 70);
+            ctx.lineTo(canvas.width / 2 + 30, canvas.height - 70);
+            ctx.lineTo(canvas.width / 2 + 30, canvas.height - 50);
+            ctx.closePath();
+            ctx.fill();
         }
 
         function gameLoop() {

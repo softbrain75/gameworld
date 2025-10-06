@@ -118,7 +118,7 @@
         }
         .health-fill {
             height: 100%;
-            background: linear-gradient(90deg, #ff4444 0%, #ff8844 100%);
+            background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
             transition: width 0.3s;
             border-radius: 12px;
         }
@@ -130,6 +130,7 @@
             font-weight: bold;
             color: white;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-size: 12px;
         }
         #timer {
             position: absolute;
@@ -179,6 +180,27 @@
                 display: flex;
             }
         }
+        .mode-btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        .mode-btn.selected {
+            background: rgba(102,126,234,0.8);
+            border-color: #667eea;
+        }
+        .mode-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .difficulty-btn.selected {
+            background: rgba(102,126,234,0.8) !important;
+            border-color: #667eea !important;
+        }
     </style>
 </head>
 <body>
@@ -187,12 +209,24 @@
         <h1>⚔️ 파이터 배틀</h1>
         <div class="instructions">
             <strong>게임 방법:</strong><br>
-            • 2명이서 동시에 플레이하는 격투 게임!<br>
-            • 상대의 체력을 0으로 만들거나 시간 내에 더 많은 체력을 유지하세요!<br>
-            • <strong>앉기:</strong> 서서 하는 공격 회피 가능!<br>
-            • <strong>점프:</strong> 앉아서 하는 공격 회피 가능!<br>
-            • <strong>방어:</strong> 데미지 50% 감소, 방어 성공 시 1초 쿨타임!<br>
-            • 방어 중에는 공격 불가!<br><br>
+            • 검과 방패로 싸우는 전략 격투 게임!<br>
+            • <strong>서서 공격:</strong> 투구 공격 (2번 맞으면 사망)<br>
+            • <strong>앉아 공격:</strong> 갑옷 공격 (2번 맞으면 사망)<br>
+            • <strong>점프:</strong> 앉아 공격 회피!<br>
+            • <strong>방어:</strong> 공격 차단, 성공 시 1초 쿨타임<br>
+            • 투구와 갑옷 모두 파괴되면 패배!<br><br>
+        </div>
+        <div class="mode-selector" style="display: flex; gap: 10px; justify-content: center; margin: 20px 0;">
+            <button class="mode-btn selected" id="pvpBtn">👥 2인 대전</button>
+            <button class="mode-btn" id="aiBtn">🤖 AI 대전</button>
+        </div>
+        <div id="aiDifficulty" style="display: none; margin: 15px 0;">
+            <label style="color: white; font-size: 1.1em; display: block; margin-bottom: 10px;">AI 난이도:</label>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="difficulty-btn selected" id="easyAI" style="padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer;">😊 초급</button>
+                <button class="difficulty-btn" id="mediumAI" style="padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer;">🤔 중급</button>
+                <button class="difficulty-btn" id="hardAI" style="padding: 10px 20px; background: rgba(255,255,255,0.2); color: white; border: 2px solid white; border-radius: 8px; cursor: pointer;">😈 상급</button>
+            </div>
         </div>
         <div class="controls">
             <div class="player-controls">
@@ -202,12 +236,12 @@
                 • F - 공격<br>
                 • Shift - 방어
             </div>
-            <div class="player-controls">
+            <div class="player-controls" id="p2Controls">
                 <h3>🔵 플레이어 2 (파랑)</h3>
                 • ↑ - 점프 / ↓ - 앉기<br>
                 • ←, → - 좌우 이동<br>
                 • Enter - 공격<br>
-                • 우측 Shift - 방어
+                • \ - 방어
             </div>
         </div>
         <div class="highscore">최다 승리: <span id="menuHighScore">P1: 0 / P2: 0</span></div>
@@ -272,6 +306,69 @@
         canvas.height = window.innerHeight;
 
         let gameState = 'menu';
+        let gameMode = 'pvp'; // 'pvp' or 'ai'
+        let aiDifficulty = 'easy'; // 'easy', 'medium', 'hard'
+
+        // Sprite loading
+        const sprites = {
+            idle: [],
+            walk: [],
+            run: [],
+            jump: [],
+            attack: [],
+            jumpattack: [],
+            dead: [],
+            slash: [] // Slash effect
+        };
+        let spritesLoaded = 0;
+        const totalSprites = 76; // 7 animations × 10 frames + 6 slash frames
+
+        function loadSprites() {
+            const animations = [
+                { name: 'Idle', key: 'idle' },
+                { name: 'Walk', key: 'walk' },
+                { name: 'Run', key: 'run' },
+                { name: 'Jump', key: 'jump' },
+                { name: 'Attack', key: 'attack' },
+                { name: 'JumpAttack', key: 'jumpattack' },
+                { name: 'Dead', key: 'dead' }
+            ];
+
+            animations.forEach(anim => {
+                for (let i = 1; i <= 10; i++) {
+                    const img = new Image();
+                    img.onload = () => {
+                        spritesLoaded++;
+                        if (spritesLoaded === totalSprites) {
+                            console.log('All sprites loaded!');
+                        }
+                    };
+                    img.onerror = () => {
+                        console.error(`Failed to load: ${anim.name} (${i})`);
+                    };
+                    img.src = `resources/knight/${anim.name} (${i}).png`;
+                    sprites[anim.key].push(img);
+                }
+            });
+
+            // Load slash effect
+            for (let i = 1; i <= 6; i++) {
+                const img = new Image();
+                img.onload = () => {
+                    spritesLoaded++;
+                    if (spritesLoaded === totalSprites) {
+                        console.log('All sprites loaded!');
+                    }
+                };
+                img.onerror = () => {
+                    console.error(`Failed to load slash effect (${i})`);
+                };
+                img.src = `resources/slash/Classic_0${i}.png`;
+                sprites.slash.push(img);
+            }
+        }
+
+        loadSprites();
 
         // Audio
         let audioContext = null;
@@ -325,8 +422,10 @@
             standingHeight: 100,
             crouchingHeight: 60,
             color: '#ff4444',
-            health: 100,
-            maxHealth: 100,
+            helmetHP: 100, // 투구 HP
+            armorHP: 100,  // 갑옷 HP
+            maxHelmetHP: 100,
+            maxArmorHP: 100,
             velocityX: 0,
             velocityY: 0,
             speed: 5,
@@ -341,7 +440,16 @@
             knockbackX: 0,
             walkFrame: 0,
             facing: 1, // 1 = right, -1 = left
-            keys: {}
+            keys: {},
+            // Sprite animation
+            currentAnimation: 'idle',
+            animationFrame: 0,
+            animationSpeed: 0.15,
+            // Slash effect
+            slashFrame: 0,
+            slashActive: false,
+            // HP regeneration
+            lastHitTime: 0
         };
 
         const player2 = {
@@ -352,8 +460,10 @@
             standingHeight: 100,
             crouchingHeight: 60,
             color: '#4444ff',
-            health: 100,
-            maxHealth: 100,
+            helmetHP: 100,
+            armorHP: 100,
+            maxHelmetHP: 100,
+            maxArmorHP: 100,
             velocityX: 0,
             velocityY: 0,
             speed: 5,
@@ -368,7 +478,16 @@
             knockbackX: 0,
             walkFrame: 0,
             facing: -1,
-            keys: {}
+            keys: {},
+            // Sprite animation
+            currentAnimation: 'idle',
+            animationFrame: 0,
+            animationSpeed: 0.15,
+            // Slash effect
+            slashFrame: 0,
+            slashActive: false,
+            // HP regeneration
+            lastHitTime: 0
         };
 
         let wins = { p1: 0, p2: 0 };
@@ -385,12 +504,49 @@
             document.getElementById('gameoverScore').textContent = `P1: ${wins.p1} / P2: ${wins.p2}`;
         }
 
+        // Mode selection
+        document.getElementById('pvpBtn').addEventListener('click', () => {
+            gameMode = 'pvp';
+            document.getElementById('pvpBtn').classList.add('selected');
+            document.getElementById('aiBtn').classList.remove('selected');
+            document.getElementById('aiDifficulty').style.display = 'none';
+            document.getElementById('p2Controls').style.display = 'block';
+        });
+
+        document.getElementById('aiBtn').addEventListener('click', () => {
+            gameMode = 'ai';
+            document.getElementById('aiBtn').classList.add('selected');
+            document.getElementById('pvpBtn').classList.remove('selected');
+            document.getElementById('aiDifficulty').style.display = 'block';
+            document.getElementById('p2Controls').style.display = 'none';
+        });
+
+        // Difficulty selection
+        document.getElementById('easyAI').addEventListener('click', () => {
+            aiDifficulty = 'easy';
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('easyAI').classList.add('selected');
+        });
+
+        document.getElementById('mediumAI').addEventListener('click', () => {
+            aiDifficulty = 'medium';
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('mediumAI').classList.add('selected');
+        });
+
+        document.getElementById('hardAI').addEventListener('click', () => {
+            aiDifficulty = 'hard';
+            document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById('hardAI').classList.add('selected');
+        });
+
         function startGame() {
             gameState = 'playing';
 
             player1.x = 200;
             player1.y = canvas.height - 200;
-            player1.health = 100;
+            player1.helmetHP = 100;
+            player1.armorHP = 100;
             player1.velocityX = 0;
             player1.velocityY = 0;
             player1.isJumping = false;
@@ -403,10 +559,13 @@
             player1.walkFrame = 0;
             player1.height = player1.standingHeight;
             player1.facing = 1;
+            player1.slashActive = false;
+            player1.lastHitTime = 0;
 
             player2.x = canvas.width - 260;
             player2.y = canvas.height - 200;
-            player2.health = 100;
+            player2.helmetHP = 100;
+            player2.armorHP = 100;
             player2.velocityX = 0;
             player2.velocityY = 0;
             player2.isJumping = false;
@@ -419,13 +578,15 @@
             player2.walkFrame = 0;
             player2.height = player2.standingHeight;
             player2.facing = -1;
+            player2.slashActive = false;
+            player2.lastHitTime = 0;
 
             document.getElementById('menuScreen').style.display = 'none';
             document.getElementById('gameoverScreen').style.display = 'none';
             document.getElementById('gameInfo').style.display = 'flex';
             document.getElementById('timer').style.display = 'none';
 
-            updateHealthDisplay();
+            updateArmorDisplay();
         }
 
         function showMenu() {
@@ -440,12 +601,15 @@
             gameState = 'gameover';
 
             let winner;
-            if (player1.health <= 0 && player2.health <= 0) {
+            const p1Dead = player1.helmetHP <= 0 || player1.armorHP <= 0;
+            const p2Dead = player2.helmetHP <= 0 || player2.armorHP <= 0;
+
+            if (p1Dead && p2Dead) {
                 winner = '무승부!';
-            } else if (player1.health <= 0) {
-                winner = '🔵 플레이어 2 승리!';
+            } else if (p1Dead) {
+                winner = gameMode === 'ai' ? '🤖 AI 승리!' : '🔵 플레이어 2 승리!';
                 wins.p2++;
-            } else if (player2.health <= 0) {
+            } else if (p2Dead) {
                 winner = '🔴 플레이어 1 승리!';
                 wins.p1++;
             } else {
@@ -463,16 +627,64 @@
             playSound('win');
         }
 
-        function updateHealthDisplay() {
-            const p1Percent = Math.max(0, (player1.health / player1.maxHealth) * 100);
-            const p2Percent = Math.max(0, (player2.health / player2.maxHealth) * 100);
+        // Particle effects for armor breaking
+        let particles = [];
 
+        function createBreakEffect(x, y, color, type) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8 - 2,
+                    life: 60,
+                    maxLife: 60,
+                    color: color,
+                    size: Math.random() * 4 + 2,
+                    type: type
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.3; // gravity
+                p.life--;
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                const alpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color.replace('rgb', 'rgba').replace(')', `,${alpha})`);
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            });
+        }
+
+        function updateArmorDisplay() {
+            // Player 1
+            const p1Total = player1.helmetHP + player1.armorHP;
+            const p1Percent = Math.max(0, (p1Total / 200) * 100);
             document.getElementById('p1Health').style.width = p1Percent + '%';
-            document.getElementById('p2Health').style.width = p2Percent + '%';
-            document.getElementById('p1HealthText').textContent = Math.max(0, Math.round(player1.health));
-            document.getElementById('p2HealthText').textContent = Math.max(0, Math.round(player2.health));
+            document.getElementById('p1HealthText').textContent = `투구:${Math.round(player1.helmetHP)} 갑옷:${Math.round(player1.armorHP)}`;
 
-            if (player1.health <= 0 || player2.health <= 0) {
+            // Player 2
+            const p2Total = player2.helmetHP + player2.armorHP;
+            const p2Percent = Math.max(0, (p2Total / 200) * 100);
+            document.getElementById('p2Health').style.width = p2Percent + '%';
+            document.getElementById('p2HealthText').textContent = `투구:${Math.round(player2.helmetHP)} 갑옷:${Math.round(player2.armorHP)}`;
+
+            // Check death condition: helmet 0 OR armor 0
+            if (player1.helmetHP <= 0 || player1.armorHP <= 0) {
+                gameOver();
+            }
+            if (player2.helmetHP <= 0 || player2.armorHP <= 0) {
                 gameOver();
             }
         }
@@ -500,7 +712,7 @@
                 e.preventDefault();
                 if (player1.attackCooldown <= 0 && !player1.isDefending) {
                     player1.isAttacking = true;
-                    player1.attackCooldown = 60; // 2배로 증가
+                    player1.attackCooldown = 30; // 공격 속도 2배 빠르게
                 }
             }
             if (e.key === 'Shift' && e.location === 1) { // Left Shift
@@ -531,12 +743,12 @@
                 e.preventDefault();
                 if (player2.attackCooldown <= 0 && !player2.isDefending) {
                     player2.isAttacking = true;
-                    player2.attackCooldown = 60; // 2배로 증가
+                    player2.attackCooldown = 30; // 공격 속도 2배 빠르게
                 }
             }
-            if (e.key === 'Shift' && e.location === 2) { // Right Shift
+            if (e.key === '\\') { // Backslash for P2 defense
                 e.preventDefault();
-                if (player2.defendCooldown <= 0) {
+                if (player2.defendCooldown <= 0 && gameMode === 'pvp') {
                     player2.isDefending = true;
                 }
             }
@@ -559,7 +771,7 @@
             }
             if (e.key === 'ArrowLeft') player2.keys.left = false;
             if (e.key === 'ArrowRight') player2.keys.right = false;
-            if (e.key === 'Shift' && e.location === 2) player2.isDefending = false;
+            if (e.key === '\\') player2.isDefending = false;
         });
 
         // Mobile controls
@@ -593,7 +805,7 @@
         setupMobileControls();
 
         function updatePlayer(player) {
-            // Crouching
+            // Crouching - height는 충돌 판정용으로만, 위치는 변경 안함
             if (player.isCrouching && !player.isJumping) {
                 player.height = player.crouchingHeight;
             } else {
@@ -635,10 +847,10 @@
             player.x += player.velocityX;
             player.y += player.velocityY;
 
-            // Ground collision
+            // Ground collision - 항상 서있는 높이 기준으로 계산
             const ground = canvas.height - 100;
-            if (player.y + player.height >= ground) {
-                player.y = ground - player.height;
+            if (player.y + player.standingHeight >= ground) {
+                player.y = ground - player.standingHeight;
                 player.velocityY = 0;
                 player.isJumping = false;
             }
@@ -662,6 +874,19 @@
                 setTimeout(() => {
                     player.isAttacking = false;
                 }, 200);
+            }
+
+            // HP regeneration (3초 후 1초당 2HP씩 회복)
+            const currentTime = Date.now();
+            if (currentTime - player.lastHitTime > 3000) { // 3초 후
+                // 투구 HP 회복 (최대 100까지)
+                if (player.helmetHP < player.maxHelmetHP) {
+                    player.helmetHP = Math.min(player.maxHelmetHP, player.helmetHP + 0.033); // 60fps 기준 1초당 2HP
+                }
+                // 갑옷 HP 회복 (최대 100까지)
+                if (player.armorHP < player.maxArmorHP) {
+                    player.armorHP = Math.min(player.maxArmorHP, player.armorHP + 0.033);
+                }
             }
         }
 
@@ -695,252 +920,194 @@
         }
 
         function handleCombat() {
+            const damage = 15; // 데미지 양 (100HP / 15 = 약 7번 공격)
+
             // Player 1 attacks Player 2
             const p1Hit = checkCollision(player1, player2);
             if (p1Hit === true) {
-                player2.health -= 10;
+                const centerX = player2.x + player2.width / 2;
+                const headY = player2.isCrouching ? player2.y + 10 : player2.y - 15;
+                const bodyY = player2.isCrouching ? player2.y + 25 : player2.y + 5;
+
+                // Standing attack = helmet damage, Crouching attack = armor damage
+                if (player1.isCrouching) {
+                    player2.armorHP = Math.max(0, player2.armorHP - damage);
+                    createBreakEffect(centerX, bodyY + 25, 'rgb(192,192,192)', 'armor');
+                } else {
+                    player2.helmetHP = Math.max(0, player2.helmetHP - damage);
+                    createBreakEffect(centerX, headY, 'rgb(255,215,0)', 'helmet');
+                }
+                player2.lastHitTime = Date.now(); // 회복 타이머 리셋
                 playSound('hit');
-                updateHealthDisplay();
+                updateArmorDisplay();
                 player1.isAttacking = false;
             } else if (p1Hit === 'blocked') {
-                player2.health -= 5;
                 playSound('defend');
                 // Knockback for defender
                 player2.knockbackX = (player2.x - player1.x > 0 ? 15 : -15);
                 // Attacker gets 2 second cooldown when blocked
                 player1.attackCooldown = 120; // 2초
-                updateHealthDisplay();
                 player1.isAttacking = false;
             }
 
             // Player 2 attacks Player 1
             const p2Hit = checkCollision(player2, player1);
             if (p2Hit === true) {
-                player1.health -= 10;
+                const centerX = player1.x + player1.width / 2;
+                const headY = player1.isCrouching ? player1.y + 10 : player1.y - 15;
+                const bodyY = player1.isCrouching ? player1.y + 25 : player1.y + 5;
+
+                // Standing attack = helmet damage, Crouching attack = armor damage
+                if (player2.isCrouching) {
+                    player1.armorHP = Math.max(0, player1.armorHP - damage);
+                    createBreakEffect(centerX, bodyY + 25, 'rgb(192,192,192)', 'armor');
+                } else {
+                    player1.helmetHP = Math.max(0, player1.helmetHP - damage);
+                    createBreakEffect(centerX, headY, 'rgb(255,215,0)', 'helmet');
+                }
+                player1.lastHitTime = Date.now(); // 회복 타이머 리셋
                 playSound('hit');
-                updateHealthDisplay();
+                updateArmorDisplay();
                 player2.isAttacking = false;
             } else if (p2Hit === 'blocked') {
-                player1.health -= 5;
                 playSound('defend');
                 // Knockback for defender
                 player1.knockbackX = (player1.x - player2.x > 0 ? 15 : -15);
                 // Attacker gets 2 second cooldown when blocked
                 player2.attackCooldown = 120; // 2초
-                updateHealthDisplay();
                 player2.isAttacking = false;
+            }
+        }
+
+        function updatePlayerAnimation(player) {
+            // Determine current animation based on state
+            let newAnimation = 'idle';
+
+            if (player.helmetHP <= 0 || player.armorHP <= 0) {
+                newAnimation = 'dead';
+            } else if (player.isAttacking) {
+                newAnimation = player.isJumping ? 'jumpattack' : 'attack';
+                // Start slash effect
+                if (!player.slashActive) {
+                    player.slashActive = true;
+                    player.slashFrame = 0;
+                }
+            } else if (player.isJumping) {
+                newAnimation = 'jump';
+            } else if (player.velocityX !== 0) {
+                newAnimation = 'walk';
+            } else {
+                newAnimation = 'idle';
+            }
+
+            // Reset animation frame if animation changed
+            if (newAnimation !== player.currentAnimation) {
+                player.currentAnimation = newAnimation;
+                player.animationFrame = 0;
+            }
+
+            // Advance animation frame
+            player.animationFrame += player.animationSpeed;
+            if (player.animationFrame >= 10) {
+                if (newAnimation === 'attack' || newAnimation === 'jumpattack') {
+                    player.animationFrame = 9; // Hold last frame
+                    if (!player.isAttacking) {
+                        player.animationFrame = 0;
+                    }
+                } else if (newAnimation === 'dead') {
+                    player.animationFrame = 9; // Stay at last frame
+                } else {
+                    player.animationFrame = 0; // Loop
+                }
+            }
+
+            // Update slash effect
+            if (player.slashActive) {
+                player.slashFrame += 0.3;
+                if (player.slashFrame >= 6) {
+                    player.slashActive = false;
+                    player.slashFrame = 0;
+                }
             }
         }
 
         function drawPlayer(player) {
             const centerX = player.x + player.width / 2;
-            const centerY = player.y + player.height / 2;
-
-            // Walking animation
-            const walkBob = Math.sin(player.walkFrame) * 3;
 
             // Shadow
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
             ctx.beginPath();
-            ctx.ellipse(centerX, canvas.height - 95, player.width / 2, 10, 0, 0, Math.PI * 2);
+            ctx.ellipse(centerX, canvas.height - 95, 50, 10, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Head
-            const headY = player.isCrouching ? player.y + 10 : player.y - 15 + walkBob;
-            ctx.fillStyle = player.color;
-            ctx.beginPath();
-            ctx.arc(centerX, headY, 18, 0, Math.PI * 2);
-            ctx.fill();
+            // Get sprite
+            const spriteArray = sprites[player.currentAnimation];
+            if (!spriteArray || spriteArray.length === 0) return;
 
-            // Eyes
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(centerX - 6, headY - 3, 4, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(centerX + 6, headY - 3, 4, 0, Math.PI * 2);
-            ctx.fill();
+            const frameIndex = Math.floor(player.animationFrame);
+            const sprite = spriteArray[frameIndex];
+            if (!sprite || !sprite.complete) return;
 
-            // Pupils
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(centerX - 6 + (player.facing * 2), headY - 3, 2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(centerX + 6 + (player.facing * 2), headY - 3, 2, 0, Math.PI * 2);
-            ctx.fill();
+            // Draw sprite with crouch scaling
+            ctx.save();
+            const spriteWidth = 120;
+            let spriteHeight = 120;
+            const drawX = player.x - 35;
+            let drawY = player.y - 20;
 
-            // Body (torso)
-            const bodyY = player.isCrouching ? player.y + 25 : player.y + 5 + walkBob;
-            const bodyHeight = player.isCrouching ? 35 : 50;
-            ctx.fillStyle = player.color;
-            ctx.fillRect(centerX - 15, bodyY, 30, bodyHeight);
+            // Crouch: scale down vertically only
+            if (player.isCrouching && !player.isJumping) {
+                const crouchScale = 0.7; // 70% height
+                const originalHeight = 120;
+                spriteHeight = originalHeight * crouchScale;
+                // Adjust Y so bottom stays at same position
+                drawY = player.y - 20 + (originalHeight - spriteHeight);
+            }
 
-            // Arms and weapons
-            ctx.strokeStyle = player.color;
-            ctx.lineWidth = 8;
-            ctx.lineCap = 'round';
+            // Apply color filter for player 2 (blue hue shift)
+            if (player.color === '#4444ff') {
+                ctx.filter = 'hue-rotate(220deg) saturate(1.5)';
+            }
 
-            if (player.isAttacking) {
-                // Sword attack - arm extended with sword
-                const armX = centerX + (player.facing * 15);
-                const swordEndX = armX + (player.facing * 45);
-                const attackY = player.isCrouching ? bodyY + 20 : bodyY + 15;
+            if (player.facing === -1) {
+                ctx.translate(drawX + spriteWidth, drawY);
+                ctx.scale(-1, 1);
+                ctx.drawImage(sprite, 0, 0, spriteWidth, spriteHeight);
+            } else {
+                ctx.drawImage(sprite, drawX, drawY, spriteWidth, spriteHeight);
+            }
 
-                // Arm
-                ctx.beginPath();
-                ctx.moveTo(armX, attackY);
-                ctx.lineTo(armX + (player.facing * 20), attackY);
-                ctx.stroke();
+            ctx.filter = 'none'; // Reset filter
+            ctx.restore();
 
-                // Sword
-                ctx.strokeStyle = '#c0c0c0';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(armX + (player.facing * 20), attackY);
-                ctx.lineTo(swordEndX, attackY);
-                ctx.stroke();
 
-                // Sword tip
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.arc(swordEndX, attackY, 5, 0, Math.PI * 2);
-                ctx.fill();
+            // Draw slash effect
+            if (player.slashActive && sprites.slash.length > 0) {
+                const slashIndex = Math.floor(player.slashFrame);
+                if (slashIndex < sprites.slash.length) {
+                    const slashSprite = sprites.slash[slashIndex];
+                    if (slashSprite && slashSprite.complete) {
+                        ctx.save();
+                        const slashWidth = 100;
+                        const slashHeight = 100;
+                        const slashX = centerX + (player.facing * 40) - (slashWidth / 2);
+                        const slashY = player.isCrouching ? player.y + 10 : player.y - 10;
 
-                // Sword slash effect
-                ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-                ctx.lineWidth = 2;
-                for (let i = 0; i < 3; i++) {
-                    ctx.beginPath();
-                    ctx.arc(swordEndX - (player.facing * i * 8), attackY, 6 - i, 0, Math.PI * 2);
-                    ctx.stroke();
+                        if (player.facing === -1) {
+                            ctx.translate(slashX + slashWidth, slashY);
+                            ctx.scale(-1, 1);
+                            ctx.globalAlpha = 0.8;
+                            ctx.drawImage(slashSprite, 0, 0, slashWidth, slashHeight);
+                        } else {
+                            ctx.globalAlpha = 0.8;
+                            ctx.drawImage(slashSprite, slashX, slashY, slashWidth, slashHeight);
+                        }
+                        ctx.restore();
+                    }
                 }
-
-                // Other arm
-                ctx.strokeStyle = player.color;
-                ctx.lineWidth = 8;
-                ctx.beginPath();
-                ctx.moveTo(centerX - (player.facing * 15), bodyY + 15);
-                ctx.lineTo(centerX - (player.facing * 20), bodyY + 35);
-                ctx.stroke();
-
-            } else if (player.isDefending) {
-                // Shield defense - arm holding shield
-                const shieldX = centerX + (player.facing * 25);
-                const shieldY = bodyY + 20;
-
-                // Shield arm
-                ctx.beginPath();
-                ctx.moveTo(centerX + (player.facing * 15), bodyY + 15);
-                ctx.lineTo(shieldX, shieldY);
-                ctx.stroke();
-
-                // Shield
-                ctx.fillStyle = '#8B4513';
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.ellipse(shieldX, shieldY, 18, 25, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-
-                // Shield emblem
-                ctx.fillStyle = '#FFD700';
-                ctx.beginPath();
-                ctx.arc(shieldX, shieldY, 8, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Sword arm (ready position)
-                ctx.strokeStyle = player.color;
-                ctx.lineWidth = 8;
-                ctx.beginPath();
-                ctx.moveTo(centerX - (player.facing * 15), bodyY + 15);
-                ctx.lineTo(centerX - (player.facing * 18), bodyY + 30);
-                ctx.stroke();
-
-                // Sword (sheathed)
-                ctx.strokeStyle = '#808080';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(centerX - (player.facing * 18), bodyY + 30);
-                ctx.lineTo(centerX - (player.facing * 18), bodyY + 50);
-                ctx.stroke();
-
-            } else {
-                // Normal stance - walking animation
-                const armSwing = Math.sin(player.walkFrame) * 5;
-
-                // Right arm with sword
-                ctx.beginPath();
-                ctx.moveTo(centerX + 15, bodyY + 15);
-                ctx.lineTo(centerX + 20, bodyY + 35 + armSwing);
-                ctx.stroke();
-
-                // Sword at side
-                ctx.strokeStyle = '#808080';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(centerX + 20, bodyY + 35 + armSwing);
-                ctx.lineTo(centerX + 22, bodyY + 55 + armSwing);
-                ctx.stroke();
-
-                // Left arm with shield
-                ctx.strokeStyle = player.color;
-                ctx.lineWidth = 8;
-                ctx.beginPath();
-                ctx.moveTo(centerX - 15, bodyY + 15);
-                ctx.lineTo(centerX - 20, bodyY + 35 - armSwing);
-                ctx.stroke();
-
-                // Small shield on back/side
-                ctx.fillStyle = '#654321';
-                ctx.strokeStyle = '#FFD700';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.ellipse(centerX - 25, bodyY + 25, 8, 12, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
             }
 
-            // Legs with walking animation
-            const legY = bodyY + bodyHeight;
-            ctx.strokeStyle = player.color;
-            ctx.lineWidth = 8;
-
-            if (player.isCrouching) {
-                // Crouching legs
-                ctx.beginPath();
-                ctx.moveTo(centerX - 10, legY);
-                ctx.lineTo(centerX - 15, legY + 20);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(centerX + 10, legY);
-                ctx.lineTo(centerX + 15, legY + 20);
-                ctx.stroke();
-            } else if (player.isJumping) {
-                // Jumping legs
-                ctx.beginPath();
-                ctx.moveTo(centerX - 10, legY);
-                ctx.lineTo(centerX - 8, legY + 25);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(centerX + 10, legY);
-                ctx.lineTo(centerX + 8, legY + 25);
-                ctx.stroke();
-            } else {
-                // Walking legs
-                const legSwing = Math.sin(player.walkFrame) * 8;
-                ctx.beginPath();
-                ctx.moveTo(centerX - 10, legY);
-                ctx.lineTo(centerX - 10 - legSwing, legY + 30);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(centerX + 10, legY);
-                ctx.lineTo(centerX + 10 + legSwing, legY + 30);
-                ctx.stroke();
-            }
-
-            // Defend cooldown indicator
+            // Cooldown indicators
             if (player.defendCooldown > 0) {
                 ctx.fillStyle = 'rgba(255,0,0,0.7)';
                 ctx.font = 'bold 12px Arial';
@@ -948,7 +1115,6 @@
                 ctx.fillText('방어 쿨타임', centerX, player.y - 50);
             }
 
-            // Attack cooldown indicator
             if (player.attackCooldown > 60) {
                 ctx.fillStyle = 'rgba(255,100,0,0.7)';
                 ctx.font = 'bold 12px Arial';
@@ -956,22 +1122,6 @@
                 ctx.fillText('공격 쿨타임', centerX, player.y - 60);
             }
 
-            // Health bar above player
-            const barWidth = 60;
-            const barHeight = 8;
-            const barX = centerX - barWidth / 2;
-            const barY = player.y - 40;
-
-            ctx.fillStyle = '#333';
-            ctx.fillRect(barX, barY, barWidth, barHeight);
-
-            const healthPercent = player.health / player.maxHealth;
-            ctx.fillStyle = healthPercent > 0.5 ? '#4ade80' : healthPercent > 0.25 ? '#fbbf24' : '#ef4444';
-            ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
-
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(barX, barY, barWidth, barHeight);
         }
 
         function drawBackground() {
@@ -995,16 +1145,120 @@
             ctx.stroke();
         }
 
+        // AI opponent logic
+        function updateAI() {
+            if (gameMode !== 'ai') return;
+
+            const dist = Math.abs(player1.x - player2.x);
+            const aiReactionTime = aiDifficulty === 'easy' ? 20 : aiDifficulty === 'medium' ? 10 : 5;
+
+            // Random decision making based on difficulty
+            if (Math.random() * 100 < aiReactionTime) {
+                // Movement - chase player
+                if (dist > 100) {
+                    if (player1.x < player2.x) {
+                        player2.keys.left = true;
+                        player2.keys.right = false;
+                    } else {
+                        player2.keys.right = true;
+                        player2.keys.left = false;
+                    }
+                } else if (dist < 60) {
+                    // Too close, back away
+                    if (player1.x < player2.x) {
+                        player2.keys.right = true;
+                        player2.keys.left = false;
+                    } else {
+                        player2.keys.left = true;
+                        player2.keys.right = false;
+                    }
+                } else {
+                    player2.keys.left = false;
+                    player2.keys.right = false;
+                }
+
+                // Attack logic
+                if (dist < 100 && player2.attackCooldown <= 0 && !player2.isDefending) {
+                    // Hard AI: Strategic attack choice
+                    if (aiDifficulty === 'hard') {
+                        // Attack helmet if armor is broken, vice versa
+                        if (player1.armor <= 0 && player1.helmet > 0) {
+                            player2.isCrouching = false; // Standing attack for helmet
+                        } else if (player1.helmet <= 0 && player1.armor > 0) {
+                            player2.isCrouching = true; // Crouching attack for armor
+                        } else {
+                            // Random mix
+                            player2.isCrouching = Math.random() > 0.5;
+                        }
+                    } else if (aiDifficulty === 'medium') {
+                        // Medium: Sometimes crouch attack
+                        player2.isCrouching = Math.random() > 0.7;
+                    }
+                    player2.isAttacking = true;
+                    player2.attackCooldown = 30; // 공격 속도 2배 빠르게
+                }
+
+                // Defense logic
+                if (player1.isAttacking && dist < 100 && player2.defendCooldown <= 0) {
+                    const defendChance = aiDifficulty === 'easy' ? 0.3 : aiDifficulty === 'medium' ? 0.6 : 0.85;
+                    if (Math.random() < defendChance) {
+                        player2.isDefending = true;
+                    }
+                }
+
+                // Jump/Crouch dodge
+                if (player1.isAttacking && dist < 100) {
+                    if (aiDifficulty === 'hard') {
+                        // Hard AI dodges appropriately
+                        if (player1.isCrouching && !player2.isJumping && Math.random() > 0.3) {
+                            player2.velocityY = -player2.jumpPower;
+                            player2.isJumping = true;
+                        } else if (!player1.isCrouching && Math.random() > 0.3) {
+                            player2.isCrouching = true;
+                            player2.keys.crouch = true;
+                        }
+                    } else if (aiDifficulty === 'medium' && Math.random() > 0.7) {
+                        // Medium AI sometimes dodges
+                        if (player1.isCrouching) {
+                            player2.velocityY = -player2.jumpPower;
+                            player2.isJumping = true;
+                        } else {
+                            player2.isCrouching = true;
+                            player2.keys.crouch = true;
+                        }
+                    }
+                } else {
+                    // Release crouch when not dodging
+                    if (!player2.isAttacking && player2.isCrouching && Math.random() > 0.8) {
+                        player2.isCrouching = false;
+                        player2.keys.crouch = false;
+                    }
+                }
+            }
+
+            // Release defense after short time
+            if (player2.isDefending && Math.random() > 0.9) {
+                player2.isDefending = false;
+            }
+        }
+
         function gameLoop() {
             if (gameState === 'playing') {
                 drawBackground();
 
                 updatePlayer(player1);
+                updatePlayerAnimation(player1);
+                if (gameMode === 'ai') {
+                    updateAI();
+                }
                 updatePlayer(player2);
+                updatePlayerAnimation(player2);
                 handleCombat();
+                updateParticles();
 
                 drawPlayer(player1);
                 drawPlayer(player2);
+                drawParticles();
             }
 
             requestAnimationFrame(gameLoop);
