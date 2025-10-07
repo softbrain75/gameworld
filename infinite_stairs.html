@@ -260,7 +260,7 @@
         let cameraY = 0;
         const stairWidth = 80;
         const stairHeight = 40;
-        const stairDepth = 6; // Very small depth for minimal camera movement
+        const stairDepth = 50; // Visual depth for 3D effect
 
         // Input
         const keys = {};
@@ -381,10 +381,10 @@
                 }
             }
 
-            // Camera smoothly follows player (based on current position including animation)
+            // Camera follows slowly - only move when player gets too high on screen
             const currentPlayerY = player.stairIndex + (player.climbing ? player.climbProgress : 0);
-            const targetCameraY = currentPlayerY * stairHeight;
-            cameraY += (targetCameraY - cameraY) * 0.15;
+            const targetCameraY = Math.max(0, currentPlayerY - 3) * stairHeight; // Keep player 3 stairs from bottom
+            cameraY += (targetCameraY - cameraY) * 0.08; // Very slow camera movement
         }
 
         function climbStair() {
