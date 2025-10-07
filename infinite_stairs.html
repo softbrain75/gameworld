@@ -381,10 +381,12 @@
                 }
             }
 
-            // Camera follows slowly - only move when player gets too high on screen
+            // Camera follows smoothly - keep player near bottom of screen
             const currentPlayerY = player.stairIndex + (player.climbing ? player.climbProgress : 0);
-            const targetCameraY = Math.max(0, currentPlayerY - 3) * stairHeight; // Keep player 3 stairs from bottom
-            cameraY += (targetCameraY - cameraY) * 0.08; // Very slow camera movement
+            // Only start moving camera after player climbs 5 stairs
+            const targetCameraY = Math.max(0, currentPlayerY - 5) * stairHeight;
+            // Very smooth camera movement to avoid sudden jumps
+            cameraY += (targetCameraY - cameraY) * 0.05;
         }
 
         function climbStair() {
@@ -468,7 +470,7 @@
             ctx.save();
 
             const centerX = canvas.width / 2;
-            const startY = canvas.height * 0.7;
+            const startY = canvas.height * 0.8; // Player at 80% (bottom 20%)
 
             // Draw stairs
             stairs.forEach((stair, index) => {
