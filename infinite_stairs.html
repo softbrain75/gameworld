@@ -407,7 +407,7 @@
             player.climbing = true;
             player.climbProgress = 0;
             score++;
-            health = 100; // Fully restore health on each step
+            health = Math.min(100, health + 50); // Add 50% health
             document.getElementById('scoreDisplay').textContent = score;
             playSound('step');
         }
@@ -425,7 +425,7 @@
             player.climbing = true;
             player.climbProgress = 0;
             score++;
-            health = 100; // Fully restore health on turn
+            health = Math.min(100, health + 50); // Add 50% health
             document.getElementById('scoreDisplay').textContent = score;
             playSound('turn');
         }
