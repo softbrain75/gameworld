@@ -271,7 +271,18 @@
         // Initialize platforms
         function initPlatforms() {
             platforms = [];
-            for (let i = 0; i < 20; i++) {
+            // First platform at starting position (center lane)
+            platforms.push({
+                x: 0,
+                y: 0,
+                z: 0,
+                width: 2,
+                height: 0.3,
+                depth: 3,
+                lane: 0
+            });
+            // Generate remaining platforms
+            for (let i = 1; i < 20; i++) {
                 createPlatform(i * 4);
             }
         }
