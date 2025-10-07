@@ -22,7 +22,7 @@
             height: calc(var(--vh, 1vh) * 100);
             overflow: hidden;
             font-family: 'Malgun Gothic', sans-serif;
-            background: linear-gradient(to bottom, #87CEEB, #B0E0E6);
+            background: #1a1a2e;
             touch-action: none;
             display: flex;
             justify-content: center;
@@ -31,7 +31,7 @@
 
         #gameCanvas {
             display: block;
-            background: linear-gradient(to bottom, #87CEEB, #B0E0E6);
+            background: #1a1a2e;
             max-width: 100%;
             max-height: 100%;
             width: 100vw;
@@ -49,7 +49,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             color: white;
             z-index: 10;
         }
@@ -89,16 +89,39 @@
             transform: scale(0.95);
         }
 
-        .stats {
+        .hud {
             position: absolute;
-            top: 30px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            color: white;
-            font-size: 3rem;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            width: 90%;
+            max-width: 400px;
             z-index: 5;
+        }
+
+        .score {
+            color: white;
+            font-size: 2.5rem;
+            text-align: center;
             font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 10px;
+        }
+
+        .health-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid white;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.1s linear;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
         }
 
         .controls {
@@ -106,7 +129,7 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 250px;
+            height: 200px;
             display: none;
             z-index: 5;
         }
@@ -118,41 +141,43 @@
         .control-btn {
             flex: 1;
             border: none;
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
             color: white;
             cursor: pointer;
-            opacity: 0.6;
+            opacity: 0.85;
             transition: opacity 0.1s;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             gap: 10px;
+            border-top: 3px solid rgba(255, 255, 255, 0.3);
         }
 
         .control-btn.left {
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.6), rgba(41, 128, 185, 0.6));
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.7), rgba(41, 128, 185, 0.7));
         }
 
         .control-btn.right {
-            background: linear-gradient(135deg, rgba(231, 76, 60, 0.6), rgba(192, 57, 43, 0.6));
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.7), rgba(192, 57, 43, 0.7));
         }
 
         .control-btn:active {
-            opacity: 0.9;
+            opacity: 1;
+            transform: scale(0.98);
         }
 
         .key-label {
-            font-size: 1.2rem;
-            opacity: 0.8;
+            font-size: 1rem;
+            opacity: 0.9;
         }
 
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
             .info { font-size: 1rem; }
             button { font-size: 1.2rem; padding: 0.8rem 2rem; }
-            .stats { font-size: 2rem; }
+            .score { font-size: 2rem; }
         }
     </style>
 </head>
@@ -161,9 +186,9 @@
 
     <div id="menuScreen" class="screen">
         <h1>⬆️ 무한의 계단</h1>
-        <div class="info">계단을 타고 최대한 높이 올라가세요!</div>
-        <div class="info">Z키: 앞으로 가기 / X키: 방향 전환</div>
-        <div class="info">모바일: 왼쪽/오른쪽 버튼 터치</div>
+        <div class="info">좌우로 이어지는 계단을 올라가세요!</div>
+        <div class="info">계단 끝에서 방향을 전환하세요!</div>
+        <div class="info">체력이 다 닳기 전에 계단을 올라야 합니다!</div>
         <div class="info" style="margin-top: 1rem;">최고 기록: <span id="menuHighScore">0</span>층</div>
         <button id="startBtn">게임 시작</button>
     </div>
@@ -175,18 +200,21 @@
         <button id="retryBtn">다시 하기</button>
     </div>
 
-    <div class="stats hidden" id="gameStats">
-        <span id="floorCount">0</span>
+    <div class="hud hidden" id="gameHud">
+        <div class="score" id="scoreDisplay">0</div>
+        <div class="health-bar">
+            <div class="health-fill" id="healthFill"></div>
+        </div>
     </div>
 
     <div class="controls" id="controls">
-        <button class="control-btn left" id="leftBtn">
-            <div>Z</div>
-            <div class="key-label">앞으로</div>
+        <button class="control-btn left" id="turnBtn">
+            <div>방향전환</div>
+            <div class="key-label">Z 또는 ←</div>
         </button>
-        <button class="control-btn right" id="rightBtn">
-            <div>X</div>
-            <div class="key-label">회전</div>
+        <button class="control-btn right" id="climbBtn">
+            <div>오르기</div>
+            <div class="key-label">X 또는 →</div>
         </button>
     </div>
 
@@ -217,21 +245,22 @@
         // Player
         const player = {
             x: 0,
-            y: 0,
-            size: 50,
-            direction: 0, // 0: right, 1: up, 2: left, 3: down
-            moving: false,
-            moveProgress: 0,
-            color: '#FF6B6B'
+            stairIndex: 0,
+            direction: 1, // 1 = right, -1 = left
+            climbing: false,
+            climbProgress: 0,
+            size: 35
         };
 
-        // Stairs
+        // Game variables
         let stairs = [];
-        let currentStair = null;
-        let nextStairDirection = null;
         let score = 0;
-        let cameraOffset = 0;
-        const stairSize = 80;
+        let health = 100;
+        let healthDecayRate = 0.15;
+        let cameraY = 0;
+        const stairWidth = 80;
+        const stairHeight = 40;
+        const stairDepth = 60;
 
         // Input
         const keys = {};
@@ -260,6 +289,11 @@
                 switch(type) {
                     case 'step':
                         oscillator.frequency.value = 400 + Math.random() * 100;
+                        gainNode.gain.value = 0.1;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'turn':
+                        oscillator.frequency.value = 600;
                         gainNode.gain.value = 0.08;
                         oscillator.type = 'sine';
                         break;
@@ -271,178 +305,240 @@
                 }
 
                 oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.1);
+                oscillator.stop(audioContext.currentTime + 0.08);
             } catch (e) {}
         }
 
         // Initialize stairs
         function initStairs() {
             stairs = [];
-            score = 0;
+            let currentX = 0;
+            let currentDirection = 1; // 1 = right, -1 = left
+            let stepsInDirection = Math.floor(Math.random() * 3) + 3; // 3-5 steps
+            let stepCount = 0;
 
-            // Starting position
-            stairs.push({ x: 0, y: 0, direction: 0 });
+            for (let i = 0; i < 40; i++) {
+                stairs.push({
+                    x: currentX,
+                    y: i,
+                    direction: currentDirection,
+                    isTurn: false
+                });
 
-            // Generate initial stairs
-            let x = 0, y = 0;
-            let direction = Math.random() > 0.5 ? 0 : 1; // 0: right, 1: forward
+                stepCount++;
 
-            for (let i = 0; i < 30; i++) {
-                direction = Math.random() > 0.5 ? 0 : 1;
-
-                if (direction === 0) { // right
-                    x += stairSize;
-                } else { // forward
-                    y += stairSize;
+                // Check if it's time to turn
+                if (stepCount >= stepsInDirection) {
+                    stairs[i].isTurn = true;
+                    currentDirection *= -1; // Switch direction
+                    stepCount = 0;
+                    stepsInDirection = Math.floor(Math.random() * 3) + 3;
+                } else {
+                    currentX += currentDirection * stairWidth;
                 }
-
-                stairs.push({ x, y, direction });
             }
-
-            currentStair = stairs[0];
-            nextStairDirection = stairs[1].x > stairs[0].x ? 0 : 1;
-
-            player.x = 0;
-            player.y = 0;
-            player.direction = 0; // facing right initially
-            player.moving = false;
-            player.moveProgress = 0;
-            cameraOffset = 0;
         }
 
         // Game loop
         function update() {
             if (gameState !== 'playing') return;
 
+            // Health decay
+            health -= healthDecayRate;
+            if (health <= 0) {
+                gameOver();
+                return;
+            }
+
+            // Update health bar
+            document.getElementById('healthFill').style.width = health + '%';
+
+            // Increase difficulty
+            healthDecayRate = 0.15 + (score * 0.002);
+
             // Input handling
-            if ((keys['z'] || keys['Z']) && !player.moving) {
-                moveForward();
+            if ((keys['x'] || keys['X'] || keys['ArrowRight']) && !player.climbing) {
+                climbStair();
             }
-            if ((keys['x'] || keys['X']) && !player.moving) {
-                turn();
+            if ((keys['z'] || keys['Z'] || keys['ArrowLeft']) && !player.climbing) {
+                turnAndClimb();
             }
 
-            // Moving animation
-            if (player.moving) {
-                player.moveProgress += 0.1;
-                if (player.moveProgress >= 1) {
-                    player.moving = false;
-                    player.moveProgress = 0;
+            // Climbing animation
+            if (player.climbing) {
+                player.climbProgress += 0.12;
+                if (player.climbProgress >= 1) {
+                    player.climbing = false;
+                    player.climbProgress = 0;
+                    player.stairIndex++;
 
-                    // Update player position
-                    if (player.direction === 0) player.x += stairSize;
-                    else if (player.direction === 1) player.y += stairSize;
-                    else if (player.direction === 2) player.x -= stairSize;
-                    else if (player.direction === 3) player.y -= stairSize;
-
-                    // Check if on valid stair
-                    const onStair = stairs.find(s => s.x === player.x && s.y === player.y);
-                    if (!onStair) {
-                        gameOver();
-                        return;
-                    }
-
-                    currentStair = onStair;
-                    score++;
-                    document.getElementById('floorCount').textContent = score;
-                    playSound('step');
-
-                    // Generate new stair
-                    const lastStair = stairs[stairs.length - 1];
-                    const newDirection = Math.random() > 0.5 ? 0 : 1;
-                    let newX = lastStair.x;
-                    let newY = lastStair.y;
-
-                    if (newDirection === 0) newX += stairSize;
-                    else newY += stairSize;
-
-                    stairs.push({ x: newX, y: newY, direction: newDirection });
-
-                    // Remove old stairs
-                    if (stairs.length > 50) {
-                        stairs.shift();
+                    // Check if still on valid stair
+                    if (player.stairIndex >= stairs.length) {
+                        // Generate more stairs
+                        generateMoreStairs();
                     }
                 }
             }
 
             // Camera follows player
-            const targetCameraX = player.x - canvas.width / 2;
-            const targetCameraY = player.y - canvas.height / 2;
-            cameraOffset = { x: targetCameraX, y: targetCameraY };
+            const targetY = player.stairIndex * stairHeight;
+            cameraY += (targetY - cameraY) * 0.1;
         }
 
-        function moveForward() {
-            player.moving = true;
-            player.moveProgress = 0;
+        function climbStair() {
+            const currentStair = stairs[player.stairIndex];
+
+            // Check if at a turn point
+            if (currentStair.isTurn) {
+                gameOver();
+                return;
+            }
+
+            player.climbing = true;
+            player.climbProgress = 0;
+            score++;
+            health = Math.min(100, health + 2); // Restore a bit of health
+            document.getElementById('scoreDisplay').textContent = score;
+            playSound('step');
         }
 
-        function turn() {
-            player.direction = (player.direction + 1) % 4;
+        function turnAndClimb() {
+            const currentStair = stairs[player.stairIndex];
+
+            // Only allow turning at turn points
+            if (!currentStair.isTurn) {
+                gameOver();
+                return;
+            }
+
+            player.direction *= -1;
+            player.climbing = true;
+            player.climbProgress = 0;
+            score++;
+            health = Math.min(100, health + 3); // Restore more health for correct turn
+            document.getElementById('scoreDisplay').textContent = score;
+            playSound('turn');
+        }
+
+        function generateMoreStairs() {
+            const lastStair = stairs[stairs.length - 1];
+            let currentX = lastStair.x;
+            let currentDirection = lastStair.direction;
+            let stepsInDirection = Math.floor(Math.random() * 3) + 3;
+            let stepCount = 0;
+
+            for (let i = 0; i < 20; i++) {
+                const y = stairs.length;
+
+                stairs.push({
+                    x: currentX,
+                    y: y,
+                    direction: currentDirection,
+                    isTurn: false
+                });
+
+                stepCount++;
+
+                if (stepCount >= stepsInDirection) {
+                    stairs[stairs.length - 1].isTurn = true;
+                    currentDirection *= -1;
+                    stepCount = 0;
+                    stepsInDirection = Math.floor(Math.random() * 3) + 3;
+                } else {
+                    currentX += currentDirection * stairWidth;
+                }
+            }
+
+            // Remove old stairs
+            if (stairs.length > 60) {
+                const removeCount = stairs.length - 60;
+                stairs.splice(0, removeCount);
+                player.stairIndex -= removeCount;
+            }
         }
 
         function draw() {
-            // Clear with gradient
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#87CEEB');
-            gradient.addColorStop(1, '#B0E0E6');
-            ctx.fillStyle = gradient;
+            // Clear
+            ctx.fillStyle = '#1a1a2e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.save();
-            ctx.translate(-cameraOffset.x, -cameraOffset.y);
+
+            const centerX = canvas.width / 2;
+            const startY = canvas.height * 0.7;
 
             // Draw stairs
-            stairs.forEach((stair, idx) => {
-                const screenX = canvas.width / 2 + stair.x;
-                const screenY = canvas.height / 2 + stair.y;
+            stairs.forEach((stair, index) => {
+                const screenY = startY - (stair.y - cameraY) * stairDepth;
 
-                // Stair top
-                ctx.fillStyle = idx === 0 ? '#4CAF50' : '#8B4513';
-                ctx.fillRect(screenX - stairSize/2, screenY - stairSize/2, stairSize, stairSize);
+                if (screenY > -100 && screenY < canvas.height + 100) {
+                    const x = centerX + stair.x;
 
-                // Stair outline
-                ctx.strokeStyle = '#654321';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(screenX - stairSize/2, screenY - stairSize/2, stairSize, stairSize);
+                    // Stair depth/shadow
+                    ctx.fillStyle = '#2d3436';
+                    ctx.fillRect(x - stairWidth/2, screenY + 5, stairWidth, stairHeight);
 
-                // Side walls for depth
-                ctx.fillStyle = '#6B3410';
-                ctx.fillRect(screenX - stairSize/2, screenY + stairSize/2, stairSize, 10);
+                    // Stair color (highlight current stair)
+                    if (index === player.stairIndex) {
+                        ctx.fillStyle = '#4CAF50';
+                    } else if (stair.isTurn) {
+                        ctx.fillStyle = '#e74c3c'; // Red for turn points
+                    } else {
+                        ctx.fillStyle = '#636e72';
+                    }
+                    ctx.fillRect(x - stairWidth/2, screenY, stairWidth, stairHeight);
+
+                    // Stair outline
+                    ctx.strokeStyle = '#dfe6e9';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x - stairWidth/2, screenY, stairWidth, stairHeight);
+
+                    // Turn indicator
+                    if (stair.isTurn) {
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 20px Malgun Gothic';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('⟲', x, screenY + stairHeight/2 + 7);
+                    }
+                }
             });
 
             // Draw player
-            let drawX = canvas.width / 2 + player.x;
-            let drawY = canvas.height / 2 + player.y;
+            const currentStair = stairs[player.stairIndex];
+            if (currentStair) {
+                let playerY = startY - (currentStair.y - cameraY) * stairDepth;
 
-            if (player.moving) {
-                const moveX = player.direction === 0 ? stairSize : player.direction === 2 ? -stairSize : 0;
-                const moveY = player.direction === 1 ? stairSize : player.direction === 3 ? -stairSize : 0;
-                drawX += moveX * player.moveProgress;
-                drawY += moveY * player.moveProgress;
+                if (player.climbing && player.stairIndex + 1 < stairs.length) {
+                    const nextStair = stairs[player.stairIndex + 1];
+                    const nextY = startY - (nextStair.y - cameraY) * stairDepth;
+                    playerY = playerY + (nextY - playerY) * player.climbProgress;
+                }
+
+                const playerX = centerX + currentStair.x;
+
+                // Player shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.beginPath();
+                ctx.ellipse(playerX, playerY + stairHeight, player.size * 0.6, player.size * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Player body
+                ctx.fillStyle = '#FF6B6B';
+                ctx.beginPath();
+                ctx.arc(playerX, playerY + stairHeight/2 - 15, player.size/2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Player outline
+                ctx.strokeStyle = '#c0392b';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Direction indicator
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(playerX + player.direction * 12, playerY + stairHeight/2 - 15, 5, 0, Math.PI * 2);
+                ctx.fill();
             }
-
-            // Player body
-            ctx.fillStyle = player.color;
-            ctx.beginPath();
-            ctx.arc(drawX, drawY - 20, player.size / 2, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Player outline
-            ctx.strokeStyle = '#FF5252';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            // Direction indicator
-            ctx.fillStyle = 'white';
-            ctx.beginPath();
-            const angle = player.direction * Math.PI / 2;
-            const arrowDist = player.size / 2 + 5;
-            ctx.arc(
-                drawX + Math.cos(angle) * arrowDist,
-                drawY - 20 + Math.sin(angle) * arrowDist,
-                5, 0, Math.PI * 2
-            );
-            ctx.fill();
 
             ctx.restore();
         }
@@ -457,19 +553,30 @@
             gameState = 'playing';
             document.getElementById('menuScreen').classList.add('hidden');
             document.getElementById('gameoverScreen').classList.add('hidden');
-            document.getElementById('gameStats').classList.remove('hidden');
+            document.getElementById('gameHud').classList.remove('hidden');
             document.getElementById('controls').classList.add('active');
+
+            // Reset
+            player.stairIndex = 0;
+            player.direction = 1;
+            player.climbing = false;
+            player.climbProgress = 0;
+            score = 0;
+            health = 100;
+            healthDecayRate = 0.15;
+            cameraY = 0;
 
             initStairs();
             initAudio();
 
-            document.getElementById('floorCount').textContent = score;
+            document.getElementById('scoreDisplay').textContent = score;
+            document.getElementById('healthFill').style.width = '100%';
         }
 
         function gameOver() {
             gameState = 'gameover';
             playSound('fall');
-            document.getElementById('gameStats').classList.add('hidden');
+            document.getElementById('gameHud').classList.add('hidden');
             document.getElementById('controls').classList.remove('active');
             document.getElementById('gameoverScreen').classList.remove('hidden');
 
@@ -496,14 +603,14 @@
         });
 
         // Touch controls
-        document.getElementById('leftBtn').addEventListener('click', (e) => {
+        document.getElementById('turnBtn').addEventListener('click', (e) => {
             e.preventDefault();
-            if (!player.moving) moveForward();
+            if (!player.climbing) turnAndClimb();
         });
 
-        document.getElementById('rightBtn').addEventListener('click', (e) => {
+        document.getElementById('climbBtn').addEventListener('click', (e) => {
             e.preventDefault();
-            if (!player.moving) turn();
+            if (!player.climbing) climbStair();
         });
 
         // High score display
