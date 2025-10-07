@@ -255,7 +255,7 @@
         let stairs = [];
         let score = 0;
         let health = 100;
-        let healthDecayRate = 0.15;
+        let healthDecayRate = 0.5; // Faster decay rate
         let cameraY = 0;
         let cameraX = 0; // Camera X position for left-right movement
         const stairWidth = 80;
@@ -358,7 +358,7 @@
                 document.getElementById('healthFill').style.width = health + '%';
 
                 // Increase difficulty
-                healthDecayRate = 0.15 + (score * 0.002);
+                healthDecayRate = 0.5 + (score * 0.005);
             }
 
             // Input handling removed from update loop - now handled in keydown event
@@ -565,7 +565,7 @@
             player.climbProgress = 0;
             score = 0;
             health = 100;
-            healthDecayRate = 0.15;
+            healthDecayRate = 0.5;
             cameraY = 0;
             cameraX = 0;
 
