@@ -523,18 +523,18 @@
             // Draw player - FIXED position on screen (center)
             // Player always stays at same position, world moves around them
             const playerX = centerX;
-            const playerY = startY;
+            const playerY = startY - stairHeight; // Position player on TOP of stair
 
             // Player shadow
             ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.beginPath();
-            ctx.ellipse(playerX, playerY + stairHeight, player.size * 0.6, player.size * 0.3, 0, 0, Math.PI * 2);
+            ctx.ellipse(playerX, playerY + player.size/2 + 5, player.size * 0.6, player.size * 0.3, 0, 0, Math.PI * 2);
             ctx.fill();
 
             // Player body
             ctx.fillStyle = '#FF6B6B';
             ctx.beginPath();
-            ctx.arc(playerX, playerY + stairHeight/2 - 15, player.size/2, 0, Math.PI * 2);
+            ctx.arc(playerX, playerY - player.size/4, player.size/2, 0, Math.PI * 2);
             ctx.fill();
 
             // Player outline
@@ -545,7 +545,7 @@
             // Direction indicator
             ctx.fillStyle = 'white';
             ctx.beginPath();
-            ctx.arc(playerX + player.direction * 12, playerY + stairHeight/2 - 15, 5, 0, Math.PI * 2);
+            ctx.arc(playerX + player.direction * 12, playerY - player.size/4, 5, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.restore();
