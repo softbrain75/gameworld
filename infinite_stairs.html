@@ -242,9 +242,8 @@
         let gameState = 'menu';
         let highScore = parseInt(localStorage.getItem('infiniteStairs_highScore')) || 0;
 
-        // Player
+        // Player (fixed on screen)
         const player = {
-            x: 0,
             stairIndex: 0,
             direction: 1, // 1 = right, -1 = left
             climbing: false,
@@ -258,6 +257,7 @@
         let health = 100;
         let healthDecayRate = 0.15;
         let cameraY = 0;
+        let cameraX = 0; // Camera X position for left-right movement
         const stairWidth = 80;
         const stairHeight = 40;
         const stairDepth = 50; // Visual depth for 3D effect
@@ -381,12 +381,21 @@
                 }
             }
 
-            // Camera follows smoothly - keep player near bottom of screen
+            // Camera follows player position smoothly - player stays in same spot on screen, world moves
             const currentPlayerY = player.stairIndex + (player.climbing ? player.climbProgress : 0);
-            // Only start moving camera after player climbs 5 stairs
-            const targetCameraY = Math.max(0, currentPlayerY - 5) * stairHeight;
-            // Very smooth camera movement to avoid sudden jumps
-            cameraY += (targetCameraY - cameraY) * 0.05;
+            cameraY = currentPlayerY * stairHeight;
+
+            // Camera X follows current stair position with interpolation during climb
+            const currentStair = stairs[player.stairIndex];
+            if (currentStair) {
+                if (player.climbing && player.stairIndex + 1 < stairs.length) {
+                    const nextStair = stairs[player.stairIndex + 1];
+                    // Smoothly interpolate X position during climb animation
+                    cameraX = currentStair.x + (nextStair.x - currentStair.x) * player.climbProgress;
+                } else {
+                    cameraX = currentStair.x;
+                }
+            }
         }
 
         function climbStair() {
@@ -477,7 +486,8 @@
                 const screenY = startY - (stair.y - cameraY) * stairDepth;
 
                 if (screenY > -100 && screenY < canvas.height + 100) {
-                    const x = centerX + stair.x;
+                    // Apply camera X offset - stairs move left/right as player climbs
+                    const x = centerX + (stair.x - cameraX);
 
                     // Stair depth/shadow
                     ctx.fillStyle = '#2d3436';
@@ -508,42 +518,33 @@
                 }
             });
 
-            // Draw player
-            const currentStair = stairs[player.stairIndex];
-            if (currentStair) {
-                let playerY = startY - (currentStair.y - cameraY) * stairDepth;
+            // Draw player - FIXED position on screen (center)
+            // Player always stays at same position, world moves around them
+            const playerX = centerX;
+            const playerY = startY;
 
-                if (player.climbing && player.stairIndex + 1 < stairs.length) {
-                    const nextStair = stairs[player.stairIndex + 1];
-                    const nextY = startY - (nextStair.y - cameraY) * stairDepth;
-                    playerY = playerY + (nextY - playerY) * player.climbProgress;
-                }
+            // Player shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.beginPath();
+            ctx.ellipse(playerX, playerY + stairHeight, player.size * 0.6, player.size * 0.3, 0, 0, Math.PI * 2);
+            ctx.fill();
 
-                const playerX = centerX + currentStair.x;
+            // Player body
+            ctx.fillStyle = '#FF6B6B';
+            ctx.beginPath();
+            ctx.arc(playerX, playerY + stairHeight/2 - 15, player.size/2, 0, Math.PI * 2);
+            ctx.fill();
 
-                // Player shadow
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-                ctx.beginPath();
-                ctx.ellipse(playerX, playerY + stairHeight, player.size * 0.6, player.size * 0.3, 0, 0, Math.PI * 2);
-                ctx.fill();
+            // Player outline
+            ctx.strokeStyle = '#c0392b';
+            ctx.lineWidth = 3;
+            ctx.stroke();
 
-                // Player body
-                ctx.fillStyle = '#FF6B6B';
-                ctx.beginPath();
-                ctx.arc(playerX, playerY + stairHeight/2 - 15, player.size/2, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Player outline
-                ctx.strokeStyle = '#c0392b';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-
-                // Direction indicator
-                ctx.fillStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(playerX + player.direction * 12, playerY + stairHeight/2 - 15, 5, 0, Math.PI * 2);
-                ctx.fill();
-            }
+            // Direction indicator
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(playerX + player.direction * 12, playerY + stairHeight/2 - 15, 5, 0, Math.PI * 2);
+            ctx.fill();
 
             ctx.restore();
         }
@@ -570,6 +571,7 @@
             health = 100;
             healthDecayRate = 0.15;
             cameraY = 0;
+            cameraX = 0;
 
             initStairs();
             initAudio();
