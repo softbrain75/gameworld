@@ -505,11 +505,11 @@
 
             // Reset
             player.x = 0;
-            player.y = 2;
+            player.y = 0.3; // Start on platform height
             player.z = 0;
             player.velocityY = 0;
             player.lane = 0;
-            player.grounded = false;
+            player.grounded = true; // Start grounded
             distance = 0;
             speed = 0.1;
             camera.z = -5;
