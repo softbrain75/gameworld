@@ -357,13 +357,7 @@
             // Increase difficulty
             healthDecayRate = 0.15 + (score * 0.002);
 
-            // Input handling
-            if ((keys['x'] || keys['X'] || keys['ArrowRight']) && !player.climbing) {
-                climbStair();
-            }
-            if ((keys['z'] || keys['Z'] || keys['ArrowLeft']) && !player.climbing) {
-                turnAndClimb();
-            }
+            // Input handling removed from update loop - now handled in keydown event
 
             // Climbing animation
             if (player.climbing) {
@@ -373,9 +367,8 @@
                     player.climbProgress = 0;
                     player.stairIndex++;
 
-                    // Check if still on valid stair
-                    if (player.stairIndex >= stairs.length) {
-                        // Generate more stairs
+                    // Generate more stairs early to prevent running out
+                    if (player.stairIndex >= stairs.length - 10) {
                         generateMoreStairs();
                     }
                 }
@@ -604,11 +597,16 @@
         document.getElementById('retryBtn').addEventListener('click', startGame);
 
         document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-        });
+            if (gameState !== 'playing' || player.climbing) return;
 
-        document.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
+            if (e.key === 'x' || e.key === 'X' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                climbStair();
+            }
+            if (e.key === 'z' || e.key === 'Z' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                turnAndClimb();
+            }
         });
 
         // Touch controls
