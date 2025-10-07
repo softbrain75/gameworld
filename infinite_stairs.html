@@ -264,6 +264,7 @@
 
         // Input
         const keys = {};
+        const keysPressed = {}; // Track if key is already pressed
 
         // Audio context
         let audioContext = null;
@@ -599,6 +600,10 @@
         document.addEventListener('keydown', (e) => {
             if (gameState !== 'playing' || player.climbing) return;
 
+            // Prevent key repeat - only trigger once per key press
+            if (keysPressed[e.key]) return;
+            keysPressed[e.key] = true;
+
             if (e.key === 'x' || e.key === 'X' || e.key === 'ArrowRight') {
                 e.preventDefault();
                 climbStair();
@@ -607,6 +612,10 @@
                 e.preventDefault();
                 turnAndClimb();
             }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keysPressed[e.key] = false;
         });
 
         // Touch controls
