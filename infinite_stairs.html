@@ -346,18 +346,20 @@
         function update() {
             if (gameState !== 'playing') return;
 
-            // Health decay
-            health -= healthDecayRate;
-            if (health <= 0) {
-                gameOver();
-                return;
+            // Health decay only when player has moved at least once
+            if (score > 0) {
+                health -= healthDecayRate;
+                if (health <= 0) {
+                    gameOver();
+                    return;
+                }
+
+                // Update health bar
+                document.getElementById('healthFill').style.width = health + '%';
+
+                // Increase difficulty
+                healthDecayRate = 0.15 + (score * 0.002);
             }
-
-            // Update health bar
-            document.getElementById('healthFill').style.width = health + '%';
-
-            // Increase difficulty
-            healthDecayRate = 0.15 + (score * 0.002);
 
             // Input handling removed from update loop - now handled in keydown event
 
@@ -405,7 +407,7 @@
             player.climbing = true;
             player.climbProgress = 0;
             score++;
-            health = Math.min(100, health + 2); // Restore a bit of health
+            health = 100; // Fully restore health on each step
             document.getElementById('scoreDisplay').textContent = score;
             playSound('step');
         }
@@ -423,7 +425,7 @@
             player.climbing = true;
             player.climbProgress = 0;
             score++;
-            health = Math.min(100, health + 3); // Restore more health for correct turn
+            health = 100; // Fully restore health on turn
             document.getElementById('scoreDisplay').textContent = score;
             playSound('turn');
         }
