@@ -314,7 +314,7 @@
             stairs = [];
             let currentX = 0;
             let currentDirection = 1; // 1 = right, -1 = left
-            let stepsInDirection = Math.floor(Math.random() * 3) + 3; // 3-5 steps
+            let stepsInDirection = Math.floor(Math.random() * 3) + 4; // 4-6 steps
             let stepCount = 0;
 
             for (let i = 0; i < 40; i++) {
@@ -332,7 +332,8 @@
                     stairs[i].isTurn = true;
                     currentDirection *= -1; // Switch direction
                     stepCount = 0;
-                    stepsInDirection = Math.floor(Math.random() * 3) + 3;
+                    stepsInDirection = Math.floor(Math.random() * 3) + 4;
+                    // Don't move X on turn, next stair will be same X
                 } else {
                     currentX += currentDirection * stairWidth;
                 }
@@ -424,7 +425,7 @@
             const lastStair = stairs[stairs.length - 1];
             let currentX = lastStair.x;
             let currentDirection = lastStair.direction;
-            let stepsInDirection = Math.floor(Math.random() * 3) + 3;
+            let stepsInDirection = Math.floor(Math.random() * 3) + 4;
             let stepCount = 0;
 
             for (let i = 0; i < 20; i++) {
@@ -443,7 +444,8 @@
                     stairs[stairs.length - 1].isTurn = true;
                     currentDirection *= -1;
                     stepCount = 0;
-                    stepsInDirection = Math.floor(Math.random() * 3) + 3;
+                    stepsInDirection = Math.floor(Math.random() * 3) + 4;
+                    // Don't move X on turn
                 } else {
                     currentX += currentDirection * stairWidth;
                 }
