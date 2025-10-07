@@ -483,7 +483,9 @@
 
             // Draw stairs
             stairs.forEach((stair, index) => {
-                const screenY = startY - (stair.y - cameraY) * stairDepth;
+                // Convert cameraY (pixels) back to stair index for calculation
+                const cameraStairIndex = cameraY / stairHeight;
+                const screenY = startY - (stair.y - cameraStairIndex) * stairDepth;
 
                 if (screenY > -100 && screenY < canvas.height + 100) {
                     // Apply camera X offset - stairs move left/right as player climbs
