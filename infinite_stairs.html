@@ -394,24 +394,36 @@
         function climbStair() {
             const currentStair = stairs[player.stairIndex];
 
-            // Check if at a turn point - automatically turn
+            // Check if at a turn point
             if (currentStair.isTurn) {
-                player.direction *= -1;
-                playSound('turn');
-            } else {
-                playSound('step');
+                gameOver();
+                return;
             }
 
             player.climbing = true;
             player.climbProgress = 0;
             score++;
-            health = Math.min(100, health + 3); // Restore health
+            health = Math.min(100, health + 2); // Restore a bit of health
             document.getElementById('scoreDisplay').textContent = score;
+            playSound('step');
         }
 
         function turnAndClimb() {
-            // This function is no longer needed - just call climbStair
-            climbStair();
+            const currentStair = stairs[player.stairIndex];
+
+            // Only allow turning at turn points
+            if (!currentStair.isTurn) {
+                gameOver();
+                return;
+            }
+
+            player.direction *= -1;
+            player.climbing = true;
+            player.climbProgress = 0;
+            score++;
+            health = Math.min(100, health + 3); // Restore more health for correct turn
+            document.getElementById('scoreDisplay').textContent = score;
+            playSound('turn');
         }
 
         function generateMoreStairs() {
