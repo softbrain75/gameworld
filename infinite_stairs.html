@@ -327,16 +327,18 @@
                 });
 
                 stepCount++;
-                // Always move X for next stair
-                currentX += currentDirection * stairWidth;
 
                 // Check if it's time to turn
                 if (stepCount >= stepsInDirection) {
                     stairs[i].isTurn = true;
-                    currentDirection *= -1; // Switch direction for NEXT stair
+                    currentDirection *= -1; // Switch direction
+                    stairs[i].direction = currentDirection; // Turn block faces new direction
                     stepCount = 0;
                     stepsInDirection = Math.floor(Math.random() * 3) + 4;
                 }
+
+                // Move X for next stair
+                currentX += currentDirection * stairWidth;
             }
         }
 
@@ -444,15 +446,17 @@
                 });
 
                 stepCount++;
-                // Always move X for next stair
-                currentX += currentDirection * stairWidth;
 
                 if (stepCount >= stepsInDirection) {
                     stairs[stairs.length - 1].isTurn = true;
-                    currentDirection *= -1; // Switch direction for NEXT stair
+                    currentDirection *= -1; // Switch direction
+                    stairs[stairs.length - 1].direction = currentDirection; // Turn block faces new direction
                     stepCount = 0;
                     stepsInDirection = Math.floor(Math.random() * 3) + 4;
                 }
+
+                // Move X for next stair
+                currentX += currentDirection * stairWidth;
             }
 
             // Don't remove old stairs to prevent index issues
