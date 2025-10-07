@@ -139,23 +139,18 @@
 
     <div id="menuScreen" class="screen">
         <h1>🏃 3D 파쿠르 러너</h1>
-        <div class="info">플랫폼을 뛰어넘어 최대한 멀리 가세요!</div>
+        <div class="info">플랫폼을 뛰어넘으세요!</div>
         <div class="info">⬆️ 위로 점프, ⬅️➡️ 좌우 이동</div>
         <div class="info">스페이스바 또는 화면 터치로 점프</div>
-        <div class="info" style="margin-top: 1rem;">최고 기록: <span id="menuHighScore">0</span>m</div>
         <button id="startBtn">게임 시작</button>
     </div>
 
     <div id="gameoverScreen" class="screen hidden">
         <h1>게임 오버</h1>
-        <div class="info">거리: <span id="finalScore">0</span>m</div>
-        <div class="info">최고 기록: <span id="gameoverHighScore">0</span>m</div>
         <button id="retryBtn">다시 하기</button>
     </div>
 
     <div class="stats hidden" id="gameStats">
-        <div>거리: <span id="distanceScore">0</span>m</div>
-        <div>속도: <span id="speedDisplay">0</span></div>
     </div>
 
     <button class="jump-btn" id="jumpBtn">점프</button>
@@ -182,7 +177,6 @@
 
         // Game state
         let gameState = 'menu';
-        let highScore = parseInt(localStorage.getItem('parkour3d_highScore')) || 0;
 
         // Player
         const player = {
@@ -212,12 +206,9 @@
 
         // Game variables
         let platforms = [];
-        let distance = 0;
-        let speed = 0.1;
         const gravity = -0.02;
         const jumpPower = 0.35;
         const laneWidth = 2;
-        const maxSpeed = 0.3;
 
         // Input
         const keys = {};
@@ -393,10 +384,6 @@
         function update() {
             if (gameState !== 'playing') return;
 
-            // Player movement
-            speed = Math.min(speed + 0.001, maxSpeed);
-            distance += speed * 10;
-
             // Lane switching
             if (keys['ArrowLeft'] || keys['a']) {
                 player.lane = Math.max(-1, player.lane - 0.1);
@@ -406,7 +393,6 @@
             }
 
             player.x = player.lane * laneWidth;
-            player.z += speed;
 
             // Jump
             if (!player.grounded) {
@@ -439,22 +425,9 @@
                 gameOver();
             }
 
-            // Remove old platforms and add new ones
-            platforms = platforms.filter(p => p.z < player.z + 50);
-            while (platforms.length < 20) {
-                const lastZ = platforms[platforms.length - 1].z;
-                const gap = 3 + Math.random() * 2 + Math.floor(distance / 100);
-                createPlatform(lastZ + gap);
-            }
-
             // Camera follow
-            camera.z = player.z - 5;
             camera.x = player.x * 0.3;
             camera.y = player.y + 2;
-
-            // Update UI
-            document.getElementById('distanceScore').textContent = Math.floor(distance);
-            document.getElementById('speedDisplay').textContent = Math.floor(speed * 100);
         }
 
         function draw() {
@@ -521,8 +494,6 @@
             player.velocityY = 0;
             player.lane = 0;
             player.grounded = true; // Start grounded
-            distance = 0;
-            speed = 0.1;
             camera.z = -5;
             camera.x = 0;
 
@@ -536,16 +507,6 @@
             document.getElementById('gameStats').classList.add('hidden');
             document.getElementById('jumpBtn').classList.remove('active');
             document.getElementById('gameoverScreen').classList.remove('hidden');
-
-            const finalDist = Math.floor(distance);
-            document.getElementById('finalScore').textContent = finalDist;
-
-            if (finalDist > highScore) {
-                highScore = finalDist;
-                localStorage.setItem('parkour3d_highScore', highScore);
-            }
-
-            document.getElementById('gameoverHighScore').textContent = highScore;
         }
 
         // Event listeners
@@ -588,10 +549,6 @@
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
         });
-
-        // High score display
-        document.getElementById('menuHighScore').textContent = highScore;
-        document.getElementById('gameoverHighScore').textContent = highScore;
 
         // Start game loop
         gameLoop();
