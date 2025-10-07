@@ -139,8 +139,8 @@
 
     <div id="menuScreen" class="screen">
         <h1>🏃 3D 파쿠르 러너</h1>
-        <div class="info">플랫폼을 뛰어넘으세요!</div>
-        <div class="info">⬆️ 위로 점프, ⬅️➡️ 좌우 이동</div>
+        <div class="info">플랫폼을 뛰어넘어 골인하세요!</div>
+        <div class="info">WASD 또는 방향키로 이동</div>
         <div class="info">스페이스바 또는 화면 터치로 점프</div>
         <button id="startBtn">게임 시작</button>
     </div>
@@ -184,12 +184,10 @@
             y: 0,
             z: 0,
             velocityY: 0,
-            velocityX: 0,
             width: 0.5,
             height: 1.8,
             depth: 0.5,
-            grounded: false,
-            lane: 0 // -1 left, 0 center, 1 right
+            grounded: false
         };
 
         // Camera
@@ -208,7 +206,7 @@
         let platforms = [];
         const gravity = -0.02;
         const jumpPower = 0.35;
-        const laneWidth = 2;
+        const moveSpeed = 0.15;
 
         // Input
         const keys = {};
@@ -259,40 +257,24 @@
             } catch (e) {}
         }
 
-        // Initialize platforms
+        // Initialize platforms - fixed map layout
         function initPlatforms() {
             platforms = [];
-            // First platform at starting position (center lane)
-            platforms.push({
-                x: 0,
-                y: 0,
-                z: 0,
-                width: 2,
-                height: 0.3,
-                depth: 3,
-                lane: 0
-            });
-            // Generate remaining platforms
-            for (let i = 1; i < 20; i++) {
-                createPlatform(i * 4);
-            }
-        }
 
-        function createPlatform(zPos) {
-            const lanes = [-1, 0, 1];
-            const lane = lanes[Math.floor(Math.random() * lanes.length)];
-            const width = 1.5 + Math.random() * 1;
-            const depth = 2 + Math.random() * 2;
+            // Starting platform
+            platforms.push({ x: 0, y: 0, z: 0, width: 3, height: 0.3, depth: 3 });
 
-            platforms.push({
-                x: lane * laneWidth,
-                y: 0,
-                z: zPos,
-                width: width,
-                height: 0.3,
-                depth: depth,
-                lane: lane
-            });
+            // Create a fixed parkour course
+            platforms.push({ x: 0, y: 0, z: 5, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: -3, y: 0.5, z: 8, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 3, y: 1, z: 11, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 0, y: 1.5, z: 14, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: -4, y: 2, z: 17, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 4, y: 2, z: 20, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 0, y: 2.5, z: 23, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: -3, y: 3, z: 26, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 3, y: 3, z: 29, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 0, y: 3.5, z: 32, width: 3, height: 0.3, depth: 3 }); // Goal platform
         }
 
         // 3D to 2D projection
@@ -384,15 +366,19 @@
         function update() {
             if (gameState !== 'playing') return;
 
-            // Lane switching
-            if (keys['ArrowLeft'] || keys['a']) {
-                player.lane = Math.max(-1, player.lane - 0.1);
+            // WASD movement
+            if (keys['a'] || keys['ArrowLeft']) {
+                player.x -= moveSpeed;
             }
-            if (keys['ArrowRight'] || keys['d']) {
-                player.lane = Math.min(1, player.lane + 0.1);
+            if (keys['d'] || keys['ArrowRight']) {
+                player.x += moveSpeed;
             }
-
-            player.x = player.lane * laneWidth;
+            if (keys['w'] || keys['ArrowUp']) {
+                player.z += moveSpeed;
+            }
+            if (keys['s'] || keys['ArrowDown']) {
+                player.z -= moveSpeed;
+            }
 
             // Jump
             if (!player.grounded) {
@@ -425,9 +411,10 @@
                 gameOver();
             }
 
-            // Camera follow
-            camera.x = player.x * 0.3;
+            // Camera follow player
+            camera.x = player.x;
             camera.y = player.y + 2;
+            camera.z = player.z - 5;
         }
 
         function draw() {
@@ -492,10 +479,10 @@
             player.y = 0.3; // Start on platform height
             player.z = 0;
             player.velocityY = 0;
-            player.lane = 0;
             player.grounded = true; // Start grounded
             camera.z = -5;
             camera.x = 0;
+            camera.y = 2;
 
             initPlatforms();
             initAudio();
@@ -515,7 +502,7 @@
 
         document.addEventListener('keydown', (e) => {
             keys[e.key] = true;
-            if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w') {
+            if (e.key === ' ') {
                 e.preventDefault();
                 jump();
             }
