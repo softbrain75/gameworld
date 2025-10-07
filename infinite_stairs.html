@@ -327,16 +327,15 @@
                 });
 
                 stepCount++;
+                // Always move X for next stair
+                currentX += currentDirection * stairWidth;
 
                 // Check if it's time to turn
                 if (stepCount >= stepsInDirection) {
                     stairs[i].isTurn = true;
-                    currentDirection *= -1; // Switch direction
+                    currentDirection *= -1; // Switch direction for NEXT stair
                     stepCount = 0;
                     stepsInDirection = Math.floor(Math.random() * 3) + 4;
-                    // Don't move X on turn, next stair will be same X
-                } else {
-                    currentX += currentDirection * stairWidth;
                 }
             }
         }
@@ -429,10 +428,10 @@
 
         function generateMoreStairs() {
             const lastStair = stairs[stairs.length - 1];
-            let currentX = lastStair.x;
+            let currentX = lastStair.x + lastStair.direction * stairWidth; // Start from next position
             let currentDirection = lastStair.direction;
             let stepsInDirection = Math.floor(Math.random() * 3) + 4;
-            let stepCount = 0;
+            let stepCount = 1; // Already counted lastStair
 
             for (let i = 0; i < 20; i++) {
                 const y = stairs.length;
@@ -445,15 +444,14 @@
                 });
 
                 stepCount++;
+                // Always move X for next stair
+                currentX += currentDirection * stairWidth;
 
                 if (stepCount >= stepsInDirection) {
                     stairs[stairs.length - 1].isTurn = true;
-                    currentDirection *= -1;
+                    currentDirection *= -1; // Switch direction for NEXT stair
                     stepCount = 0;
                     stepsInDirection = Math.floor(Math.random() * 3) + 4;
-                    // Don't move X on turn
-                } else {
-                    currentX += currentDirection * stairWidth;
                 }
             }
 
@@ -473,7 +471,7 @@
             ctx.save();
 
             const centerX = canvas.width / 2;
-            const startY = canvas.height * 0.6; // Player at 60% to avoid button overlap
+            const startY = canvas.height * 0.65; // Player at 65% - middle of screen
 
             // Draw stairs
             stairs.forEach((stair, index) => {
