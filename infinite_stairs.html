@@ -379,11 +379,12 @@
                         generateMoreStairs();
                     }
                 }
-
-                // Camera follows during climb
-                const targetY = (player.stairIndex + player.climbProgress) * stairHeight;
-                cameraY += (targetY - cameraY) * 0.2;
             }
+
+            // Camera smoothly follows player (based on current position including animation)
+            const currentPlayerY = player.stairIndex + (player.climbing ? player.climbProgress : 0);
+            const targetCameraY = currentPlayerY * stairHeight;
+            cameraY += (targetCameraY - cameraY) * 0.15;
         }
 
         function climbStair() {
