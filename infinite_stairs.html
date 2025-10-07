@@ -367,7 +367,7 @@
 
             // Climbing animation
             if (player.climbing) {
-                player.climbProgress += 0.12;
+                player.climbProgress += 0.15;
                 if (player.climbProgress >= 1) {
                     player.climbing = false;
                     player.climbProgress = 0;
@@ -379,11 +379,11 @@
                         generateMoreStairs();
                     }
                 }
-            }
 
-            // Camera follows player
-            const targetY = player.stairIndex * stairHeight;
-            cameraY += (targetY - cameraY) * 0.1;
+                // Camera follows during climb
+                const targetY = (player.stairIndex + player.climbProgress) * stairHeight;
+                cameraY += (targetY - cameraY) * 0.2;
+            }
         }
 
         function climbStair() {
