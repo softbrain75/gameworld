@@ -234,7 +234,7 @@ function stopBackgroundMusic() {
 
 ## Testing Considerations
 
-- Test game mechanics on both desktop and mobile
+- Test game mechanics on mobile and pc
 - Verify high score persistence across page refreshes
 - Ensure canvas scales correctly on different screen sizes
 - Check that touch events don't trigger unwanted browser behaviors

@@ -14,7 +14,11 @@
       "Bash(else)",
       "Bash(echo \"$file updated\")",
       "Bash(fi)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(python3:*)",
+      "WebFetch(domain:opengameart.org)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd cannon upgrade system to Cannon Defender\n\n- Add upgrade UI section below game hint area\n- 5 upgrade buttons (one per cannon lane)\n- Progressive upgrade costs: 100, 200, 400, 800, 1600 points\n- Each upgrade reduces reload time by 8% (max 5 levels = 40% faster)\n- Visual feedback with upgrade effects\n- Buttons show current level and next cost\n- Disabled state when insufficient points\n- MAX level indicator when fully upgraded\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
