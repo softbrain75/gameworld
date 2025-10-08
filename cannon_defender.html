@@ -426,6 +426,17 @@
         <div style="color: white; font-size: 1.2em;">클릭하여 재개</div>
     </div>
 
+    <!-- Level Clear Overlay -->
+    <div id="levelClearOverlay" class="level-clear-overlay" onclick="nextLevel()">
+        <div class="level-clear-text">🎉 레벨 클리어!</div>
+        <div style="color: white; font-size: 2em; font-weight: bold;">레벨 <span id="clearedLevel">1</span></div>
+        <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; color: white;">
+            <div style="font-size: 1.2em; margin: 10px 0;">처치: <span id="levelKillsDisplay">100</span></div>
+            <div style="font-size: 1.2em; margin: 10px 0;">보너스: +<span id="levelBonus">500</span></div>
+        </div>
+        <div style="color: white; font-size: 1.2em; margin-top: 20px;">클릭하여 다음 레벨</div>
+    </div>
+
     <!-- Menu Screen -->
     <div id="menuScreen" class="menu-screen">
         <div class="menu-content">
@@ -454,8 +465,8 @@
                     <p><span style="color: #3498db;">●</span> 빠름 (HP 1, 빠른 속도, +20점)</p>
                     <p><span style="color: #9b59b6;">●</span> 탱크 (HP 3, 느림, +30점)</p>
                     <p><span style="color: #f39c12;">●</span> 보스 (HP 5, 매우 느림, +100점)</p>
-                    <p><span style="color: #2ecc71;">⚡</span> 파워업-속도 (HP 4, 10초간 재장전 2배 속도, +50점)</p>
-                    <p><span style="color: #ff6600;">🔥</span> 파워업-연사 (HP 4, 8초간 자동 연사, +50점)</p>
+                    <p><span style="color: #2ecc71;">⚡</span> 파워업-속도 (20마리마다 등장, 10초간 재장전 2배 속도, +50점)</p>
+                    <p><span style="color: #ff6600;">🔥</span> 파워업-연사 (20마리마다 등장, 8초간 자동 연사, +50점)</p>
                 </div>
             </div>
         </div>
@@ -666,6 +677,8 @@
         const KILLS_PER_LEVEL = 100;
         let isBossWave = false;
         let bossActive = false;
+        let killsSinceLastPowerUp = 0;
+        const KILLS_PER_POWERUP = 20; // Every 20 kills, spawn a power-up
 
         // Game objects
         let enemies = [];
@@ -850,6 +863,7 @@
                 clearInterval(rapidFireInterval);
                 rapidFireInterval = null;
             }
+            killsSinceLastPowerUp = 0;
             enemies = [];
             projectiles = [];
             effects = [];
@@ -891,11 +905,8 @@
             let enemyType;
             const rand = Math.random();
 
-            // Powerup enemy spawns occasionally (5% chance after wave 3)
-            if (wave >= 3 && rand < 0.05) {
-                // 50% chance for speed powerup, 50% for rapid fire
-                enemyType = Math.random() < 0.5 ? enemyTypes[4] : enemyTypes[5];
-            } else if (wave < 3) {
+            // Regular enemy spawning (no random power-ups)
+            if (wave < 3) {
                 enemyType = enemyTypes[0];
             } else if (wave < 6) {
                 enemyType = rand < 0.7 ? enemyTypes[0] : enemyTypes[1];
@@ -923,6 +934,25 @@
                 health: enemyType.health * healthMultiplier,
                 maxHealth: enemyType.health * healthMultiplier,
                 speed: enemyType.speed * speedMultiplier
+            });
+        }
+
+        function spawnPowerUpEnemy() {
+            if (gameState !== 'playing') return;
+
+            const lane = Math.floor(Math.random() * NUM_LANES);
+            // 50% chance for speed powerup, 50% for rapid fire
+            const enemyType = Math.random() < 0.5 ? enemyTypes[4] : enemyTypes[5];
+
+            enemies.push({
+                id: Date.now() + Math.random(),
+                ...enemyType,
+                lane,
+                x: lane * LANE_WIDTH + LANE_WIDTH / 2,
+                y: -enemyType.size,
+                health: enemyType.health,
+                maxHealth: enemyType.health,
+                speed: enemyType.speed
             });
         }
 
@@ -974,12 +1004,17 @@
             // Play fire sound
             playSound('fire');
 
-            // Level 5+ cannons fire 2 projectiles
-            const projectileCount = cannon.upgradeLevel >= 5 ? 2 : 1;
-            const spread = 10; // Spread distance for dual projectiles
+            // Level 9+ cannons fire 3 projectiles, Level 5+ fire 2 projectiles
+            const projectileCount = cannon.upgradeLevel >= 9 ? 3 : (cannon.upgradeLevel >= 5 ? 2 : 1);
+            const spread = 15; // Spread distance for multiple projectiles
 
             for (let p = 0; p < projectileCount; p++) {
-                const offsetX = projectileCount === 2 ? (p === 0 ? -spread : spread) : 0;
+                let offsetX = 0;
+                if (projectileCount === 2) {
+                    offsetX = p === 0 ? -spread : spread;
+                } else if (projectileCount === 3) {
+                    offsetX = p === 0 ? -spread : (p === 1 ? 0 : spread);
+                }
 
                 projectiles.push({
                     id: Date.now() + Math.random(),
@@ -991,8 +1026,8 @@
                 });
             }
 
-            // Cannon fire effect
-            const effectCount = projectileCount === 2 ? 10 : 5;
+            // Cannon fire effect (more particles for more projectiles)
+            const effectCount = projectileCount === 3 ? 15 : (projectileCount === 2 ? 10 : 5);
             for (let i = 0; i < effectCount; i++) {
                 effects.push({
                     id: Date.now() + Math.random(),
@@ -1126,6 +1161,15 @@
                                 combo++;
                                 maxCombo = Math.max(maxCombo, combo);
 
+                                // Track kills for power-up spawning
+                                if (!enemy.isPowerUp) {
+                                    killsSinceLastPowerUp++;
+                                    if (killsSinceLastPowerUp >= KILLS_PER_POWERUP) {
+                                        killsSinceLastPowerUp = 0;
+                                        spawnPowerUpEnemy();
+                                    }
+                                }
+
                                 // Play explosion sound
                                 playSound('explosion');
 
@@ -1182,6 +1226,12 @@
                                             isText: true
                                         });
                                     }
+                                }
+
+                                // Check level progression (100 kills per level)
+                                levelKills++;
+                                if (levelKills >= KILLS_PER_LEVEL) {
+                                    showLevelClear();
                                 }
 
                                 // Check wave progression
@@ -1716,6 +1766,87 @@
 
         function updateUpgradeUI() {
             // No longer needed - upgrade buttons are drawn on canvas
+        }
+
+        // Level system functions
+        function showLevelClear() {
+            gameState = 'levelClear';
+            const overlay = document.getElementById('levelClearOverlay');
+            const levelBonus = currentLevel * 500; // Bonus increases with level
+
+            // Stop spawning
+            if (spawnInterval) {
+                clearInterval(spawnInterval);
+                spawnInterval = null;
+            }
+
+            // Award bonus points
+            score += levelBonus;
+
+            // Update display
+            document.getElementById('clearedLevel').textContent = currentLevel;
+            document.getElementById('levelKillsDisplay').textContent = KILLS_PER_LEVEL;
+            document.getElementById('levelBonus').textContent = levelBonus;
+
+            overlay.classList.add('active');
+
+            // Pause music
+            if (bgMusic) bgMusic.pause();
+        }
+
+        function nextLevel() {
+            const overlay = document.getElementById('levelClearOverlay');
+            overlay.classList.remove('active');
+
+            currentLevel++;
+            levelKills = 0;
+
+            // Check if it's boss level (every 5 levels)
+            if (currentLevel % 5 === 0) {
+                spawnBoss();
+            }
+
+            gameState = 'playing';
+            startEnemySpawning();
+
+            // Resume music
+            if (bgMusic && isMusicEnabled) bgMusic.play();
+        }
+
+        function spawnBoss() {
+            isBossWave = true;
+            bossActive = true;
+
+            const bossType = enemyTypes[6]; // level_boss
+            const lane = 2; // Middle lane
+
+            // Boss health scales with level
+            const bossHealth = bossType.health + (currentLevel * 10);
+
+            enemies.push({
+                id: Date.now() + Math.random(),
+                ...bossType,
+                lane,
+                x: lane * LANE_WIDTH + LANE_WIDTH / 2,
+                y: -bossType.size,
+                health: bossHealth,
+                maxHealth: bossHealth,
+                speed: bossType.speed
+            });
+
+            // Boss notification
+            effects.push({
+                id: Date.now() + Math.random(),
+                x: CANVAS_WIDTH / 2,
+                y: CANVAS_HEIGHT / 3,
+                vx: 0,
+                vy: 0,
+                life: 120,
+                color: '#ff1744',
+                size: 1,
+                text: `⚠️ 보스 등장! ⚠️`,
+                isText: true
+            });
         }
 
         // Initialize on load
