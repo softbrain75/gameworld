@@ -543,9 +543,9 @@
             const deltaX = e.touches[0].clientX - lastTouchX;
             const deltaY = e.touches[0].clientY - lastTouchY;
 
-            // Rotate camera with touch drag
-            camera.yaw += deltaX * 0.005;
-            camera.pitch -= deltaY * 0.003;
+            // Rotate camera with touch drag (inverted)
+            camera.yaw -= deltaX * 0.005;
+            camera.pitch += deltaY * 0.003;
 
             // Clamp pitch to prevent flipping
             camera.pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, camera.pitch));
@@ -572,9 +572,9 @@
             const deltaX = e.clientX - lastMouseX;
             const deltaY = e.clientY - lastMouseY;
 
-            // Rotate camera with mouse drag
-            camera.yaw += deltaX * 0.005;
-            camera.pitch -= deltaY * 0.003;
+            // Rotate camera with mouse drag (inverted)
+            camera.yaw -= deltaX * 0.005;
+            camera.pitch += deltaY * 0.003;
 
             // Clamp pitch to prevent flipping
             camera.pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, camera.pitch));
