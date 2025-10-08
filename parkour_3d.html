@@ -196,9 +196,9 @@
             x: 0,
             y: 2,
             z: -5,
-            pitch: -0.2,
+            pitch: -0.3,
             yaw: 0,
-            distance: 5, // Distance from player
+            distance: 6, // Distance from player (increased for better view)
             fov: 70,
             near: 0.1,
             far: 100
@@ -495,8 +495,8 @@
             player.velocityY = 0;
             player.grounded = true; // Start grounded
             camera.yaw = 0;
-            camera.pitch = -0.2;
-            camera.distance = 5;
+            camera.pitch = -0.3;
+            camera.distance = 6;
 
             initPlatforms();
             initAudio();
@@ -550,8 +550,8 @@
             camera.yaw -= deltaX * 0.005;
             camera.pitch += deltaY * 0.003;
 
-            // Clamp pitch to prevent flipping
-            camera.pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, camera.pitch));
+            // Clamp pitch to keep player always visible (more restrictive)
+            camera.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 6, camera.pitch));
 
             lastTouchX = e.touches[0].clientX;
             lastTouchY = e.touches[0].clientY;
@@ -579,8 +579,8 @@
             camera.yaw -= deltaX * 0.005;
             camera.pitch += deltaY * 0.003;
 
-            // Clamp pitch to prevent flipping
-            camera.pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, camera.pitch));
+            // Clamp pitch to keep player always visible (more restrictive)
+            camera.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 6, camera.pitch));
 
             lastMouseX = e.clientX;
             lastMouseY = e.clientY;
