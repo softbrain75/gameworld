@@ -198,6 +198,7 @@
             z: -5,
             pitch: -0.2,
             yaw: 0,
+            distance: 5, // Distance from player
             fov: 70,
             near: 0.1,
             far: 100
@@ -286,21 +287,22 @@
 
         // 3D to 2D projection
         function project(x, y, z) {
-            const dx = x - camera.x;
-            const dy = y - camera.y;
-            const dz = z - camera.z;
+            // Translate relative to camera position
+            let dx = x - camera.x;
+            let dy = y - camera.y;
+            let dz = z - camera.z;
 
-            // Rotate by camera yaw
-            const cosYaw = Math.cos(camera.yaw);
-            const sinYaw = Math.sin(camera.yaw);
-            const rotX = dx * cosYaw - dz * sinYaw;
-            const rotZ = dx * sinYaw + dz * cosYaw;
+            // Rotate by camera yaw (around player)
+            const cosYaw = Math.cos(-camera.yaw);
+            const sinYaw = Math.sin(-camera.yaw);
+            let rotX = dx * cosYaw - dz * sinYaw;
+            let rotZ = dx * sinYaw + dz * cosYaw;
 
             // Rotate by camera pitch
-            const cosPitch = Math.cos(camera.pitch);
-            const sinPitch = Math.sin(camera.pitch);
-            const rotY = dy * cosPitch - rotZ * sinPitch;
-            const finalZ = dy * sinPitch + rotZ * cosPitch;
+            const cosPitch = Math.cos(-camera.pitch);
+            const sinPitch = Math.sin(-camera.pitch);
+            let rotY = dy * cosPitch - rotZ * sinPitch;
+            let finalZ = dy * sinPitch + rotZ * cosPitch;
 
             if (finalZ <= camera.near) return null;
 
@@ -418,10 +420,12 @@
                 gameOver();
             }
 
-            // Camera follow player
-            camera.x = player.x;
-            camera.y = player.y + 2;
-            camera.z = player.z - 5;
+            // Camera orbits around player
+            // Calculate camera position based on yaw and pitch
+            const horizontalDistance = camera.distance * Math.cos(camera.pitch);
+            camera.x = player.x - horizontalDistance * Math.sin(camera.yaw);
+            camera.z = player.z - horizontalDistance * Math.cos(camera.yaw);
+            camera.y = player.y + 2 + camera.distance * Math.sin(camera.pitch);
         }
 
         function draw() {
@@ -487,9 +491,9 @@
             player.z = 0;
             player.velocityY = 0;
             player.grounded = true; // Start grounded
-            camera.z = -5;
-            camera.x = 0;
-            camera.y = 2;
+            camera.yaw = 0;
+            camera.pitch = -0.2;
+            camera.distance = 5;
 
             initPlatforms();
             initAudio();
