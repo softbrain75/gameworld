@@ -191,14 +191,14 @@
             grounded: false
         };
 
-        // Camera
+        // Camera - always looks at player from behind
         const camera = {
             x: 0,
             y: 2,
             z: -5,
-            pitch: -0.3,
-            yaw: 0,
-            distance: 6, // Distance from player (increased for better view)
+            pitch: 0.3, // Look down angle (positive = looking down)
+            yaw: Math.PI, // Start facing forward (behind player)
+            distance: 7, // Distance from player
             fov: 70,
             near: 0.1,
             far: 100
@@ -285,30 +285,29 @@
             platforms.push({ x: 0, y: 3.5, z: 32, width: 3, height: 0.3, depth: 3 }); // Goal platform
         }
 
-        // 3D to 2D projection
+        // 3D to 2D projection - camera always looks at origin (player position)
         function project(x, y, z) {
-            // Calculate vector from camera to point
+            // Translate to camera space
             let dx = x - camera.x;
             let dy = y - camera.y;
             let dz = z - camera.z;
 
-            // Camera looks at player, so we need to rotate space around camera's look direction
-            // First, rotate by yaw (horizontal rotation)
-            const cosYaw = Math.cos(camera.yaw);
-            const sinYaw = Math.sin(camera.yaw);
-            let rotX = dx * cosYaw + dz * sinYaw;
-            let rotZ = -dx * sinYaw + dz * cosYaw;
+            // Rotate around Y axis (yaw) - horizontal rotation
+            const cosYaw = Math.cos(-camera.yaw);
+            const sinYaw = Math.sin(-camera.yaw);
+            let rotX = dx * cosYaw - dz * sinYaw;
+            let rotZ = dx * sinYaw + dz * cosYaw;
 
-            // Then rotate by pitch (vertical rotation)
-            const cosPitch = Math.cos(camera.pitch);
-            const sinPitch = Math.sin(camera.pitch);
+            // Rotate around X axis (pitch) - vertical rotation
+            const cosPitch = Math.cos(-camera.pitch);
+            const sinPitch = Math.sin(-camera.pitch);
             let rotY = dy * cosPitch - rotZ * sinPitch;
             let finalZ = dy * sinPitch + rotZ * cosPitch;
 
-            // Don't render points behind camera
+            // Don't render behind camera
             if (finalZ <= camera.near) return null;
 
-            // Project to screen space
+            // Perspective projection
             const fovRad = camera.fov * Math.PI / 180;
             const scale = (canvas.height / 2) / Math.tan(fovRad / 2) / finalZ;
 
@@ -423,12 +422,14 @@
                 gameOver();
             }
 
-            // Camera orbits around player
-            // Calculate camera position based on yaw and pitch
-            const horizontalDistance = camera.distance * Math.cos(camera.pitch);
-            camera.x = player.x + horizontalDistance * Math.sin(camera.yaw);
-            camera.z = player.z + horizontalDistance * Math.cos(camera.yaw);
-            camera.y = player.y + 2 - camera.distance * Math.sin(camera.pitch);
+            // Camera orbits around player (spherical coordinates)
+            // Camera is 'distance' away from player
+            // Yaw rotates around player horizontally
+            // Pitch tilts camera up/down
+            const horizontalDist = camera.distance * Math.cos(camera.pitch);
+            camera.x = player.x - horizontalDist * Math.sin(camera.yaw);
+            camera.z = player.z - horizontalDist * Math.cos(camera.yaw);
+            camera.y = player.y + 2 + camera.distance * Math.sin(camera.pitch);
         }
 
         function draw() {
@@ -494,9 +495,9 @@
             player.z = 0;
             player.velocityY = 0;
             player.grounded = true; // Start grounded
-            camera.yaw = 0;
-            camera.pitch = -0.3;
-            camera.distance = 6;
+            camera.yaw = Math.PI;
+            camera.pitch = 0.3;
+            camera.distance = 7;
 
             initPlatforms();
             initAudio();
@@ -546,12 +547,12 @@
             const deltaX = e.touches[0].clientX - lastTouchX;
             const deltaY = e.touches[0].clientY - lastTouchY;
 
-            // Rotate camera with touch drag (inverted)
+            // Rotate camera with touch drag
             camera.yaw -= deltaX * 0.005;
-            camera.pitch += deltaY * 0.003;
+            camera.pitch -= deltaY * 0.005;
 
-            // Clamp pitch to keep player always visible (more restrictive)
-            camera.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 6, camera.pitch));
+            // Clamp pitch to reasonable range
+            camera.pitch = Math.max(0.1, Math.min(Math.PI / 2.5, camera.pitch));
 
             lastTouchX = e.touches[0].clientX;
             lastTouchY = e.touches[0].clientY;
@@ -575,12 +576,12 @@
             const deltaX = e.clientX - lastMouseX;
             const deltaY = e.clientY - lastMouseY;
 
-            // Rotate camera with mouse drag (inverted)
+            // Rotate camera with mouse drag
             camera.yaw -= deltaX * 0.005;
-            camera.pitch += deltaY * 0.003;
+            camera.pitch -= deltaY * 0.005;
 
-            // Clamp pitch to keep player always visible (more restrictive)
-            camera.pitch = Math.max(-Math.PI / 3, Math.min(Math.PI / 6, camera.pitch));
+            // Clamp pitch to reasonable range
+            camera.pitch = Math.max(0.1, Math.min(Math.PI / 2.5, camera.pitch));
 
             lastMouseX = e.clientX;
             lastMouseY = e.clientY;
