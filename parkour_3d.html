@@ -419,18 +419,25 @@
                 gameOver();
             }
 
-            // Camera orbits around player
+            // Camera orbits around player using spherical coordinates
             const camDist = 7;
-            const camHeight = 3;
+            const playerCenter = player.y + 1; // Center of player
 
-            // Calculate camera position based on rotation angles
-            camera.x = player.x + camDist * Math.sin(cameraAngleH);
-            camera.z = player.z + camDist * Math.cos(cameraAngleH);
-            camera.y = player.y + camHeight + camDist * cameraAngleV;
+            // Convert angles to spherical coordinates
+            // cameraAngleV: negative = below, positive = above
+            const horizontalDist = camDist * Math.cos(cameraAngleV);
+            camera.x = player.x + horizontalDist * Math.sin(cameraAngleH);
+            camera.z = player.z + horizontalDist * Math.cos(cameraAngleH);
+            camera.y = playerCenter + camDist * Math.sin(cameraAngleV);
 
-            // Camera always looks at player
-            camera.pitch = -Math.atan2(camera.y - (player.y + 1), camDist);
-            camera.yaw = Math.atan2(player.x - camera.x, player.z - camera.z);
+            // Camera always looks at player center
+            const dx = player.x - camera.x;
+            const dy = playerCenter - camera.y;
+            const dz = player.z - camera.z;
+            const horizontalDistToPlayer = Math.sqrt(dx * dx + dz * dz);
+
+            camera.pitch = Math.atan2(dy, horizontalDistToPlayer);
+            camera.yaw = Math.atan2(dx, dz);
         }
 
         function draw() {
