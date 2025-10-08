@@ -141,8 +141,7 @@
         <h1>🏃 3D 파쿠르 러너</h1>
         <div class="info">플랫폼을 뛰어넘어 골인하세요!</div>
         <div class="info">WASD 또는 방향키로 이동</div>
-        <div class="info">스페이스바 또는 점프 버튼으로 점프</div>
-        <div class="info">마우스/손가락 드래그로 화면 회전</div>
+        <div class="info">스페이스바 또는 화면 터치로 점프</div>
         <button id="startBtn">게임 시작</button>
     </div>
 
@@ -191,14 +190,13 @@
             grounded: false
         };
 
-        // Camera - always looks at player from behind
+        // Camera
         const camera = {
             x: 0,
             y: 2,
             z: -5,
-            pitch: 0.3, // Look down angle (positive = looking down)
-            yaw: Math.PI, // Start facing forward (behind player)
-            distance: 7, // Distance from player
+            pitch: -0.2,
+            yaw: 0,
             fov: 70,
             near: 0.1,
             far: 100
@@ -214,12 +212,6 @@
         const keys = {};
         let touchStartY = 0;
         let touchStartX = 0;
-        let isDragging = false;
-        let lastTouchX = 0;
-        let lastTouchY = 0;
-        let isMouseDown = false;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
 
         // Audio context
         let audioContext = null;
@@ -285,29 +277,26 @@
             platforms.push({ x: 0, y: 3.5, z: 32, width: 3, height: 0.3, depth: 3 }); // Goal platform
         }
 
-        // 3D to 2D projection - camera always looks at origin (player position)
+        // 3D to 2D projection
         function project(x, y, z) {
-            // Translate to camera space
-            let dx = x - camera.x;
-            let dy = y - camera.y;
-            let dz = z - camera.z;
+            const dx = x - camera.x;
+            const dy = y - camera.y;
+            const dz = z - camera.z;
 
-            // Rotate around Y axis (yaw) - horizontal rotation
-            const cosYaw = Math.cos(-camera.yaw);
-            const sinYaw = Math.sin(-camera.yaw);
-            let rotX = dx * cosYaw - dz * sinYaw;
-            let rotZ = dx * sinYaw + dz * cosYaw;
+            // Rotate by camera yaw
+            const cosYaw = Math.cos(camera.yaw);
+            const sinYaw = Math.sin(camera.yaw);
+            const rotX = dx * cosYaw - dz * sinYaw;
+            const rotZ = dx * sinYaw + dz * cosYaw;
 
-            // Rotate around X axis (pitch) - vertical rotation
-            const cosPitch = Math.cos(-camera.pitch);
-            const sinPitch = Math.sin(-camera.pitch);
-            let rotY = dy * cosPitch - rotZ * sinPitch;
-            let finalZ = dy * sinPitch + rotZ * cosPitch;
+            // Rotate by camera pitch
+            const cosPitch = Math.cos(camera.pitch);
+            const sinPitch = Math.sin(camera.pitch);
+            const rotY = dy * cosPitch - rotZ * sinPitch;
+            const finalZ = dy * sinPitch + rotZ * cosPitch;
 
-            // Don't render behind camera
             if (finalZ <= camera.near) return null;
 
-            // Perspective projection
             const fovRad = camera.fov * Math.PI / 180;
             const scale = (canvas.height / 2) / Math.tan(fovRad / 2) / finalZ;
 
@@ -422,14 +411,10 @@
                 gameOver();
             }
 
-            // Camera orbits around player (spherical coordinates)
-            // Camera is 'distance' away from player
-            // Yaw rotates around player horizontally
-            // Pitch tilts camera up/down
-            const horizontalDist = camera.distance * Math.cos(camera.pitch);
-            camera.x = player.x - horizontalDist * Math.sin(camera.yaw);
-            camera.z = player.z - horizontalDist * Math.cos(camera.yaw);
-            camera.y = player.y + 2 + camera.distance * Math.sin(camera.pitch);
+            // Camera follow player
+            camera.x = player.x;
+            camera.y = player.y + 2;
+            camera.z = player.z - 5;
         }
 
         function draw() {
@@ -495,9 +480,9 @@
             player.z = 0;
             player.velocityY = 0;
             player.grounded = true; // Start grounded
-            camera.yaw = Math.PI;
-            camera.pitch = 0.3;
-            camera.distance = 7;
+            camera.z = -5;
+            camera.x = 0;
+            camera.y = 2;
 
             initPlatforms();
             initAudio();
@@ -535,64 +520,21 @@
 
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            isDragging = true;
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
+            touchStartY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX;
         });
 
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            if (!isDragging) return;
-
-            const deltaX = e.touches[0].clientX - lastTouchX;
-            const deltaY = e.touches[0].clientY - lastTouchY;
-
-            // Rotate camera with touch drag
-            camera.yaw -= deltaX * 0.005;
-            camera.pitch -= deltaY * 0.005;
-
-            // Clamp pitch to reasonable range
-            camera.pitch = Math.max(0.1, Math.min(Math.PI / 2.5, camera.pitch));
-
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
+            const deltaX = e.touches[0].clientX - touchStartX;
+            if (Math.abs(deltaX) > 20 && gameState === 'playing') {
+                player.lane = Math.max(-1, Math.min(1, deltaX / 100));
+                touchStartX = e.touches[0].clientX;
+            }
         });
 
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
-            isDragging = false;
-        });
-
-        // Mouse controls for camera rotation
-        canvas.addEventListener('mousedown', (e) => {
-            isMouseDown = true;
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (!isMouseDown) return;
-
-            const deltaX = e.clientX - lastMouseX;
-            const deltaY = e.clientY - lastMouseY;
-
-            // Rotate camera with mouse drag
-            camera.yaw -= deltaX * 0.005;
-            camera.pitch -= deltaY * 0.005;
-
-            // Clamp pitch to reasonable range
-            camera.pitch = Math.max(0.1, Math.min(Math.PI / 2.5, camera.pitch));
-
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            isMouseDown = false;
-        });
-
-        canvas.addEventListener('mouseleave', () => {
-            isMouseDown = false;
         });
 
         // Start game loop
