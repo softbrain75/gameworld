@@ -287,25 +287,28 @@
 
         // 3D to 2D projection
         function project(x, y, z) {
-            // Translate relative to camera position
+            // Calculate vector from camera to point
             let dx = x - camera.x;
             let dy = y - camera.y;
             let dz = z - camera.z;
 
-            // Rotate by camera yaw (around player)
-            const cosYaw = Math.cos(-camera.yaw);
-            const sinYaw = Math.sin(-camera.yaw);
-            let rotX = dx * cosYaw - dz * sinYaw;
-            let rotZ = dx * sinYaw + dz * cosYaw;
+            // Camera looks at player, so we need to rotate space around camera's look direction
+            // First, rotate by yaw (horizontal rotation)
+            const cosYaw = Math.cos(camera.yaw);
+            const sinYaw = Math.sin(camera.yaw);
+            let rotX = dx * cosYaw + dz * sinYaw;
+            let rotZ = -dx * sinYaw + dz * cosYaw;
 
-            // Rotate by camera pitch
-            const cosPitch = Math.cos(-camera.pitch);
-            const sinPitch = Math.sin(-camera.pitch);
+            // Then rotate by pitch (vertical rotation)
+            const cosPitch = Math.cos(camera.pitch);
+            const sinPitch = Math.sin(camera.pitch);
             let rotY = dy * cosPitch - rotZ * sinPitch;
             let finalZ = dy * sinPitch + rotZ * cosPitch;
 
+            // Don't render points behind camera
             if (finalZ <= camera.near) return null;
 
+            // Project to screen space
             const fovRad = camera.fov * Math.PI / 180;
             const scale = (canvas.height / 2) / Math.tan(fovRad / 2) / finalZ;
 
@@ -423,9 +426,9 @@
             // Camera orbits around player
             // Calculate camera position based on yaw and pitch
             const horizontalDistance = camera.distance * Math.cos(camera.pitch);
-            camera.x = player.x - horizontalDistance * Math.sin(camera.yaw);
-            camera.z = player.z - horizontalDistance * Math.cos(camera.yaw);
-            camera.y = player.y + 2 + camera.distance * Math.sin(camera.pitch);
+            camera.x = player.x + horizontalDistance * Math.sin(camera.yaw);
+            camera.z = player.z + horizontalDistance * Math.cos(camera.yaw);
+            camera.y = player.y + 2 - camera.distance * Math.sin(camera.pitch);
         }
 
         function draw() {
