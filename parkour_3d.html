@@ -553,8 +553,8 @@
             cameraAngleH -= deltaX * 0.01;
             cameraAngleV -= deltaY * 0.01;
 
-            // Clamp vertical angle
-            cameraAngleV = Math.max(-0.8, Math.min(0.2, cameraAngleV));
+            // Clamp vertical angle (allow viewing from above)
+            cameraAngleV = Math.max(-1.2, Math.min(0.5, cameraAngleV));
 
             lastDragX = e.touches[0].clientX;
             lastDragY = e.touches[0].clientY;
@@ -582,8 +582,8 @@
             cameraAngleH -= deltaX * 0.01;
             cameraAngleV -= deltaY * 0.01;
 
-            // Clamp vertical angle
-            cameraAngleV = Math.max(-0.8, Math.min(0.2, cameraAngleV));
+            // Clamp vertical angle (allow viewing from above)
+            cameraAngleV = Math.max(-1.2, Math.min(0.5, cameraAngleV));
 
             lastDragX = e.clientX;
             lastDragY = e.clientY;
