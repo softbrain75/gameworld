@@ -141,7 +141,8 @@
         <h1>🏃 3D 파쿠르 러너</h1>
         <div class="info">플랫폼을 뛰어넘어 골인하세요!</div>
         <div class="info">WASD 또는 방향키로 이동</div>
-        <div class="info">스페이스바 또는 화면 터치로 점프</div>
+        <div class="info">스페이스바 또는 점프 버튼으로 점프</div>
+        <div class="info">마우스/손가락 드래그로 화면 회전</div>
         <button id="startBtn">게임 시작</button>
     </div>
 
@@ -212,6 +213,12 @@
         const keys = {};
         let touchStartY = 0;
         let touchStartX = 0;
+        let isDragging = false;
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+        let isMouseDown = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
 
         // Audio context
         let audioContext = null;
@@ -520,21 +527,64 @@
 
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            touchStartY = e.touches[0].clientY;
-            touchStartX = e.touches[0].clientX;
+            isDragging = true;
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         });
 
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            const deltaX = e.touches[0].clientX - touchStartX;
-            if (Math.abs(deltaX) > 20 && gameState === 'playing') {
-                player.lane = Math.max(-1, Math.min(1, deltaX / 100));
-                touchStartX = e.touches[0].clientX;
-            }
+            if (!isDragging) return;
+
+            const deltaX = e.touches[0].clientX - lastTouchX;
+            const deltaY = e.touches[0].clientY - lastTouchY;
+
+            // Rotate camera with touch drag
+            camera.yaw += deltaX * 0.005;
+            camera.pitch -= deltaY * 0.003;
+
+            // Clamp pitch to prevent flipping
+            camera.pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, camera.pitch));
+
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         });
 
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
+            isDragging = false;
+        });
+
+        // Mouse controls for camera rotation
+        canvas.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isMouseDown) return;
+
+            const deltaX = e.clientX - lastMouseX;
+            const deltaY = e.clientY - lastMouseY;
+
+            // Rotate camera with mouse drag
+            camera.yaw += deltaX * 0.005;
+            camera.pitch -= deltaY * 0.003;
+
+            // Clamp pitch to prevent flipping
+            camera.pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, camera.pitch));
+
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isMouseDown = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isMouseDown = false;
         });
 
         // Start game loop
