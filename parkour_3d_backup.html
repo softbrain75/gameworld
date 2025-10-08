@@ -6,8 +6,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
-     crossorigin="anonymous"></script>
     <title>3D 파쿠르 러너 🏃</title>
     <style>
         * {
@@ -144,7 +142,7 @@
         <div class="info">플랫폼을 뛰어넘어 골인하세요!</div>
         <div class="info">WASD 또는 방향키로 이동</div>
         <div class="info">스페이스바 또는 점프 버튼으로 점프</div>
-        <div class="info">마우스/터치 드래그로 카메라 회전</div>
+        <div class="info">마우스/손가락 드래그로 화면 회전</div>
         <button id="startBtn">게임 시작</button>
     </div>
 
@@ -215,13 +213,12 @@
         const keys = {};
         let touchStartY = 0;
         let touchStartX = 0;
-
-        // Camera rotation controls
         let isDragging = false;
-        let lastDragX = 0;
-        let lastDragY = 0;
-        let cameraAngleH = 0; // Horizontal angle around player
-        let cameraAngleV = -0.3; // Vertical angle (pitch)
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+        let isMouseDown = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
 
         // Audio context
         let audioContext = null;
@@ -421,25 +418,10 @@
                 gameOver();
             }
 
-            // Camera orbits around player using spherical coordinates
-            const camDist = 7;
-            const playerCenter = player.y + 1; // Center of player
-
-            // Convert angles to spherical coordinates
-            // cameraAngleV: negative = below, positive = above
-            const horizontalDist = camDist * Math.cos(cameraAngleV);
-            camera.x = player.x + horizontalDist * Math.sin(cameraAngleH);
-            camera.z = player.z + horizontalDist * Math.cos(cameraAngleH);
-            camera.y = playerCenter + camDist * Math.sin(cameraAngleV);
-
-            // Camera always looks at player center
-            const dx = player.x - camera.x;
-            const dy = playerCenter - camera.y;
-            const dz = player.z - camera.z;
-            const horizontalDistToPlayer = Math.sqrt(dx * dx + dz * dz);
-
-            camera.pitch = Math.atan2(dy, horizontalDistToPlayer);
-            camera.yaw = Math.atan2(dx, dz);
+            // Camera follow player
+            camera.x = player.x;
+            camera.y = player.y + 2;
+            camera.z = player.z - 5;
         }
 
         function draw() {
@@ -543,30 +525,29 @@
             jump();
         });
 
-        // Touch controls for camera rotation
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             isDragging = true;
-            lastDragX = e.touches[0].clientX;
-            lastDragY = e.touches[0].clientY;
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         });
 
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
             if (!isDragging) return;
 
-            const deltaX = e.touches[0].clientX - lastDragX;
-            const deltaY = e.touches[0].clientY - lastDragY;
+            const deltaX = e.touches[0].clientX - lastTouchX;
+            const deltaY = e.touches[0].clientY - lastTouchY;
 
-            // Rotate camera
-            cameraAngleH -= deltaX * 0.01;
-            cameraAngleV -= deltaY * 0.01;
+            // Rotate camera with touch drag
+            camera.yaw += deltaX * 0.005;
+            camera.pitch -= deltaY * 0.003;
 
-            // Clamp vertical angle (allow viewing from directly above)
-            cameraAngleV = Math.max(-1.4, Math.min(1.4, cameraAngleV));
+            // Clamp pitch to prevent flipping
+            camera.pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, camera.pitch));
 
-            lastDragX = e.touches[0].clientX;
-            lastDragY = e.touches[0].clientY;
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         });
 
         canvas.addEventListener('touchend', (e) => {
@@ -576,34 +557,34 @@
 
         // Mouse controls for camera rotation
         canvas.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            lastDragX = e.clientX;
-            lastDragY = e.clientY;
+            isMouseDown = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
         });
 
         canvas.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
+            if (!isMouseDown) return;
 
-            const deltaX = e.clientX - lastDragX;
-            const deltaY = e.clientY - lastDragY;
+            const deltaX = e.clientX - lastMouseX;
+            const deltaY = e.clientY - lastMouseY;
 
-            // Rotate camera
-            cameraAngleH -= deltaX * 0.01;
-            cameraAngleV -= deltaY * 0.01;
+            // Rotate camera with mouse drag
+            camera.yaw += deltaX * 0.005;
+            camera.pitch -= deltaY * 0.003;
 
-            // Clamp vertical angle (allow viewing from directly above)
-            cameraAngleV = Math.max(-1.4, Math.min(1.4, cameraAngleV));
+            // Clamp pitch to prevent flipping
+            camera.pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, camera.pitch));
 
-            lastDragX = e.clientX;
-            lastDragY = e.clientY;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
         });
 
         canvas.addEventListener('mouseup', () => {
-            isDragging = false;
+            isMouseDown = false;
         });
 
         canvas.addEventListener('mouseleave', () => {
-            isDragging = false;
+            isMouseDown = false;
         });
 
         // Start game loop
