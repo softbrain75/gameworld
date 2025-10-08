@@ -1022,7 +1022,8 @@
                     x: x + offsetX,
                     y: y - 30,
                     speed: 10,
-                    color: '#ffd700'
+                    color: '#ffd700',
+                    cannonLevel: cannon.upgradeLevel // Track cannon level
                 });
             }
 
@@ -1133,7 +1134,9 @@
 
                         if (distance < 30) {
                             hit = true;
-                            enemy.health -= 1;
+                            // Level 10+ cannons deal 2x damage
+                            const damage = proj.cannonLevel >= 10 ? 2 : 1;
+                            enemy.health -= damage;
 
                             // Play hit sound
                             playSound('hit');
