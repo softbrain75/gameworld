@@ -357,8 +357,8 @@
                 // Update health bar
                 document.getElementById('healthFill').style.width = health + '%';
 
-                // Increase difficulty
-                healthDecayRate = 0.5 + (score * 0.005);
+                // Increase difficulty - gets faster as you climb
+                healthDecayRate = 0.5 + (score * 0.02);
             }
 
             // Input handling removed from update loop - now handled in keydown event
