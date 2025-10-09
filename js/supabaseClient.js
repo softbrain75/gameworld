@@ -19,17 +19,6 @@ let currentProfile = null;
 // 회원가입
 async function signUp(username, email, password) {
     try {
-        // 먼저 username 중복 체크
-        const { data: existingUser } = await supabase
-            .from('profiles')
-            .select('username')
-            .eq('username', username)
-            .single();
-
-        if (existingUser) {
-            return { success: false, error: '이미 사용 중인 아이디입니다.' };
-        }
-
         const { data, error } = await supabase.auth.signUp({
             email: email,
             password: password,
@@ -40,12 +29,23 @@ async function signUp(username, email, password) {
             }
         });
 
-        if (error) throw error;
+        if (error) {
+            // 중복 에러 메시지 처리
+            if (error.message.includes('already registered')) {
+                return { success: false, error: '이미 가입된 이메일입니다.' };
+            }
+            throw error;
+        }
 
         // 자동으로 프로필이 생성됨 (트리거)
+        // UNIQUE 제약조건으로 username 중복도 자동 방지
         return { success: true, data };
     } catch (error) {
         console.error('회원가입 오류:', error);
+        // username UNIQUE 제약 위반 시
+        if (error.message?.includes('duplicate') || error.message?.includes('unique')) {
+            return { success: false, error: '이미 사용 중인 아이디입니다.' };
+        }
         return { success: false, error: error.message };
     }
 }
@@ -58,9 +58,18 @@ async function signIn(username, password) {
             .from('profiles')
             .select('email')
             .eq('username', username)
-            .single();
+            .maybeSingle(); // single() 대신 maybeSingle() 사용
 
-        if (profileError || !profile) {
+        // 406 에러 (컬럼이 없는 경우) 처리
+        if (profileError) {
+            console.error('Profile lookup error:', profileError);
+            if (profileError.code === 'PGRST204' || profileError.code === '406') {
+                return { success: false, error: 'username 컬럼이 아직 생성되지 않았습니다. Supabase에서 마이그레이션 SQL을 실행하세요.' };
+            }
+            return { success: false, error: '아이디 또는 비밀번호가 일치하지 않습니다.' };
+        }
+
+        if (!profile) {
             return { success: false, error: '아이디 또는 비밀번호가 일치하지 않습니다.' };
         }
 
