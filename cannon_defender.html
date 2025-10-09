@@ -1162,7 +1162,7 @@
                     const cannon = cannons[i];
                     if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
                         const cost = getUpgradeCost(cannon.upgradeLevel);
-                        if (score >= cost) {
+                        if (gameScore >= cost) {
                             upgradeCannon(i);
                         }
                     }
@@ -1193,7 +1193,7 @@
                 const cannon = cannons[upgradeIndex];
                 if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
                     const cost = getUpgradeCost(cannon.upgradeLevel);
-                    if (score >= cost) {
+                    if (gameScore >= cost) {
                         upgradeCannon(upgradeIndex);
                     }
                 }
@@ -1365,7 +1365,7 @@
                 // Check upgrade button click
                 if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
                     const cost = getUpgradeCost(cannon.upgradeLevel);
-                    if (score >= cost) {
+                    if (gameScore >= cost) {
                         // Upgrade button area
                         if (x >= laneX - 25 && x <= laneX + 25 &&
                             y >= upgradeY - 15 && y <= upgradeY + 15) {
@@ -1821,7 +1821,7 @@
                 // Draw upgrade button above cannon if available
                 if (cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
                     const cost = getUpgradeCost(cannon.upgradeLevel);
-                    const canAfford = score >= cost;
+                    const canAfford = gameScore >= cost;
 
                     if (canAfford) {
                         const upgradeY = cannonY - 90;
@@ -2293,7 +2293,8 @@
 
             const cost = getUpgradeCost(cannon.upgradeLevel);
 
-            if (score >= cost) {
+            if (gameScore >= cost) {
+                gameScore -= cost;
                 score -= cost;
                 cannon.upgradeLevel++;
                 updateUI();
