@@ -470,3 +470,11 @@ window.addGamePoints = addGamePoints;
 window.incrementGameView = incrementGameView;
 window.getGameViews = getGameViews;
 window.getAllGameViews = getAllGameViews;
+
+// 현재 사용자 정보 getter로 노출
+Object.defineProperty(window, 'currentUser', {
+    get: () => currentUser
+});
+Object.defineProperty(window, 'currentProfile', {
+    get: () => currentProfile
+});
