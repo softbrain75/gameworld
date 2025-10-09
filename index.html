@@ -1819,9 +1819,9 @@
                     <span class="info-value" id="myPageJoinDate">-</span>
                 </div>
 
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="auth-btn" onclick="openEditInfoModal()" data-i18n="editInfo">정보 수정</button>
-                    <button class="danger-btn" onclick="handleDeleteAccount()" data-i18n="deleteAccount">회원 탈퇴</button>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button class="auth-btn" style="flex: 1;" onclick="openEditInfoModal()" data-i18n="editInfo">정보 수정</button>
+                    <button class="danger-btn" style="flex: 1;" onclick="handleDeleteAccount()" data-i18n="deleteAccount">회원 탈퇴</button>
                 </div>
             </div>
         </div>
@@ -1857,6 +1857,10 @@
 
             <!-- 비밀번호 변경 폼 -->
             <form id="editPasswordForm" class="auth-form" onsubmit="handlePasswordChange(event)">
+                <div class="form-group">
+                    <label data-i18n="currentPassword">현재 비밀번호</label>
+                    <input type="password" id="currentPassword" required data-placeholder="passwordPlaceholder">
+                </div>
                 <div class="form-group">
                     <label data-i18n="newPassword">새 비밀번호</label>
                     <input type="password" id="newPassword" required minlength="6" data-placeholder="password6chars">
@@ -1960,6 +1964,7 @@
                 changeEmail: '이메일 변경',
                 changePassword: '비밀번호 변경',
                 currentEmail: '현재 이메일',
+                currentPassword: '현재 비밀번호',
                 newEmail: '새 이메일',
                 newPassword: '새 비밀번호',
                 newPasswordConfirm: '새 비밀번호 확인',
@@ -3558,6 +3563,7 @@
         async function handlePasswordChange(event) {
             event.preventDefault();
 
+            const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const newPasswordConfirm = document.getElementById('newPasswordConfirm').value;
             const submitBtn = document.getElementById('passwordChangeBtn');
@@ -3568,7 +3574,7 @@
             successDiv.classList.remove('active');
 
             if (newPassword !== newPasswordConfirm) {
-                errorDiv.textContent = '비밀번호가 일치하지 않습니다.';
+                errorDiv.textContent = '새 비밀번호가 일치하지 않습니다.';
                 errorDiv.classList.add('active');
                 return;
             }
@@ -3576,6 +3582,18 @@
             submitBtn.disabled = true;
             submitBtn.textContent = '변경 중...';
 
+            // 먼저 현재 비밀번호로 재인증
+            const reAuthResult = await reauthenticateUser(currentPassword);
+
+            if (!reAuthResult.success) {
+                errorDiv.textContent = '현재 비밀번호가 올바르지 않습니다.';
+                errorDiv.classList.add('active');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '비밀번호 변경';
+                return;
+            }
+
+            // 재인증 성공 후 비밀번호 변경
             const result = await updatePassword(newPassword);
 
             if (result.success) {

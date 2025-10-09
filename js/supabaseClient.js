@@ -193,6 +193,28 @@ async function updateUserEmail(newEmail) {
     }
 }
 
+// 사용자 재인증 (비밀번호 확인)
+async function reauthenticateUser(password) {
+    try {
+        if (!currentUser || !currentProfile) {
+            return { success: false, error: '로그인이 필요합니다.' };
+        }
+
+        // 현재 이메일과 비밀번호로 재로그인 시도
+        const { error } = await supabase.auth.signInWithPassword({
+            email: currentProfile.email,
+            password: password
+        });
+
+        if (error) throw error;
+
+        return { success: true };
+    } catch (error) {
+        console.error('재인증 오류:', error);
+        return { success: false, error: '비밀번호가 올바르지 않습니다.' };
+    }
+}
+
 // 회원 탈퇴
 async function deleteAccount() {
     try {
@@ -441,6 +463,7 @@ window.loadUserProfile = loadUserProfile;
 window.resetPassword = resetPassword;
 window.updatePassword = updatePassword;
 window.updateUserEmail = updateUserEmail;
+window.reauthenticateUser = reauthenticateUser;
 window.getCurrentPoints = getCurrentPoints;
 window.usePointsForGameStart = usePointsForGameStart;
 window.addGamePoints = addGamePoints;
