@@ -3507,17 +3507,17 @@
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
 
-            // 현재 이메일 표시
-            if (window.currentProfile) {
-                document.getElementById('currentEmailDisplay').value = window.currentProfile.email;
-            }
-
-            // 폼 초기화
+            // 폼 초기화 (먼저 실행)
             document.getElementById('editEmailForm').reset();
             document.getElementById('editPasswordForm').reset();
             document.querySelectorAll('#editInfoModal .error-message, #editInfoModal .success-message').forEach(el => {
                 el.classList.remove('active');
             });
+
+            // 현재 이메일 표시 (reset 후에 설정)
+            if (window.currentProfile) {
+                document.getElementById('currentEmailDisplay').value = window.currentProfile.email;
+            }
         }
 
         // 정보 수정 모달 닫기
