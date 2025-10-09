@@ -1018,7 +1018,7 @@
 
         // Game state
         let gameState = 'menu';
-        let score = 0; // 업그레이드용 점수 (통합 포인트 포함)
+        let totalScore = 0; // 업그레이드용 점수 (통합 포인트 포함)
         let gameScore = 0; // 이번 판에서만 획득한 점수
         let wave = 1;
         let lives = 10;
@@ -1235,7 +1235,7 @@
             const startingScore = pointsResult.startingScore || 0;
 
             gameState = 'playing';
-            score = startingScore; // 통합 포인트를 초기 점수로 설정 (업그레이드용)
+            totalScore = startingScore; // 통합 포인트를 초기 점수로 설정 (업그레이드용)
             gameScore = 0; // 이번 판 점수는 0부터 시작
             wave = 1;
             lives = 10;
@@ -1598,7 +1598,7 @@
                                 const basePoints = enemy.points * healthMultiplier;
                                 const comboBonus = basePoints * combo;
                                 const totalPoints = basePoints + comboBonus;
-                                score += totalPoints; // 업그레이드용 (통합 포인트 포함)
+                                totalScore += totalPoints; // 업그레이드용 (통합 포인트 포함)
                                 gameScore += totalPoints; // 이번 판 점수
                                 kills++;
                                 combo++;
@@ -2161,7 +2161,7 @@
                 } else {
                     speedBtn.classList.remove('active');
                     speedBtn.textContent = '⚡';
-                    if (score >= SPEED_BOOST_COST && gameState === 'playing') {
+                    if (totalScore >= SPEED_BOOST_COST && gameState === 'playing') {
                         speedBtn.classList.remove('disabled');
                     } else {
                         speedBtn.classList.add('disabled');
@@ -2176,9 +2176,9 @@
         function buySpeedBoost() {
             if (gameState !== 'playing') return;
             if (speedBoostActive) return;
-            if (score < SPEED_BOOST_COST) return;
+            if (totalScore < SPEED_BOOST_COST) return;
 
-            score -= SPEED_BOOST_COST;
+            totalScore -= SPEED_BOOST_COST;
             speedBoostActive = true;
             speedBoostEndTime = Date.now() + SPEED_BOOST_DURATION;
 
@@ -2295,7 +2295,7 @@
 
             if (gameScore >= cost) {
                 gameScore -= cost;
-                score -= cost;
+                totalScore -= cost;
                 cannon.upgradeLevel++;
                 updateUI();
                 updateUpgradeUI();
@@ -2336,7 +2336,7 @@
             }
 
             // Award bonus points
-            score += levelBonus;
+            totalScore += levelBonus;
             gameScore += levelBonus;
 
             // Update display
