@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
+     crossorigin="anonymous"></script>
+    <title>Tofu Girl 🐰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(to bottom, #ffb3d9 0%, #ff69b4 100%);
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #ffb3d9 0%, #ff69b4 100%);
+            max-width: 100%;
+            max-height: 100%;
+            width: 100vw;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 105, 180, 0.95);
+            color: white;
+            z-index: 10;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .info {
+            font-size: 1.1rem;
+            margin: 0.5rem 0;
+            text-align: center;
+            padding: 0 2rem;
+        }
+
+        button {
+            font-size: 1.5rem;
+            padding: 1rem 3rem;
+            margin: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #fff, #ffd700);
+            color: #ff69b4;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 215, 0, 0.9);
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .coin-icon {
+            width: 30px;
+            height: 30px;
+            background: #ffd700;
+            border-radius: 50%;
+            border: 3px solid #ff8c00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #ff8c00;
+        }
+
+        .score {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .info { font-size: 1rem; }
+            button { font-size: 1.2rem; padding: 0.8rem 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="menuScreen" class="screen">
+        <h1>🐰 Tofu Girl</h1>
+        <div class="info">두부 위에서 점프하며 올라가세요!</div>
+        <div class="info">화면을 터치하여 점프</div>
+        <div class="info">코인을 모으고 높이 올라가세요!</div>
+        <div class="info" style="margin-top: 1rem;">최고 기록: <span id="menuHighScore">0</span>점</div>
+        <button id="startBtn">게임 시작</button>
+    </div>
+
+    <div id="gameoverScreen" class="screen hidden">
+        <h1>게임 오버</h1>
+        <div class="info">획득 점수: <span id="finalScore">0</span>점</div>
+        <div class="info">최고 기록: <span id="gameoverHighScore">0</span>점</div>
+        <button id="retryBtn">다시 하기</button>
+    </div>
+
+    <div class="hud hidden" id="gameHud">
+        <div class="coin-icon">₩</div>
+        <div class="score" id="scoreDisplay">0</div>
+    </div>
+
+    <script>
+        // Viewport height fix for mobile
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        window.addEventListener('resize', () => {
+            vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        });
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Canvas setup
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game state
+        let gameState = 'menu';
+        let highScore = parseInt(localStorage.getItem('tofuGirl_highScore')) || 0;
+
+        // Player (Tofu Girl character)
+        const player = {
+            x: 0,
+            y: 0,
+            width: 40,
+            height: 60,
+            velocityY: 0,
+            velocityX: 0,
+            jumping: false,
+            color: '#ffb3d9'
+        };
+
+        // Game variables
+        let platforms = [];
+        let coins = [];
+        let score = 0;
+        let cameraY = 0;
+        const gravity = 0.6;
+        const jumpPower = -15;
+        const platformWidth = 100;
+        const platformHeight = 20;
+
+        // Input
+        let touchStarted = false;
+
+        // Audio context
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(type) {
+                    case 'jump':
+                        oscillator.frequency.value = 500;
+                        gainNode.gain.value = 0.1;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'coin':
+                        oscillator.frequency.value = 800;
+                        gainNode.gain.value = 0.08;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'gameover':
+                        oscillator.frequency.value = 200;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        // Initialize platforms
+        function initPlatforms() {
+            platforms = [];
+            coins = [];
+
+            // Starting platform
+            platforms.push({
+                x: canvas.width / 2 - platformWidth / 2,
+                y: canvas.height - 100,
+                width: platformWidth,
+                height: platformHeight,
+                color: '#fff'
+            });
+
+            // Generate initial platforms
+            let lastY = canvas.height - 100;
+            for (let i = 0; i < 10; i++) {
+                lastY -= 80 + Math.random() * 40;
+                const x = Math.random() * (canvas.width - platformWidth);
+                platforms.push({
+                    x: x,
+                    y: lastY,
+                    width: platformWidth,
+                    height: platformHeight,
+                    color: i % 2 === 0 ? '#fff' : '#fffacd'
+                });
+
+                // Add coin above some platforms
+                if (Math.random() > 0.5) {
+                    coins.push({
+                        x: x + platformWidth / 2,
+                        y: lastY - 40,
+                        radius: 15,
+                        collected: false
+                    });
+                }
+            }
+        }
+
+        // Game loop
+        function update() {
+            if (gameState !== 'playing') return;
+
+            // Apply gravity
+            player.velocityY += gravity;
+            player.y += player.velocityY;
+            player.x += player.velocityX;
+
+            // Horizontal bounds
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+            // Platform collision
+            let onPlatform = false;
+            platforms.forEach(platform => {
+                if (player.velocityY > 0 &&
+                    player.x + player.width > platform.x &&
+                    player.x < platform.x + platform.width &&
+                    player.y + player.height > platform.y &&
+                    player.y + player.height < platform.y + platform.height + 10) {
+
+                    player.y = platform.y - player.height;
+                    player.velocityY = 0;
+                    player.jumping = false;
+                    onPlatform = true;
+                }
+            });
+
+            // Coin collection
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    const dx = player.x + player.width / 2 - coin.x;
+                    const dy = player.y + player.height / 2 - coin.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < player.width / 2 + coin.radius) {
+                        coin.collected = true;
+                        score += 100;
+                        playSound('coin');
+                        document.getElementById('scoreDisplay').textContent = score.toLocaleString();
+                    }
+                }
+            });
+
+            // Camera follow player (move camera up when player goes up)
+            if (player.y < canvas.height / 2) {
+                const diff = canvas.height / 2 - player.y;
+                cameraY += diff;
+                player.y = canvas.height / 2;
+
+                // Move platforms down (relative to camera)
+                platforms.forEach(p => p.y += diff);
+                coins.forEach(c => c.y += diff);
+
+                // Add score for climbing
+                score += Math.floor(diff / 10);
+                document.getElementById('scoreDisplay').textContent = score.toLocaleString();
+            }
+
+            // Generate new platforms as we climb
+            const highestPlatform = platforms.reduce((min, p) => Math.min(min, p.y), Infinity);
+            if (highestPlatform > 0) {
+                let lastY = highestPlatform;
+                for (let i = 0; i < 3; i++) {
+                    lastY -= 80 + Math.random() * 40;
+                    const x = Math.random() * (canvas.width - platformWidth);
+                    platforms.push({
+                        x: x,
+                        y: lastY,
+                        width: platformWidth,
+                        height: platformHeight,
+                        color: Math.random() > 0.5 ? '#fff' : '#fffacd'
+                    });
+
+                    if (Math.random() > 0.5) {
+                        coins.push({
+                            x: x + platformWidth / 2,
+                            y: lastY - 40,
+                            radius: 15,
+                            collected: false
+                        });
+                    }
+                }
+            }
+
+            // Remove off-screen platforms and coins
+            platforms = platforms.filter(p => p.y < canvas.height + 100);
+            coins = coins.filter(c => c.y < canvas.height + 100);
+
+            // Game over if fall below screen
+            if (player.y > canvas.height) {
+                gameOver();
+            }
+
+            // Friction
+            player.velocityX *= 0.95;
+        }
+
+        function draw() {
+            // Clear
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#ffb3d9');
+            gradient.addColorStop(1, '#ff69b4');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw city silhouette background
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            for (let i = 0; i < 10; i++) {
+                const x = i * 80;
+                const height = 100 + Math.random() * 100;
+                ctx.fillRect(x, canvas.height - height, 60, height);
+            }
+
+            // Draw platforms
+            platforms.forEach(platform => {
+                // Shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.fillRect(platform.x + 5, platform.y + 5, platform.width, platform.height);
+
+                // Platform
+                ctx.fillStyle = platform.color;
+                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+
+                // Border
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+            });
+
+            // Draw coins
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    // Coin glow
+                    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(coin.x, coin.y, coin.radius + 5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Coin
+                    ctx.fillStyle = '#ffd700';
+                    ctx.beginPath();
+                    ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Coin border
+                    ctx.strokeStyle = '#ff8c00';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    // Coin symbol
+                    ctx.fillStyle = '#ff8c00';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('₩', coin.x, coin.y);
+                }
+            });
+
+            // Draw player (Tofu Girl)
+            // Body
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(player.x + player.width / 2, player.y + player.height / 3, player.width / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillRect(player.x + player.width / 4, player.y + player.height / 3, player.width / 2, player.height * 2 / 3);
+
+            // Bunny ears
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.ellipse(player.x + player.width / 3, player.y + 5, 8, 20, -0.2, 0, Math.PI * 2);
+            ctx.ellipse(player.x + player.width * 2 / 3, player.y + 5, 8, 20, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Face
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(player.x + player.width / 2, player.y + player.height / 3, player.width / 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(player.x + player.width / 2 - 8, player.y + player.height / 3 - 5, 3, 0, Math.PI * 2);
+            ctx.arc(player.x + player.width / 2 + 8, player.y + player.height / 3 - 5, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mouth
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(player.x + player.width / 2, player.y + player.height / 3, 8, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function jump() {
+            if (!player.jumping && gameState === 'playing') {
+                player.velocityY = jumpPower;
+                player.jumping = true;
+                playSound('jump');
+            }
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameHud').classList.remove('hidden');
+
+            // Reset
+            player.x = canvas.width / 2 - player.width / 2;
+            player.y = canvas.height - 200;
+            player.velocityY = 0;
+            player.velocityX = 0;
+            player.jumping = false;
+            score = 0;
+            cameraY = 0;
+
+            initPlatforms();
+            initAudio();
+
+            document.getElementById('scoreDisplay').textContent = '0';
+        }
+
+        function gameOver() {
+            gameState = 'gameover';
+            playSound('gameover');
+            document.getElementById('gameHud').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('tofuGirl_highScore', highScore);
+            }
+
+            document.getElementById('gameoverHighScore').textContent = highScore.toLocaleString();
+        }
+
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('retryBtn').addEventListener('click', startGame);
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
+        });
+
+        canvas.addEventListener('click', (e) => {
+            e.preventDefault();
+            jump();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                jump();
+            }
+            if (e.key === 'ArrowLeft') {
+                player.velocityX = -3;
+            }
+            if (e.key === 'ArrowRight') {
+                player.velocityX = 3;
+            }
+        });
+
+        // High score display
+        document.getElementById('menuHighScore').textContent = highScore.toLocaleString();
+        document.getElementById('gameoverHighScore').textContent = highScore.toLocaleString();
+
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>
