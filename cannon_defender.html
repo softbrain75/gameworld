@@ -1018,6 +1018,8 @@
         let rapidFireInterval = null;
         let speedBoostActive = false;
         let speedBoostEndTime = 0;
+        let oneKillActive = false;
+        let oneKillCount = 0; // 원킬 남은 횟수
         const SPEED_BOOST_COST = 500;
         const SPEED_BOOST_DURATION = 15000; // 15 seconds
         let isPaused = false;
@@ -1045,6 +1047,8 @@
             { type: 'boss', color: '#f39c12', health: 5, speed: 0.7, points: 100, size: 50 },
             { type: 'powerup_speed', color: '#2ecc71', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'speed' },
             { type: 'powerup_rapid', color: '#ff6600', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'rapid' },
+            { type: 'powerup_life', color: '#ff69b4', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'life' },
+            { type: 'powerup_onekill', color: '#ffd700', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'onekill' },
             { type: 'level_boss', color: '#ff1744', health: 50, speed: 0.5, points: 1000, size: 80, isBoss: true }
         ];
 
@@ -1299,8 +1303,10 @@
             if (gameState !== 'playing') return;
 
             const lane = Math.floor(Math.random() * NUM_LANES);
-            // 50% chance for speed powerup, 50% for rapid fire
-            const enemyType = Math.random() < 0.5 ? enemyTypes[4] : enemyTypes[5];
+            // 4가지 파워업 중 랜덤 선택: speed(4), rapid(5), life(6), onekill(7)
+            const powerupTypes = [4, 5, 6, 7];
+            const randomIndex = Math.floor(Math.random() * powerupTypes.length);
+            const enemyType = enemyTypes[powerupTypes[randomIndex]];
 
             enemies.push({
                 id: Date.now() + Math.random(),
@@ -1516,9 +1522,20 @@
                             if (projectileGroups[proj.groupId]) {
                                 projectileGroups[proj.groupId].hit = true;
                             }
-                            // Level 10+ cannons deal 2x damage
-                            const damage = proj.cannonLevel >= 10 ? 2 : 1;
-                            enemy.health -= damage;
+
+                            // 원킬 모드면 즉시 죽임
+                            if (oneKillActive && oneKillCount > 0) {
+                                enemy.health = 0;
+                                oneKillCount--;
+                                if (oneKillCount <= 0) {
+                                    oneKillActive = false;
+                                }
+                                updateUI();
+                            } else {
+                                // Level 10+ cannons deal 2x damage
+                                const damage = proj.cannonLevel >= 10 ? 2 : 1;
+                                enemy.health -= damage;
+                            }
 
                             // Play hit sound
                             playSound('hit');
@@ -1539,8 +1556,9 @@
                             }
 
                             if (enemy.health <= 0) {
-                                // 기본 점수 + (적 점수 × 콤보 개수)
-                                const basePoints = enemy.points;
+                                // 웨이브/체력 배수 반영한 점수 계산
+                                const healthMultiplier = wave > 5 ? 1 + Math.floor((wave - 5) / 3) : 1;
+                                const basePoints = enemy.points * healthMultiplier;
                                 const comboBonus = basePoints * combo;
                                 const totalPoints = basePoints + comboBonus;
                                 score += totalPoints;
@@ -1565,8 +1583,6 @@
                                     if (enemy.powerUpType === 'speed') {
                                         powerUpActive = true;
                                         powerUpEndTime = Date.now() + 10000; // 10 seconds
-
-                                        // Power-up notification
                                         effects.push({
                                             id: Date.now() + Math.random(),
                                             x: enemy.x,
@@ -1594,12 +1610,8 @@
                                             // Fire only cannons that have enemies in their lane
                                             for (let i = 0; i < NUM_LANES; i++) {
                                                 if (cannons[i]?.canFire) {
-                                                    // Check if there's an enemy in this lane
                                                     const hasEnemy = enemies.some(enemy => enemy.lane === i);
-                                                    // Check if there's already a projectile in this lane heading towards enemies
                                                     const hasProjectile = projectiles.some(proj => proj.lane === i);
-
-                                                    // Only fire if enemy exists and no projectile is already in the lane
                                                     if (hasEnemy && !hasProjectile) {
                                                         fireCannon(i);
                                                     }
@@ -1607,7 +1619,6 @@
                                             }
                                         }, 150); // Fire every 150ms
 
-                                        // Power-up notification
                                         effects.push({
                                             id: Date.now() + Math.random(),
                                             x: enemy.x,
@@ -1620,6 +1631,39 @@
                                             text: '🔥 연사 모드!',
                                             isText: true
                                         });
+                                    } else if (enemy.powerUpType === 'life') {
+                                        // 생명 +1
+                                        lives++;
+                                        updateUI();
+                                        effects.push({
+                                            id: Date.now() + Math.random(),
+                                            x: enemy.x,
+                                            y: enemy.y,
+                                            vx: 0,
+                                            vy: -3,
+                                            life: 60,
+                                            color: '#ff69b4',
+                                            size: 1,
+                                            text: '💖 생명 +1!',
+                                            isText: true
+                                        });
+                                    } else if (enemy.powerUpType === 'onekill') {
+                                        // 원킬 5발
+                                        oneKillActive = true;
+                                        oneKillCount = 5;
+                                        effects.push({
+                                            id: Date.now() + Math.random(),
+                                            x: enemy.x,
+                                            y: enemy.y,
+                                            vx: 0,
+                                            vy: -3,
+                                            life: 60,
+                                            color: '#ffd700',
+                                            size: 1,
+                                            text: '⚡ 원킬 5발!',
+                                            isText: true
+                                        });
+                                        updateUI();
                                     }
                                 }
 
@@ -1887,6 +1931,12 @@
                         ctx.fillText('⚡', enemy.x, enemy.y);
                     } else if (enemy.powerUpType === 'rapid') {
                         ctx.fillText('🔥', enemy.x, enemy.y);
+                    } else if (enemy.powerUpType === 'life') {
+                        ctx.fillText('💖', enemy.x, enemy.y);
+                    } else if (enemy.powerUpType === 'onekill') {
+                        ctx.fillText('⚡', enemy.x, enemy.y);
+                        ctx.fillStyle = '#ffd700';
+                        ctx.fillText('💀', enemy.x, enemy.y - 20);
                     }
                 }
 
@@ -2022,6 +2072,23 @@
                 ctx.font = 'bold 30px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(`🔥 연사 모드 ${timeLeft}초`, 0, 0);
+                ctx.shadowBlur = 0;
+
+                ctx.restore();
+                yOffset += 40;
+            }
+
+            // 원킬 모드 표시
+            if (oneKillActive && oneKillCount > 0) {
+                ctx.save();
+                ctx.translate(CANVAS_WIDTH / 2, yOffset);
+
+                ctx.fillStyle = '#ffd700';
+                ctx.shadowColor = '#ffd700';
+                ctx.shadowBlur = 15;
+                ctx.font = 'bold 30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`⚡💀 원킬 ${oneKillCount}발 남음`, 0, 0);
                 ctx.shadowBlur = 0;
 
                 ctx.restore();
