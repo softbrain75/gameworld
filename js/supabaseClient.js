@@ -177,6 +177,22 @@ async function updatePassword(newPassword) {
     }
 }
 
+// 이메일 업데이트
+async function updateUserEmail(newEmail) {
+    try {
+        const { error } = await supabase.auth.updateUser({
+            email: newEmail
+        });
+
+        if (error) throw error;
+
+        return { success: true };
+    } catch (error) {
+        console.error('이메일 업데이트 오류:', error);
+        return { success: false, error: error.message };
+    }
+}
+
 // 회원 탈퇴
 async function deleteAccount() {
     try {
@@ -424,6 +440,7 @@ window.getCurrentSession = getCurrentSession;
 window.loadUserProfile = loadUserProfile;
 window.resetPassword = resetPassword;
 window.updatePassword = updatePassword;
+window.updateUserEmail = updateUserEmail;
 window.getCurrentPoints = getCurrentPoints;
 window.usePointsForGameStart = usePointsForGameStart;
 window.addGamePoints = addGamePoints;
