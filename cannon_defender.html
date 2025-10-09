@@ -433,6 +433,115 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        .ranking-section {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .ranking-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+
+        .ranking-item.my-rank {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
+        }
+
+        .ranking-item:hover {
+            transform: translateX(5px);
+        }
+
+        .ranking-rank {
+            font-size: 1.2em;
+            font-weight: bold;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        .ranking-rank.top1 { color: #ffd700; }
+        .ranking-rank.top2 { color: #c0c0c0; }
+        .ranking-rank.top3 { color: #cd7f32; }
+
+        .ranking-user {
+            flex: 1;
+            margin-left: 10px;
+            font-size: 0.95em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .ranking-score {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #ffd700;
+            margin-left: 10px;
+        }
+
+        .ranking-loading {
+            text-align: center;
+            padding: 20px;
+            opacity: 0.7;
+        }
+
+        .ranking-error {
+            text-align: center;
+            padding: 20px;
+            color: #ff6b6b;
+            font-size: 0.9em;
+        }
+
+        .score-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .score-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1em;
+        }
+
+        .score-info-label {
+            opacity: 0.8;
+        }
+
+        .score-info-value {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
         .game-hint {
             background: rgba(0, 0, 0, 0.7);
             color: white;
@@ -630,9 +739,20 @@
                 <div class="game-icon">💥</div>
                 <h1>기지 함락!</h1>
 
-                <div class="score-display" id="finalScore">0</div>
+                <!-- 점수 정보 -->
+                <div class="score-info">
+                    <div class="score-info-row">
+                        <span class="score-info-label">이번판 점수</span>
+                        <span class="score-info-value" id="finalScore">0</span>
+                    </div>
+                    <div class="score-info-row">
+                        <span class="score-info-label">통합 포인트</span>
+                        <span class="score-info-value" id="totalPoints">0</span>
+                    </div>
+                </div>
+
                 <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
-                    🎉 신기록! 🎉
+                    🎉 최고 기록 갱신! 🎉
                 </div>
 
                 <div class="stats-grid">
@@ -650,9 +770,12 @@
                     </div>
                 </div>
 
-                <div id="highScoreDisplay" class="high-score hidden">
-                    <div style="opacity: 0.8;">최고 기록</div>
-                    <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+                <!-- 랭킹 섹션 -->
+                <div class="ranking-section">
+                    <div class="ranking-title">🏆 전체 랭킹 TOP 10</div>
+                    <div id="rankingList" class="ranking-list">
+                        <div class="ranking-loading">랭킹 불러오는 중...</div>
+                    </div>
                 </div>
 
                 <button class="btn" onclick="startGame()">🔄 재도전</button>
@@ -1980,36 +2103,48 @@
 
             // 게임 종료 시 점수를 통합 포인트로 적립
             console.log('🎮 Game Over! Score:', score);
-            console.log('🔍 addGamePoints function exists?', typeof addGamePoints);
 
+            let totalPoints = score;
             try {
+                // 통합 포인트에 이번판 점수 추가
                 const result = await addGamePoints(score, 'cannon_defender');
                 console.log('📊 Points result:', result);
 
                 // 포인트 표시 업데이트
                 await updatePointsDisplay();
+
+                // 전체 포인트 표시
+                if (currentProfile && currentProfile.total_points !== undefined) {
+                    totalPoints = currentProfile.total_points;
+                }
             } catch (error) {
                 console.error('❌ Error in addGamePoints:', error);
             }
 
+            // 점수 표시
             document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('totalPoints').textContent = totalPoints.toLocaleString();
             document.getElementById('killCount').textContent = kills;
             document.getElementById('maxComboDisplay').textContent = maxCombo;
             document.getElementById('waveDisplay').textContent = wave;
 
-            const isNewRecord = score > highScore;
-            if (isNewRecord) {
-                highScore = score;
-                localStorage.setItem('cannonDefender_highScore', highScore);
-                document.getElementById('newRecord').classList.remove('hidden');
-            } else {
-                document.getElementById('newRecord').classList.add('hidden');
+            // 최고 기록 업데이트 및 랭킹 저장
+            let isNewRecord = false;
+            try {
+                const rankingResult = await updateGameRanking(score);
+                isNewRecord = rankingResult.isNewRecord;
+
+                if (isNewRecord) {
+                    document.getElementById('newRecord').classList.remove('hidden');
+                } else {
+                    document.getElementById('newRecord').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('❌ Error updating ranking:', error);
             }
 
-            if (highScore > 0 && !isNewRecord) {
-                document.getElementById('highScoreDisplay').classList.remove('hidden');
-                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
-            }
+            // 랭킹 표시
+            await displayRankings();
 
             document.getElementById('gameoverScreen').classList.remove('hidden');
         }
@@ -2203,6 +2338,155 @@
             const guestPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
             document.getElementById('menuPoints').textContent = guestPoints.toLocaleString();
             document.getElementById('gameoverPoints').textContent = guestPoints.toLocaleString();
+        }
+
+        // ============================================
+        // 랭킹 시스템
+        // ============================================
+
+        const GAME_URL = 'cannon_defender.html';
+
+        /**
+         * 게임 최고 기록 업데이트
+         */
+        async function updateGameRanking(currentScore) {
+            // 비로그인 사용자는 랭킹 저장 불가
+            if (!currentUser) {
+                console.log('⚠️ Guest user - ranking not saved');
+                return { isNewRecord: false, ranking: null };
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .rpc('upsert_game_top', {
+                        p_game_url: GAME_URL,
+                        p_user_id: currentUser.id,
+                        p_user_email: currentUser.email,
+                        p_score: currentScore
+                    });
+
+                if (error) throw error;
+
+                console.log('🏆 Ranking updated:', data);
+
+                return {
+                    isNewRecord: data[0].is_new_record,
+                    oldScore: data[0].old_score,
+                    newScore: data[0].new_score,
+                    ranking: data[0].ranking
+                };
+            } catch (error) {
+                console.error('❌ Error updating ranking:', error);
+                return { isNewRecord: false, ranking: null };
+            }
+        }
+
+        /**
+         * 전체 랭킹 조회 및 표시
+         */
+        async function displayRankings() {
+            const rankingList = document.getElementById('rankingList');
+            rankingList.innerHTML = '<div class="ranking-loading">랭킹 불러오는 중...</div>';
+
+            try {
+                // TOP 10 + 내 랭킹 조회
+                const { data, error } = await supabase
+                    .from('game_top')
+                    .select('*')
+                    .eq('game_url', GAME_URL)
+                    .order('top_score', { ascending: false })
+                    .limit(10);
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    rankingList.innerHTML = '<div class="ranking-error">아직 랭킹이 없습니다.<br>첫 번째 랭커가 되어보세요!</div>';
+                    return;
+                }
+
+                // 내 랭킹 찾기
+                let myRank = null;
+                let myData = null;
+                if (currentUser) {
+                    const myIndex = data.findIndex(r => r.user_id === currentUser.id);
+                    if (myIndex !== -1) {
+                        myRank = myIndex + 1;
+                        myData = data[myIndex];
+                    } else {
+                        // TOP 10에 없으면 내 랭킹 따로 조회
+                        const { data: myRankData, error: myRankError } = await supabase
+                            .from('game_top')
+                            .select('*')
+                            .eq('game_url', GAME_URL)
+                            .eq('user_id', currentUser.id)
+                            .single();
+
+                        if (!myRankError && myRankData) {
+                            // 내 순위 계산
+                            const { count } = await supabase
+                                .from('game_top')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('game_url', GAME_URL)
+                                .gt('top_score', myRankData.top_score);
+
+                            myRank = (count || 0) + 1;
+                            myData = myRankData;
+                        }
+                    }
+                }
+
+                // 랭킹 리스트 생성
+                let html = '';
+                data.forEach((rank, index) => {
+                    const isMyRank = currentUser && rank.user_id === currentUser.id;
+                    const rankClass = index === 0 ? 'top1' : index === 1 ? 'top2' : index === 2 ? 'top3' : '';
+                    const displayName = formatUserName(rank.user_email);
+
+                    html += `
+                        <div class="ranking-item ${isMyRank ? 'my-rank' : ''}">
+                            <div class="ranking-rank ${rankClass}">${index + 1}</div>
+                            <div class="ranking-user">${displayName}${isMyRank ? ' (나)' : ''}</div>
+                            <div class="ranking-score">${rank.top_score.toLocaleString()}</div>
+                        </div>
+                    `;
+                });
+
+                // 내가 TOP 10 밖이면 추가 표시
+                if (myData && myRank > 10) {
+                    html += `
+                        <div style="text-align: center; opacity: 0.5; margin: 5px 0;">...</div>
+                        <div class="ranking-item my-rank">
+                            <div class="ranking-rank">${myRank}</div>
+                            <div class="ranking-user">${formatUserName(myData.user_email)} (나)</div>
+                            <div class="ranking-score">${myData.top_score.toLocaleString()}</div>
+                        </div>
+                    `;
+                }
+
+                rankingList.innerHTML = html;
+
+            } catch (error) {
+                console.error('❌ Error loading rankings:', error);
+                rankingList.innerHTML = '<div class="ranking-error">랭킹을 불러올 수 없습니다.</div>';
+            }
+        }
+
+        /**
+         * 사용자 이름 포맷 (이메일 → 표시용)
+         */
+        function formatUserName(email) {
+            if (!email) return 'Anonymous';
+
+            // 이메일 앞부분만 표시 (예: abc@gmail.com → abc***)
+            const atIndex = email.indexOf('@');
+            if (atIndex === -1) return email;
+
+            const username = email.substring(0, atIndex);
+            if (username.length <= 3) {
+                return username + '***';
+            }
+
+            return username.substring(0, 3) + '***';
         }
 
         // 페이지 로드 시 세션 확인 후 조회수 증가
