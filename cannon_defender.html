@@ -786,7 +786,7 @@
     <!-- Game Screen -->
     <div id="gameContainer" class="game-container hidden">
         <div class="app-header">
-            <a href="index.html" class="back-btn">
+            <a href="#" class="back-btn" onclick="handleGameExit(event)">
                 <span class="material-icons">arrow_back</span>
             </a>
             <button id="speedBoostBtn" class="speed-boost-btn" onclick="buySpeedBoost()" title="속도 부스트 (500포인트)">⚡</button>
@@ -2487,6 +2487,32 @@
             }
 
             return username.substring(0, 3) + '***';
+        }
+
+        /**
+         * 게임 중 나가기 처리
+         */
+        async function handleGameExit(event) {
+            event.preventDefault();
+
+            // 게임이 진행 중이 아니면 바로 나가기
+            if (gameState !== 'playing') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // 게임 중이면 확인 대화상자
+            const confirmed = confirm('게임 중입니다. 나가시면 현재 점수가 저장됩니다. 나가시겠습니까?');
+
+            if (confirmed) {
+                // 게임 종료 처리 (점수 저장)
+                await endGame();
+
+                // 잠시 후 메인 페이지로 이동 (사용자가 결과를 볼 수 있도록)
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500);
+            }
         }
 
         // 페이지 로드 시 세션 확인 후 조회수 증가
