@@ -30,8 +30,19 @@ BEGIN
 END;
 $$;
 
--- 4. Grant SELECT on profiles.username for login lookup
--- (RLS policies already allow SELECT for authenticated users)
+-- 4. Update RLS policy to allow username lookup
+-- Remove old policy that only allows own profile select
+DROP POLICY IF EXISTS "Profiles: select own" ON public.profiles;
+
+-- New policy: Allow anyone to read username and email for login/signup
+CREATE POLICY "Profiles: select for auth" ON public.profiles
+  FOR SELECT USING (TRUE);
+
+-- Keep update policy (only own profile)
+-- "Profiles: update own" already exists
+
+-- Note: This allows anyone to read usernames and emails from profiles
+-- This is necessary for username-based login and duplicate checking
 
 -- Note: Existing users will have NULL username
 -- You may want to create a migration script to set default usernames
