@@ -294,8 +294,8 @@
             border: none;
             color: #757575;
             cursor: pointer;
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -303,6 +303,7 @@
             transition: all 0.2s ease;
             padding: 0;
             flex-shrink: 0;
+            margin: -12px;
         }
 
         .search-close-btn .material-icons {
@@ -310,8 +311,11 @@
         }
 
         .search-close-btn:hover {
-            background: #f5f5f5;
-            color: #212121;
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        .search-close-btn:active {
+            background: rgba(0, 0, 0, 0.12);
         }
 
         .search-input {
@@ -860,16 +864,7 @@
         }
 
         .auth-modal-header .search-close-btn {
-            position: static;
-            margin: 0;
-            background: #f5f5f5;
-            color: #757575;
-            flex-shrink: 0;
-        }
-
-        .auth-modal-header .search-close-btn:hover {
-            background: #e0e0e0;
-            color: #212121;
+            margin: -12px;
         }
 
         .auth-header {
@@ -888,16 +883,7 @@
         }
 
         .auth-header .search-close-btn {
-            position: static;
-            margin: 0;
-            background: #f5f5f5;
-            color: #757575;
-            flex-shrink: 0;
-        }
-
-        .auth-header .search-close-btn:hover {
-            background: #e0e0e0;
-            color: #212121;
+            margin: -12px;
         }
 
         .auth-tabs {
@@ -1034,16 +1020,7 @@
         }
 
         .mypage-header .search-close-btn {
-            position: static;
-            margin: 0;
-            background: #f5f5f5;
-            color: #757575;
-            flex-shrink: 0;
-        }
-
-        .mypage-header .search-close-btn:hover {
-            background: #e0e0e0;
-            color: #212121;
+            margin: -12px;
         }
 
         .mypage-body {
