@@ -276,8 +276,8 @@
 
         .search-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 16px;
             margin-bottom: 16px;
         }
 
@@ -286,6 +286,7 @@
             font-weight: 500;
             color: #212121;
             margin: 0;
+            flex: 1;
         }
 
         .search-close-btn {
@@ -840,8 +841,8 @@
 
         .auth-modal-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 16px;
             margin-bottom: 24px;
             position: relative;
         }
@@ -863,6 +864,34 @@
         }
 
         .auth-modal-header .search-close-btn:hover {
+            background: #e0e0e0;
+            color: #212121;
+        }
+
+        .auth-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .auth-header h2 {
+            margin: 0;
+            color: #6200ea;
+            font-size: 24px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .auth-header .search-close-btn {
+            position: static;
+            margin: 0;
+            background: #f5f5f5;
+            color: #757575;
+            flex-shrink: 0;
+        }
+
+        .auth-header .search-close-btn:hover {
             background: #e0e0e0;
             color: #212121;
         }
@@ -982,8 +1011,8 @@
 
         .mypage-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 16px;
             padding: 20px 24px;
             border-bottom: 1px solid #e0e0e0;
         }
@@ -1376,8 +1405,8 @@
     <div id="searchOverlay" class="search-overlay">
         <div class="search-box">
             <div class="search-header">
-                <h2 class="search-title">게임 검색</h2>
                 <button class="search-close-btn" onclick="closeSearch()">✕</button>
+                <h2 class="search-title">게임 검색</h2>
             </div>
             <input type="text" id="searchInput" class="search-input" placeholder="게임 이름을 검색하세요..." oninput="performSearch()">
             <div id="searchResults" class="search-results"></div>
@@ -1388,8 +1417,8 @@
     <div id="statsModal" class="search-overlay">
         <div class="search-box" style="max-width: 800px;">
             <div class="search-header">
-                <h2 class="search-title">📊 게임 조회수 통계</h2>
                 <button class="search-close-btn" onclick="closeStats()">✕</button>
+                <h2 class="search-title">📊 게임 조회수 통계</h2>
             </div>
             <div id="statsTable" style="overflow-x: auto; overflow-y: auto; flex: 1;"></div>
         </div>
@@ -1738,8 +1767,8 @@
     <div id="authModal" class="auth-modal">
         <div class="auth-modal-content">
             <div class="auth-modal-header">
-                <h2 id="authModalTitle">게임나라</h2>
                 <button class="search-close-btn" onclick="closeAuthModal()">✕</button>
+                <h2 id="authModalTitle">게임나라</h2>
             </div>
 
             <div class="auth-tabs">
@@ -1802,8 +1831,8 @@
     <div id="myPageModal" class="search-overlay">
         <div class="mypage-modal-content">
             <div class="mypage-header">
-                <h2 data-i18n="myInfoTitle">내 정보</h2>
                 <button class="search-close-btn" onclick="closeMyPage()">✕</button>
+                <h2 data-i18n="myInfoTitle">내 정보</h2>
             </div>
             <div class="mypage-body">
                 <div class="info-row">
@@ -1831,8 +1860,8 @@
     <div id="editInfoModal" class="search-overlay">
         <div class="auth-modal-content">
             <div class="auth-header">
-                <h2 data-i18n="editInfoTitle">정보 수정</h2>
                 <button class="search-close-btn" onclick="closeEditInfoModal()">✕</button>
+                <h2 data-i18n="editInfoTitle">정보 수정</h2>
             </div>
 
             <div class="auth-tabs">
