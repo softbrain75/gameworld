@@ -221,30 +221,12 @@ async function usePointsForGameStart() {
 
     console.log('🎮 Using points for game start:', { currentPoints, currentUser: !!currentUser });
 
+    // 통합 포인트는 유지하고, 업그레이드용 초기 점수만 반환
     if (currentUser && currentProfile) {
-        // 로그인 사용자: Supabase에서 포인트를 0으로 초기화
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ total_points: 0 })
-                .eq('id', currentUser.id);
-
-            if (error) throw error;
-
-            console.log('✅ Points used from Supabase:', { startingScore: currentPoints });
-
-            // 프로필 다시 로드
-            await loadUserProfile();
-
-            return { success: true, startingScore: currentPoints };
-        } catch (error) {
-            console.error('❌ Error using points:', error);
-            return { success: false, error: error.message, startingScore: 0 };
-        }
+        console.log('✅ Points loaded from Supabase:', { startingScore: currentPoints });
+        return { success: true, startingScore: currentPoints };
     } else {
-        // 비로그인 사용자: localStorage 포인트를 0으로 초기화
-        localStorage.setItem('guest_total_points', '0');
-        console.log('✅ Points used from localStorage:', { startingScore: currentPoints });
+        console.log('✅ Points loaded from localStorage:', { startingScore: currentPoints });
         return { success: true, startingScore: currentPoints };
     }
 }
