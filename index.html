@@ -301,8 +301,12 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
-            font-size: 24px;
             padding: 0;
+            flex-shrink: 0;
+        }
+
+        .search-close-btn .material-icons {
+            font-size: 24px;
         }
 
         .search-close-btn:hover {
@@ -1405,7 +1409,7 @@
     <div id="searchOverlay" class="search-overlay">
         <div class="search-box">
             <div class="search-header">
-                <button class="search-close-btn" onclick="closeSearch()">✕</button>
+                <button class="search-close-btn" onclick="closeSearch()"><span class="material-icons">close</span></button>
                 <h2 class="search-title">게임 검색</h2>
             </div>
             <input type="text" id="searchInput" class="search-input" placeholder="게임 이름을 검색하세요..." oninput="performSearch()">
@@ -1417,7 +1421,7 @@
     <div id="statsModal" class="search-overlay">
         <div class="search-box" style="max-width: 800px;">
             <div class="search-header">
-                <button class="search-close-btn" onclick="closeStats()">✕</button>
+                <button class="search-close-btn" onclick="closeStats()"><span class="material-icons">close</span></button>
                 <h2 class="search-title">📊 게임 조회수 통계</h2>
             </div>
             <div id="statsTable" style="overflow-x: auto; overflow-y: auto; flex: 1;"></div>
@@ -1767,7 +1771,7 @@
     <div id="authModal" class="auth-modal">
         <div class="auth-modal-content">
             <div class="auth-modal-header">
-                <button class="search-close-btn" onclick="closeAuthModal()">✕</button>
+                <button class="search-close-btn" onclick="closeAuthModal()"><span class="material-icons">close</span></button>
                 <h2 id="authModalTitle">게임나라</h2>
             </div>
 
@@ -1831,7 +1835,7 @@
     <div id="myPageModal" class="search-overlay">
         <div class="mypage-modal-content">
             <div class="mypage-header">
-                <button class="search-close-btn" onclick="closeMyPage()">✕</button>
+                <button class="search-close-btn" onclick="closeMyPage()"><span class="material-icons">close</span></button>
                 <h2 data-i18n="myInfoTitle">내 정보</h2>
             </div>
             <div class="mypage-body">
@@ -1860,7 +1864,7 @@
     <div id="editInfoModal" class="search-overlay">
         <div class="auth-modal-content">
             <div class="auth-header">
-                <button class="search-close-btn" onclick="closeEditInfoModal()">✕</button>
+                <button class="search-close-btn" onclick="closeEditInfoModal()"><span class="material-icons">close</span></button>
                 <h2 data-i18n="editInfoTitle">정보 수정</h2>
             </div>
 
