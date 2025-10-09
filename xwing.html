@@ -451,13 +451,17 @@
             }
         }
 
-        window.startGame = function() {
+        window.startGame = async function() {
             document.getElementById('menuScreen').classList.add('hidden');
             document.getElementById('gameoverScreen').classList.add('hidden');
             document.getElementById('gameContainer').classList.remove('hidden');
 
+            // 통합 포인트를 게임 시작 점수로 사용
+            const pointsResult = await usePointsForGameStart();
+            const startingScore = pointsResult.startingScore || 0;
+
             gameState = 'playing';
-            score = 0;
+            score = startingScore; // 통합 포인트를 초기 점수로 설정
             shields = 100;
             kills = 0;
             enemies = [];
@@ -901,13 +905,16 @@
             document.getElementById('kills').textContent = kills;
         }
 
-        function endGame() {
+        async function endGame() {
             gameState = 'gameover';
 
             // Stop background music
             stopBackgroundMusic();
 
             const avgScore = kills > 0 ? Math.round(score / kills) : 0;
+
+            // 게임 종료 시 점수를 통합 포인트로 적립
+            await addGamePoints(score, 'xwing');
 
             document.getElementById('finalScore').textContent = score.toLocaleString();
             document.getElementById('killCount').textContent = kills;
@@ -961,6 +968,22 @@
                 enterFullscreen();
             }
         }, { once: true });
+    </script>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
+
+    <script>
+        // 페이지 로드 시 세션 확인 후 조회수 증가
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 세션 확인 (supabaseClient.js에서 currentUser 설정)
+            await getCurrentSession();
+
+            // 세션 확인 후 조회수 증가
+            await incrementGameView('xwing.html');
+            console.log('📊 Game view recorded');
+        });
     </script>
 </body>
 </html>

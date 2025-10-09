@@ -7,7 +7,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
      crossorigin="anonymous"></script>
     <title>대포 디펜더 - 게임세상</title>
     <style>
@@ -43,9 +45,68 @@
             height: calc(var(--vh, 1vh) * 100);
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .menu-header {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            padding: 0 12px;
+            height: 56px;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-back-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .menu-back-btn .material-icons {
+            font-size: 24px;
+        }
+
+        .menu-back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-game-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 0.15px;
+        }
+
+        .menu-points {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        .menu-body {
+            flex: 1;
+            display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            overflow-y: auto;
         }
 
         .menu-content, .gameover-content {
@@ -133,21 +194,31 @@
         }
 
         .back-btn {
-            background: none;
+            background: transparent;
             border: none;
             color: white;
-            font-size: 1.2em;
             cursor: pointer;
-            padding: 4px;
+            padding: 8px;
             display: flex;
             align-items: center;
+            justify-content: center;
             text-decoration: none;
-            min-width: 32px;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+            width: 40px;
+            height: 40px;
+        }
+
+        .back-btn .material-icons {
+            font-size: 24px;
         }
 
         .back-btn:hover {
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
+        }
+
+        .back-btn:active {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .header-score {
@@ -204,23 +275,70 @@
             gap: 4px;
         }
 
-        .music-select {
-            background: rgba(255, 255, 255, 0.15);
+        .music-menu {
+            position: relative;
+        }
+
+        .music-btn {
+            background: transparent;
+            border: none;
             color: white;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
             cursor: pointer;
-            font-size: 0.85em;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+            width: 40px;
+            height: 40px;
         }
 
-        .music-select:hover {
-            background: rgba(255, 255, 255, 0.25);
+        .music-btn .material-icons {
+            font-size: 24px;
         }
 
-        .music-select option {
+        .music-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .music-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .music-dropdown {
+            display: none;
+            position: absolute;
+            top: 48px;
+            right: 0;
             background: rgba(0, 0, 0, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            min-width: 140px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .music-dropdown.show {
+            display: block;
+        }
+
+        .music-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
             color: white;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .music-dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .music-dropdown-item:active {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .game-container {
@@ -323,6 +441,24 @@
             font-size: 0.9em;
         }
 
+        .hint-area {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            text-align: left;
+            font-size: 0.75em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 479px) {
+            .hint-area {
+                font-size: 0.65em;
+                padding: 6px 12px;
+            }
+        }
+
         .hint-title {
             color: #4CAF50;
             font-weight: bold;
@@ -389,6 +525,8 @@
             z-index: 1500;
             flex-direction: column;
             gap: 20px;
+            overflow-y: auto;
+            padding: 20px;
         }
 
         .level-clear-overlay.active {
@@ -397,31 +535,20 @@
 
         .level-clear-text {
             color: white;
-            font-size: 3em;
+            font-size: 2em;
             font-weight: bold;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        @media (max-width: 479px) {
+            .level-clear-text {
+                font-size: 1.5em;
+            }
         }
 
     </style>
 </head>
 <body>
-    <div class="app-header">
-        <a href="index.html" class="back-btn">←</a>
-        <button id="speedBoostBtn" class="speed-boost-btn" onclick="buySpeedBoost()" title="속도 부스트 (500포인트)">⚡</button>
-        <button id="pauseBtn" class="pause-btn" onclick="togglePause()" title="일시정지">⏸</button>
-        <div class="header-score" id="headerScore">0</div>
-        <div class="header-lives">❤️ <span id="headerLives">10</span></div>
-        <select id="musicSelect" class="music-select" onchange="handleMusicChange()">
-            <option value="off">🔇 OFF</option>
-            <option value="0" selected>🎵 1</option>
-            <option value="1">🎵 2</option>
-            <option value="2">🎵 3</option>
-            <option value="3">🎵 4</option>
-            <option value="4">🎵 5</option>
-            <option value="5">🎵 6</option>
-        </select>
-    </div>
-
     <!-- Paused Overlay -->
     <div id="pausedOverlay" class="paused-overlay" onclick="togglePause()">
         <div class="paused-text">⏸ 일시정지</div>
@@ -441,34 +568,46 @@
 
     <!-- Menu Screen -->
     <div id="menuScreen" class="menu-screen">
-        <div class="menu-content">
-            <div class="game-icon">🎯💣</div>
-            <h1>대포 디펜더</h1>
-            <p style="color: #ddd; margin-bottom: 20px;">대포를 발사해서 적을 막아라!</p>
-
-            <div id="highScore" class="high-score hidden">
-                <div style="opacity: 0.8;">🏆 최고 기록</div>
-                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">대포 디펜더</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="menuPoints">0</span>
             </div>
+        </div>
+        <div class="menu-body">
+            <div class="menu-content">
+                <div class="game-icon">🎯💣</div>
+                <h1>대포 디펜더</h1>
+                <p style="color: #ddd; margin-bottom: 20px;">대포를 발사해서 적을 막아라!</p>
 
-            <button class="btn" onclick="startGame()">💣 전투 시작</button>
+                <div id="highScore" class="high-score hidden">
+                    <div style="opacity: 0.8;">🏆 최고 기록</div>
+                    <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+                </div>
 
-            <div class="instructions">
-                <p style="font-weight: bold; color: #4CAF50; margin-bottom: 10px;">🎮 게임 방법</p>
-                <p>💣 하단의 대포를 탭해서 발사!</p>
-                <p>⬇️ 5개의 레인에서 적들이 낙하</p>
-                <p>🎯 대포는 레인별로 발사됩니다</p>
-                <p>⏱️ 쿨다운: 0.8초</p>
-                <p>💚 초록색 = 발사 가능</p>
+                <button class="btn" onclick="startGame()">💣 전투 시작</button>
 
-                <div class="enemy-types">
-                    <p style="color: #cyan; font-weight: bold;">👾 적 타입:</p>
-                    <p><span style="color: #e74c3c;">●</span> 일반 (HP 1, +10점)</p>
-                    <p><span style="color: #3498db;">●</span> 빠름 (HP 1, 빠른 속도, +20점)</p>
-                    <p><span style="color: #9b59b6;">●</span> 탱크 (HP 3, 느림, +30점)</p>
-                    <p><span style="color: #f39c12;">●</span> 보스 (HP 5, 매우 느림, +100점)</p>
-                    <p><span style="color: #2ecc71;">⚡</span> 파워업-속도 (20마리마다 등장, 10초간 재장전 2배 속도, +50점)</p>
-                    <p><span style="color: #ff6600;">🔥</span> 파워업-연사 (20마리마다 등장, 8초간 자동 연사, +50점)</p>
+                <div class="instructions">
+                    <p style="font-weight: bold; color: #4CAF50; margin-bottom: 10px;">🎮 게임 방법</p>
+                    <p>💣 하단의 대포를 탭해서 발사!</p>
+                    <p>⬇️ 5개의 레인에서 적들이 낙하</p>
+                    <p>🎯 대포는 레인별로 발사됩니다</p>
+                    <p>⏱️ 쿨다운: 0.8초</p>
+                    <p>💚 초록색 = 발사 가능</p>
+
+                    <div class="enemy-types">
+                        <p style="color: #cyan; font-weight: bold;">👾 적 타입:</p>
+                        <p><span style="color: #e74c3c;">●</span> 일반 (HP 1, +10점)</p>
+                        <p><span style="color: #3498db;">●</span> 빠름 (HP 1, 빠른 속도, +20점)</p>
+                        <p><span style="color: #9b59b6;">●</span> 탱크 (HP 3, 느림, +30점)</p>
+                        <p><span style="color: #f39c12;">●</span> 보스 (HP 5, 매우 느림, +100점)</p>
+                        <p><span style="color: #2ecc71;">⚡</span> 파워업-속도 (20마리마다 등장, 10초간 재장전 2배 속도, +50점)</p>
+                        <p><span style="color: #ff6600;">🔥</span> 파워업-연사 (20마리마다 등장, 8초간 자동 연사, +50점)</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -476,44 +615,114 @@
 
     <!-- Game Over Screen -->
     <div id="gameoverScreen" class="gameover-screen hidden">
-        <div class="gameover-content">
-            <div class="game-icon">💥</div>
-            <h1>기지 함락!</h1>
-
-            <div class="score-display" id="finalScore">0</div>
-            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
-                🎉 신기록! 🎉
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">대포 디펜더</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="gameoverPoints">0</span>
             </div>
+        </div>
+        <div class="menu-body">
+            <div class="gameover-content">
+                <div class="game-icon">💥</div>
+                <h1>기지 함락!</h1>
 
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div style="opacity: 0.8; font-size: 0.8em;">처치</div>
-                    <div style="font-size: 1.8em; font-weight: bold;" id="killCount">0</div>
+                <div class="score-display" id="finalScore">0</div>
+                <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                    🎉 신기록! 🎉
                 </div>
-                <div class="stat-box">
-                    <div style="opacity: 0.8; font-size: 0.8em;">최대 콤보</div>
-                    <div style="font-size: 1.8em; font-weight: bold;" id="maxComboDisplay">0</div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div style="opacity: 0.8; font-size: 0.8em;">처치</div>
+                        <div style="font-size: 1.8em; font-weight: bold;" id="killCount">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div style="opacity: 0.8; font-size: 0.8em;">최대 콤보</div>
+                        <div style="font-size: 1.8em; font-weight: bold;" id="maxComboDisplay">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div style="opacity: 0.8; font-size: 0.8em;">웨이브</div>
+                        <div style="font-size: 1.8em; font-weight: bold;" id="waveDisplay">1</div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <div style="opacity: 0.8; font-size: 0.8em;">웨이브</div>
-                    <div style="font-size: 1.8em; font-weight: bold;" id="waveDisplay">1</div>
+
+                <div id="highScoreDisplay" class="high-score hidden">
+                    <div style="opacity: 0.8;">최고 기록</div>
+                    <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
                 </div>
+
+                <button class="btn" onclick="startGame()">🔄 재도전</button>
             </div>
-
-            <div id="highScoreDisplay" class="high-score hidden">
-                <div style="opacity: 0.8;">최고 기록</div>
-                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
-            </div>
-
-            <button class="btn" onclick="startGame()">🔄 재도전</button>
         </div>
     </div>
 
     <!-- Game Screen -->
     <div id="gameContainer" class="game-container hidden">
+        <div class="app-header">
+            <a href="index.html" class="back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <button id="speedBoostBtn" class="speed-boost-btn" onclick="buySpeedBoost()" title="속도 부스트 (500포인트)">⚡</button>
+            <button id="pauseBtn" class="pause-btn" onclick="togglePause()" title="일시정지">⏸</button>
+            <div class="header-score" id="headerScore">0</div>
+            <div class="header-lives">❤️ <span id="headerLives">10</span></div>
+            <div class="music-menu">
+                <button class="music-btn" onclick="toggleMusicDropdown()">
+                    <span class="material-icons">music_note</span>
+                </button>
+                <div id="musicDropdown" class="music-dropdown">
+                    <div class="music-dropdown-item" onclick="selectMusic('off')">
+                        <span class="material-icons" style="font-size: 18px;">volume_off</span>
+                        <span>OFF</span>
+                    </div>
+                    <div class="music-dropdown-item" onclick="selectMusic('0')">
+                        <span class="material-icons" style="font-size: 18px;">music_note</span>
+                        <span>Track 1</span>
+                    </div>
+                    <div class="music-dropdown-item" onclick="selectMusic('1')">
+                        <span class="material-icons" style="font-size: 18px;">music_note</span>
+                        <span>Track 2</span>
+                    </div>
+                    <div class="music-dropdown-item" onclick="selectMusic('3')">
+                        <span class="material-icons" style="font-size: 18px;">music_note</span>
+                        <span>Track 3</span>
+                    </div>
+                    <div class="music-dropdown-item" onclick="selectMusic('4')">
+                        <span class="material-icons" style="font-size: 18px;">music_note</span>
+                        <span>Track 4</span>
+                    </div>
+                    <div class="music-dropdown-item" onclick="selectMusic('5')">
+                        <span class="material-icons" style="font-size: 18px;">music_note</span>
+                        <span>Track 5</span>
+                    </div>
+                    <div class="music-dropdown-item" onclick="selectMusic('6')">
+                        <span class="material-icons" style="font-size: 18px;">music_note</span>
+                        <span>Track 6</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div>점수: <span id="score">0</span></div>
+            <div class="stats-center">
+                <div>웨이브: <span id="wave">1</span></div>
+                <div id="comboDisplay" style="color: #ffd700; font-weight: bold; margin-left: 10px;"></div>
+            </div>
+            <div>처치: <span id="kills">0</span></div>
+        </div>
+
         <canvas id="gameCanvas"></canvas>
-        <div class="copyright" style="background: rgba(0, 0, 0, 0.7); color: rgba(255, 255, 255, 0.5); text-align: center; padding: 8px; font-size: 0.7em;">
-            © 2024 게임세상 | Made with ❤️
+
+        <div id="upgradeSection" style="background: rgba(0,0,0,0.7); padding: 10px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 5px;">
+        </div>
+
+        <div class="hint-area">
+            💡 힌트: 하단의 대포를 탭하여 발사! 초록색 = 준비완료
         </div>
     </div>
 
@@ -573,10 +782,12 @@
             }
         }
 
-        function handleMusicChange() {
-            const select = document.getElementById('musicSelect');
-            const value = select.value;
+        function toggleMusicDropdown() {
+            const dropdown = document.getElementById('musicDropdown');
+            dropdown.classList.toggle('show');
+        }
 
+        function selectMusic(value) {
             // Stop current music and dispose
             if (bgMusic) {
                 bgMusic.pause();
@@ -596,7 +807,19 @@
                     playBackgroundMusic();
                 }
             }
+
+            // Close dropdown
+            toggleMusicDropdown();
         }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const musicMenu = document.querySelector('.music-menu');
+            const dropdown = document.getElementById('musicDropdown');
+            if (musicMenu && dropdown && !musicMenu.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         // Audio - Sound Effects
         let audioContext = null;
@@ -663,6 +886,7 @@
         let kills = 0;
         let combo = 0;
         let maxCombo = 0;
+        let comboMaxPoints = 0; // 콤보 중 가장 높은 적의 점수
         let highScore = localStorage.getItem('cannonDefender_highScore') || 0;
         let powerUpActive = false;
         let powerUpEndTime = 0;
@@ -688,6 +912,7 @@
         let effects = [];
         let cannons = [];
         let spawnInterval = null;
+        let projectileGroups = {}; // 포탄 그룹 추적: { groupId: { hit: false, count: 0 } }
 
         // Enemy types
         const enemyTypes = [
@@ -705,20 +930,24 @@
             const container = document.getElementById('gameContainer');
             if (!container) return;
 
+            const appHeader = container.querySelector('.app-header');
             const stats = container.querySelector('.stats');
-            const hint = container.querySelector('.game-hint');
-            const copyright = container.querySelector('.copyright');
+            const upgradeSection = document.getElementById('upgradeSection');
+            const hint = container.querySelector('.hint-area');
 
-            // Calculate available space (excluding stats, hint, and copyright)
+            // Calculate available space (excluding all UI elements)
+            const appHeaderHeight = appHeader ? appHeader.offsetHeight : 0;
             const statsHeight = stats ? stats.offsetHeight : 0;
+            const upgradeHeight = upgradeSection ? upgradeSection.offsetHeight : 0;
             const hintHeight = hint ? hint.offsetHeight : 0;
-            const copyrightHeight = copyright ? copyright.offsetHeight : 0;
-            const availableHeight = window.innerHeight - statsHeight - hintHeight - copyrightHeight;
+
+            const totalUIHeight = appHeaderHeight + statsHeight + upgradeHeight + hintHeight;
+            const availableHeight = window.innerHeight - totalUIHeight;
             const availableWidth = window.innerWidth;
 
             // Set canvas dimensions to fill available space
             CANVAS_WIDTH = availableWidth;
-            CANVAS_HEIGHT = availableHeight;
+            CANVAS_HEIGHT = Math.max(availableHeight, 300); // Minimum 300px
             LANE_WIDTH = CANVAS_WIDTH / NUM_LANES;
 
             canvas.width = CANVAS_WIDTH;
@@ -838,7 +1067,7 @@
             }
         }
 
-        window.startGame = function() {
+        window.startGame = async function() {
             if (spawnInterval) clearInterval(spawnInterval);
 
             document.getElementById('menuScreen').classList.add('hidden');
@@ -850,8 +1079,12 @@
                 resizeCanvas();
             }, 0);
 
+            // 통합 포인트를 게임 시작 점수로 사용
+            const pointsResult = await usePointsForGameStart();
+            const startingScore = pointsResult.startingScore || 0;
+
             gameState = 'playing';
-            score = 0;
+            score = startingScore; // 통합 포인트를 초기 점수로 설정
             wave = 1;
             lives = 10;
             kills = 0;
@@ -1010,6 +1243,10 @@
             const projectileCount = cannon.upgradeLevel >= 9 ? 3 : (cannon.upgradeLevel >= 5 ? 2 : 1);
             const spread = 15; // Spread distance for multiple projectiles
 
+            // Create group ID for this volley
+            const groupId = Date.now() + '_' + lane;
+            projectileGroups[groupId] = { hit: false, count: projectileCount };
+
             for (let p = 0; p < projectileCount; p++) {
                 let offsetX = 0;
                 if (projectileCount === 2) {
@@ -1025,7 +1262,8 @@
                     y: y - 30,
                     speed: 10,
                     color: '#ffd700',
-                    cannonLevel: cannon.upgradeLevel // Track cannon level
+                    cannonLevel: cannon.upgradeLevel, // Track cannon level
+                    groupId: groupId // 같은 발사 그룹
                 });
             }
 
@@ -1091,7 +1329,7 @@
                 if (enemy.y > CANVAS_HEIGHT - 120) {
                     enemies.splice(i, 1);
                     lives = Math.max(0, lives - 1);
-                    combo = 0;
+                    // 콤보는 유지 (리셋하지 않음)
                     updateUI();
 
                     // Play life lost sound
@@ -1123,6 +1361,20 @@
                 proj.y -= proj.speed;
 
                 if (proj.y < -20) {
+                    // 그룹에서 이 포탄 제거
+                    const group = projectileGroups[proj.groupId];
+                    if (group) {
+                        group.count--;
+                        // 그룹의 모든 포탄이 사라졌고, 아무것도 맞추지 못했으면 콤보 리셋
+                        if (group.count === 0 && !group.hit) {
+                            combo = 0;
+                            comboMaxPoints = 0;
+                        }
+                        // 그룹 정리
+                        if (group.count === 0) {
+                            delete projectileGroups[proj.groupId];
+                        }
+                    }
                     projectiles.splice(i, 1);
                     continue;
                 }
@@ -1136,6 +1388,11 @@
 
                         if (distance < 30) {
                             hit = true;
+
+                            // 그룹에 히트 표시
+                            if (projectileGroups[proj.groupId]) {
+                                projectileGroups[proj.groupId].hit = true;
+                            }
                             // Level 10+ cannons deal 2x damage
                             const damage = proj.cannonLevel >= 10 ? 2 : 1;
                             enemy.health -= damage;
@@ -1159,9 +1416,11 @@
                             }
 
                             if (enemy.health <= 0) {
-                                const comboBonus = Math.floor(combo / 5);
-                                const points = enemy.points * (1 + comboBonus);
-                                score += points;
+                                // 기본 점수 + (적 점수 × 콤보 개수)
+                                const basePoints = enemy.points;
+                                const comboBonus = basePoints * combo;
+                                const totalPoints = basePoints + comboBonus;
+                                score += totalPoints;
                                 kills++;
                                 combo++;
                                 maxCombo = Math.max(maxCombo, combo);
@@ -1209,10 +1468,18 @@
                                                 rapidFireInterval = null;
                                                 return;
                                             }
-                                            // Fire all cannons that are ready
+                                            // Fire only cannons that have enemies in their lane
                                             for (let i = 0; i < NUM_LANES; i++) {
                                                 if (cannons[i]?.canFire) {
-                                                    fireCannon(i);
+                                                    // Check if there's an enemy in this lane
+                                                    const hasEnemy = enemies.some(enemy => enemy.lane === i);
+                                                    // Check if there's already a projectile in this lane heading towards enemies
+                                                    const hasProjectile = projectiles.some(proj => proj.lane === i);
+
+                                                    // Only fire if enemy exists and no projectile is already in the lane
+                                                    if (hasEnemy && !hasProjectile) {
+                                                        fireCannon(i);
+                                                    }
                                                 }
                                             }
                                         }, 150); // Fire every 150ms
@@ -1270,7 +1537,7 @@
                                     life: 30,
                                     color: '#ffd700',
                                     size: 1,
-                                    text: `+${points}`,
+                                    text: `+${totalPoints}`,
                                     isText: true
                                 });
 
@@ -1282,6 +1549,15 @@
                 }
 
                 if (hit) {
+                    // 그룹에서 이 포탄 제거
+                    const group = projectileGroups[proj.groupId];
+                    if (group) {
+                        group.count--;
+                        // 그룹 정리
+                        if (group.count === 0) {
+                            delete projectileGroups[proj.groupId];
+                        }
+                    }
                     projectiles.splice(i, 1);
                 }
             }
@@ -1372,15 +1648,6 @@
                     }
                 }
 
-                // Show upgrade level if upgraded
-                if (cannon.upgradeLevel > 0) {
-                    ctx.fillStyle = '#ffd700';
-                    ctx.font = 'bold 12px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(`Lv${cannon.upgradeLevel}`, x, cannonY - 55);
-                }
-
                 // Upgrade visual enhancement
                 const upgradeScale = 1 + (cannon.upgradeLevel * 0.1); // 10% bigger per level
                 const baseWidth = 25;
@@ -1409,6 +1676,15 @@
                     baseWidth * 2 * upgradeScale,
                     baseHeight
                 );
+
+                // Show level text on cannon base
+                if (cannon.upgradeLevel > 0) {
+                    ctx.fillStyle = '#ffd700';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`Lv${cannon.upgradeLevel}`, x, cannonY + 35);
+                }
 
                 // Cannon barrel with upgrade size
                 ctx.fillStyle = cannonColor;
@@ -1695,12 +1971,26 @@
             });
         }
 
-        function endGame() {
+        async function endGame() {
             gameState = 'gameover';
             if (spawnInterval) clearInterval(spawnInterval);
 
             // Stop background music
             stopBackgroundMusic();
+
+            // 게임 종료 시 점수를 통합 포인트로 적립
+            console.log('🎮 Game Over! Score:', score);
+            console.log('🔍 addGamePoints function exists?', typeof addGamePoints);
+
+            try {
+                const result = await addGamePoints(score, 'cannon_defender');
+                console.log('📊 Points result:', result);
+
+                // 포인트 표시 업데이트
+                await updatePointsDisplay();
+            } catch (error) {
+                console.error('❌ Error in addGamePoints:', error);
+            }
 
             document.getElementById('finalScore').textContent = score.toLocaleString();
             document.getElementById('killCount').textContent = kills;
@@ -1777,7 +2067,8 @@
         function showLevelClear() {
             gameState = 'levelClear';
             const overlay = document.getElementById('levelClearOverlay');
-            const levelBonus = currentLevel * 500; // Bonus increases with level
+            // 보너스 = 레벨 × 1000 × 최고 콤보수
+            const levelBonus = currentLevel * 1000 * maxCombo;
 
             // Stop spawning
             if (spawnInterval) {
@@ -1791,7 +2082,7 @@
             // Update display
             document.getElementById('clearedLevel').textContent = currentLevel;
             document.getElementById('levelKillsDisplay').textContent = KILLS_PER_LEVEL;
-            document.getElementById('levelBonus').textContent = levelBonus;
+            document.getElementById('levelBonus').textContent = levelBonus.toLocaleString();
 
             overlay.classList.add('active');
 
@@ -1878,13 +2169,54 @@
                 enterFullscreen();
             }
         }, { once: true });
-        
+
         document.addEventListener("touchstart", () => {
             if (!hasTriedFullscreen) {
                 hasTriedFullscreen = true;
                 enterFullscreen();
             }
         }, { once: true });
+    </script>
+
+    <!-- Include Supabase Client -->
+    <script src="js/supabaseClient.js"></script>
+    <!-- gamePoints.js는 제거 (supabaseClient.js의 addGamePoints 사용) -->
+
+    <script>
+        // 포인트 시스템 통합 (currentProfile은 supabaseClient.js에서 선언됨)
+
+        // 페이지 로드 시 포인트 표시 업데이트
+        async function updatePointsDisplay() {
+            const session = await getCurrentSession();
+
+            if (session?.user) {
+                await loadUserProfile(); // currentProfile을 전역으로 로드
+                if (currentProfile) {
+                    const pointsText = currentProfile.total_points.toLocaleString();
+                    document.getElementById('menuPoints').textContent = pointsText;
+                    document.getElementById('gameoverPoints').textContent = pointsText;
+                    return;
+                }
+            }
+
+            // 로그아웃 상태 또는 비로그인 상태
+            const guestPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
+            document.getElementById('menuPoints').textContent = guestPoints.toLocaleString();
+            document.getElementById('gameoverPoints').textContent = guestPoints.toLocaleString();
+        }
+
+        // 페이지 로드 시 세션 확인 후 조회수 증가
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 세션 확인 (supabaseClient.js에서 currentUser 설정)
+            await getCurrentSession();
+
+            // 세션 로드 후 포인트 표시 업데이트
+            updatePointsDisplay();
+
+            // 세션 확인 후 조회수 증가
+            await incrementGameView('cannon_defender.html');
+            console.log('📊 Game view recorded');
+        });
     </script>
 </body>
 </html>
