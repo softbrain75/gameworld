@@ -1018,7 +1018,8 @@
 
         // Game state
         let gameState = 'menu';
-        let score = 0;
+        let score = 0; // 업그레이드용 점수 (통합 포인트 포함)
+        let gameScore = 0; // 이번 판에서만 획득한 점수
         let wave = 1;
         let lives = 10;
         let kills = 0;
@@ -1234,7 +1235,8 @@
             const startingScore = pointsResult.startingScore || 0;
 
             gameState = 'playing';
-            score = startingScore; // 통합 포인트를 초기 점수로 설정
+            score = startingScore; // 통합 포인트를 초기 점수로 설정 (업그레이드용)
+            gameScore = 0; // 이번 판 점수는 0부터 시작
             wave = 1;
             lives = 10;
             kills = 0;
@@ -1596,7 +1598,8 @@
                                 const basePoints = enemy.points * healthMultiplier;
                                 const comboBonus = basePoints * combo;
                                 const totalPoints = basePoints + comboBonus;
-                                score += totalPoints;
+                                score += totalPoints; // 업그레이드용 (통합 포인트 포함)
+                                gameScore += totalPoints; // 이번 판 점수
                                 kills++;
                                 combo++;
                                 maxCombo = Math.max(maxCombo, combo);
@@ -2144,7 +2147,7 @@
         }
 
         function updateUI() {
-            document.getElementById('headerScore').textContent = score.toLocaleString();
+            document.getElementById('headerScore').textContent = gameScore.toLocaleString();
             document.getElementById('headerLives').textContent = lives;
 
             // Update speed boost button
@@ -2204,13 +2207,13 @@
             // Stop background music
             stopBackgroundMusic();
 
-            // 게임 종료 시 점수를 통합 포인트로 적립
-            console.log('🎮 Game Over! Score:', score);
+            // 게임 종료 시 이번판 점수를 통합 포인트로 적립
+            console.log('🎮 Game Over! GameScore:', gameScore);
 
-            let totalPoints = score;
+            let totalPoints = gameScore;
             try {
                 // 통합 포인트에 이번판 점수 추가
-                const result = await addGamePoints(score, 'cannon_defender');
+                const result = await addGamePoints(gameScore, 'cannon_defender');
                 console.log('📊 Points result:', result);
 
                 // 포인트 표시 업데이트
@@ -2225,7 +2228,7 @@
             }
 
             // 점수 표시
-            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('finalScore').textContent = gameScore.toLocaleString();
             document.getElementById('totalPoints').textContent = totalPoints.toLocaleString();
             document.getElementById('killCount').textContent = kills;
             document.getElementById('maxComboDisplay').textContent = maxCombo;
@@ -2234,7 +2237,7 @@
             // 최고 기록 업데이트 및 랭킹 저장
             let isNewRecord = false;
             try {
-                const rankingResult = await updateGameRanking(score);
+                const rankingResult = await updateGameRanking(gameScore);
                 isNewRecord = rankingResult.isNewRecord;
 
                 if (isNewRecord) {
