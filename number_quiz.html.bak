@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>숫자 퀴즈 - 게임세상</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+body { font-family: 'Malgun Gothic', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+.container { background: rgba(0, 0, 0, 0.9); padding: 40px; border-radius: 20px; color: white; text-align: center; max-width: 500px; width: 100%; border: 3px solid #667eea; }
+h1 { font-size: 2.5em; margin-bottom: 20px; color: #667eea; }
+.question { font-size: 3em; margin: 30px 0; }
+.answers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }
+.answer { padding: 20px; background: #667eea; border: none; border-radius: 15px; color: white; font-size: 1.5em; cursor: pointer; font-weight: bold; transition: transform 0.2s; }
+.answer:hover { transform: scale(1.05); }
+.correct { background: #2ecc71 !important; }
+.wrong { background: #e74c3c !important; }
+.stats { display: flex; justify-content: space-around; margin: 20px 0; font-size: 1.3em; }
+.back-btn { position: fixed; top: 10px; left: 10px; background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; z-index: 100; }
+</style>
+</head>
+<body>
+<a href="index.html" class="back-btn">← 홈으로</a>
+<div class="container">
+<h1>🧮숫자 퀴즈</h1>
+<div class="stats">
+<div>점수: <span id="score">0</span></div>
+<div>문제: <span id="questionNum">1</span>/10</div>
+</div>
+<div class="question" id="question">5 + 3 = ?</div>
+<div class="answers" id="answers"></div>
+<button class="answer" onclick="nextQuestion()" style="grid-column: span 2; display:none" id="nextBtn">다음 문제</button>
+</div>
+<script>
+let score = 0, questionNum = 1, currentAnswer = 0;
+
+function newQuestion() {
+    const a = Math.floor(Math.random() * 20) + 1;
+    const b = Math.floor(Math.random() * 20) + 1;
+    const op = ['+','-','×'][Math.floor(Math.random() * 3)];
+    currentAnswer = op === '+' ? a + b : op === '-' ? a - b : a * b;
+    
+    document.getElementById('question').textContent = `${a} ${op} ${b} = ?`;
+    document.getElementById('questionNum').textContent = questionNum;
+    
+    const answers = [currentAnswer, currentAnswer + Math.floor(Math.random() * 10) + 1, currentAnswer - Math.floor(Math.random() * 10) - 1, currentAnswer + Math.floor(Math.random() * 5)];
+    answers.sort(() => Math.random() - 0.5);
+    
+    const answersDiv = document.getElementById('answers');
+    answersDiv.innerHTML = '';
+    answers.forEach(ans => {
+        const btn = document.createElement('button');
+        btn.className = 'answer';
+        btn.textContent = ans;
+        btn.onclick = () => checkAnswer(ans, btn);
+        answersDiv.appendChild(btn);
+    });
+    
+    document.getElementById('nextBtn').style.display = 'none';
+}
+
+function checkAnswer(answer, btn) {
+    document.querySelectorAll('.answer').forEach(b => b.disabled = true);
+    if(answer === currentAnswer) {
+        btn.classList.add('correct');
+        score += 10;
+        document.getElementById('score').textContent = score;
+    } else {
+        btn.classList.add('wrong');
+    }
+    document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+    questionNum++;
+    if(questionNum > 10) {
+        alert(`게임 종료! 점수: ${score}`);
+        score = 0;
+        questionNum = 1;
+        document.getElementById('score').textContent = score;
+    }
+    newQuestion();
+}
+
+newQuestion();
+</script>
+</body>
+</html>

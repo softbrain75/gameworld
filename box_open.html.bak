@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <title>박스 오픈 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            touch-action: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #FFD700;
+            text-shadow: 0 0 20px #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🎁</div>
+            <h1>박스 오픈</h1>
+            <p style="color: #FFD700; margin-bottom: 20px;">상자를 열어 보상을 획득!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 점수</div>
+                <div style="font-size: 2em; font-weight: bold; color: #FFD700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🎁 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #FFD700; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>🎁 상자를 터치해서 열어보세요!</p>
+                <p>💎 레전더리: 500점!</p>
+                <p>⭐ 에픽: 300점</p>
+                <p>💚 레어: 100점</p>
+                <p>⚪ 일반: 50점</p>
+                <p>⏱️ 30초 안에 최대한 많이 열기!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">🎁</div>
+            <h1 id="gameoverTitle">게임 오버!</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div style="opacity: 0.8; margin-bottom: 20px;">최종 점수</div>
+
+            <div id="newRecord" class="hidden" style="color: #FFD700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">역대 최고 점수</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #FFD700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <canvas id="gameCanvas" class="hidden"></canvas>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let timeLeft = 30;
+        let boxes = [];
+        let particles = [];
+        let bestScore = localStorage.getItem('boxOpen_best') || 0;
+
+        const rarities = [
+            {name: '일반', emoji: '📦', color: '#CCCCCC', points: 50, chance: 0.5},
+            {name: '레어', emoji: '🎁', color: '#00FF00', points: 100, chance: 0.3},
+            {name: '에픽', emoji: '✨', color: '#9370DB', points: 300, chance: 0.15},
+            {name: '레전더리', emoji: '💎', color: '#FFD700', points: 500, chance: 0.05}
+        ];
+
+        // Sound effects
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(frequency) {
+            try {
+                initAudio();
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = frequency;
+                gainNode.gain.value = 0.10;
+                oscillator.type = 'sine';
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        // Box class
+        class Box {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = 100;
+                this.rarity = this.determineRarity();
+                this.opening = false;
+                this.openProgress = 0;
+            }
+
+            determineRarity() {
+                const random = Math.random();
+                let cumulative = 0;
+
+                for (let i = rarities.length - 1; i >= 0; i--) {
+                    cumulative += rarities[i].chance;
+                    if (random < cumulative) {
+                        return rarities[i];
+                    }
+                }
+                return rarities[0];
+            }
+
+            open() {
+                if (this.opening) return;
+
+                this.opening = true;
+                playSound(400 + this.rarity.points);
+
+                const interval = setInterval(() => {
+                    this.openProgress += 0.1;
+
+                    if (this.openProgress >= 1) {
+                        clearInterval(interval);
+                        score += this.rarity.points;
+
+                        // Create particles
+                        for (let i = 0; i < 20; i++) {
+                            particles.push(new Particle(this.x, this.y, this.rarity.color));
+                        }
+
+                        // Remove box and spawn new one
+                        setTimeout(() => {
+                            const index = boxes.indexOf(this);
+                            if (index > -1) {
+                                boxes.splice(index, 1);
+                                spawnBox();
+                            }
+                        }, 500);
+                    }
+                }, 50);
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.opening) {
+                    ctx.scale(1 + this.openProgress * 0.5, 1 + this.openProgress * 0.5);
+                    ctx.globalAlpha = 1 - this.openProgress;
+                }
+
+                // Box shadow
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.rarity.color;
+
+                // Draw box emoji
+                ctx.font = `${this.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.rarity.emoji, 0, 0);
+
+                ctx.shadowBlur = 0;
+                ctx.restore();
+
+                // Draw rarity label
+                if (!this.opening) {
+                    ctx.fillStyle = this.rarity.color;
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(this.rarity.name, this.x, this.y + this.size / 2 + 20);
+                }
+
+                // Draw reward during opening
+                if (this.opening && this.openProgress > 0.5) {
+                    ctx.font = 'bold 30px Arial';
+                    ctx.fillStyle = '#FFD700';
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 3;
+                    ctx.strokeText(`+${this.rarity.points}`, this.x, this.y - this.size / 2 - 30);
+                    ctx.fillText(`+${this.rarity.points}`, this.x, this.y - this.size / 2 - 30);
+                }
+            }
+
+            contains(x, y) {
+                const dist = Math.sqrt(Math.pow(x - this.x, 2) + Math.pow(y - this.y, 2));
+                return dist < this.size / 2;
+            }
+        }
+
+        // Particle class
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10 - 3;
+                this.life = 1;
+                this.color = color;
+                this.size = Math.random() * 8 + 4;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.3;
+                this.life -= 0.02;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Spawn box
+        function spawnBox() {
+            const margin = 100;
+            const x = Math.random() * (canvas.width - margin * 2) + margin;
+            const y = Math.random() * (canvas.height - 200 - margin) + margin + 100;
+
+            boxes.push(new Box(x, y));
+        }
+
+        // Handle tap
+        function handleTap(x, y) {
+            for (let i = boxes.length - 1; i >= 0; i--) {
+                if (boxes[i].contains(x, y)) {
+                    boxes[i].open();
+                    return;
+                }
+            }
+        }
+
+        // Touch/click events
+        canvas.addEventListener('click', (e) => {
+            handleTap(e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            for (let touch of e.touches) {
+                handleTap(touch.clientX, touch.clientY);
+            }
+        });
+
+        // Update game
+        function update() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        // Draw game
+        function draw() {
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw boxes
+            boxes.forEach(box => box.draw());
+
+            // Draw particles
+            particles.forEach(particle => particle.draw());
+
+            // Draw UI
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 3;
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'left';
+            ctx.strokeText(`점수: ${score}`, 20, 50);
+            ctx.fillText(`점수: ${score}`, 20, 50);
+
+            ctx.textAlign = 'right';
+            ctx.strokeText(`⏱️ ${timeLeft}s`, canvas.width - 20, 50);
+            ctx.fillText(`⏱️ ${timeLeft}s`, canvas.width - 20, 50);
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameState !== 'playing') return;
+
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Timer
+        let timerInterval;
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            canvas.classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            timeLeft = 30;
+            boxes = [];
+            particles = [];
+
+            // Spawn initial boxes
+            for (let i = 0; i < 6; i++) {
+                spawnBox();
+            }
+
+            startTimer();
+            requestAnimationFrame(gameLoop);
+        };
+
+        // End game
+        function endGame() {
+            gameState = 'gameover';
+            clearInterval(timerInterval);
+
+            document.getElementById('finalScore').textContent = score;
+
+            let title = '게임 오버!';
+            if (score >= 3000) {
+                title = '레전더리 헌터! 🎁🎁🎁';
+            } else if (score >= 2000) {
+                title = '훌륭해요! 🎁🎁';
+            } else if (score >= 1000) {
+                title = '좋아요! 🎁';
+            }
+            document.getElementById('gameoverTitle').textContent = title;
+
+            const isNewRecord = score > bestScore;
+            if (isNewRecord) {
+                bestScore = score;
+                localStorage.setItem('boxOpen_best', bestScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (bestScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = bestScore;
+            } else {
+                document.getElementById('highScoreDisplay').classList.add('hidden');
+            }
+
+            canvas.classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Initialize
+        if (bestScore > 0) {
+            document.getElementById('highScore').classList.remove('hidden');
+            document.getElementById('highScoreValue').textContent = bestScore;
+        }
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>

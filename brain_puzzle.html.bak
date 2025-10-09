@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>브레인 퍼즐 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #f093fb;
+            box-shadow: 0 0 40px rgba(240, 147, 251, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.5); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(240, 147, 251, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            background: linear-gradient(180deg, #4a148c 0%, #311b92 100%);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .puzzle-info {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            color: white;
+            text-align: center;
+            border: 2px solid rgba(240, 147, 251, 0.5);
+        }
+
+        .puzzle-type {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #f093fb;
+            margin-bottom: 10px;
+        }
+
+        .puzzle-question {
+            font-size: 1.8em;
+            margin: 20px 0;
+            line-height: 1.5;
+        }
+
+        .puzzle-image {
+            font-size: 5em;
+            margin: 20px 0;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .answer-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 3px solid #f093fb;
+            padding: 20px;
+            font-size: 1.3em;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .answer-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(240, 147, 251, 0.5);
+        }
+
+        .answer-btn.correct {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            animation: pulse 0.5s;
+        }
+
+        .answer-btn.wrong {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            animation: shake 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(240, 147, 251, 0.5);
+        }
+
+        .stat-item {
+            text-align: center;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #f093fb;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(240, 147, 251, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(240, 147, 251, 0.5);
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🧩</div>
+            <h1>브레인 퍼즐</h1>
+            <p style="color: #f093fb; margin-bottom: 20px;">두뇌를 자극하는 IQ 퍼즐!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 기록</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🧠 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #f093fb; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>🧠 다양한 논리 퍼즐 도전</p>
+                <p>🔢 수학 문제</p>
+                <p>🎨 패턴 찾기</p>
+                <p>💭 논리 추리</p>
+                <p>⚡ 빠르게 정답 맞히기</p>
+                <p>🏆 높은 IQ 점수 획득!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">🎓</div>
+            <h1>결과</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div style="font-size: 1.3em; color: #f093fb; margin: 10px 0;">
+                IQ: <span id="iqScore">100</span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">정답</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="correctCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">오답</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="wrongCount">0</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 기록</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-value" id="questionNum">1</div>
+                <div class="stat-label">문제</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="correctAnswers">0</div>
+                <div class="stat-label">정답</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="wrongAnswers">0</div>
+                <div class="stat-label">오답</div>
+            </div>
+        </div>
+
+        <div class="puzzle-info">
+            <div class="puzzle-type" id="puzzleType">수학 문제</div>
+            <div class="puzzle-image" id="puzzleImage"></div>
+            <div class="puzzle-question" id="puzzleQuestion">문제를 푸세요!</div>
+        </div>
+
+        <div class="answers-grid" id="answersGrid"></div>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        // Puzzle types
+        const puzzleTypes = [
+            {
+                type: '수학 문제',
+                generate: () => {
+                    const operations = [
+                        { op: '+', fn: (a, b) => a + b },
+                        { op: '-', fn: (a, b) => a - b },
+                        { op: '×', fn: (a, b) => a * b }
+                    ];
+                    const { op, fn } = operations[Math.floor(Math.random() * operations.length)];
+                    const a = Math.floor(Math.random() * 20) + 1;
+                    const b = Math.floor(Math.random() * 20) + 1;
+                    const answer = fn(a, b);
+                    return {
+                        question: `${a} ${op} ${b} = ?`,
+                        answer,
+                        choices: [answer, answer + Math.floor(Math.random() * 10) + 1, answer - Math.floor(Math.random() * 10) - 1, answer + Math.floor(Math.random() * 5)]
+                    };
+                }
+            },
+            {
+                type: '패턴 찾기',
+                generate: () => {
+                    const start = Math.floor(Math.random() * 10) + 1;
+                    const step = Math.floor(Math.random() * 5) + 1;
+                    const sequence = [start, start + step, start + step * 2, start + step * 3];
+                    const answer = start + step * 4;
+                    return {
+                        question: `${sequence.join(', ')}, ?`,
+                        image: '🔢',
+                        answer,
+                        choices: [answer, answer + step, answer - step, answer + step * 2]
+                    };
+                }
+            },
+            {
+                type: '논리 추리',
+                generate: () => {
+                    const puzzles = [
+                        {
+                            question: '사과 3개 = 30원\n사과 1개 = ?',
+                            answer: 10,
+                            choices: [10, 15, 20, 30]
+                        },
+                        {
+                            question: '5명이 악수하면\n총 몇 번 악수?',
+                            answer: 10,
+                            choices: [10, 15, 20, 25]
+                        },
+                        {
+                            question: '시계가 3시를 칠 때\n3번 울린다면\n12시는?',
+                            answer: 12,
+                            choices: [12, 24, 36, 48]
+                        }
+                    ];
+                    return {...puzzles[Math.floor(Math.random() * puzzles.length)], image: '💭'};
+                }
+            },
+            {
+                type: '도형 문제',
+                generate: () => {
+                    const shapes = ['🔴', '🔵', '🟢', '🟡', '🟣'];
+                    const pattern = [];
+                    for (let i = 0; i < 3; i++) {
+                        pattern.push(shapes[i % shapes.length]);
+                    }
+                    const answer = shapes[3 % shapes.length];
+                    return {
+                        question: `${pattern.join(' ')} ?`,
+                        image: '🎨',
+                        answer: answer,
+                        choices: shapes.slice(0, 4)
+                    };
+                }
+            }
+        ];
+
+        // Game state
+        let currentPuzzle = null;
+        let questionNum = 1;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let highScore = localStorage.getItem('brainPuzzle_highScore') || 0;
+        const maxQuestions = 10;
+
+        // Initialize
+        function init() {
+            // Show high score
+            if (highScore > 0) {
+                document.getElementById('highScore').classList.remove('hidden');
+                document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+            }
+        }
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            questionNum = 1;
+            correctAnswers = 0;
+            wrongAnswers = 0;
+
+            updateStats();
+            nextPuzzle();
+        };
+
+        // Next puzzle
+        function nextPuzzle() {
+            if (questionNum > maxQuestions) {
+                endGame();
+                return;
+            }
+
+            const puzzleType = puzzleTypes[Math.floor(Math.random() * puzzleTypes.length)];
+            currentPuzzle = puzzleType.generate();
+
+            document.getElementById('puzzleType').textContent = puzzleType.type;
+            document.getElementById('puzzleQuestion').textContent = currentPuzzle.question;
+            document.getElementById('puzzleImage').textContent = currentPuzzle.image || '';
+
+            // Shuffle choices
+            const choices = [...currentPuzzle.choices].sort(() => Math.random() - 0.5);
+
+            // Render answers
+            const grid = document.getElementById('answersGrid');
+            grid.innerHTML = '';
+
+            choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = choice;
+                btn.addEventListener('click', () => checkAnswer(choice, btn));
+                grid.appendChild(btn);
+            });
+        }
+
+        // Check answer
+        function checkAnswer(selected, btn) {
+            const correct = selected === currentPuzzle.answer || selected === String(currentPuzzle.answer);
+
+            if (correct) {
+                correctAnswers++;
+                btn.classList.add('correct');
+            } else {
+                wrongAnswers++;
+                btn.classList.add('wrong');
+            }
+
+            // Disable all buttons
+            document.querySelectorAll('.answer-btn').forEach(b => {
+                b.disabled = true;
+                b.style.cursor = 'not-allowed';
+            });
+
+            updateStats();
+
+            setTimeout(() => {
+                questionNum++;
+                nextPuzzle();
+            }, 1000);
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('questionNum').textContent = questionNum;
+            document.getElementById('correctAnswers').textContent = correctAnswers;
+            document.getElementById('wrongAnswers').textContent = wrongAnswers;
+        }
+
+        // End game
+        function endGame() {
+            const score = correctAnswers * 100;
+            const iq = Math.round(80 + (correctAnswers / maxQuestions) * 40);
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('iqScore').textContent = iq;
+            document.getElementById('correctCount').textContent = correctAnswers;
+            document.getElementById('wrongCount').textContent = wrongAnswers;
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('brainPuzzle_highScore', highScore);
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

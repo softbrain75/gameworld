@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>체스 마스터 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #8b4513 0%, #4a2511 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 400px;
+            border: 3px solid #d4af37;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #d4af37, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #d4af37, #b8960a);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            transition: transform 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .status-bar {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .turn-indicator {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .score {
+            font-size: 1em;
+        }
+
+        .chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0;
+            border: 5px solid #8b4513;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            aspect-ratio: 1;
+            width: min(90vw, 600px);
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(30px, 8vw, 60px);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .cell.light {
+            background: #f0d9b5;
+        }
+
+        .cell.dark {
+            background: #b58863;
+        }
+
+        .cell.selected {
+            background: #7fa650 !important;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell.valid-move {
+            background: #9bb874 !important;
+        }
+
+        .cell.valid-move::after {
+            content: '';
+            width: 30%;
+            height: 30%;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .cell:hover {
+            filter: brightness(1.1);
+        }
+
+        .piece {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .piece:hover {
+            transform: scale(1.1);
+        }
+
+        .captured {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            min-height: 40px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd700;
+        }
+
+        .message {
+            font-size: 1.2em;
+            margin: 20px 0;
+            color: #d4af37;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">♚♛</div>
+            <h1>체스 마스터</h1>
+            <p style="color: #d4af37; margin-bottom: 20px;">클래식 체스 게임</p>
+
+            <button class="btn" onclick="startGame()">♟️ 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #d4af37; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>♟️ 클래식 체스 규칙</p>
+                <p>⚪ 흰색이 먼저 시작</p>
+                <p>🎯 기물을 선택하고 이동</p>
+                <p>👑 상대 킹을 잡으면 승리</p>
+                <p>🎨 이동 가능한 칸 표시</p>
+                <p>🧠 전략적으로 플레이!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">👑</div>
+            <h1 id="winnerText">승리!</h1>
+
+            <div class="message" id="winMessage"></div>
+
+            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="status-bar">
+            <div class="turn-indicator" id="turnDisplay">⚪ 흰색 차례</div>
+            <div class="score">
+                <div>⚪ <span id="whiteScore">0</span></div>
+                <div>⚫ <span id="blackScore">0</span></div>
+            </div>
+        </div>
+
+        <div id="chessBoard" class="chess-board"></div>
+
+        <div class="status-bar">
+            <div style="flex: 1;">
+                <div style="margin-bottom: 5px; opacity: 0.8;">잡은 기물 (흰색):</div>
+                <div class="captured" id="whiteCaptured"></div>
+            </div>
+            <div style="flex: 1;">
+                <div style="margin-bottom: 5px; opacity: 0.8;">잡은 기물 (검정):</div>
+                <div class="captured" id="blackCaptured"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        // Chess pieces
+        const pieces = {
+            white: {
+                king: '♔',
+                queen: '♕',
+                rook: '♖',
+                bishop: '♗',
+                knight: '♘',
+                pawn: '♙'
+            },
+            black: {
+                king: '♚',
+                queen: '♛',
+                rook: '♜',
+                bishop: '♝',
+                knight: '♞',
+                pawn: '♟'
+            }
+        };
+
+        const pieceValues = {
+            pawn: 1,
+            knight: 3,
+            bishop: 3,
+            rook: 5,
+            queen: 9,
+            king: 0
+        };
+
+        // Game state
+        let board = [];
+        let currentTurn = 'white';
+        let selectedPiece = null;
+        let validMoves = [];
+        let whiteScore = 0;
+        let blackScore = 0;
+        let whiteCaptured = [];
+        let blackCaptured = [];
+
+        // Initialize board
+        function initBoard() {
+            board = Array(8).fill(null).map(() => Array(8).fill(null));
+
+            // Black pieces
+            board[0] = [
+                {type: 'rook', color: 'black'},
+                {type: 'knight', color: 'black'},
+                {type: 'bishop', color: 'black'},
+                {type: 'queen', color: 'black'},
+                {type: 'king', color: 'black'},
+                {type: 'bishop', color: 'black'},
+                {type: 'knight', color: 'black'},
+                {type: 'rook', color: 'black'}
+            ];
+            board[1] = Array(8).fill({type: 'pawn', color: 'black'}).map(p => ({...p}));
+
+            // White pieces
+            board[6] = Array(8).fill({type: 'pawn', color: 'white'}).map(p => ({...p}));
+            board[7] = [
+                {type: 'rook', color: 'white'},
+                {type: 'knight', color: 'white'},
+                {type: 'bishop', color: 'white'},
+                {type: 'queen', color: 'white'},
+                {type: 'king', color: 'white'},
+                {type: 'bishop', color: 'white'},
+                {type: 'knight', color: 'white'},
+                {type: 'rook', color: 'white'}
+            ];
+        }
+
+        // Render board
+        function renderBoard() {
+            const boardEl = document.getElementById('chessBoard');
+            boardEl.innerHTML = '';
+
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = `cell ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+
+                    const piece = board[row][col];
+                    if (piece) {
+                        const pieceEl = document.createElement('span');
+                        pieceEl.className = 'piece';
+                        pieceEl.textContent = pieces[piece.color][piece.type];
+                        cell.appendChild(pieceEl);
+                    }
+
+                    if (selectedPiece && selectedPiece.row === row && selectedPiece.col === col) {
+                        cell.classList.add('selected');
+                    }
+
+                    if (validMoves.some(m => m.row === row && m.col === col)) {
+                        cell.classList.add('valid-move');
+                    }
+
+                    cell.addEventListener('click', () => handleCellClick(row, col));
+                    boardEl.appendChild(cell);
+                }
+            }
+
+            // Update UI
+            document.getElementById('turnDisplay').textContent = currentTurn === 'white' ? '⚪ 흰색 차례' : '⚫ 검정 차례';
+            document.getElementById('whiteScore').textContent = whiteScore;
+            document.getElementById('blackScore').textContent = blackScore;
+
+            // Update captured pieces
+            document.getElementById('whiteCaptured').innerHTML = whiteCaptured.map(p => pieces.black[p]).join(' ');
+            document.getElementById('blackCaptured').innerHTML = blackCaptured.map(p => pieces.white[p]).join(' ');
+        }
+
+        // Handle cell click
+        function handleCellClick(row, col) {
+            const piece = board[row][col];
+
+            // If clicking on valid move
+            if (validMoves.some(m => m.row === row && m.col === col)) {
+                movePiece(selectedPiece.row, selectedPiece.col, row, col);
+                selectedPiece = null;
+                validMoves = [];
+                renderBoard();
+                return;
+            }
+
+            // If selecting own piece
+            if (piece && piece.color === currentTurn) {
+                selectedPiece = {row, col};
+                validMoves = getValidMoves(row, col);
+                renderBoard();
+            } else {
+                selectedPiece = null;
+                validMoves = [];
+                renderBoard();
+            }
+        }
+
+        // Get valid moves for a piece
+        function getValidMoves(row, col) {
+            const piece = board[row][col];
+            if (!piece) return [];
+
+            const moves = [];
+
+            switch (piece.type) {
+                case 'pawn':
+                    const direction = piece.color === 'white' ? -1 : 1;
+                    const startRow = piece.color === 'white' ? 6 : 1;
+
+                    // Forward move
+                    if (!board[row + direction]?.[col]) {
+                        moves.push({row: row + direction, col});
+
+                        // Double move from start
+                        if (row === startRow && !board[row + direction * 2]?.[col]) {
+                            moves.push({row: row + direction * 2, col});
+                        }
+                    }
+
+                    // Capture diagonally
+                    for (const dc of [-1, 1]) {
+                        const target = board[row + direction]?.[col + dc];
+                        if (target && target.color !== piece.color) {
+                            moves.push({row: row + direction, col: col + dc});
+                        }
+                    }
+                    break;
+
+                case 'knight':
+                    const knightMoves = [
+                        [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+                        [1, -2], [1, 2], [2, -1], [2, 1]
+                    ];
+                    for (const [dr, dc] of knightMoves) {
+                        const newRow = row + dr;
+                        const newCol = col + dc;
+                        if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+                            const target = board[newRow][newCol];
+                            if (!target || target.color !== piece.color) {
+                                moves.push({row: newRow, col: newCol});
+                            }
+                        }
+                    }
+                    break;
+
+                case 'bishop':
+                    addLineMoves(row, col, [[1, 1], [1, -1], [-1, 1], [-1, -1]], moves, piece.color);
+                    break;
+
+                case 'rook':
+                    addLineMoves(row, col, [[1, 0], [-1, 0], [0, 1], [0, -1]], moves, piece.color);
+                    break;
+
+                case 'queen':
+                    addLineMoves(row, col, [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]], moves, piece.color);
+                    break;
+
+                case 'king':
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            if (dr === 0 && dc === 0) continue;
+                            const newRow = row + dr;
+                            const newCol = col + dc;
+                            if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+                                const target = board[newRow][newCol];
+                                if (!target || target.color !== piece.color) {
+                                    moves.push({row: newRow, col: newCol});
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            return moves;
+        }
+
+        // Add line moves (for bishop, rook, queen)
+        function addLineMoves(row, col, directions, moves, color) {
+            for (const [dr, dc] of directions) {
+                let newRow = row + dr;
+                let newCol = col + dc;
+
+                while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+                    const target = board[newRow][newCol];
+                    if (!target) {
+                        moves.push({row: newRow, col: newCol});
+                    } else {
+                        if (target.color !== color) {
+                            moves.push({row: newRow, col: newCol});
+                        }
+                        break;
+                    }
+                    newRow += dr;
+                    newCol += dc;
+                }
+            }
+        }
+
+        // Move piece
+        function movePiece(fromRow, fromCol, toRow, toCol) {
+            const piece = board[fromRow][fromCol];
+            const captured = board[toRow][toCol];
+
+            // Capture piece
+            if (captured) {
+                if (captured.color === 'white') {
+                    blackCaptured.push(captured.type);
+                    blackScore += pieceValues[captured.type];
+                } else {
+                    whiteCaptured.push(captured.type);
+                    whiteScore += pieceValues[captured.type];
+                }
+
+                // Check if king captured (game over)
+                if (captured.type === 'king') {
+                    endGame(piece.color);
+                    return;
+                }
+            }
+
+            // Move piece
+            board[toRow][toCol] = piece;
+            board[fromRow][fromCol] = null;
+
+            // Pawn promotion
+            if (piece.type === 'pawn' && (toRow === 0 || toRow === 7)) {
+                board[toRow][toCol] = {type: 'queen', color: piece.color};
+            }
+
+            // Switch turn
+            currentTurn = currentTurn === 'white' ? 'black' : 'white';
+        }
+
+        // Start game
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            initBoard();
+            currentTurn = 'white';
+            selectedPiece = null;
+            validMoves = [];
+            whiteScore = 0;
+            blackScore = 0;
+            whiteCaptured = [];
+            blackCaptured = [];
+
+            renderBoard();
+        };
+
+        // End game
+        function endGame(winner) {
+            document.getElementById('winnerText').textContent = winner === 'white' ? '⚪ 흰색 승리!' : '⚫ 검정 승리!';
+            document.getElementById('winMessage').textContent = '상대 킹을 잡았습니다!';
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Initialize
+        function init() {
+            // Show menu
+        }
+
+        init();
+    </script>
+</body>
+</html>

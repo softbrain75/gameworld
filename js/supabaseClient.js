@@ -17,11 +17,27 @@ let currentProfile = null;
 // ============================================
 
 // 회원가입
-async function signUp(email, password) {
+async function signUp(username, email, password) {
     try {
+        // 먼저 username 중복 체크
+        const { data: existingUser } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('username', username)
+            .single();
+
+        if (existingUser) {
+            return { success: false, error: '이미 사용 중인 아이디입니다.' };
+        }
+
         const { data, error } = await supabase.auth.signUp({
             email: email,
             password: password,
+            options: {
+                data: {
+                    username: username
+                }
+            }
         });
 
         if (error) throw error;
@@ -35,10 +51,21 @@ async function signUp(email, password) {
 }
 
 // 로그인
-async function signIn(email, password) {
+async function signIn(username, password) {
     try {
+        // username으로 email 찾기
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('username', username)
+            .single();
+
+        if (profileError || !profile) {
+            return { success: false, error: '아이디 또는 비밀번호가 일치하지 않습니다.' };
+        }
+
         const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
+            email: profile.email,
             password: password,
         });
 
@@ -50,7 +77,7 @@ async function signIn(email, password) {
         return { success: true, data };
     } catch (error) {
         console.error('로그인 오류:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: '아이디 또는 비밀번호가 일치하지 않습니다.' };
     }
 }
 

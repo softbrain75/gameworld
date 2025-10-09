@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>윷놀이 - Yut Nori</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            overflow: hidden;
+            touch-action: none;
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        #gameCanvas {
+            display: block;
+            background: #2c1810;
+            touch-action: none;
+        }
+        .screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 20px;
+            max-width: 90%;
+            width: 500px;
+        }
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ffd700;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+        .instructions {
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+        .button:active {
+            transform: scale(0.95);
+        }
+        .highscore {
+            font-size: 20px;
+            margin: 15px 0;
+            color: #ffd700;
+        }
+        #throwButton {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px 50px;
+            font-size: 28px;
+            z-index: 10;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        #gameInfo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 5;
+        }
+        #turnInfo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 24px;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 5;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="menuScreen" class="screen">
+        <h1>🎲 윷놀이</h1>
+        <div class="instructions">
+            <strong>게임 방법:</strong><br>
+            • 윷을 던져서 말을 이동시키세요<br>
+            • 도(1칸), 개(2칸), 걸(3칸), 윷(4칸), 모(5칸)<br>
+            • 윷이나 모가 나오면 한 번 더 던지기!<br>
+            • 대각선 길을 활용하세요<br>
+            • 상대 말을 잡으면 한 번 더!<br>
+            • 먼저 4개의 말을 모두 골인시키면 승리!<br><br>
+            <strong>조작:</strong><br>
+            • '윷 던지기' 버튼으로 윷을 던짐<br>
+            • 말을 클릭/탭하여 이동
+        </div>
+        <div class="highscore">최고 기록: <span id="menuHighScore">0</span>턴</div>
+        <button class="button" onclick="startGame()">게임 시작</button>
+    </div>
+    <div id="gameoverScreen" class="screen" style="display:none;">
+        <h1>🎉 게임 종료!</h1>
+        <div style="font-size: 32px; margin: 30px 0;">
+            <div id="winner"></div>
+            <div style="margin-top: 20px;">총 턴 수: <span id="finalTurns">0</span></div>
+        </div>
+        <div class="highscore">최고 기록: <span id="gameoverHighScore">0</span>턴</div>
+        <button class="button" onclick="startGame()">다시 하기</button>
+        <button class="button" onclick="showMenu()">메뉴로</button>
+    </div>
+    <div id="gameInfo" style="display:none;">
+        턴: <span id="turnCount">0</span>
+    </div>
+    <div id="turnInfo" style="display:none;">
+        <span id="currentPlayer">플레이어 1</span>의 차례
+    </div>
+    <button id="throwButton" class="button" style="display:none;" onclick="throwYut()">윷 던지기</button>
+
+    <script>
+        // Viewport height fix for mobile
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        window.addEventListener('resize', () => {
+            vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        });
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let gameState = 'menu';
+        let turnCount = 0;
+        let currentPlayer = 1; // 1 or 2
+        let yutResult = null;
+        let extraTurn = false;
+        let selectedPieceIndex = -1;
+
+        // Audio
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(soundType) {
+            try {
+                initAudio();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'throw':
+                        oscillator.frequency.value = 600;
+                        gainNode.gain.value = 0.10;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'move':
+                        oscillator.frequency.value = 440;
+                        gainNode.gain.value = 0.08;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'capture':
+                        oscillator.frequency.value = 800;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'win':
+                        oscillator.frequency.value = 1000;
+                        gainNode.gain.value = 0.15;
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        // Board positions (윷놀이 판 좌표)
+        const boardPositions = [];
+
+        function initBoardPositions() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const size = Math.min(canvas.width, canvas.height) * 0.35;
+
+            // 바깥 경로 (20개 위치)
+            // 시작점부터 시계방향
+            boardPositions[0] = { x: centerX - size, y: centerY, type: 'start' }; // 시작
+
+            // 왼쪽 하단 (1-4)
+            for (let i = 1; i <= 4; i++) {
+                boardPositions[i] = { x: centerX - size, y: centerY + (size / 4) * i };
+            }
+
+            // 하단 (5-9)
+            boardPositions[5] = { x: centerX - size, y: centerY + size }; // 코너
+            for (let i = 1; i <= 4; i++) {
+                boardPositions[5 + i] = { x: centerX - size + (size / 4) * i, y: centerY + size };
+            }
+
+            // 중앙 하단 (10-14)
+            boardPositions[10] = { x: centerX, y: centerY + size }; // 코너
+            for (let i = 1; i <= 4; i++) {
+                boardPositions[10 + i] = { x: centerX + (size / 4) * i, y: centerY + size };
+            }
+
+            // 우측 하단 (15-19)
+            boardPositions[15] = { x: centerX + size, y: centerY + size }; // 코너
+            for (let i = 1; i <= 4; i++) {
+                boardPositions[15 + i] = { x: centerX + size, y: centerY + size - (size / 4) * i };
+            }
+
+            // 우측 상단 (20-24)
+            boardPositions[20] = { x: centerX + size, y: centerY }; // 코너
+            for (let i = 1; i <= 4; i++) {
+                boardPositions[20 + i] = { x: centerX + size, y: centerY - (size / 4) * i };
+            }
+
+            // 상단 (25-29)
+            boardPositions[25] = { x: centerX + size, y: centerY - size }; // 코너
+            for (let i = 1; i <= 4; i++) {
+                boardPositions[25 + i] = { x: centerX + size - (size / 4) * i, y: centerY - size };
+            }
+
+            // 중앙 상단 (30-34)
+            boardPositions[30] = { x: centerX, y: centerY - size }; // 코너
+            for (let i = 1; i <= 4; i++) {
+                boardPositions[30 + i] = { x: centerX - (size / 4) * i, y: centerY - size };
+            }
+
+            // 좌측 상단 (35-39)
+            boardPositions[35] = { x: centerX - size, y: centerY - size }; // 코너
+            for (let i = 1; i <= 3; i++) {
+                boardPositions[35 + i] = { x: centerX - size, y: centerY - size + (size / 4) * i };
+            }
+            boardPositions[39] = { x: centerX - size, y: centerY }; // 시작점 복귀
+
+            // 중앙점 (40)
+            boardPositions[40] = { x: centerX, y: centerY, type: 'center' };
+
+            // 대각선 경로 추가
+            // 좌하단 → 중앙 (5, 41-44, 40)
+            for (let i = 1; i <= 4; i++) {
+                const t = i / 5;
+                boardPositions[40 + i] = {
+                    x: centerX - size + size * t,
+                    y: centerY + size - size * t
+                };
+            }
+
+            // 우하단 → 중앙 (15, 45-48, 40)
+            for (let i = 1; i <= 4; i++) {
+                const t = i / 5;
+                boardPositions[44 + i] = {
+                    x: centerX + size - size * t,
+                    y: centerY + size - size * t
+                };
+            }
+
+            // 중앙 상단 → 중앙 (30, 49-52, 40)
+            for (let i = 1; i <= 4; i++) {
+                const t = i / 5;
+                boardPositions[48 + i] = {
+                    x: centerX,
+                    y: centerY - size + size * t
+                };
+            }
+        }
+
+        // Player pieces
+        const players = {
+            1: {
+                pieces: [
+                    { position: -1, path: 'outer' }, // -1 = 시작 전
+                    { position: -1, path: 'outer' },
+                    { position: -1, path: 'outer' },
+                    { position: -1, path: 'outer' }
+                ],
+                color: '#ff6b6b',
+                finished: 0
+            },
+            2: {
+                pieces: [
+                    { position: -1, path: 'outer' },
+                    { position: -1, path: 'outer' },
+                    { position: -1, path: 'outer' },
+                    { position: -1, path: 'outer' }
+                ],
+                color: '#4ecdc4',
+                finished: 0
+            }
+        };
+
+        function startGame() {
+            gameState = 'playing';
+            turnCount = 0;
+            currentPlayer = 1;
+            yutResult = null;
+            extraTurn = false;
+            selectedPieceIndex = -1;
+
+            // Reset players
+            players[1].pieces = [
+                { position: -1, path: 'outer' },
+                { position: -1, path: 'outer' },
+                { position: -1, path: 'outer' },
+                { position: -1, path: 'outer' }
+            ];
+            players[1].finished = 0;
+
+            players[2].pieces = [
+                { position: -1, path: 'outer' },
+                { position: -1, path: 'outer' },
+                { position: -1, path: 'outer' },
+                { position: -1, path: 'outer' }
+            ];
+            players[2].finished = 0;
+
+            initBoardPositions();
+
+            document.getElementById('menuScreen').style.display = 'none';
+            document.getElementById('gameoverScreen').style.display = 'none';
+            document.getElementById('gameInfo').style.display = 'block';
+            document.getElementById('turnInfo').style.display = 'block';
+            document.getElementById('throwButton').style.display = 'block';
+
+            updateTurnDisplay();
+        }
+
+        function showMenu() {
+            gameState = 'menu';
+            document.getElementById('menuScreen').style.display = 'block';
+            document.getElementById('gameoverScreen').style.display = 'none';
+            document.getElementById('gameInfo').style.display = 'none';
+            document.getElementById('turnInfo').style.display = 'none';
+            document.getElementById('throwButton').style.display = 'none';
+            updateHighScore();
+        }
+
+        function throwYut() {
+            if (gameState !== 'playing' || yutResult !== null) return;
+
+            playSound('throw');
+
+            // 윷 결과: 도(1), 개(2), 걸(3), 윷(4), 모(5)
+            const rand = Math.random();
+            if (rand < 0.2) yutResult = { name: '도', value: 1, extra: false };
+            else if (rand < 0.4) yutResult = { name: '개', value: 2, extra: false };
+            else if (rand < 0.6) yutResult = { name: '걸', value: 3, extra: false };
+            else if (rand < 0.85) yutResult = { name: '윷', value: 4, extra: true };
+            else yutResult = { name: '모', value: 5, extra: true };
+
+            document.getElementById('throwButton').textContent = `${yutResult.name} (${yutResult.value}칸)`;
+            document.getElementById('throwButton').disabled = true;
+        }
+
+        function updateTurnDisplay() {
+            document.getElementById('turnCount').textContent = turnCount;
+            document.getElementById('currentPlayer').textContent = `플레이어 ${currentPlayer}`;
+            document.getElementById('currentPlayer').style.color = players[currentPlayer].color;
+        }
+
+        function nextTurn() {
+            if (!extraTurn) {
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+                turnCount++;
+            }
+            extraTurn = false;
+            yutResult = null;
+            selectedPieceIndex = -1;
+            document.getElementById('throwButton').textContent = '윷 던지기';
+            document.getElementById('throwButton').disabled = false;
+            updateTurnDisplay();
+        }
+
+        function movePiece(pieceIndex) {
+            if (yutResult === null || selectedPieceIndex !== -1) return;
+
+            const piece = players[currentPlayer].pieces[pieceIndex];
+
+            // 이미 골인한 말은 선택 불가
+            if (piece.position === 999) return;
+
+            playSound('move');
+            selectedPieceIndex = pieceIndex;
+
+            // 시작 전 말
+            if (piece.position === -1) {
+                piece.position = 0;
+                piece.path = 'outer';
+            }
+
+            // 이동 로직
+            let newPos = piece.position + yutResult.value;
+
+            // 특정 위치에서 대각선으로 전환 가능
+            if (piece.path === 'outer') {
+                if (piece.position === 5 && newPos > 5) {
+                    // 좌하단 대각선으로
+                    piece.path = 'diag1';
+                    newPos = 41 + (newPos - 5 - 1);
+                } else if (piece.position === 10 && newPos > 10) {
+                    // 중앙 하단에서 대각선 (바로 앞)
+                    piece.path = 'diag2';
+                    newPos = 45 + (newPos - 10 - 1);
+                } else if (piece.position === 30 && newPos > 30) {
+                    // 중앙 상단에서 대각선
+                    piece.path = 'diag3';
+                    newPos = 49 + (newPos - 30 - 1);
+                }
+            }
+
+            // 골인 체크
+            if (piece.path === 'outer' && newPos >= 39) {
+                piece.position = 999; // 골인
+                players[currentPlayer].finished++;
+
+                if (players[currentPlayer].finished >= 4) {
+                    gameOver();
+                    return;
+                }
+            } else if (piece.path === 'diag1' && newPos >= 44) {
+                piece.position = 999;
+                players[currentPlayer].finished++;
+
+                if (players[currentPlayer].finished >= 4) {
+                    gameOver();
+                    return;
+                }
+            } else if (piece.path === 'diag2' && newPos >= 48) {
+                piece.position = 999;
+                players[currentPlayer].finished++;
+
+                if (players[currentPlayer].finished >= 4) {
+                    gameOver();
+                    return;
+                }
+            } else if (piece.path === 'diag3' && newPos >= 52) {
+                piece.position = 999;
+                players[currentPlayer].finished++;
+
+                if (players[currentPlayer].finished >= 4) {
+                    gameOver();
+                    return;
+                }
+            } else {
+                piece.position = newPos;
+
+                // 상대 말 잡기 체크
+                const opponent = currentPlayer === 1 ? 2 : 1;
+                for (let i = 0; i < 4; i++) {
+                    const oppPiece = players[opponent].pieces[i];
+                    if (oppPiece.position === piece.position && oppPiece.path === piece.path) {
+                        oppPiece.position = -1;
+                        playSound('capture');
+                        extraTurn = true;
+                    }
+                }
+            }
+
+            // 윷이나 모면 한 번 더
+            if (yutResult.extra) {
+                extraTurn = true;
+            }
+
+            setTimeout(() => {
+                nextTurn();
+            }, 300);
+        }
+
+        function gameOver() {
+            gameState = 'gameover';
+            playSound('win');
+
+            document.getElementById('winner').textContent = `플레이어 ${currentPlayer} 승리!`;
+            document.getElementById('winner').style.color = players[currentPlayer].color;
+            document.getElementById('finalTurns').textContent = turnCount;
+
+            // High score (최소 턴 수)
+            const currentHighScore = localStorage.getItem('yutNori_highScore');
+            if (!currentHighScore || turnCount < parseInt(currentHighScore)) {
+                localStorage.setItem('yutNori_highScore', turnCount);
+            }
+
+            updateHighScore();
+
+            document.getElementById('gameoverScreen').style.display = 'block';
+            document.getElementById('gameInfo').style.display = 'none';
+            document.getElementById('turnInfo').style.display = 'none';
+            document.getElementById('throwButton').style.display = 'none';
+        }
+
+        function updateHighScore() {
+            const highScore = localStorage.getItem('yutNori_highScore') || '없음';
+            document.getElementById('menuHighScore').textContent = highScore;
+            document.getElementById('gameoverHighScore').textContent = highScore;
+        }
+
+        // Canvas interaction
+        canvas.addEventListener('click', (e) => {
+            if (gameState !== 'playing' || yutResult === null) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // 말 선택
+            for (let i = 0; i < 4; i++) {
+                const piece = players[currentPlayer].pieces[i];
+                if (piece.position === 999) continue;
+
+                let px, py;
+                if (piece.position === -1) {
+                    // 시작 대기 위치
+                    px = 50 + i * 60;
+                    py = currentPlayer === 1 ? canvas.height - 80 : 80;
+                } else {
+                    const pos = getBoardPosition(piece);
+                    px = pos.x;
+                    py = pos.y;
+                }
+
+                const dist = Math.sqrt((x - px) ** 2 + (y - py) ** 2);
+                if (dist < 25) {
+                    movePiece(i);
+                    break;
+                }
+            }
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameState !== 'playing' || yutResult === null) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            for (let i = 0; i < 4; i++) {
+                const piece = players[currentPlayer].pieces[i];
+                if (piece.position === 999) continue;
+
+                let px, py;
+                if (piece.position === -1) {
+                    px = 50 + i * 60;
+                    py = currentPlayer === 1 ? canvas.height - 80 : 80;
+                } else {
+                    const pos = getBoardPosition(piece);
+                    px = pos.x;
+                    py = pos.y;
+                }
+
+                const dist = Math.sqrt((x - px) ** 2 + (y - py) ** 2);
+                if (dist < 25) {
+                    movePiece(i);
+                    break;
+                }
+            }
+        });
+
+        function getBoardPosition(piece) {
+            if (piece.path === 'outer') {
+                return boardPositions[piece.position];
+            } else if (piece.path === 'diag1') {
+                return boardPositions[piece.position];
+            } else if (piece.path === 'diag2') {
+                return boardPositions[piece.position];
+            } else if (piece.path === 'diag3') {
+                return boardPositions[piece.position];
+            }
+            return boardPositions[0];
+        }
+
+        // Draw functions
+        function drawBoard() {
+            ctx.strokeStyle = '#8b6f47';
+            ctx.lineWidth = 3;
+
+            // 바깥 사각형
+            ctx.beginPath();
+            ctx.moveTo(boardPositions[0].x, boardPositions[0].y);
+            ctx.lineTo(boardPositions[5].x, boardPositions[5].y);
+            ctx.lineTo(boardPositions[10].x, boardPositions[10].y);
+            ctx.lineTo(boardPositions[15].x, boardPositions[15].y);
+            ctx.lineTo(boardPositions[20].x, boardPositions[20].y);
+            ctx.lineTo(boardPositions[25].x, boardPositions[25].y);
+            ctx.lineTo(boardPositions[30].x, boardPositions[30].y);
+            ctx.lineTo(boardPositions[35].x, boardPositions[35].y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // 대각선들
+            ctx.beginPath();
+            ctx.moveTo(boardPositions[5].x, boardPositions[5].y);
+            ctx.lineTo(boardPositions[40].x, boardPositions[40].y);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(boardPositions[15].x, boardPositions[15].y);
+            ctx.lineTo(boardPositions[40].x, boardPositions[40].y);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(boardPositions[30].x, boardPositions[30].y);
+            ctx.lineTo(boardPositions[40].x, boardPositions[40].y);
+            ctx.stroke();
+
+            // 위치 점 그리기
+            for (let i = 0; i <= 39; i++) {
+                if (!boardPositions[i]) continue;
+
+                ctx.fillStyle = (i === 0 || i === 5 || i === 10 || i === 15 || i === 20 || i === 25 || i === 30 || i === 35) ? '#ffd700' : '#8b6f47';
+                ctx.beginPath();
+                ctx.arc(boardPositions[i].x, boardPositions[i].y, 8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 중앙점
+            ctx.fillStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.arc(boardPositions[40].x, boardPositions[40].y, 12, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawPieces() {
+            // Player 1 pieces
+            for (let i = 0; i < 4; i++) {
+                const piece = players[1].pieces[i];
+                if (piece.position === 999) continue;
+
+                let x, y;
+                if (piece.position === -1) {
+                    x = 50 + i * 60;
+                    y = canvas.height - 80;
+                } else {
+                    const pos = getBoardPosition(piece);
+                    x = pos.x;
+                    y = pos.y;
+                }
+
+                ctx.fillStyle = players[1].color;
+                ctx.strokeStyle = currentPlayer === 1 && yutResult !== null ? '#fff' : '#000';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(x, y, 20, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('1', x, y);
+            }
+
+            // Player 2 pieces
+            for (let i = 0; i < 4; i++) {
+                const piece = players[2].pieces[i];
+                if (piece.position === 999) continue;
+
+                let x, y;
+                if (piece.position === -1) {
+                    x = 50 + i * 60;
+                    y = 80;
+                } else {
+                    const pos = getBoardPosition(piece);
+                    x = pos.x;
+                    y = pos.y;
+                }
+
+                ctx.fillStyle = players[2].color;
+                ctx.strokeStyle = currentPlayer === 2 && yutResult !== null ? '#fff' : '#000';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(x, y, 20, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('2', x, y);
+            }
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing') {
+                ctx.fillStyle = '#2c1810';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                drawBoard();
+                drawPieces();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            if (gameState === 'playing') {
+                initBoardPositions();
+            }
+        });
+
+        updateHighScore();
+        gameLoop();
+    </script>
+</body>
+</html>

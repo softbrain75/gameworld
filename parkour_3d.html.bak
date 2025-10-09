@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>3D 파쿠르 러너 🏃</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+            max-width: 100%;
+            max-height: 100%;
+            width: 100vw;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            z-index: 10;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+
+        .info {
+            font-size: 1.1rem;
+            margin: 0.5rem 0;
+            text-align: center;
+            padding: 0 2rem;
+        }
+
+        button {
+            font-size: 1.5rem;
+            padding: 1rem 3rem;
+            margin: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #ff6b6b, #ee5a6f);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .controls {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 1.2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 5;
+            font-weight: bold;
+        }
+
+        .jump-btn {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 4px solid white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            z-index: 5;
+            display: none;
+        }
+
+        .jump-btn.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .info { font-size: 1rem; }
+            button { font-size: 1.2rem; padding: 0.8rem 2rem; }
+            .jump-btn { width: 80px; height: 80px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="menuScreen" class="screen">
+        <h1>🏃 3D 파쿠르 러너</h1>
+        <div class="info">플랫폼을 뛰어넘어 골인하세요!</div>
+        <div class="info">WASD 또는 방향키로 이동</div>
+        <div class="info">스페이스바 또는 점프 버튼으로 점프</div>
+        <div class="info">마우스/터치 드래그로 카메라 회전</div>
+        <button id="startBtn">게임 시작</button>
+    </div>
+
+    <div id="gameoverScreen" class="screen hidden">
+        <h1>게임 오버</h1>
+        <button id="retryBtn">다시 하기</button>
+    </div>
+
+    <div class="stats hidden" id="gameStats">
+    </div>
+
+    <button class="jump-btn" id="jumpBtn">점프</button>
+
+    <script>
+        // Viewport height fix for mobile
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        window.addEventListener('resize', () => {
+            vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        });
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Canvas setup
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game state
+        let gameState = 'menu';
+
+        // Player
+        const player = {
+            x: 0,
+            y: 0,
+            z: 0,
+            velocityY: 0,
+            width: 0.5,
+            height: 1.8,
+            depth: 0.5,
+            grounded: false
+        };
+
+        // Camera
+        const camera = {
+            x: 0,
+            y: 2,
+            z: -5,
+            pitch: -0.2,
+            yaw: 0,
+            fov: 70,
+            near: 0.1,
+            far: 100
+        };
+
+        // Game variables
+        let platforms = [];
+        const gravity = -0.02;
+        const jumpPower = 0.35;
+        const moveSpeed = 0.15;
+
+        // Input
+        const keys = {};
+        let touchStartY = 0;
+        let touchStartX = 0;
+
+        // Camera rotation controls
+        let isDragging = false;
+        let lastDragX = 0;
+        let lastDragY = 0;
+        let cameraAngleH = 0; // Horizontal angle around player
+        let cameraAngleV = -0.3; // Vertical angle (pitch)
+
+        // Audio context
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(type) {
+                    case 'jump':
+                        oscillator.frequency.value = 400;
+                        gainNode.gain.value = 0.1;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'land':
+                        oscillator.frequency.value = 200;
+                        gainNode.gain.value = 0.08;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'gameover':
+                        oscillator.frequency.value = 150;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        // Initialize platforms - fixed map layout
+        function initPlatforms() {
+            platforms = [];
+
+            // Starting platform
+            platforms.push({ x: 0, y: 0, z: 0, width: 3, height: 0.3, depth: 3 });
+
+            // Create a fixed parkour course
+            platforms.push({ x: 0, y: 0, z: 5, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: -3, y: 0.5, z: 8, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 3, y: 1, z: 11, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 0, y: 1.5, z: 14, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: -4, y: 2, z: 17, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 4, y: 2, z: 20, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 0, y: 2.5, z: 23, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: -3, y: 3, z: 26, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 3, y: 3, z: 29, width: 2, height: 0.3, depth: 2 });
+            platforms.push({ x: 0, y: 3.5, z: 32, width: 3, height: 0.3, depth: 3 }); // Goal platform
+        }
+
+        // 3D to 2D projection
+        function project(x, y, z) {
+            const dx = x - camera.x;
+            const dy = y - camera.y;
+            const dz = z - camera.z;
+
+            // Rotate by camera yaw
+            const cosYaw = Math.cos(camera.yaw);
+            const sinYaw = Math.sin(camera.yaw);
+            const rotX = dx * cosYaw - dz * sinYaw;
+            const rotZ = dx * sinYaw + dz * cosYaw;
+
+            // Rotate by camera pitch
+            const cosPitch = Math.cos(camera.pitch);
+            const sinPitch = Math.sin(camera.pitch);
+            const rotY = dy * cosPitch - rotZ * sinPitch;
+            const finalZ = dy * sinPitch + rotZ * cosPitch;
+
+            if (finalZ <= camera.near) return null;
+
+            const fovRad = camera.fov * Math.PI / 180;
+            const scale = (canvas.height / 2) / Math.tan(fovRad / 2) / finalZ;
+
+            return {
+                x: canvas.width / 2 + rotX * scale,
+                y: canvas.height / 2 - rotY * scale,
+                z: finalZ,
+                scale: scale
+            };
+        }
+
+        // Draw 3D box
+        function drawBox(x, y, z, width, height, depth, color) {
+            const corners = [
+                [x - width/2, y - height/2, z - depth/2],
+                [x + width/2, y - height/2, z - depth/2],
+                [x + width/2, y + height/2, z - depth/2],
+                [x - width/2, y + height/2, z - depth/2],
+                [x - width/2, y - height/2, z + depth/2],
+                [x + width/2, y - height/2, z + depth/2],
+                [x + width/2, y + height/2, z + depth/2],
+                [x - width/2, y + height/2, z + depth/2]
+            ];
+
+            const projected = corners.map(c => project(c[0], c[1], c[2]));
+
+            if (projected.some(p => p === null)) return;
+
+            const faces = [
+                [0, 1, 2, 3], // front
+                [4, 5, 6, 7], // back
+                [0, 1, 5, 4], // bottom
+                [2, 3, 7, 6], // top
+                [0, 3, 7, 4], // left
+                [1, 2, 6, 5]  // right
+            ];
+
+            const avgZ = projected.reduce((sum, p) => sum + p.z, 0) / projected.length;
+
+            faces.forEach((face, idx) => {
+                ctx.beginPath();
+                ctx.moveTo(projected[face[0]].x, projected[face[0]].y);
+                for (let i = 1; i < face.length; i++) {
+                    ctx.lineTo(projected[face[i]].x, projected[face[i]].y);
+                }
+                ctx.closePath();
+
+                const brightness = idx === 2 ? 0.6 : idx === 3 ? 1 : 0.8;
+                ctx.fillStyle = adjustColor(color, brightness);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+        }
+
+        function adjustColor(color, brightness) {
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+
+            return `rgb(${r * brightness}, ${g * brightness}, ${b * brightness})`;
+        }
+
+        // Game loop
+        function update() {
+            if (gameState !== 'playing') return;
+
+            // WASD movement
+            if (keys['a'] || keys['ArrowLeft']) {
+                player.x -= moveSpeed;
+            }
+            if (keys['d'] || keys['ArrowRight']) {
+                player.x += moveSpeed;
+            }
+            if (keys['w'] || keys['ArrowUp']) {
+                player.z += moveSpeed;
+            }
+            if (keys['s'] || keys['ArrowDown']) {
+                player.z -= moveSpeed;
+            }
+
+            // Jump
+            if (!player.grounded) {
+                player.velocityY += gravity;
+            }
+            player.y += player.velocityY;
+
+            // Check platform collision
+            player.grounded = false;
+            platforms.forEach(platform => {
+                if (Math.abs(player.x - platform.x) < (platform.width + player.width) / 2 &&
+                    Math.abs(player.z - platform.z) < (platform.depth + player.depth) / 2 &&
+                    player.y <= platform.y + platform.height &&
+                    player.y > platform.y &&
+                    player.velocityY <= 0) {
+
+                    player.y = platform.y + platform.height;
+                    player.velocityY = 0;
+                    player.grounded = true;
+
+                    if (player.wasInAir) {
+                        playSound('land');
+                        player.wasInAir = false;
+                    }
+                }
+            });
+
+            // Game over if fell
+            if (player.y < -5) {
+                gameOver();
+            }
+
+            // Camera orbits around player using spherical coordinates
+            const camDist = 7;
+            const playerCenter = player.y + 1; // Center of player
+
+            // Convert angles to spherical coordinates
+            // cameraAngleV: negative = below, positive = above
+            const horizontalDist = camDist * Math.cos(cameraAngleV);
+            camera.x = player.x + horizontalDist * Math.sin(cameraAngleH);
+            camera.z = player.z + horizontalDist * Math.cos(cameraAngleH);
+            camera.y = playerCenter + camDist * Math.sin(cameraAngleV);
+
+            // Camera always looks at player center
+            const dx = player.x - camera.x;
+            const dy = playerCenter - camera.y;
+            const dz = player.z - camera.z;
+            const horizontalDistToPlayer = Math.sqrt(dx * dx + dz * dz);
+
+            camera.pitch = Math.atan2(dy, horizontalDistToPlayer);
+            camera.yaw = Math.atan2(dx, dz);
+        }
+
+        function draw() {
+            // Clear
+            ctx.fillStyle = 'linear-gradient(to bottom, #87CEEB, #E0F6FF)';
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid (ground reference)
+            ctx.strokeStyle = 'rgba(100, 150, 200, 0.3)';
+            ctx.lineWidth = 1;
+            for (let i = -10; i < 50; i++) {
+                const z = player.z + i * 2;
+                const p1 = project(-10, 0, z);
+                const p2 = project(10, 0, z);
+                if (p1 && p2) {
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                }
+            }
+
+            // Draw platforms
+            platforms.forEach(platform => {
+                drawBox(platform.x, platform.y, platform.z,
+                       platform.width, platform.height, platform.depth, '#4CAF50');
+            });
+
+            // Draw player
+            drawBox(player.x, player.y + player.height/2, player.z,
+                   player.width, player.height, player.depth, '#ff6b6b');
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function jump() {
+            if (player.grounded && gameState === 'playing') {
+                player.velocityY = jumpPower;
+                player.grounded = false;
+                player.wasInAir = true;
+                playSound('jump');
+            }
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameStats').classList.remove('hidden');
+            document.getElementById('jumpBtn').classList.add('active');
+
+            // Reset
+            player.x = 0;
+            player.y = 0.3; // Start on platform height
+            player.z = 0;
+            player.velocityY = 0;
+            player.grounded = true; // Start grounded
+            camera.z = -5;
+            camera.x = 0;
+            camera.y = 2;
+
+            initPlatforms();
+            initAudio();
+        }
+
+        function gameOver() {
+            gameState = 'gameover';
+            playSound('gameover');
+            document.getElementById('gameStats').classList.add('hidden');
+            document.getElementById('jumpBtn').classList.remove('active');
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('retryBtn').addEventListener('click', startGame);
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+                jump();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Touch controls
+        document.getElementById('jumpBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            jump();
+        });
+
+        // Touch controls for camera rotation
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            lastDragX = e.touches[0].clientX;
+            lastDragY = e.touches[0].clientY;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDragging) return;
+
+            const deltaX = e.touches[0].clientX - lastDragX;
+            const deltaY = e.touches[0].clientY - lastDragY;
+
+            // Rotate camera
+            cameraAngleH -= deltaX * 0.01;
+            cameraAngleV -= deltaY * 0.01;
+
+            // Clamp vertical angle (allow viewing from directly above)
+            cameraAngleV = Math.max(-1.4, Math.min(1.4, cameraAngleV));
+
+            lastDragX = e.touches[0].clientX;
+            lastDragY = e.touches[0].clientY;
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isDragging = false;
+        });
+
+        // Mouse controls for camera rotation
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastDragX = e.clientX;
+            lastDragY = e.clientY;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - lastDragX;
+            const deltaY = e.clientY - lastDragY;
+
+            // Rotate camera
+            cameraAngleH -= deltaX * 0.01;
+            cameraAngleV -= deltaY * 0.01;
+
+            // Clamp vertical angle (allow viewing from directly above)
+            cameraAngleV = Math.max(-1.4, Math.min(1.4, cameraAngleV));
+
+            lastDragX = e.clientX;
+            lastDragY = e.clientY;
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
+        // Start game loop
+        gameLoop();
+    </script>
+</body>
+</html>

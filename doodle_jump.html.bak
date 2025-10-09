@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>두들 점프 - 게임세상</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+body { font-family: 'Malgun Gothic', sans-serif; background: #87CEEB; height: 100vh; overflow: hidden; }
+canvas { width: 100%; height: 100vh; touch-action: none; }
+.menu-screen, .gameover-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.menu-content, .gameover-content { background: rgba(0, 0, 0, 0.9); padding: 30px; border-radius: 20px; text-align: center; color: white; border: 3px solid #667eea; }
+h1 { font-size: 2.5em; margin-bottom: 20px; color: #667eea; }
+.btn { background: linear-gradient(45deg, #667eea, #764ba2); color: white; border: none; padding: 15px 40px; font-size: 1.5em; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; }
+.hidden { display: none; }
+.score { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 2em; font-weight: bold; color: white; z-index: 50; }
+.back-btn { position: fixed; top: 10px; left: 10px; background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; z-index: 100; }
+</style>
+</head>
+<body>
+<a href="index.html" class="back-btn">← 홈으로</a>
+<div id="menuScreen" class="menu-screen"><div class="menu-content"><h1>🦘두들 점프</h1><button class="btn" onclick="startGame()">시작</button></div></div>
+<div id="gameoverScreen" class="gameover-screen hidden"><div class="gameover-content"><h1>게임 오버</h1><div style="font-size:3em;color:#ffd700" id="finalScore">0</div><button class="btn" onclick="startGame()">다시하기</button></div></div>
+<div class="score" id="score" style="display:none">0</div>
+<canvas id="canvas"></canvas>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let gameState = 'menu', score = 0, player = {x: 0, y: 0, vx: 0, vy: 0, width: 40, height: 40}, platforms = [], cameraY = 0;
+
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.x = canvas.width / 2 - 20; player.y = canvas.height - 100; }
+resize();
+
+canvas.addEventListener('mousemove', (e) => { if(gameState === 'playing') player.vx = (e.clientX - player.x) * 0.1; });
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if(gameState === 'playing') player.vx = (e.touches[0].clientX - player.x) * 0.1; });
+
+window.startGame = function() {
+    document.getElementById('menuScreen').classList.add('hidden');
+    document.getElementById('gameoverScreen').classList.add('hidden');
+    document.getElementById('score').style.display = 'block';
+    gameState = 'playing'; score = 0; cameraY = 0; platforms = [];
+    player = {x: canvas.width / 2 - 20, y: canvas.height - 100, vx: 0, vy: -15, width: 40, height: 40};
+    for(let i = 0; i < 10; i++) {
+        platforms.push({x: Math.random() * (canvas.width - 80), y: canvas.height - i * 80, width: 80, height: 20});
+    }
+};
+
+function gameLoop() {
+    if(gameState === 'playing') {
+        player.vy += 0.5;
+        player.x += player.vx;
+        player.y += player.vy;
+
+        if(player.x < 0) player.x = canvas.width;
+        if(player.x > canvas.width) player.x = 0;
+
+        platforms.forEach(p => {
+            if(player.vy > 0 && player.y + player.height > p.y && player.y + player.height < p.y + 20 && player.x + player.width > p.x && player.x < p.x + p.width) {
+                player.vy = -15;
+            }
+        });
+
+        if(player.y < canvas.height / 2) {
+            cameraY += (canvas.height / 2 - player.y);
+            player.y = canvas.height / 2;
+            platforms.forEach(p => p.y += (canvas.height / 2 - player.y));
+            score += 1;
+        }
+
+        platforms = platforms.filter(p => p.y < canvas.height + 100);
+        while(platforms.length < 10) {
+            platforms.push({x: Math.random() * (canvas.width - 80), y: platforms[platforms.length - 1].y - 80, width: 80, height: 20});
+        }
+
+        if(player.y > canvas.height) {
+            gameState = 'gameover';
+            document.getElementById('finalScore').textContent = Math.floor(score);
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+            document.getElementById('score').style.display = 'none';
+        }
+
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#8B4513';
+        platforms.forEach(p => ctx.fillRect(p.x, p.y, p.width, p.height));
+
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+
+        document.getElementById('score').textContent = Math.floor(score);
+    }
+    requestAnimationFrame(gameLoop);
+}
+gameLoop();
+</script>
+</body>
+</html>

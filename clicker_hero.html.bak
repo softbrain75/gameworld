@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>클리커 히어로 - 게임세상</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+body { font-family: 'Malgun Gothic', sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+.container { background: rgba(0, 0, 0, 0.9); padding: 40px; border-radius: 20px; color: white; text-align: center; max-width: 500px; border: 3px solid #f093fb; }
+h1 { font-size: 2.5em; margin-bottom: 20px; color: #f093fb; }
+.click-area { width: 200px; height: 200px; background: linear-gradient(135deg, #f093fb, #f5576c); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 5em; margin: 30px auto; cursor: pointer; transition: transform 0.1s; }
+.click-area:active { transform: scale(0.95); }
+.score { font-size: 3em; margin: 20px 0; color: #ffd700; }
+.upgrades { display: grid; gap: 10px; margin: 20px 0; }
+.upgrade { background: #f093fb; padding: 15px; border-radius: 10px; cursor: pointer; transition: transform 0.2s; }
+.upgrade:hover { transform: scale(1.05); }
+.back-btn { position: fixed; top: 10px; left: 10px; background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; z-index: 100; }
+</style>
+</head>
+<body>
+<a href="index.html" class="back-btn">← 홈으로</a>
+<div class="container">
+<h1>🎯클리커 히어로</h1>
+<div class="score" id="score">0</div>
+<div class="click-area" id="clicker" onclick="click()">👆</div>
+<div class="upgrades">
+<div class="upgrade" onclick="buyUpgrade(10, 1)">클릭당 +1 (10코인)</div>
+<div class="upgrade" onclick="buyUpgrade(100, 10)">클릭당 +10 (100코인)</div>
+<div class="upgrade" onclick="buyUpgrade(1000, 100)">클릭당 +100 (1000코인)</div>
+</div>
+<div>클릭당: <span id="perClick">1</span></div>
+</div>
+<script>
+let score = 0, perClick = 1;
+
+function click() {
+    score += perClick;
+    document.getElementById('score').textContent = score;
+}
+
+function buyUpgrade(cost, increase) {
+    if(score >= cost) {
+        score -= cost;
+        perClick += increase;
+        document.getElementById('score').textContent = score;
+        document.getElementById('perClick').textContent = perClick;
+    } else {
+        alert('코인이 부족합니다!');
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>게임세상 - 55가지 모바일 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: #6200ea;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            position: relative;
+        }
+
+        .header-content {
+            flex: 1;
+            text-align: center;
+        }
+
+        .points-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 16px;
+            color: white;
+            min-width: 100px;
+        }
+
+        .points-icon {
+            font-size: 20px;
+        }
+
+        .points-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .points-value {
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1;
+            color: #fff;
+        }
+
+        .points-label {
+            font-size: 11px;
+            opacity: 0.9;
+            line-height: 1;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: background 0.2s ease;
+        }
+
+        .search-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .search-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 80px;
+        }
+
+        .search-overlay.active {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .search-box {
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 56px 16px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            background: white;
+            color: #333;
+            outline: none;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
+            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+        }
+
+        .search-input::placeholder {
+            color: #757575;
+        }
+
+        .close-search {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #757575;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .close-search:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        .search-default {
+            margin-top: 16px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .search-section {
+            margin-bottom: 24px;
+        }
+
+        .search-section-title {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .search-section-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .search-results {
+            margin-top: 16px;
+            max-height: 60vh;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            padding: 16px;
+            cursor: pointer;
+            transition: box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .search-result-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.16);
+        }
+
+        .search-result-icon {
+            font-size: 32px;
+            min-width: 40px;
+        }
+
+        .search-result-info h4 {
+            margin: 0 0 4px 0;
+            color: #6200ea;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .search-result-info p {
+            margin: 0;
+            color: #757575;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .no-results {
+            text-align: center;
+            color: white;
+            font-size: 16px;
+            margin-top: 40px;
+        }
+
+        .tabs-container {
+            padding: 0 20px 16px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 24px;
+            font-weight: 500;
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            gap: 8px;
+            padding: 0 10px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+            flex-shrink: 0;
+            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .tab.active {
+            background: white;
+            color: #6200ea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        .category-section {
+            display: none;
+        }
+
+        .category-section.active {
+            display: block;
+            animation: fadeIn 0.2s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .category-title {
+            color: #212121;
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            cursor: pointer;
+            transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        }
+
+        .game-card:active {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+
+        .game-card h3 {
+            color: #6200ea;
+            margin-bottom: 8px;
+            font-size: 18px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .game-card p {
+            color: #757575;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .game-icon {
+            font-size: 28px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #6200ea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            margin-top: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .badge.new {
+            background: #d32f2f;
+        }
+
+        .badge.popular {
+            background: #ffa000;
+        }
+
+        .badge.coming-soon {
+            background: #757575;
+        }
+
+        .stats {
+            text-align: center;
+            padding: 24px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+
+        .stats h2 {
+            color: #212121;
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 500;
+            color: #6200ea;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #757575;
+            margin-top: 4px;
+        }
+
+        .stats-modal-content {
+            width: 90%;
+            max-width: 800px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stats-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .stats-modal-header h2 {
+            margin: 0;
+            color: #212121;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .stats-modal-header .close-search {
+            position: static;
+            transform: none;
+            color: #757575;
+        }
+
+        .stats-table-container {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stats-table thead {
+            position: sticky;
+            top: 0;
+            background: #f5f5f5;
+            z-index: 1;
+        }
+
+        .stats-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 500;
+            color: #757575;
+            font-size: 14px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .stats-table th:first-child {
+            width: 80px;
+            text-align: center;
+        }
+
+        .stats-table th:last-child {
+            width: 120px;
+            text-align: right;
+        }
+
+        .stats-table td {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #212121;
+            font-size: 14px;
+        }
+
+        .stats-table td:first-child {
+            text-align: center;
+            font-weight: 500;
+            color: #6200ea;
+        }
+
+        .stats-table td:last-child {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .stats-table tbody tr:hover {
+            background: #f5f5f5;
+            cursor: pointer;
+        }
+
+        .game-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .game-name-icon {
+            font-size: 24px;
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .rank-badge.rank-1 {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #d97706;
+        }
+
+        .rank-badge.rank-2 {
+            background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+            color: #6b7280;
+        }
+
+        .rank-badge.rank-3 {
+            background: linear-gradient(135deg, #cd7f32, #e8a87c);
+            color: #92400e;
+        }
+
+        /* 사용자 메뉴 스타일 */
+        .user-menu {
+            position: relative;
+            margin-left: 8px;
+        }
+
+        .user-menu-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .user-menu-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            overflow: hidden;
+            min-width: 150px;
+            z-index: 1000;
+        }
+
+        .user-dropdown.active {
+            display: block;
+        }
+
+        .user-dropdown-item {
+            padding: 12px 16px;
+            color: #212121;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 14px;
+        }
+
+        .user-dropdown-item:hover {
+            background: #f5f5f5;
+        }
+
+        /* 로그인 모달 */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-modal.active {
+            display: flex;
+        }
+
+        .auth-modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 32px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.24);
+        }
+
+        .auth-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .auth-modal-header h2 {
+            margin: 0;
+            color: #6200ea;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .auth-tab {
+            padding: 12px 0;
+            cursor: pointer;
+            color: #757575;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+        }
+
+        .auth-tab.active {
+            color: #6200ea;
+            border-bottom-color: #6200ea;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #212121;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #6200ea;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: #6200ea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+        }
+
+        .auth-btn:hover {
+            background: #5600d6;
+        }
+
+        .auth-btn:disabled {
+            background: #bdbdbd;
+            cursor: not-allowed;
+        }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 16px;
+            color: #6200ea;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .success-message {
+            color: #388e3c;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        /* 내 정보 모달 */
+        .mypage-modal-content {
+            width: 90%;
+            max-width: 500px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.24);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .mypage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .mypage-header h2 {
+            margin: 0;
+            color: #212121;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .mypage-body {
+            padding: 24px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .info-label {
+            color: #757575;
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: #212121;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .danger-btn {
+            width: 100%;
+            padding: 12px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: background 0.2s ease;
+        }
+
+        .danger-btn:hover {
+            background: #b71c1c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top">
+            <div class="points-display" id="pointsDisplay">
+                <div class="points-icon">🏆</div>
+                <div class="points-info">
+                    <div class="points-value" id="pointsValue">0</div>
+                    <div class="points-label">포인트</div>
+                </div>
+            </div>
+            <div class="header-content">
+                <h1>게임나라</h1>
+            </div>
+            <div class="search-container">
+                <button class="search-btn" onclick="openSearch()">🔍</button>
+                <button class="search-btn" onclick="openStats()" style="margin-left: 8px;">📊</button>
+
+                <!-- 로그인 전: 로그인 버튼 -->
+                <button id="loginBtn" class="search-btn" onclick="openLoginModal()" style="margin-left: 8px; display: none;">
+                    <span style="font-size: 16px;">👤</span>
+                </button>
+
+                <!-- 로그인 후: 사용자 메뉴 -->
+                <div id="userMenu" class="user-menu" style="display: none;">
+                    <button class="user-menu-btn" onclick="toggleUserDropdown()">
+                        <span id="userEmail" style="font-size: 14px;"></span>
+                        <span style="margin-left: 4px;">▼</span>
+                    </button>
+                    <div id="userDropdown" class="user-dropdown">
+                        <div class="user-dropdown-item" onclick="openMyPage()">📊 내 정보</div>
+                        <div class="user-dropdown-item" onclick="handleLogout()">🚪 로그아웃</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tabs-container">
+            <div class="tabs">
+                <div class="tab active" onclick="showCategory('all')">🌟 전체</div>
+                <div class="tab" onclick="showCategory('action')">⚡ 액션</div>
+                <div class="tab" onclick="showCategory('puzzle')">🧩 퍼즐</div>
+                <div class="tab" onclick="showCategory('arcade')">🕹️ 아케이드</div>
+                <div class="tab" onclick="showCategory('rhythm')">🎵 리듬</div>
+                <div class="tab" onclick="showCategory('casual')">😊 캐주얼</div>
+                <div class="tab" onclick="showCategory('strategy')">🎯 전략</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Overlay -->
+    <div id="searchOverlay" class="search-overlay">
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="게임 이름을 검색하세요..." oninput="performSearch()">
+            <button class="close-search" onclick="closeSearch()">✕</button>
+
+            <!-- Default view: Recent, Popular, New games -->
+            <div id="searchDefault" class="search-default">
+                <div class="search-section">
+                    <h3 class="search-section-title">🕒 최근 플레이한 게임</h3>
+                    <div id="recentGames" class="search-section-list"></div>
+                </div>
+
+                <div class="search-section">
+                    <h3 class="search-section-title">🔥 인기 게임</h3>
+                    <div id="popularGames" class="search-section-list"></div>
+                </div>
+
+                <div class="search-section">
+                    <h3 class="search-section-title">✨ 신규 게임</h3>
+                    <div id="newGames" class="search-section-list"></div>
+                </div>
+            </div>
+
+            <div id="searchResults" class="search-results"></div>
+        </div>
+    </div>
+
+    <!-- Login/Signup Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <h2>게임나라</h2>
+                <button class="close-search" onclick="closeAuthModal()" style="position: static; transform: none;">✕</button>
+            </div>
+
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">로그인</div>
+                <div class="auth-tab" onclick="switchAuthTab('signup')">회원가입</div>
+                <div class="auth-tab" onclick="switchAuthTab('reset')">비밀번호 찾기</div>
+            </div>
+
+            <!-- 로그인 폼 -->
+            <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="loginEmail" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="loginPassword" required placeholder="비밀번호를 입력하세요">
+                </div>
+                <button type="submit" class="auth-btn" id="loginSubmitBtn">로그인</button>
+                <div class="error-message" id="loginError"></div>
+            </form>
+
+            <!-- 회원가입 폼 -->
+            <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="signupEmail" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="signupPassword" required minlength="6" placeholder="6자 이상 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label>비밀번호 확인</label>
+                    <input type="password" id="signupPasswordConfirm" required placeholder="비밀번호를 다시 입력하세요">
+                </div>
+                <button type="submit" class="auth-btn" id="signupSubmitBtn">회원가입</button>
+                <div class="error-message" id="signupError"></div>
+                <div class="success-message" id="signupSuccess"></div>
+            </form>
+
+            <!-- 비밀번호 찾기 폼 -->
+            <form id="resetForm" class="auth-form" onsubmit="handlePasswordReset(event)">
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="resetEmail" required placeholder="가입한 이메일을 입력하세요">
+                </div>
+                <button type="submit" class="auth-btn" id="resetSubmitBtn">재설정 이메일 발송</button>
+                <div class="error-message" id="resetError"></div>
+                <div class="success-message" id="resetSuccess"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- My Page Modal -->
+    <div id="myPageModal" class="search-overlay">
+        <div class="mypage-modal-content">
+            <div class="mypage-header">
+                <h2>내 정보</h2>
+                <button class="close-search" onclick="closeMyPage()" style="position: static; transform: none;">✕</button>
+            </div>
+            <div class="mypage-body">
+                <div class="info-row">
+                    <span class="info-label">이메일</span>
+                    <span class="info-value" id="myPageEmail">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">누적 포인트</span>
+                    <span class="info-value" id="myPagePoints">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">가입일</span>
+                    <span class="info-value" id="myPageJoinDate">-</span>
+                </div>
+
+                <button class="danger-btn" onclick="handleDeleteAccount()">회원 탈퇴</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="statsModal" class="search-overlay">
+        <div class="stats-modal-content">
+            <div class="stats-modal-header">
+                <h2>📊 게임 통계</h2>
+                <button class="close-search" onclick="closeStats()">✕</button>
+            </div>
+            <div class="stats-table-container">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th>순위</th>
+                            <th>게임명</th>
+                            <th>조회수</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Statistics -->
+        <div class="stats">
+            <h2>📊 게임 통계</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">56</div>
+                    <div class="stat-label">전체 게임</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">56</div>
+                    <div class="stat-label">플레이 가능</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">개발 예정</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Games -->
+        <div id="all" class="category-section active">
+            <div class="category-title">🌟 전체 게임</div>
+            <div class="game-grid" id="allGames"></div>
+        </div>
+
+        <!-- Action Games -->
+        <div id="action" class="category-section">
+            <div class="category-title">⚡ 액션 게임</div>
+            <div class="game-grid">
+                <a href="galaxy_war.html" class="game-card">
+                    <h3><span class="game-icon">🚀</span> 갤럭시 워</h3>
+                    <p>3D 우주 슈팅! 다가오는 적들을 격파하세요. 5가지 적 타입별 화려한 폭발 효과!</p>
+                    <span class="badge popular">인기</span>
+                </a>
+                <a href="xwing.html" class="game-card">
+                    <h3><span class="game-icon">✈️</span> 스타워즈 X-Wing</h3>
+                    <p>조준선을 드래그해서 타이파이터를 격추! 자동 조준 레이저로 우주 전투를 즐겨보세요!</p>
+                    <span class="badge">NEW</span>
+                </a>
+                <a href="cannon_defender.html" class="game-card">
+                    <h3><span class="game-icon">🎯</span> 대포 디펜더</h3>
+                    <p>5개 레인에서 낙하하는 적들을 대포로 격파! 콤보와 웨이브 시스템으로 높은 점수를 노려보세요!</p>
+                    <span class="badge">NEW</span>
+                </a>
+                <a href="line_draw_defense.html" class="game-card">
+                    <h3><span class="game-icon">🔥</span> 라인 드로우 디펜스</h3>
+                    <p>손가락으로 선을 그어 방어벽을 만들고, 불타는 선으로 적을 태워버리세요!</p>
+                    <span class="badge">NEW</span>
+                </a>
+                <a href="ninja_slash.html" class="game-card">
+                    <h3><span class="game-icon">⚔️</span> 닌자 슬래시</h3>
+                    <p>날아오는 과일을 베고, 폭탄을 피하세요! 화려한 베기 이펙트와 콤보 시스템!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="punch_rush.html" class="game-card">
+                    <h3><span class="game-icon">🥊</span> 펀치 러쉬</h3>
+                    <p>샌드백을 빠르게 터치해서 연속 펀치! 시원한 타격감과 파티클 효과!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="archer_master.html" class="game-card">
+                    <h3><span class="game-icon">🏹</span> 아처 마스터</h3>
+                    <p>드래그해서 화살을 쏘고 표적을 맞추세요! 바람과 거리를 계산하는 실감나는 물리 엔진!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="endless_runner.html" class="game-card">
+                    <h3><span class="game-icon">🏃</span> 엔드리스 러너</h3>
+                    <p>끝없이 달리며 장애물을 피하고 코인을 수집하세요! 속도가 점점 빨라집니다!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="zombie_survival.html" class="game-card">
+                    <h3><span class="game-icon">🧟</span> 좀비 서바이벌</h3>
+                    <p>좀비들을 피해 최대한 오래 생존하세요! 생존 시간을 기록하세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="space_invaders.html" class="game-card">
+                    <h3><span class="game-icon">👾</span> 스페이스 인베이더</h3>
+                    <p>클래식 슈팅 게임! 외계인을 격추하고 지구를 지키세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="fighter_battle.html" class="game-card">
+                    <h3><span class="game-icon">⚔️</span> 파이터 배틀</h3>
+                    <p>2인 동시 대전 격투 게임! WASD vs 방향키로 실시간 공격과 방어를 펼치세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="baseball_slugger.html" class="game-card">
+                    <h3><span class="game-icon">⚾</span> 베이스볼 슬러거</h3>
+                    <p>타자 시점에서 날아오는 공을 타이밍에 맞춰 타격! 홈런을 노려보세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="parkour_3d.html" class="game-card">
+                    <h3><span class="game-icon">🏃</span> 3D 파쿠르 러너</h3>
+                    <p>1인칭 시점에서 플랫폼을 뛰어넘으세요! 3D 공간을 달리며 점프하는 파쿠르 게임!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Puzzle Games -->
+        <div id="puzzle" class="category-section">
+            <div class="category-title">🧩 퍼즐 게임</div>
+            <div class="game-grid">
+                <a href="tetris.html" class="game-card">
+                    <h3><span class="game-icon">🎮</span> 테트리스 매니아</h3>
+                    <p>클래식 테트리스에 화려한 파티클 효과 추가! 라인 클리어할 때마다 폭발하는 파티클로 스트레스 해소!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="2048_explosion.html" class="game-card">
+                    <h3><span class="game-icon">🔢</span> 2048 익스플로전</h3>
+                    <p>숫자를 합쳐 2048을 만드세요! 합칠 때마다 화려한 폭발 효과!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="match3_mania.html" class="game-card">
+                    <h3><span class="game-icon">💎</span> 매치 3 매니아</h3>
+                    <p>같은 색 보석을 3개 이상 맞추세요! 캐스케이드 효과와 특수 보석으로 높은 점수!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="ice_breaker.html" class="game-card">
+                    <h3><span class="game-icon">🧊</span> 아이스 브레이커</h3>
+                    <p>같은 색 블록을 터치해서 깨뜨리세요! 연쇄 효과로 큰 점수를 노려보세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="color_flow.html" class="game-card">
+                    <h3><span class="game-icon">🎨</span> 컬러 플로우</h3>
+                    <p>파이프를 연결해서 같은 색끼리 이어주세요! 복잡한 퍼즐을 풀어보세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="maze_escape.html" class="game-card">
+                    <h3><span class="game-icon">🧩</span> 미로 탈출</h3>
+                    <p>미로를 탐험하고 출구를 찾으세요! 화살표 키로 이동!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="memory_match.html" class="game-card">
+                    <h3><span class="game-icon">🧠</span> 메모리 매치</h3>
+                    <p>카드를 뒤집어 같은 그림 찾기! 기억력 테스트!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="word_guess.html" class="game-card">
+                    <h3><span class="game-icon">🔤</span> 단어 맞추기</h3>
+                    <p>숨겨진 단어를 맞추세요! 행맨 스타일 게임!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Arcade Games -->
+        <div id="arcade" class="category-section">
+            <div class="category-title">🕹️ 아케이드 게임</div>
+            <div class="game-grid">
+                <a href="tab_mania.html" class="game-card">
+                    <h3><span class="game-icon">💥</span> 탭 매니아</h3>
+                    <p>30초 안에 나타나는 버튼들을 빠르게 탭! 콤보와 특수 버튼으로 높은 점수를 노려보세요!</p>
+                    <span class="badge">NEW</span>
+                </a>
+                <a href="tabtabtab.html" class="game-card">
+                    <h3><span class="game-icon">👆</span> 탭탭탭</h3>
+                    <p>화면을 빠르게 탭해서 점수를 얻으세요!</p>
+                    <span class="badge">NEW</span>
+                </a>
+                <a href="target_shooter.html" class="game-card">
+                    <h3><span class="game-icon">🎯</span> 타겟 슈터</h3>
+                    <p>나타나는 타겟을 빠르게 터치! 정확도와 속도를 겨루는 반사신경 게임!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="spin_master.html" class="game-card">
+                    <h3><span class="game-icon">🌀</span> 스핀 마스터</h3>
+                    <p>회전하는 원판에 핀을 꽂으세요! 타이밍을 맞춰 완벽한 샷을 노려보세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="hoop_mania.html" class="game-card">
+                    <h3><span class="game-icon">🏀</span> 후프 매니아</h3>
+                    <p>농구공을 스와이프해서 골대에 넣으세요! 연속 성공으로 점수 배율 증가!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="lightning_reaction.html" class="game-card">
+                    <h3><span class="game-icon">⚡</span> 라이트닝 리액션</h3>
+                    <p>화면이 변하는 순간 터치! 반응속도를 극한까지 테스트하는 게임!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="whack_mole.html" class="game-card">
+                    <h3><span class="game-icon">🔨</span> 두더지 잡기</h3>
+                    <p>나타나는 두더지를 빠르게 터치! 클래식 아케이드 게임!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="breakout.html" class="game-card">
+                    <h3><span class="game-icon">🧱</span> 브레이크아웃</h3>
+                    <p>공을 튕겨 벽돌을 깨트리세요! 클래식 벽돌깨기!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="pong.html" class="game-card">
+                    <h3><span class="game-icon">🏓</span> 퐁</h3>
+                    <p>AI와 탁구 대결! 역사적인 게임의 재현!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="balloon_pop.html" class="game-card">
+                    <h3><span class="game-icon">🎈</span> 풍선 터뜨리기</h3>
+                    <p>올라가는 풍선을 터치해서 터뜨리세요! 시간 안에 최대한 많이!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Rhythm Games -->
+        <div id="rhythm" class="category-section">
+            <div class="category-title">🎵 리듬 게임</div>
+            <div class="game-grid">
+                <a href="piano_tiles.html" class="game-card">
+                    <h3><span class="game-icon">🎹</span> 피아노 타일즈</h3>
+                    <p>떨어지는 타일을 리듬에 맞춰 터치! 완벽한 타이밍으로 곡을 완성하세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="drum_beat.html" class="game-card">
+                    <h3><span class="game-icon">🥁</span> 드럼 비트</h3>
+                    <p>3개의 퍼커션 패드를 터치해서 리듬을 만드세요! 화려한 비트 효과!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="guitar_hero.html" class="game-card">
+                    <h3><span class="game-icon">🎸</span> 기타 히어로</h3>
+                    <p>화면에 나타나는 노트를 정확하게 터치! 록스타가 되어보세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="dance_revolution.html" class="game-card">
+                    <h3><span class="game-icon">💃</span> 댄스 레볼루션</h3>
+                    <p>화살표 방향으로 스와이프! 리듬에 맞춰 댄스 무브를 완성하세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="beat_drop.html" class="game-card">
+                    <h3><span class="game-icon">🎤</span> 비트 드롭</h3>
+                    <p>떨어지는 비트를 맞춰 터치! EDM 음악과 함께하는 화려한 리듬 게임!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Casual Games -->
+        <div id="casual" class="category-section">
+            <div class="category-title">😊 캐주얼 게임</div>
+            <div class="game-grid">
+                <a href="snake_classic.html" class="game-card">
+                    <h3><span class="game-icon">🐍</span> 스네이크 클래식</h3>
+                    <p>먹이를 먹고 길어지는 뱀을 조종하세요! 클래식 게임의 현대적 재해석!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="flappy_dragon.html" class="game-card">
+                    <h3><span class="game-icon">🐉</span> 플래피 드래곤</h3>
+                    <p>장애물을 피해 날아가세요! 간단하지만 중독성 강한 게임!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="bubble_pop.html" class="game-card">
+                    <h3><span class="game-icon">🎈</span> 버블 팝</h3>
+                    <p>터치해서 풍선을 터뜨리세요! 시원한 터지는 소리와 함께 스트레스 해소!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="lucky_dice.html" class="game-card">
+                    <h3><span class="game-icon">🎲</span> 럭키 다이스</h3>
+                    <p>주사위를 굴려 행운을 시험하세요! 다양한 미니게임으로 보상 획득!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="candy_crush.html" class="game-card">
+                    <h3><span class="game-icon">🍬</span> 캔디 크러쉬</h3>
+                    <p>달콤한 사탕을 매치하세요! 3개 이상 매치로 연쇄 폭발!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="box_open.html" class="game-card">
+                    <h3><span class="game-icon">🎁</span> 박스 오픈</h3>
+                    <p>상자를 열어 보상을 획득하세요! 레전더리를 찾아라!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="jump_master.html" class="game-card">
+                    <h3><span class="game-icon">🦘</span> 점프 마스터</h3>
+                    <p>플랫폼을 점프하며 최대한 멀리 가세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="speed_racing.html" class="game-card">
+                    <h3><span class="game-icon">🏎️</span> 스피드 레이싱</h3>
+                    <p>도로에서 장애물을 피하며 최대한 멀리 달리세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="doodle_jump.html" class="game-card">
+                    <h3><span class="game-icon">🦘</span> 두들 점프</h3>
+                    <p>플랫폼을 점프하며 최대한 높이 올라가세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="clicker_hero.html" class="game-card">
+                    <h3><span class="game-icon">🎯</span> 클리커 히어로</h3>
+                    <p>클릭해서 점수를 모으고 업그레이드하세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="number_quiz.html" class="game-card">
+                    <h3><span class="game-icon">🧮</span> 숫자 퀴즈</h3>
+                    <p>수학 문제를 빠르게 풀어보세요! 10문제 도전!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Strategy Games -->
+        <div id="strategy" class="category-section">
+            <div class="category-title">🎯 전략 게임</div>
+            <div class="game-grid">
+                <a href="tower_defense.html" class="game-card">
+                    <h3><span class="game-icon">🗼</span> 타워 디펜스</h3>
+                    <p>타워를 배치하고 적의 공격을 막으세요! 업그레이드와 전략이 핵심!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="chess_master.html" class="game-card">
+                    <h3><span class="game-icon">♟️</span> 체스 마스터</h3>
+                    <p>클래식 체스 게임! 전략적 사고로 상대 킹을 잡으세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="card_battle.html" class="game-card">
+                    <h3><span class="game-icon">🃏</span> 카드 배틀</h3>
+                    <p>카드를 선택해 전투하세요! 공격, 방어, 힐 카드로 전략적 플레이!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="kingdom_builder.html" class="game-card">
+                    <h3><span class="game-icon">🏰</span> 킹덤 빌더</h3>
+                    <p>자원을 모아 왕국을 건설하세요! 건물을 지어 왕국을 발전시키세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="battle_tactics.html" class="game-card">
+                    <h3><span class="game-icon">⚔️</span> 배틀 택틱스</h3>
+                    <p>턴제 전투에서 전략을 펼치세요! 4가지 유닛으로 전투!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="brain_puzzle.html" class="game-card">
+                    <h3><span class="game-icon">🧩</span> 브레인 퍼즐</h3>
+                    <p>논리와 전략이 필요한 두뇌 게임! IQ 테스트 퍼즐 모음!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="omok.html" class="game-card">
+                    <h3><span class="game-icon">⚫</span> 오목 게임</h3>
+                    <p>15x15 바둑판에서 5개를 먼저 만들어 승리! 2인 대전과 AI 대전 모드!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="yut_nori.html" class="game-card">
+                    <h3><span class="game-icon">🎲</span> 윷놀이</h3>
+                    <p>전통 보드 게임 윷놀이! 윷을 던져 말을 이동시키고 먼저 4개를 골인시키면 승리!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="gostop_online.html" class="game-card">
+                    <h3><span class="game-icon">🎴</span> 온라인 고스톱</h3>
+                    <p>친구와 실시간 대전! 쪽/따닥/쓰리고/흔들기 완벽 구현! Firebase 멀티플레이어!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="airhockey_online.html" class="game-card">
+                    <h3><span class="game-icon">🏒</span> 온라인 에어하키</h3>
+                    <p>친구와 실시간 에어하키 대전! 4자리 코드로 간편 입장. 모바일 최적화 완벽 지원!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Supabase Client and Points System -->
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/gamePoints.js"></script>
+
+    <script>
+        // Game data for search
+        // releaseDate: YYYY-MM-DD 형식으로 출시일 기록
+        const gameDatabase = [
+            { name: '갤럭시 워', url: 'galaxy_war.html', icon: '🚀', description: '3D 우주 슈팅! 다가오는 적들을 격파하세요. 5가지 적 타입별 화려한 폭발 효과!', category: 'action', releaseDate: '2024-01-15' },
+            { name: '스타워즈 X-Wing', url: 'xwing.html', icon: '✈️', description: '조준선을 드래그해서 타이파이터를 격추! 자동 조준 레이저로 우주 전투를 즐겨보세요!', category: 'action', releaseDate: '2024-02-20' },
+            { name: '대포 디펜더', url: 'cannon_defender.html', icon: '🎯', description: '5개 레인에서 낙하하는 적들을 대포로 격파! 콤보와 웨이브 시스템으로 높은 점수를 노려보세요!', category: 'action', releaseDate: '2024-03-10' },
+            { name: '라인 드로우 디펜스', url: 'line_draw_defense.html', icon: '🔥', description: '손가락으로 선을 그어 방어벽을 만들고, 불타는 선으로 적을 태워버리세요!', category: 'action', releaseDate: '2024-04-05' },
+            { name: '닌자 슬래시', url: 'ninja_slash.html', icon: '⚔️', description: '날아오는 과일을 베고, 폭탄을 피하세요! 화려한 베기 이펙트와 콤보 시스템!', category: 'action', releaseDate: '2024-05-12' },
+            { name: '펀치 러쉬', url: 'punch_rush.html', icon: '🥊', description: '샌드백을 빠르게 터치해서 연속 펀치! 시원한 타격감과 파티클 효과!', category: 'action', releaseDate: '2024-06-01' },
+            { name: '아처 마스터', url: 'archer_master.html', icon: '🏹', description: '드래그해서 화살을 쏘고 표적을 맞추세요! 바람과 거리를 계산하는 실감나는 물리 엔진!', category: 'action', releaseDate: '2024-06-15' },
+            { name: '엔드리스 러너', url: 'endless_runner.html', icon: '🏃', description: '끝없이 달리며 장애물을 피하고 코인을 수집하세요! 속도가 점점 빨라집니다!', category: 'action', releaseDate: '2024-07-10' },
+            { name: '좀비 서바이벌', url: 'zombie_survival.html', icon: '🧟', description: '좀비들을 피해 최대한 오래 생존하세요! 생존 시간을 기록하세요!', category: 'action', releaseDate: '2024-07-20' },
+            { name: '스페이스 인베이더', url: 'space_invaders.html', icon: '👾', description: '클래식 슈팅 게임! 외계인을 격추하고 지구를 지키세요!', category: 'action', releaseDate: '2024-08-05' },
+            { name: '파이터 배틀', url: 'fighter_battle.html', icon: '⚔️', description: '2인 동시 대전 격투 게임! WASD vs 방향키로 실시간 공격과 방어를 펼치세요!', category: 'action', releaseDate: '2024-09-01' },
+            { name: '베이스볼 슬러거', url: 'baseball_slugger.html', icon: '⚾', description: '타자 시점에서 날아오는 공을 타이밍에 맞춰 타격! 홈런을 노려보세요!', category: 'action', releaseDate: '2024-09-15' },
+
+            { name: '테트리스 매니아', url: 'tetris.html', icon: '🎮', description: '클래식 테트리스에 화려한 파티클 효과 추가! 라인 클리어할 때마다 폭발하는 파티클로 스트레스 해소!', category: 'puzzle', releaseDate: '2024-02-10' },
+            { name: '2048 익스플로전', url: '2048_explosion.html', icon: '🔢', description: '숫자를 합쳐 2048을 만드세요! 합칠 때마다 화려한 폭발 효과!', category: 'puzzle', releaseDate: '2024-03-05' },
+            { name: '매치 3 매니아', url: 'match3_mania.html', icon: '💎', description: '같은 색 보석을 3개 이상 맞추세요! 캐스케이드 효과와 특수 보석으로 높은 점수!', category: 'puzzle', releaseDate: '2024-04-12' },
+            { name: '아이스 브레이커', url: 'ice_breaker.html', icon: '🧊', description: '같은 색 블록을 터치해서 깨뜨리세요! 연쇄 효과로 큰 점수를 노려보세요!', category: 'puzzle', releaseDate: '2024-05-20' },
+            { name: '컬러 플로우', url: 'color_flow.html', icon: '🎨', description: '파이프를 연결해서 같은 색끼리 이어주세요! 복잡한 퍼즐을 풀어보세요!', category: 'puzzle', releaseDate: '2024-06-08' },
+            { name: '미로 탈출', url: 'maze_escape.html', icon: '🧩', description: '미로를 탐험하고 출구를 찾으세요! 화살표 키로 이동!', category: 'puzzle', releaseDate: '2024-07-01' },
+            { name: '메모리 매치', url: 'memory_match.html', icon: '🧠', description: '카드를 뒤집어 같은 그림 찾기! 기억력 테스트!', category: 'puzzle', releaseDate: '2024-08-10' },
+            { name: '단어 맞추기', url: 'word_guess.html', icon: '🔤', description: '숨겨진 단어를 맞추세요! 행맨 스타일 게임!', category: 'puzzle', releaseDate: '2024-09-05' },
+
+            { name: '탭 매니아', url: 'tab_mania.html', icon: '💥', description: '30초 안에 나타나는 버튼들을 빠르게 탭! 콤보와 특수 버튼으로 높은 점수를 노려보세요!', category: 'arcade', releaseDate: '2024-01-20' },
+            { name: '탭탭탭', url: 'tabtabtab.html', icon: '👆', description: '화면을 빠르게 탭해서 점수를 얻으세요!', category: 'arcade', releaseDate: '2024-02-15' },
+            { name: '타겟 슈터', url: 'target_shooter.html', icon: '🎯', description: '나타나는 타겟을 빠르게 터치! 정확도와 속도를 겨루는 반사신경 게임!', category: 'arcade', releaseDate: '2024-03-20' },
+            { name: '스핀 마스터', url: 'spin_master.html', icon: '🌀', description: '회전하는 원판에 핀을 꽂으세요! 타이밍을 맞춰 완벽한 샷을 노려보세요!', category: 'arcade', releaseDate: '2024-04-18' },
+            { name: '후프 매니아', url: 'hoop_mania.html', icon: '🏀', description: '농구공을 스와이프해서 골대에 넣으세요! 연속 성공으로 점수 배율 증가!', category: 'arcade', releaseDate: '2024-05-25' },
+            { name: '라이트닝 리액션', url: 'lightning_reaction.html', icon: '⚡', description: '화면이 변하는 순간 터치! 반응속도를 극한까지 테스트하는 게임!', category: 'arcade', releaseDate: '2024-06-20' },
+            { name: '두더지 잡기', url: 'whack_mole.html', icon: '🔨', description: '나타나는 두더지를 빠르게 터치! 클래식 아케이드 게임!', category: 'arcade', releaseDate: '2024-07-15' },
+            { name: '브레이크아웃', url: 'breakout.html', icon: '🧱', description: '공을 튕겨 벽돌을 깨트리세요! 클래식 벽돌깨기!', category: 'arcade', releaseDate: '2024-08-01' },
+            { name: '퐁', url: 'pong.html', icon: '🏓', description: 'AI와 탁구 대결! 역사적인 게임의 재현!', category: 'arcade', releaseDate: '2024-08-20' },
+            { name: '풍선 터뜨리기', url: 'balloon_pop.html', icon: '🎈', description: '올라가는 풍선을 터치해서 터뜨리세요! 시간 안에 최대한 많이!', category: 'arcade', releaseDate: '2024-09-10' },
+
+            { name: '피아노 타일즈', url: 'piano_tiles.html', icon: '🎹', description: '떨어지는 타일을 리듬에 맞춰 터치! 완벽한 타이밍으로 곡을 완성하세요!', category: 'rhythm', releaseDate: '2024-03-15' },
+            { name: '드럼 비트', url: 'drum_beat.html', icon: '🥁', description: '3개의 퍼커션 패드를 터치해서 리듬을 만드세요! 화려한 비트 효과!', category: 'rhythm', releaseDate: '2024-04-22' },
+            { name: '기타 히어로', url: 'guitar_hero.html', icon: '🎸', description: '화면에 나타나는 노트를 정확하게 터치! 록스타가 되어보세요!', category: 'rhythm', releaseDate: '2024-06-05' },
+            { name: '댄스 레볼루션', url: 'dance_revolution.html', icon: '💃', description: '화살표 방향으로 스와이프! 리듬에 맞춰 댄스 무브를 완성하세요!', category: 'rhythm', releaseDate: '2024-07-18' },
+            { name: '비트 드롭', url: 'beat_drop.html', icon: '🎤', description: '떨어지는 비트를 맞춰 터치! EDM 음악과 함께하는 화려한 리듬 게임!', category: 'rhythm', releaseDate: '2024-08-25' },
+
+            { name: '스네이크 클래식', url: 'snake_classic.html', icon: '🐍', description: '먹이를 먹고 길어지는 뱀을 조종하세요! 클래식 게임의 현대적 재해석!', category: 'casual', releaseDate: '2024-01-10' },
+            { name: '플래피 드래곤', url: 'flappy_dragon.html', icon: '🐉', description: '장애물을 피해 날아가세요! 간단하지만 중독성 강한 게임!', category: 'casual', releaseDate: '2024-02-28' },
+            { name: '버블 팝', url: 'bubble_pop.html', icon: '🎈', description: '터치해서 풍선을 터뜨리세요! 시원한 터지는 소리와 함께 스트레스 해소!', category: 'casual', releaseDate: '2024-04-10' },
+            { name: '럭키 다이스', url: 'lucky_dice.html', icon: '🎲', description: '주사위를 굴려 행운을 시험하세요! 다양한 미니게임으로 보상 획득!', category: 'casual', releaseDate: '2024-05-05' },
+            { name: '캔디 크러쉬', url: 'candy_crush.html', icon: '🍬', description: '달콤한 사탕을 매치하세요! 3개 이상 매치로 연쇄 폭발!', category: 'casual', releaseDate: '2024-06-12' },
+            { name: '박스 오픈', url: 'box_open.html', icon: '🎁', description: '상자를 열어 보상을 획득하세요! 레전더리를 찾아라!', category: 'casual', releaseDate: '2024-07-08' },
+            { name: '점프 마스터', url: 'jump_master.html', icon: '🦘', description: '플랫폼을 점프하며 최대한 멀리 가세요!', category: 'casual', releaseDate: '2024-08-15' },
+            { name: '스피드 레이싱', url: 'speed_racing.html', icon: '🏎️', description: '도로에서 장애물을 피하며 최대한 멀리 달리세요!', category: 'casual', releaseDate: '2024-09-02' },
+            { name: '두들 점프', url: 'doodle_jump.html', icon: '🦘', description: '플랫폼을 점프하며 최대한 높이 올라가세요!', category: 'casual', releaseDate: '2024-09-18' },
+            { name: '클리커 히어로', url: 'clicker_hero.html', icon: '🎯', description: '클릭해서 점수를 모으고 업그레이드하세요!', category: 'casual', releaseDate: '2024-09-25' },
+            { name: '숫자 퀴즈', url: 'number_quiz.html', icon: '🧮', description: '수학 문제를 빠르게 풀어보세요! 10문제 도전!', category: 'casual', releaseDate: '2024-10-01' },
+
+            { name: '타워 디펜스', url: 'tower_defense.html', icon: '🗼', description: '타워를 배치하고 적의 공격을 막으세요! 업그레이드와 전략이 핵심!', category: 'strategy', releaseDate: '2024-02-05' },
+            { name: '체스 마스터', url: 'chess_master.html', icon: '♟️', description: '클래식 체스 게임! 전략적 사고로 상대 킹을 잡으세요!', category: 'strategy', releaseDate: '2024-03-18' },
+            { name: '카드 배틀', url: 'card_battle.html', icon: '🃏', description: '카드를 선택해 전투하세요! 공격, 방어, 힐 카드로 전략적 플레이!', category: 'strategy', releaseDate: '2024-04-25' },
+            { name: '킹덤 빌더', url: 'kingdom_builder.html', icon: '🏰', description: '자원을 모아 왕국을 건설하세요! 건물을 지어 왕국을 발전시키세요!', category: 'strategy', releaseDate: '2024-05-30' },
+            { name: '배틀 택틱스', url: 'battle_tactics.html', icon: '⚔️', description: '턴제 전투에서 전략을 펼치세요! 4가지 유닛으로 전투!', category: 'strategy', releaseDate: '2024-06-28' },
+            { name: '브레인 퍼즐', url: 'brain_puzzle.html', icon: '🧩', description: '논리와 전략이 필요한 두뇌 게임! IQ 테스트 퍼즐 모음!', category: 'strategy', releaseDate: '2024-07-22' },
+            { name: '오목 게임', url: 'omok.html', icon: '⚫', description: '15x15 바둑판에서 5개를 먼저 만들어 승리! 2인 대전과 AI 대전 모드!', category: 'strategy', releaseDate: '2024-08-12' },
+            { name: '윷놀이', url: 'yut_nori.html', icon: '🎲', description: '전통 보드 게임 윷놀이! 윷을 던져 말을 이동시키고 먼저 4개를 골인시키면 승리!', category: 'strategy', releaseDate: '2024-09-08' },
+            { name: '온라인 고스톱', url: 'gostop_online.html', icon: '🎴', description: '친구와 실시간 대전! 쪽/따닥/쓰리고/흔들기 완벽 구현! Firebase 멀티플레이어!', category: 'strategy', releaseDate: '2024-09-20' },
+            { name: '온라인 에어하키', url: 'airhockey_online.html', icon: '🏒', description: '친구와 실시간 에어하키 대전! 4자리 코드로 간편 입장. 모바일 최적화 완벽 지원!', category: 'strategy', releaseDate: '2024-09-28' },
+            { name: '3D 파쿠르 러너', url: 'parkour_3d.html', icon: '🏃', description: '1인칭 시점에서 플랫폼을 뛰어넘으세요! 3D 공간을 달리며 점프하는 파쿠르 게임!', category: 'action', releaseDate: '2024-10-05' }
+        ];
+
+        // === Game Views Tracking System ===
+        // localStorage를 사용하여 각 게임의 조회수와 최근 플레이 기록을 관리
+
+        // 게임 조회수 가져오기
+        function getGameViews(gameUrl) {
+            const views = localStorage.getItem(`game_views_${gameUrl}`);
+            return views ? parseInt(views) : 0;
+        }
+
+        // 게임 조회수 증가
+        function incrementGameViews(gameUrl) {
+            const currentViews = getGameViews(gameUrl);
+            localStorage.setItem(`game_views_${gameUrl}`, currentViews + 1);
+        }
+
+        // 최근 플레이한 게임 기록 (최대 5개)
+        function addToRecentGames(gameUrl) {
+            let recent = JSON.parse(localStorage.getItem('recent_games') || '[]');
+
+            // 이미 있으면 제거 (맨 앞으로 이동시키기 위해)
+            recent = recent.filter(url => url !== gameUrl);
+
+            // 맨 앞에 추가
+            recent.unshift(gameUrl);
+
+            // 최대 5개까지만 저장
+            recent = recent.slice(0, 5);
+
+            localStorage.setItem('recent_games', JSON.stringify(recent));
+        }
+
+        // 최근 플레이한 게임 목록 가져오기
+        function getRecentGames() {
+            const recent = JSON.parse(localStorage.getItem('recent_games') || '[]');
+            return recent.map(url => gameDatabase.find(game => game.url === url)).filter(Boolean);
+        }
+
+        // 인기 게임 목록 가져오기 (조회수 기준 상위 5개)
+        function getPopularGames() {
+            const gamesWithViews = gameDatabase.map(game => ({
+                ...game,
+                views: getGameViews(game.url)
+            }));
+
+            return gamesWithViews
+                .sort((a, b) => b.views - a.views)
+                .slice(0, 5);
+        }
+
+        // 신규 게임 목록 가져오기 (출시일 기준 최근 30일 이내 게임 중 최대 5개)
+        function getNewGames() {
+            const now = new Date();
+            const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            return gameDatabase
+                .filter(game => {
+                    const releaseDate = new Date(game.releaseDate);
+                    return releaseDate >= thirtyDaysAgo;
+                })
+                .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
+                .slice(0, 5);
+        }
+
+        // 게임이 신규인지 확인 (30일 이내)
+        function isNewGame(releaseDate) {
+            const now = new Date();
+            const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            const release = new Date(releaseDate);
+            return release >= thirtyDaysAgo;
+        }
+
+        // Search functionality
+        function openSearch() {
+            document.getElementById('searchOverlay').classList.add('active');
+            document.getElementById('searchInput').focus();
+            document.body.style.overflow = 'hidden';
+
+            // 검색창 열 때 기본 뷰 표시
+            showDefaultSearchView();
+        }
+
+        function closeSearch() {
+            document.getElementById('searchOverlay').classList.remove('active');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            document.getElementById('searchResults').classList.remove('active');
+            document.getElementById('searchDefault').style.display = 'block';
+            document.body.style.overflow = 'auto';
+        }
+
+        function showDefaultSearchView() {
+            const recentGames = getRecentGames();
+            const popularGames = getPopularGames();
+            const newGames = getNewGames();
+
+            // 최근 플레이한 게임
+            const recentContainer = document.getElementById('recentGames');
+            if (recentGames.length === 0) {
+                recentContainer.innerHTML = '<div style="color: rgba(255,255,255,0.6); padding: 16px; font-size: 14px;">아직 플레이한 게임이 없습니다</div>';
+            } else {
+                recentContainer.innerHTML = recentGames.map(game => `
+                    <a href="${game.url}" class="search-result-item" onclick="trackGameClick('${game.url}')">
+                        <div class="search-result-icon">${game.icon}</div>
+                        <div class="search-result-info">
+                            <h4>${game.name}</h4>
+                            <p>${game.description}</p>
+                        </div>
+                    </a>
+                `).join('');
+            }
+
+            // 인기 게임
+            const popularContainer = document.getElementById('popularGames');
+            popularContainer.innerHTML = popularGames.map(game => `
+                <a href="${game.url}" class="search-result-item" onclick="trackGameClick('${game.url}')">
+                    <div class="search-result-icon">${game.icon}</div>
+                    <div class="search-result-info">
+                        <h4>${game.name}</h4>
+                        <p>${game.description} <span style="color: #ffa000; font-weight: 500;">👁️ ${game.views}</span></p>
+                    </div>
+                </a>
+            `).join('');
+
+            // 신규 게임
+            const newContainer = document.getElementById('newGames');
+            newContainer.innerHTML = newGames.map(game => `
+                <a href="${game.url}" class="search-result-item" onclick="trackGameClick('${game.url}')">
+                    <div class="search-result-icon">${game.icon}</div>
+                    <div class="search-result-info">
+                        <h4>${game.name}</h4>
+                        <p>${game.description}</p>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const resultsContainer = document.getElementById('searchResults');
+            const defaultContainer = document.getElementById('searchDefault');
+
+            if (query === '') {
+                resultsContainer.classList.remove('active');
+                resultsContainer.innerHTML = '';
+                defaultContainer.style.display = 'block';
+                return;
+            }
+
+            // 검색 결과 표시, 기본 뷰 숨김
+            defaultContainer.style.display = 'none';
+            resultsContainer.classList.add('active');
+
+            const filteredGames = gameDatabase.filter(game =>
+                game.name.toLowerCase().includes(query) ||
+                game.description.toLowerCase().includes(query)
+            );
+
+            if (filteredGames.length === 0) {
+                resultsContainer.innerHTML = '<div class="no-results">검색 결과가 없습니다 😅</div>';
+                return;
+            }
+
+            const resultsHTML = filteredGames.map(game => `
+                <a href="${game.url}" class="search-result-item" onclick="trackGameClick('${game.url}')">
+                    <div class="search-result-icon">${game.icon}</div>
+                    <div class="search-result-info">
+                        <h4>${game.name}</h4>
+                        <p>${game.description}</p>
+                    </div>
+                </a>
+            `).join('');
+
+            resultsContainer.innerHTML = resultsHTML;
+        }
+
+        // 게임 클릭 추적 함수
+        function trackGameClick(gameUrl) {
+            incrementGameViews(gameUrl);
+            addToRecentGames(gameUrl);
+        }
+
+        // 통계 모달 열기
+        function openStats() {
+            const modal = document.getElementById('statsModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // 통계 테이블 생성
+            renderStatsTable();
+        }
+
+        // 통계 모달 닫기
+        function closeStats() {
+            const modal = document.getElementById('statsModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // 통계 테이블 렌더링
+        function renderStatsTable() {
+            const tbody = document.getElementById('statsTableBody');
+
+            // 모든 게임에 조회수 추가하고 정렬
+            const gamesWithViews = gameDatabase.map(game => ({
+                ...game,
+                views: getGameViews(game.url)
+            })).sort((a, b) => b.views - a.views);
+
+            tbody.innerHTML = gamesWithViews.map((game, index) => {
+                const rank = index + 1;
+                let rankBadge = `<div class="rank-badge">${rank}</div>`;
+
+                if (rank === 1) {
+                    rankBadge = `<div class="rank-badge rank-1">🥇</div>`;
+                } else if (rank === 2) {
+                    rankBadge = `<div class="rank-badge rank-2">🥈</div>`;
+                } else if (rank === 3) {
+                    rankBadge = `<div class="rank-badge rank-3">🥉</div>`;
+                }
+
+                return `
+                    <tr onclick="window.location.href='${game.url}'; trackGameClick('${game.url}');">
+                        <td>${rankBadge}</td>
+                        <td>
+                            <div class="game-name-cell">
+                                <span class="game-name-icon">${game.icon}</span>
+                                <span>${game.name}</span>
+                            </div>
+                        </td>
+                        <td>${game.views.toLocaleString()}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Close search/stats on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSearch();
+                closeStats();
+            }
+        });
+
+        // 모든 게임 카드 클릭 시 조회수 추적
+        document.addEventListener('DOMContentLoaded', () => {
+            // 페이지 로드 시 모든 게임 카드에 클릭 이벤트 추가
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    const url = this.getAttribute('href');
+                    if (url) {
+                        trackGameClick(url);
+                    }
+                });
+            });
+        });
+
+        // Tab switching
+        function showCategory(category) {
+            // Hide all sections
+            document.querySelectorAll('.category-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(category).classList.add('active');
+
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Populate "All Games" section
+        window.addEventListener('DOMContentLoaded', () => {
+            const allGamesContainer = document.getElementById('allGames');
+            const categories = ['action', 'puzzle', 'arcade', 'rhythm', 'casual', 'strategy'];
+
+            categories.forEach(category => {
+                const section = document.getElementById(category);
+                const games = section.querySelector('.game-grid').innerHTML;
+                allGamesContainer.innerHTML += games;
+            });
+        });
+
+        // Prevent navigation for coming soon games
+        document.addEventListener('click', (e) => {
+            const card = e.target.closest('.game-card');
+            if (card && card.style.opacity === '0.6') {
+                e.preventDefault();
+                alert('이 게임은 곧 출시될 예정입니다! 🎮');
+            }
+        });
+
+        // Points system integration
+        function updatePointsDisplay() {
+            const pointsValue = window.getTotalPoints();
+            const pointsElement = document.getElementById('pointsValue');
+            if (pointsElement) {
+                // Add comma formatting for large numbers
+                pointsElement.textContent = pointsValue.toLocaleString();
+            }
+        }
+
+        // Update points display on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updatePointsDisplay();
+        });
+
+        // Listen for points earned events from games
+        window.addEventListener('pointsEarned', (event) => {
+            updatePointsDisplay();
+
+            // Show a quick notification in header
+            const pointsDisplay = document.getElementById('pointsDisplay');
+            pointsDisplay.style.transform = 'scale(1.1)';
+            pointsDisplay.style.transition = 'transform 0.3s ease';
+
+            setTimeout(() => {
+                pointsDisplay.style.transform = 'scale(1)';
+            }, 300);
+        });
+
+        // ============================================
+        // 인증 관련 UI 함수
+        // ============================================
+
+        // 로그인 모달 열기
+        function openLoginModal() {
+            document.getElementById('authModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            switchAuthTab('login'); // 기본 로그인 탭
+        }
+
+        // 로그인 모달 닫기
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            // 에러 메시지 초기화
+            document.querySelectorAll('.error-message, .success-message').forEach(el => {
+                el.classList.remove('active');
+                el.textContent = '';
+            });
+        }
+
+        // 인증 탭 전환
+        function switchAuthTab(tab) {
+            // 탭 활성화
+            document.querySelectorAll('.auth-tab').forEach(el => el.classList.remove('active'));
+            event?.target?.classList.add('active');
+
+            // 폼 표시
+            document.querySelectorAll('.auth-form').forEach(el => el.classList.remove('active'));
+            document.getElementById(`${tab}Form`)?.classList.add('active');
+
+            // 에러 메시지 초기화
+            document.querySelectorAll('.error-message, .success-message').forEach(el => {
+                el.classList.remove('active');
+                el.textContent = '';
+            });
+        }
+
+        // 로그인 처리
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            const errorDiv = document.getElementById('loginError');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '로그인 중...';
+            errorDiv.classList.remove('active');
+
+            const result = await signIn(email, password);
+
+            if (result.success) {
+                closeAuthModal();
+                updateUIAfterLogin();
+                // 포인트 로드
+                updatePointsDisplay();
+            } else {
+                errorDiv.textContent = result.error || '로그인에 실패했습니다.';
+                errorDiv.classList.add('active');
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = '로그인';
+        }
+
+        // 회원가입 처리
+        async function handleSignup(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+            const submitBtn = document.getElementById('signupSubmitBtn');
+            const errorDiv = document.getElementById('signupError');
+            const successDiv = document.getElementById('signupSuccess');
+
+            errorDiv.classList.remove('active');
+            successDiv.classList.remove('active');
+
+            // 비밀번호 확인
+            if (password !== passwordConfirm) {
+                errorDiv.textContent = '비밀번호가 일치하지 않습니다.';
+                errorDiv.classList.add('active');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '가입 중...';
+
+            const result = await signUp(email, password);
+
+            if (result.success) {
+                successDiv.textContent = '회원가입 완료! 바로 로그인할 수 있습니다.';
+                successDiv.classList.add('active');
+
+                // 2초 후 로그인 탭으로 전환
+                setTimeout(() => {
+                    switchAuthTab('login');
+                    document.getElementById('loginEmail').value = email;
+                }, 2000);
+            } else {
+                errorDiv.textContent = result.error || '회원가입에 실패했습니다.';
+                errorDiv.classList.add('active');
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = '회원가입';
+        }
+
+        // 비밀번호 재설정 처리
+        async function handlePasswordReset(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('resetEmail').value;
+            const submitBtn = document.getElementById('resetSubmitBtn');
+            const errorDiv = document.getElementById('resetError');
+            const successDiv = document.getElementById('resetSuccess');
+
+            errorDiv.classList.remove('active');
+            successDiv.classList.remove('active');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '발송 중...';
+
+            const result = await resetPassword(email);
+
+            if (result.success) {
+                successDiv.textContent = '재설정 이메일이 발송되었습니다. 이메일을 확인해주세요.';
+                successDiv.classList.add('active');
+            } else {
+                errorDiv.textContent = result.error || '이메일 발송에 실패했습니다.';
+                errorDiv.classList.add('active');
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = '재설정 이메일 발송';
+        }
+
+        // 로그아웃 처리
+        async function handleLogout() {
+            if (confirm('로그아웃하시겠습니까?')) {
+                await signOut();
+                updateUIAfterLogout();
+            }
+        }
+
+        // 사용자 드롭다운 토글
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        // 내 정보 페이지 열기
+        function openMyPage() {
+            if (!currentProfile) {
+                alert('프로필 정보를 불러올 수 없습니다.');
+                return;
+            }
+
+            document.getElementById('myPageEmail').textContent = currentProfile.email;
+            document.getElementById('myPagePoints').textContent = currentProfile.total_points.toLocaleString();
+
+            const joinDate = new Date(currentProfile.created_at);
+            document.getElementById('myPageJoinDate').textContent = joinDate.toLocaleDateString('ko-KR');
+
+            document.getElementById('myPageModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // 드롭다운 닫기
+            document.getElementById('userDropdown').classList.remove('active');
+        }
+
+        // 내 정보 페이지 닫기
+        function closeMyPage() {
+            document.getElementById('myPageModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // 회원 탈퇴 처리
+        async function handleDeleteAccount() {
+            if (confirm('정말로 회원 탈퇴하시겠습니까?\n모든 데이터가 삭제되며 복구할 수 없습니다.')) {
+                if (confirm('한번 더 확인합니다. 정말 탈퇴하시겠습니까?')) {
+                    const result = await deleteAccount();
+
+                    if (result.success) {
+                        alert('회원 탈퇴가 완료되었습니다.');
+                        closeMyPage();
+                        updateUIAfterLogout();
+                    } else {
+                        alert('회원 탈퇴에 실패했습니다: ' + result.error);
+                    }
+                }
+            }
+        }
+
+        // 로그인 후 UI 업데이트
+        function updateUIAfterLogin() {
+            document.getElementById('loginBtn').style.display = 'none';
+            document.getElementById('userMenu').style.display = 'block';
+
+            if (currentProfile) {
+                // 이메일 앞부분만 표시 (예: example@email.com → example...)
+                const emailParts = currentProfile.email.split('@');
+                const displayEmail = emailParts[0].length > 8
+                    ? emailParts[0].substring(0, 8) + '...'
+                    : emailParts[0];
+
+                document.getElementById('userEmail').textContent = displayEmail;
+            }
+        }
+
+        // 로그아웃 후 UI 업데이트
+        function updateUIAfterLogout() {
+            document.getElementById('loginBtn').style.display = 'block';
+            document.getElementById('userMenu').style.display = 'none';
+            document.getElementById('userDropdown').classList.remove('active');
+
+            // 포인트 표시도 업데이트 (비로그인 사용자 포인트)
+            updatePointsDisplay();
+        }
+
+        // 포인트 표시 업데이트 (Supabase 연동)
+        function updatePointsDisplay() {
+            const pointsValue = getCurrentPoints();
+            const pointsElement = document.getElementById('pointsValue');
+            if (pointsElement) {
+                pointsElement.textContent = pointsValue.toLocaleString();
+            }
+        }
+
+        // 페이지 로드 시 세션 확인 및 UI 초기화
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Supabase 세션 확인
+            await getCurrentSession();
+
+            // UI 업데이트
+            if (currentUser) {
+                updateUIAfterLogin();
+            } else {
+                updateUIAfterLogout();
+            }
+
+            // 기존 게임 카드 클릭 이벤트
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    const url = this.getAttribute('href');
+                    if (url) {
+                        trackGameClick(url);
+                    }
+                });
+            });
+        });
+
+        // Supabase 인증 상태 변경 리스너
+        window.addEventListener('userSignedIn', (event) => {
+            updateUIAfterLogin();
+            updatePointsDisplay();
+        });
+
+        window.addEventListener('userSignedOut', () => {
+            updateUIAfterLogout();
+        });
+
+        // 드롭다운 외부 클릭 시 닫기
+        document.addEventListener('click', (e) => {
+            const userMenu = document.getElementById('userMenu');
+            const dropdown = document.getElementById('userDropdown');
+
+            if (userMenu && !userMenu.contains(e.target)) {
+                dropdown?.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

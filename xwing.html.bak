@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>스타워즈 X-Wing - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', 'Impact', sans-serif;
+            background: #000000;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            width: 500px;
+            border: 4px solid #ffcc00;
+            box-shadow: 0 0 40px rgba(255, 204, 0, 0.7);
+        }
+
+        h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            color: #ffcc00;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.8);
+            font-family: 'Impact', sans-serif;
+            letter-spacing: 0.1em;
+        }
+
+        .subtitle {
+            font-size: 1.5em;
+            color: #4488ff;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .game-icon {
+            font-size: 5em;
+            margin-bottom: 15px;
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.95em;
+            border: 2px solid #4488ff;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .tip-box {
+            background: rgba(150, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #ff4444;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ffcc00, #ff8800);
+            color: #000;
+            border: 4px solid #ffaa00;
+            padding: 15px 40px;
+            font-size: 1.8em;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            margin: 15px;
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.8);
+            transition: transform 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 204, 0, 0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            z-index: 100;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 204, 0, 0.5);
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            position: relative;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            font-size: 1em;
+            border-bottom: 2px solid rgba(255, 204, 0, 0.5);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.7em;
+            opacity: 0.8;
+            color: #ffcc00;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        .locked-indicator {
+            background: linear-gradient(45deg, #ff0000, #ff4444);
+            padding: 8px 20px;
+            border-radius: 20px;
+            animation: pulse 0.5s infinite;
+            border: 2px solid #ff8888;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        canvas {
+            flex: 1;
+            width: 100%;
+            touch-action: none;
+            background: #000000;
+            cursor: crosshair;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 204, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 204, 0, 0.6);
+        }
+
+        .score-display {
+            font-size: 3.5em;
+            margin: 20px 0;
+            color: #ffcc00;
+            text-shadow: 0 0 20px rgba(255, 204, 0, 0.8);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(100, 50, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 204, 0, 0.4);
+        }
+
+        .game-message {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-top: 2px solid rgba(0, 255, 0, 0.5);
+        }
+
+        .msg-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #00ff00;
+            margin-bottom: 5px;
+        }
+
+        .msg-detail {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← 홈으로</a>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">✈️⚔️</div>
+            <h1>X-WING</h1>
+            <div class="subtitle">타이파이터 헌터</div>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 기록</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffcc00;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🚀 출격</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #ffcc00; margin-bottom: 10px; font-size: 1.1em;">🎮 게임 방법</p>
+                <p style="color: #00ff00; font-weight: bold; font-size: 1.1em;">🖱️ 마우스/손가락으로 조준!</p>
+                <p>⊕ 조준선을 드래그해서 움직입니다</p>
+                <p>🎯 타이파이터에 조준선을 맞추면...</p>
+                <p style="color: #00ff00; font-weight: bold;">💥 자동으로 레이저 발사!</p>
+                <p>👾 TIE Fighter HP: 3</p>
+                <p style="color: #ff4444;">⚠️ 적이 화면을 벗어나면 체력 -10</p>
+
+                <div class="tip-box">
+                    <p style="color: #ffcc00; font-weight: bold;">💡 팁:</p>
+                    <p style="font-size: 0.9em;">• 적이 큽니다! 조준이 쉬워요!</p>
+                    <p style="font-size: 0.9em;">• 빨간 테두리 = 타겟 락온!</p>
+                    <p style="font-size: 0.9em; color: #00ff00;">• 드래그해서 빠르게 조준하세요!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">💥</div>
+            <h1 style="font-size: 2.5em; color: #ff4444;">격추됨!</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div id="newRecord" class="hidden" style="color: #ffcc00; font-size: 1.3em; margin: 10px 0; font-weight: bold;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.9em;">격추</div>
+                    <div style="font-size: 2em; font-weight: bold; color: #ffcc00;" id="killCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.9em;">평균 점수</div>
+                    <div style="font-size: 2em; font-weight: bold; color: #4488ff;" id="avgScore">0</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 기록</div>
+                <div style="font-size: 1.8em; font-weight: bold; color: #ffcc00;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 재출격</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Shields</div>
+                <div class="stat-value" id="shields">100</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Kills</div>
+                <div class="stat-value" id="kills">0</div>
+            </div>
+            <div id="lockedDisplay" class="stat-item locked-indicator hidden">
+                <div class="stat-value">🎯 LOCKED</div>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="game-message">
+            <div class="msg-title" id="msgTitle">SCANNERS CLEAR</div>
+            <div class="msg-detail" id="msgDetail">마우스/손가락을 움직여 조준선을 조종하세요!</div>
+        </div>
+    </div>
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let shields = 100;
+        let kills = 0;
+        let highScore = localStorage.getItem('xwing_highScore') || 0;
+
+        // Crosshair position
+        let crosshairX = 400;
+        let crosshairY = 300;
+        const CROSSHAIR_SIZE = 80;
+
+        // Game objects
+        let stars = [];
+        let enemies = [];
+        let lasers = [];
+        let explosions = [];
+        let targetLocked = null;
+        let time = 0;
+
+        // Set canvas size
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const stats = container.querySelector('.stats');
+            const msg = container.querySelector('.game-message');
+            canvas.width = Math.min(window.innerWidth, 800);
+            canvas.height = window.innerHeight - stats.offsetHeight - msg.offsetHeight;
+
+            crosshairX = canvas.width / 2;
+            crosshairY = canvas.height / 2;
+        }
+
+        // Initialize
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Show high score
+            if (highScore > 0) {
+                document.getElementById('highScore').classList.remove('hidden');
+                document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            // Canvas movement
+            canvas.addEventListener('mousemove', handleMove);
+            canvas.addEventListener('touchmove', handleMove);
+
+            gameLoop();
+        }
+
+        function handleMove(e) {
+            if (gameState !== 'playing') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX || e.touches?.[0]?.clientX;
+            const clientY = e.clientY || e.touches?.[0]?.clientY;
+
+            if (!clientX || !clientY) return;
+
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            crosshairX = x * scaleX;
+            crosshairY = y * scaleY;
+        }
+
+        // Background music
+        let bgMusic = null;
+
+        function initBackgroundMusic() {
+            if (!bgMusic) {
+                bgMusic = new Audio('music/Across the Stars.mp3');
+                bgMusic.loop = true;
+                bgMusic.volume = 0.3;
+            }
+        }
+
+        function playBackgroundMusic() {
+            initBackgroundMusic();
+            bgMusic.play().catch(e => console.log('Music play failed:', e));
+        }
+
+        function stopBackgroundMusic() {
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+        }
+
+        window.startGame = function() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            gameState = 'playing';
+            score = 0;
+            shields = 100;
+            kills = 0;
+            enemies = [];
+            lasers = [];
+            explosions = [];
+            targetLocked = null;
+            time = 0;
+            stars = [];
+
+            // Start background music
+            playBackgroundMusic();
+
+            // Create stars
+            for (let i = 0; i < 150; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: Math.random() * 2 + 1,
+                    size: Math.random() * 2 + 1,
+                    brightness: 100 + Math.floor(Math.random() * 156)
+                });
+            }
+
+            crosshairX = canvas.width / 2;
+            crosshairY = canvas.height / 2;
+
+            updateUI();
+            spawnEnemies();
+        };
+
+        // Sound effects - short and quiet (40% of BGM volume)
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(soundType) {
+            try {
+                initAudio();
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'laser':
+                        oscillator.frequency.value = 800;
+                        gainNode.gain.value = 0.12; // 40% of 0.3
+                        oscillator.type = 'sine';
+                        break;
+
+                    case 'explosion':
+                        oscillator.frequency.value = 100;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
+
+                    case 'hit':
+                        oscillator.frequency.value = 400;
+                        gainNode.gain.value = 0.10;
+                        oscillator.type = 'sine';
+                        break;
+
+                    case 'shield':
+                        oscillator.frequency.value = 200;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        let lastSpawn = 0;
+        function spawnEnemies() {
+            if (gameState !== 'playing') return;
+
+            const now = Date.now();
+            if (now - lastSpawn > 2000) {
+                const size = 60 + Math.random() * 40;
+                enemies.push({
+                    id: Date.now(),
+                    x: Math.random() * (canvas.width - size),
+                    y: -size,
+                    size,
+                    speed: 1 + Math.random() * 2,
+                    health: 3,
+                    maxHealth: 3,
+                    vx: (Math.random() - 0.5) * 3
+                });
+                lastSpawn = now;
+            }
+
+            requestAnimationFrame(spawnEnemies);
+        }
+
+        function updateGame() {
+            time += 0.02;
+
+            // Update stars
+            stars.forEach(star => {
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+
+            // Update enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                enemy.y += enemy.speed;
+                enemy.x += enemy.vx;
+
+                // Bounce off walls
+                if (enemy.x < 0 || enemy.x + enemy.size > canvas.width) {
+                    enemy.vx *= -1;
+                }
+
+                // Check if escaped
+                if (enemy.y > canvas.height + enemy.size) {
+                    enemies.splice(i, 1);
+                    shields -= 10;
+                    playSound('shield');
+                    updateUI();
+
+                    if (shields <= 0) {
+                        endGame();
+                    }
+                }
+            }
+
+            // Check target lock
+            targetLocked = null;
+            enemies.forEach(enemy => {
+                const dx = enemy.x + enemy.size / 2 - crosshairX;
+                const dy = enemy.y + enemy.size / 2 - crosshairY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < CROSSHAIR_SIZE && !targetLocked) {
+                    targetLocked = enemy;
+                }
+            });
+
+            // Auto fire at locked target - dual lasers from bottom corners
+            if (targetLocked && Math.random() < 0.1) {
+                const leftWingX = canvas.width * 0.2;  // Left 20%
+                const rightWingX = canvas.width * 0.8; // Right 80%
+                const wingY = canvas.height - 50;      // Bottom
+
+                // Left laser
+                lasers.push({
+                    id: Date.now() + Math.random(),
+                    x: leftWingX,
+                    y: wingY,
+                    targetX: crosshairX,
+                    targetY: crosshairY,
+                    speed: 15,
+                    side: 'left'
+                });
+
+                // Right laser
+                lasers.push({
+                    id: Date.now() + Math.random() + 0.1,
+                    x: rightWingX,
+                    y: wingY,
+                    targetX: crosshairX,
+                    targetY: crosshairY,
+                    speed: 15,
+                    side: 'right'
+                });
+
+                playSound('laser');
+            }
+
+            // Update lasers
+            for (let i = lasers.length - 1; i >= 0; i--) {
+                const laser = lasers[i];
+
+                // Store initial angle if not set
+                if (!laser.angle) {
+                    const dx = laser.targetX - laser.x;
+                    const dy = laser.targetY - laser.y;
+                    laser.angle = Math.atan2(dy, dx);
+                }
+
+                // Move in straight line
+                laser.x += Math.cos(laser.angle) * laser.speed;
+                laser.y += Math.sin(laser.angle) * laser.speed;
+
+                // Check collision
+                let hit = false;
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    const dist = Math.sqrt(
+                        Math.pow(enemy.x + enemy.size / 2 - laser.x, 2) +
+                        Math.pow(enemy.y + enemy.size / 2 - laser.y, 2)
+                    );
+
+                    if (dist < enemy.size / 2 && !hit) {
+                        hit = true;
+                        enemy.health--;
+
+                        if (enemy.health <= 0) {
+                            score += 100;
+                            kills++;
+                            updateUI();
+
+                            explosions.push({
+                                id: Date.now(),
+                                x: enemy.x + enemy.size / 2,
+                                y: enemy.y + enemy.size / 2,
+                                frame: 0
+                            });
+
+                            playSound('explosion');
+                            enemies.splice(j, 1);
+                        } else {
+                            playSound('hit');
+                        }
+                    }
+                }
+
+                // Check if passed through crosshair
+                const distToCrosshair = Math.sqrt(
+                    Math.pow(laser.x - crosshairX, 2) +
+                    Math.pow(laser.y - crosshairY, 2)
+                );
+                const passedCrosshair = distToCrosshair < 10;
+
+                if (hit || passedCrosshair || laser.x < 0 || laser.x > canvas.width || laser.y < 0 || laser.y > canvas.height) {
+                    lasers.splice(i, 1);
+                }
+            }
+
+            // Update explosions
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                explosions[i].frame++;
+                if (explosions[i].frame > 20) {
+                    explosions.splice(i, 1);
+                }
+            }
+
+            // Update message
+            const msgTitle = document.getElementById('msgTitle');
+            const msgDetail = document.getElementById('msgDetail');
+            if (targetLocked) {
+                msgTitle.textContent = '🎯 TARGET LOCKED - FIRING!';
+                msgTitle.style.color = '#ff0000';
+            } else if (enemies.length > 5) {
+                msgTitle.textContent = '⚠️ MULTIPLE BOGEYS!';
+                msgTitle.style.color = '#ff8800';
+            } else if (enemies.length > 0) {
+                msgTitle.textContent = '👾 ENEMY DETECTED';
+                msgTitle.style.color = '#ffcc00';
+            } else {
+                msgTitle.textContent = '✨ SCANNERS CLEAR';
+                msgTitle.style.color = '#00ff00';
+            }
+            msgDetail.textContent = `적: ${enemies.length} • 실드: ${shields}%`;
+
+            // Update locked indicator
+            const lockedDisplay = document.getElementById('lockedDisplay');
+            if (targetLocked) {
+                lockedDisplay.classList.remove('hidden');
+            } else {
+                lockedDisplay.classList.add('hidden');
+            }
+        }
+
+        function drawGame() {
+            // Clear
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw stars
+            stars.forEach(star => {
+                ctx.fillStyle = `rgb(${star.brightness}, ${star.brightness}, ${star.brightness})`;
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+            });
+
+            // Draw enemies (TIE Fighters)
+            enemies.forEach(enemy => {
+                const isLocked = targetLocked && targetLocked.id === enemy.id;
+                const centerX = enemy.x + enemy.size / 2;
+                const centerY = enemy.y + enemy.size / 2;
+
+                // Shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fillRect(enemy.x + 5, enemy.y + 5, enemy.size, enemy.size);
+
+                // Target lock indicator
+                if (isLocked) {
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, enemy.size / 2 + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    ctx.fillStyle = '#ff0000';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('LOCKED', centerX, centerY - enemy.size / 2 - 20);
+                }
+
+                // TIE Fighter wings
+                ctx.fillStyle = '#444';
+                ctx.fillRect(centerX - enemy.size / 2, centerY - enemy.size / 3, enemy.size / 3, enemy.size * 2 / 3);
+                ctx.fillRect(centerX + enemy.size / 6, centerY - enemy.size / 3, enemy.size / 3, enemy.size * 2 / 3);
+
+                // Cockpit
+                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, enemy.size / 4);
+                gradient.addColorStop(0, '#666');
+                gradient.addColorStop(1, '#333');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, enemy.size / 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Window
+                ctx.fillStyle = '#00ffff';
+                ctx.shadowColor = '#00ffff';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, enemy.size / 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Health bar
+                if (enemy.health < enemy.maxHealth) {
+                    const barWidth = enemy.size;
+                    const barX = centerX - barWidth / 2;
+                    const barY = centerY - enemy.size / 2 - 10;
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(barX, barY, barWidth, 5);
+
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillRect(barX, barY, barWidth * (enemy.health / enemy.maxHealth), 5);
+                }
+            });
+
+            // Draw lasers
+            lasers.forEach((laser, index) => {
+                const color = laser.side === 'left' ? '#00ff00' : '#ff0000';
+                const length = 30;
+
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 4;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 15;
+                ctx.lineCap = 'round';
+
+                ctx.beginPath();
+                ctx.moveTo(laser.x, laser.y);
+                ctx.lineTo(laser.x - Math.cos(laser.angle) * length, laser.y - Math.sin(laser.angle) * length);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw explosions
+            explosions.forEach(exp => {
+                const size = exp.frame * 5;
+                const alpha = 1 - exp.frame / 20;
+
+                ctx.fillStyle = `rgba(255, 100, 0, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(exp.x, exp.y, size, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(exp.x, exp.y, size * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(exp.x, exp.y, size * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw crosshair
+            ctx.strokeStyle = targetLocked ? '#ff0000' : '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = targetLocked ? '#ff0000' : '#00ff00';
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            ctx.arc(crosshairX, crosshairY, CROSSHAIR_SIZE, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(crosshairX, crosshairY, 5, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(crosshairX - CROSSHAIR_SIZE - 20, crosshairY);
+            ctx.lineTo(crosshairX - CROSSHAIR_SIZE, crosshairY);
+            ctx.moveTo(crosshairX + CROSSHAIR_SIZE, crosshairY);
+            ctx.lineTo(crosshairX + CROSSHAIR_SIZE + 20, crosshairY);
+            ctx.moveTo(crosshairX, crosshairY - CROSSHAIR_SIZE - 20);
+            ctx.lineTo(crosshairX, crosshairY - CROSSHAIR_SIZE);
+            ctx.moveTo(crosshairX, crosshairY + CROSSHAIR_SIZE);
+            ctx.lineTo(crosshairX, crosshairY + CROSSHAIR_SIZE + 20);
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+
+            if (targetLocked) {
+                ctx.fillStyle = '#ff0000';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('TARGET LOCKED', crosshairX, crosshairY + CROSSHAIR_SIZE + 40);
+            }
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing') {
+                updateGame();
+                drawGame();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            document.getElementById('shields').textContent = shields;
+            document.getElementById('kills').textContent = kills;
+        }
+
+        function endGame() {
+            gameState = 'gameover';
+
+            // Stop background music
+            stopBackgroundMusic();
+
+            const avgScore = kills > 0 ? Math.round(score / kills) : 0;
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('killCount').textContent = kills;
+            document.getElementById('avgScore').textContent = avgScore;
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('xwing_highScore', highScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Initialize on load
+        init();
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+        
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+        
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>대포 디펜더 - 게임세상</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .menu-content, .gameover-content {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .game-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .enemy-types {
+            background: rgba(138, 43, 226, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .enemy-types p {
+            font-size: 0.85em;
+            margin: 5px 0;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4a90e2, #9b59b6);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            gap: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            min-width: 32px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .header-score {
+            flex: 1;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .speed-boost-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: transform 0.2s, opacity 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speed-boost-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .speed-boost-btn:active {
+            transform: scale(0.95);
+        }
+
+        .speed-boost-btn.active {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            animation: pulse-glow 0.5s infinite;
+        }
+
+        .speed-boost-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(76, 175, 80, 0.8); }
+        }
+
+        .header-lives {
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .music-select {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        .music-select:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .music-select option {
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            font-size: 1em;
+        }
+
+        .stats-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-label {
+            font-size: 0.7em;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .combo-indicator {
+            background: linear-gradient(45deg, #ff6600, #ffaa00);
+            padding: 5px 15px;
+            border-radius: 20px;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        canvas {
+            flex: 1;
+            width: 100%;
+            touch-action: none;
+            cursor: pointer;
+            background: #1a1a2e;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .high-score {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .score-display {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #ffd700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-hint {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .hint-title {
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .pause-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pause-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .paused-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .paused-overlay.active {
+            display: flex;
+        }
+
+        .paused-text {
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .level-clear-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.95) 0%, rgba(52, 152, 219, 0.95) 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .level-clear-overlay.active {
+            display: flex;
+        }
+
+        .level-clear-text {
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <a href="index.html" class="back-btn">←</a>
+        <button id="speedBoostBtn" class="speed-boost-btn" onclick="buySpeedBoost()" title="속도 부스트 (500포인트)">⚡</button>
+        <button id="pauseBtn" class="pause-btn" onclick="togglePause()" title="일시정지">⏸</button>
+        <div class="header-score" id="headerScore">0</div>
+        <div class="header-lives">❤️ <span id="headerLives">10</span></div>
+        <select id="musicSelect" class="music-select" onchange="handleMusicChange()">
+            <option value="off">🔇 OFF</option>
+            <option value="0" selected>🎵 1</option>
+            <option value="1">🎵 2</option>
+            <option value="2">🎵 3</option>
+            <option value="3">🎵 4</option>
+            <option value="4">🎵 5</option>
+            <option value="5">🎵 6</option>
+        </select>
+    </div>
+
+    <!-- Paused Overlay -->
+    <div id="pausedOverlay" class="paused-overlay" onclick="togglePause()">
+        <div class="paused-text">⏸ 일시정지</div>
+        <div style="color: white; font-size: 1.2em;">클릭하여 재개</div>
+    </div>
+
+    <!-- Level Clear Overlay -->
+    <div id="levelClearOverlay" class="level-clear-overlay" onclick="nextLevel()">
+        <div class="level-clear-text">🎉 레벨 클리어!</div>
+        <div style="color: white; font-size: 2em; font-weight: bold;">레벨 <span id="clearedLevel">1</span></div>
+        <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; color: white;">
+            <div style="font-size: 1.2em; margin: 10px 0;">처치: <span id="levelKillsDisplay">100</span></div>
+            <div style="font-size: 1.2em; margin: 10px 0;">보너스: +<span id="levelBonus">500</span></div>
+        </div>
+        <div style="color: white; font-size: 1.2em; margin-top: 20px;">클릭하여 다음 레벨</div>
+    </div>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-content">
+            <div class="game-icon">🎯💣</div>
+            <h1>대포 디펜더</h1>
+            <p style="color: #ddd; margin-bottom: 20px;">대포를 발사해서 적을 막아라!</p>
+
+            <div id="highScore" class="high-score hidden">
+                <div style="opacity: 0.8;">🏆 최고 기록</div>
+                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">💣 전투 시작</button>
+
+            <div class="instructions">
+                <p style="font-weight: bold; color: #4CAF50; margin-bottom: 10px;">🎮 게임 방법</p>
+                <p>💣 하단의 대포를 탭해서 발사!</p>
+                <p>⬇️ 5개의 레인에서 적들이 낙하</p>
+                <p>🎯 대포는 레인별로 발사됩니다</p>
+                <p>⏱️ 쿨다운: 0.8초</p>
+                <p>💚 초록색 = 발사 가능</p>
+
+                <div class="enemy-types">
+                    <p style="color: #cyan; font-weight: bold;">👾 적 타입:</p>
+                    <p><span style="color: #e74c3c;">●</span> 일반 (HP 1, +10점)</p>
+                    <p><span style="color: #3498db;">●</span> 빠름 (HP 1, 빠른 속도, +20점)</p>
+                    <p><span style="color: #9b59b6;">●</span> 탱크 (HP 3, 느림, +30점)</p>
+                    <p><span style="color: #f39c12;">●</span> 보스 (HP 5, 매우 느림, +100점)</p>
+                    <p><span style="color: #2ecc71;">⚡</span> 파워업-속도 (20마리마다 등장, 10초간 재장전 2배 속도, +50점)</p>
+                    <p><span style="color: #ff6600;">🔥</span> 파워업-연사 (20마리마다 등장, 8초간 자동 연사, +50점)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameoverScreen" class="gameover-screen hidden">
+        <div class="gameover-content">
+            <div class="game-icon">💥</div>
+            <h1>기지 함락!</h1>
+
+            <div class="score-display" id="finalScore">0</div>
+            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                🎉 신기록! 🎉
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">처치</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="killCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">최대 콤보</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="maxComboDisplay">0</div>
+                </div>
+                <div class="stat-box">
+                    <div style="opacity: 0.8; font-size: 0.8em;">웨이브</div>
+                    <div style="font-size: 1.8em; font-weight: bold;" id="waveDisplay">1</div>
+                </div>
+            </div>
+
+            <div id="highScoreDisplay" class="high-score hidden">
+                <div style="opacity: 0.8;">최고 기록</div>
+                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+            </div>
+
+            <button class="btn" onclick="startGame()">🔄 재도전</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameContainer" class="game-container hidden">
+        <canvas id="gameCanvas"></canvas>
+        <div class="copyright" style="background: rgba(0, 0, 0, 0.7); color: rgba(255, 255, 255, 0.5); text-align: center; padding: 8px; font-size: 0.7em;">
+            © 2024 게임세상 | Made with ❤️
+        </div>
+    </div>
+
+
+    <script>
+        // Viewport height fix
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Audio - Background Music
+        let bgMusic = null;
+        let isMusicEnabled = true;
+        let currentMusicIndex = Math.floor(Math.random() * 6); // Random start
+        const musicFiles = [
+            'music/Across the Stars.mp3',
+            'music/전쟁의 노래.mp3',
+            'music/집중 시간.mp3',
+            'music/대포 발사.mp3',
+            'music/타워 디펜스.mp3',
+            'music/Galactic Fanfare.mp3'
+        ];
+
+        // Set initial music selection to random
+        window.addEventListener('load', () => {
+            const select = document.getElementById('musicSelect');
+            if (select) {
+                select.value = currentMusicIndex.toString();
+            }
+        });
+
+        function initBackgroundMusic() {
+            if (!bgMusic) {
+                bgMusic = new Audio(musicFiles[currentMusicIndex]);
+                bgMusic.loop = true; // Loop music
+                bgMusic.volume = 0.3;
+            }
+        }
+
+        function playBackgroundMusic() {
+            if (!isMusicEnabled) return;
+            initBackgroundMusic();
+            bgMusic.play().catch(e => console.log('Music play failed:', e));
+        }
+
+        function stopBackgroundMusic() {
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+        }
+
+        function handleMusicChange() {
+            const select = document.getElementById('musicSelect');
+            const value = select.value;
+
+            // Stop current music and dispose
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic = null;
+            }
+
+            if (value === 'off') {
+                isMusicEnabled = false;
+                stopBackgroundMusic();
+            } else {
+                isMusicEnabled = true;
+                currentMusicIndex = parseInt(value);
+
+                // Start new music if playing
+                if (gameState === 'playing') {
+                    initBackgroundMusic();
+                    playBackgroundMusic();
+                }
+            }
+        }
+
+        // Audio - Sound Effects
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(soundType) {
+            try {
+                initAudio();
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(soundType) {
+                    case 'fire':
+                        oscillator.frequency.value = 300;
+                        gainNode.gain.value = 0.10;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'hit':
+                        oscillator.frequency.value = 600;
+                        gainNode.gain.value = 0.11;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'explosion':
+                        oscillator.frequency.value = 150;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
+                    case 'lifeLost':
+                        oscillator.frequency.value = 100;
+                        gainNode.gain.value = 0.11;
+                        oscillator.type = 'sine';
+                        break;
+                }
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        // Constants
+        let CANVAS_WIDTH = 800;
+        let CANVAS_HEIGHT = 600;
+        const NUM_LANES = 5;
+        let LANE_WIDTH = CANVAS_WIDTH / NUM_LANES;
+        const CANNON_COOLDOWN = 800;
+
+        // Game state
+        let gameState = 'menu';
+        let score = 0;
+        let wave = 1;
+        let lives = 10;
+        let kills = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let highScore = localStorage.getItem('cannonDefender_highScore') || 0;
+        let powerUpActive = false;
+        let powerUpEndTime = 0;
+        let rapidFireActive = false;
+        let rapidFireEndTime = 0;
+        let rapidFireInterval = null;
+        let speedBoostActive = false;
+        let speedBoostEndTime = 0;
+        const SPEED_BOOST_COST = 500;
+        const SPEED_BOOST_DURATION = 15000; // 15 seconds
+        let isPaused = false;
+        let currentLevel = 1;
+        let levelKills = 0;
+        const KILLS_PER_LEVEL = 100;
+        let isBossWave = false;
+        let bossActive = false;
+        let killsSinceLastPowerUp = 0;
+        const KILLS_PER_POWERUP = 20; // Every 20 kills, spawn a power-up
+
+        // Game objects
+        let enemies = [];
+        let projectiles = [];
+        let effects = [];
+        let cannons = [];
+        let spawnInterval = null;
+
+        // Enemy types
+        const enemyTypes = [
+            { type: 'normal', color: '#e74c3c', health: 1, speed: 1.5, points: 10, size: 30 },
+            { type: 'fast', color: '#3498db', health: 1, speed: 3, points: 20, size: 25 },
+            { type: 'tank', color: '#9b59b6', health: 3, speed: 1, points: 30, size: 40 },
+            { type: 'boss', color: '#f39c12', health: 5, speed: 0.7, points: 100, size: 50 },
+            { type: 'powerup_speed', color: '#2ecc71', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'speed' },
+            { type: 'powerup_rapid', color: '#ff6600', health: 4, speed: 0.8, points: 50, size: 55, isPowerUp: true, powerUpType: 'rapid' },
+            { type: 'level_boss', color: '#ff1744', health: 50, speed: 0.5, points: 1000, size: 80, isBoss: true }
+        ];
+
+        // Set canvas size dynamically based on screen
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            if (!container) return;
+
+            const stats = container.querySelector('.stats');
+            const hint = container.querySelector('.game-hint');
+            const copyright = container.querySelector('.copyright');
+
+            // Calculate available space (excluding stats, hint, and copyright)
+            const statsHeight = stats ? stats.offsetHeight : 0;
+            const hintHeight = hint ? hint.offsetHeight : 0;
+            const copyrightHeight = copyright ? copyright.offsetHeight : 0;
+            const availableHeight = window.innerHeight - statsHeight - hintHeight - copyrightHeight;
+            const availableWidth = window.innerWidth;
+
+            // Set canvas dimensions to fill available space
+            CANVAS_WIDTH = availableWidth;
+            CANVAS_HEIGHT = availableHeight;
+            LANE_WIDTH = CANVAS_WIDTH / NUM_LANES;
+
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+        }
+
+        // Initialize
+        function init() {
+            // Delay initial resize to ensure DOM is fully rendered
+            setTimeout(() => {
+                resizeCanvas();
+            }, 0);
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+            });
+            window.addEventListener('orientationchange', () => {
+                setTimeout(resizeCanvas, 100);
+            });
+
+            // Show high score
+            if (highScore > 0) {
+                document.getElementById('highScore').classList.remove('hidden');
+                document.getElementById('highScoreValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            // Canvas events
+            canvas.addEventListener('click', handleCannonClick);
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                // Handle multi-touch
+                for (let i = 0; i < e.touches.length; i++) {
+                    handleCannonClick(e.touches[i]);
+                }
+            });
+
+            // Keyboard controls
+            document.addEventListener('keydown', handleKeyPress);
+
+            gameLoop();
+        }
+
+        function handleKeyPress(e) {
+            const key = e.key.toLowerCase();
+
+            // ESC or P key for pause (works anytime during playing)
+            if ((key === 'escape' || key === 'p') && gameState === 'playing') {
+                togglePause();
+                return;
+            }
+
+            if (gameState !== 'playing' || isPaused) return;
+
+            // Fire all cannons with G key
+            if (key === 'g') {
+                for (let i = 0; i < NUM_LANES; i++) {
+                    if (cannons[i]?.canFire) {
+                        fireCannon(i);
+                    }
+                }
+                return;
+            }
+
+            // Upgrade all cannons with T key
+            if (key === 't') {
+                for (let i = 0; i < NUM_LANES; i++) {
+                    const cannon = cannons[i];
+                    if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
+                        const cost = getUpgradeCost(cannon.upgradeLevel);
+                        if (score >= cost) {
+                            upgradeCannon(i);
+                        }
+                    }
+                }
+                return;
+            }
+
+            // Fire cannons: h, j, k, l, ; (lanes 0-4)
+            const fireKeys = ['h', 'j', 'k', 'l', ';'];
+            const fireIndex = fireKeys.indexOf(key);
+            if (fireIndex !== -1 && cannons[fireIndex]?.canFire) {
+                fireCannon(fireIndex);
+                return;
+            }
+
+            // Upgrade cannons: y, u, i, o, p (lanes 0-4)
+            const upgradeKeys = ['y', 'u', 'i', 'o', 'p'];
+            const upgradeIndex = upgradeKeys.indexOf(key);
+            if (upgradeIndex !== -1) {
+                const cannon = cannons[upgradeIndex];
+                if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
+                    const cost = getUpgradeCost(cannon.upgradeLevel);
+                    if (score >= cost) {
+                        upgradeCannon(upgradeIndex);
+                    }
+                }
+            }
+        }
+
+        function togglePause() {
+            if (gameState !== 'playing') return;
+
+            isPaused = !isPaused;
+            const overlay = document.getElementById('pausedOverlay');
+            const pauseBtn = document.getElementById('pauseBtn');
+
+            if (isPaused) {
+                overlay.classList.add('active');
+                pauseBtn.textContent = '▶';
+                if (bgMusic) bgMusic.pause();
+            } else {
+                overlay.classList.remove('active');
+                pauseBtn.textContent = '⏸';
+                if (bgMusic && isMusicEnabled) bgMusic.play();
+            }
+        }
+
+        window.startGame = function() {
+            if (spawnInterval) clearInterval(spawnInterval);
+
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+
+            // Resize canvas after container is visible
+            setTimeout(() => {
+                resizeCanvas();
+            }, 0);
+
+            gameState = 'playing';
+            score = 0;
+            wave = 1;
+            lives = 10;
+            kills = 0;
+            combo = 0;
+            maxCombo = 0;
+            powerUpActive = false;
+            powerUpEndTime = 0;
+            rapidFireActive = false;
+            rapidFireEndTime = 0;
+            if (rapidFireInterval) {
+                clearInterval(rapidFireInterval);
+                rapidFireInterval = null;
+            }
+            killsSinceLastPowerUp = 0;
+            enemies = [];
+            projectiles = [];
+            effects = [];
+
+            // Initialize cannons
+            cannons = [];
+            for (let i = 0; i < NUM_LANES; i++) {
+                cannons.push({ lane: i, canFire: true, lastFired: 0, upgradeLevel: 0 });
+            }
+
+            updateUpgradeUI();
+
+            // Start background music
+            playBackgroundMusic();
+
+            updateUI();
+            startEnemySpawning();
+        };
+
+        function startEnemySpawning() {
+            spawnInterval = setInterval(() => {
+                if (gameState !== 'playing') return;
+
+                const waveMultiplier = Math.min(wave, 10);
+                const spawnCount = 2 + Math.floor(waveMultiplier / 2);
+
+                for (let i = 0; i < spawnCount; i++) {
+                    setTimeout(() => {
+                        spawnEnemy();
+                    }, i * 600);
+                }
+            }, 3000);
+        }
+
+        function spawnEnemy() {
+            if (gameState !== 'playing') return;
+
+            const lane = Math.floor(Math.random() * NUM_LANES);
+            let enemyType;
+            const rand = Math.random();
+
+            // Regular enemy spawning (no random power-ups)
+            if (wave < 3) {
+                enemyType = enemyTypes[0];
+            } else if (wave < 6) {
+                enemyType = rand < 0.7 ? enemyTypes[0] : enemyTypes[1];
+            } else if (wave < 10) {
+                if (rand < 0.5) enemyType = enemyTypes[0];
+                else if (rand < 0.8) enemyType = enemyTypes[1];
+                else enemyType = enemyTypes[2];
+            } else {
+                if (rand < 0.4) enemyType = enemyTypes[0];
+                else if (rand < 0.7) enemyType = enemyTypes[1];
+                else if (rand < 0.95) enemyType = enemyTypes[2];
+                else enemyType = enemyTypes[3];
+            }
+
+            // Scale difficulty with wave (more HP and speed after wave 5)
+            const healthMultiplier = wave > 5 ? 1 + Math.floor((wave - 5) / 3) : 1;
+            const speedMultiplier = wave > 10 ? 1 + (wave - 10) * 0.05 : 1;
+
+            enemies.push({
+                id: Date.now() + Math.random(),
+                ...enemyType,
+                lane,
+                x: lane * LANE_WIDTH + LANE_WIDTH / 2,
+                y: -enemyType.size,
+                health: enemyType.health * healthMultiplier,
+                maxHealth: enemyType.health * healthMultiplier,
+                speed: enemyType.speed * speedMultiplier
+            });
+        }
+
+        function spawnPowerUpEnemy() {
+            if (gameState !== 'playing') return;
+
+            const lane = Math.floor(Math.random() * NUM_LANES);
+            // 50% chance for speed powerup, 50% for rapid fire
+            const enemyType = Math.random() < 0.5 ? enemyTypes[4] : enemyTypes[5];
+
+            enemies.push({
+                id: Date.now() + Math.random(),
+                ...enemyType,
+                lane,
+                x: lane * LANE_WIDTH + LANE_WIDTH / 2,
+                y: -enemyType.size,
+                health: enemyType.health,
+                maxHealth: enemyType.health,
+                speed: enemyType.speed
+            });
+        }
+
+        function handleCannonClick(e) {
+            if (gameState !== 'playing') return;
+
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = CANVAS_WIDTH / rect.width;
+            const scaleY = CANVAS_HEIGHT / rect.height;
+            const x = ((e.clientX || e.pageX) - rect.left) * scaleX;
+            const y = ((e.clientY || e.pageY) - rect.top) * scaleY;
+
+            // Check if clicked on upgrade button
+            const cannonY = CANVAS_HEIGHT - 70;
+            const upgradeY = cannonY - 90;
+
+            for (let i = 0; i < NUM_LANES; i++) {
+                const laneX = i * LANE_WIDTH + LANE_WIDTH / 2;
+                const cannon = cannons[i];
+
+                // Check upgrade button click
+                if (cannon && cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
+                    const cost = getUpgradeCost(cannon.upgradeLevel);
+                    if (score >= cost) {
+                        // Upgrade button area
+                        if (x >= laneX - 25 && x <= laneX + 25 &&
+                            y >= upgradeY - 15 && y <= upgradeY + 15) {
+                            upgradeCannon(i);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Check if clicked on cannon area for firing
+            if (y > CANVAS_HEIGHT - 100) {
+                const lane = Math.floor(x / LANE_WIDTH);
+                if (lane >= 0 && lane < NUM_LANES && cannons[lane]?.canFire) {
+                    fireCannon(lane);
+                }
+            }
+        }
+
+        function fireCannon(lane) {
+            const x = lane * LANE_WIDTH + LANE_WIDTH / 2;
+            const y = CANVAS_HEIGHT - 70;
+            const cannon = cannons[lane];
+
+            // Play fire sound
+            playSound('fire');
+
+            // Level 9+ cannons fire 3 projectiles, Level 5+ fire 2 projectiles
+            const projectileCount = cannon.upgradeLevel >= 9 ? 3 : (cannon.upgradeLevel >= 5 ? 2 : 1);
+            const spread = 15; // Spread distance for multiple projectiles
+
+            for (let p = 0; p < projectileCount; p++) {
+                let offsetX = 0;
+                if (projectileCount === 2) {
+                    offsetX = p === 0 ? -spread : spread;
+                } else if (projectileCount === 3) {
+                    offsetX = p === 0 ? -spread : (p === 1 ? 0 : spread);
+                }
+
+                projectiles.push({
+                    id: Date.now() + Math.random(),
+                    lane,
+                    x: x + offsetX,
+                    y: y - 30,
+                    speed: 10,
+                    color: '#ffd700',
+                    cannonLevel: cannon.upgradeLevel // Track cannon level
+                });
+            }
+
+            // Cannon fire effect (more particles for more projectiles)
+            const effectCount = projectileCount === 3 ? 15 : (projectileCount === 2 ? 10 : 5);
+            for (let i = 0; i < effectCount; i++) {
+                effects.push({
+                    id: Date.now() + Math.random(),
+                    x,
+                    y: y - 30,
+                    vx: (Math.random() - 0.5) * 3,
+                    vy: -Math.random() * 3,
+                    life: 15,
+                    color: '#ff6600',
+                    size: 6
+                });
+            }
+
+            // Update cannon cooldown (2x faster if power-up active, reduced by upgrade level)
+            cannons[lane].canFire = false;
+            cannons[lane].lastFired = Date.now();
+
+            // Calculate cooldown: base * (power-up multiplier) * (upgrade multiplier)
+            const upgradeMultiplier = 1 - (cannons[lane].upgradeLevel * 0.08); // 8% faster per level
+            let cooldown = CANNON_COOLDOWN * upgradeMultiplier;
+            if (powerUpActive) cooldown = cooldown / 2;
+
+            setTimeout(() => {
+                if (cannons[lane]) {
+                    cannons[lane].canFire = true;
+                }
+            }, cooldown);
+        }
+
+        function updateGame() {
+            // Check power-up expiration
+            if (powerUpActive && Date.now() > powerUpEndTime) {
+                powerUpActive = false;
+            }
+
+            // Check rapid fire expiration
+            if (rapidFireActive && Date.now() > rapidFireEndTime) {
+                rapidFireActive = false;
+                if (rapidFireInterval) {
+                    clearInterval(rapidFireInterval);
+                    rapidFireInterval = null;
+                }
+            }
+
+            // Check speed boost expiration
+            if (speedBoostActive && Date.now() > speedBoostEndTime) {
+                speedBoostActive = false;
+                updateUI();
+            }
+
+            // Update enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                // Speed boost makes enemies move slower (easier to hit)
+                const speedMultiplier = speedBoostActive ? 0.5 : 1;
+                enemy.y += enemy.speed * speedMultiplier;
+
+                if (enemy.y > CANVAS_HEIGHT - 120) {
+                    enemies.splice(i, 1);
+                    lives = Math.max(0, lives - 1);
+                    combo = 0;
+                    updateUI();
+
+                    // Play life lost sound
+                    playSound('lifeLost');
+
+                    // Life lost particles
+                    for (let p = 0; p < 10; p++) {
+                        effects.push({
+                            id: Date.now() + Math.random(),
+                            x: enemy.x,
+                            y: CANVAS_HEIGHT - 100,
+                            vx: (Math.random() - 0.5) * 5,
+                            vy: (Math.random() - 0.5) * 5,
+                            life: 30,
+                            color: '#ff0000',
+                            size: 8
+                        });
+                    }
+
+                    if (lives <= 0) {
+                        endGame();
+                    }
+                }
+            }
+
+            // Update projectiles
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const proj = projectiles[i];
+                proj.y -= proj.speed;
+
+                if (proj.y < -20) {
+                    projectiles.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision
+                let hit = false;
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    if (enemy.lane === proj.lane) {
+                        const distance = Math.abs(enemy.y - proj.y);
+
+                        if (distance < 30) {
+                            hit = true;
+                            // Level 10+ cannons deal 2x damage
+                            const damage = proj.cannonLevel >= 10 ? 2 : 1;
+                            enemy.health -= damage;
+
+                            // Play hit sound
+                            playSound('hit');
+
+                            // Hit particles
+                            for (let p = 0; p < 8; p++) {
+                                const angle = (Math.PI * 2 * p) / 8;
+                                effects.push({
+                                    id: Date.now() + Math.random(),
+                                    x: enemy.x,
+                                    y: enemy.y,
+                                    vx: Math.cos(angle) * 3,
+                                    vy: Math.sin(angle) * 3,
+                                    life: 20,
+                                    color: proj.color,
+                                    size: 5
+                                });
+                            }
+
+                            if (enemy.health <= 0) {
+                                const comboBonus = Math.floor(combo / 5);
+                                const points = enemy.points * (1 + comboBonus);
+                                score += points;
+                                kills++;
+                                combo++;
+                                maxCombo = Math.max(maxCombo, combo);
+
+                                // Track kills for power-up spawning
+                                if (!enemy.isPowerUp) {
+                                    killsSinceLastPowerUp++;
+                                    if (killsSinceLastPowerUp >= KILLS_PER_POWERUP) {
+                                        killsSinceLastPowerUp = 0;
+                                        spawnPowerUpEnemy();
+                                    }
+                                }
+
+                                // Play explosion sound
+                                playSound('explosion');
+
+                                // Activate power-up if this was a power-up enemy
+                                if (enemy.isPowerUp) {
+                                    if (enemy.powerUpType === 'speed') {
+                                        powerUpActive = true;
+                                        powerUpEndTime = Date.now() + 10000; // 10 seconds
+
+                                        // Power-up notification
+                                        effects.push({
+                                            id: Date.now() + Math.random(),
+                                            x: enemy.x,
+                                            y: enemy.y,
+                                            vx: 0,
+                                            vy: -3,
+                                            life: 60,
+                                            color: '#2ecc71',
+                                            size: 1,
+                                            text: '⚡ 2배 속도!',
+                                            isText: true
+                                        });
+                                    } else if (enemy.powerUpType === 'rapid') {
+                                        rapidFireActive = true;
+                                        rapidFireEndTime = Date.now() + 8000; // 8 seconds
+
+                                        // Start rapid fire
+                                        if (rapidFireInterval) clearInterval(rapidFireInterval);
+                                        rapidFireInterval = setInterval(() => {
+                                            if (!rapidFireActive || gameState !== 'playing') {
+                                                clearInterval(rapidFireInterval);
+                                                rapidFireInterval = null;
+                                                return;
+                                            }
+                                            // Fire all cannons that are ready
+                                            for (let i = 0; i < NUM_LANES; i++) {
+                                                if (cannons[i]?.canFire) {
+                                                    fireCannon(i);
+                                                }
+                                            }
+                                        }, 150); // Fire every 150ms
+
+                                        // Power-up notification
+                                        effects.push({
+                                            id: Date.now() + Math.random(),
+                                            x: enemy.x,
+                                            y: enemy.y,
+                                            vx: 0,
+                                            vy: -3,
+                                            life: 60,
+                                            color: '#ff6600',
+                                            size: 1,
+                                            text: '🔥 연사 모드!',
+                                            isText: true
+                                        });
+                                    }
+                                }
+
+                                // Check level progression (100 kills per level)
+                                levelKills++;
+                                if (levelKills >= KILLS_PER_LEVEL) {
+                                    showLevelClear();
+                                }
+
+                                // Check wave progression
+                                if (kills % 15 === 0) {
+                                    wave++;
+                                }
+
+                                updateUI();
+
+                                // Death explosion
+                                for (let p = 0; p < 20; p++) {
+                                    effects.push({
+                                        id: Date.now() + Math.random(),
+                                        x: enemy.x,
+                                        y: enemy.y,
+                                        vx: (Math.random() - 0.5) * 8,
+                                        vy: (Math.random() - 0.5) * 8,
+                                        life: 40,
+                                        color: enemy.color,
+                                        size: 8
+                                    });
+                                }
+
+                                // Score text
+                                effects.push({
+                                    id: Date.now() + Math.random(),
+                                    x: enemy.x,
+                                    y: enemy.y,
+                                    vx: 0,
+                                    vy: -2,
+                                    life: 30,
+                                    color: '#ffd700',
+                                    size: 1,
+                                    text: `+${points}`,
+                                    isText: true
+                                });
+
+                                enemies.splice(j, 1);
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if (hit) {
+                    projectiles.splice(i, 1);
+                }
+            }
+
+            // Update effects
+            for (let i = effects.length - 1; i >= 0; i--) {
+                const effect = effects[i];
+                effect.x += effect.vx;
+                effect.y += effect.vy;
+                effect.life -= 1;
+                effect.size *= 0.97;
+
+                if (effect.life <= 0) {
+                    effects.splice(i, 1);
+                }
+            }
+
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Background
+            const gradient = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(1, '#16213e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            // Draw lanes
+            for (let i = 0; i < NUM_LANES; i++) {
+                const x = i * LANE_WIDTH;
+
+                ctx.fillStyle = i % 2 === 0 ? 'rgba(30, 30, 50, 0.5)' : 'rgba(40, 40, 60, 0.5)';
+                ctx.fillRect(x, 0, LANE_WIDTH, CANVAS_HEIGHT);
+
+                ctx.strokeStyle = 'rgba(100, 100, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([10, 5]);
+                ctx.beginPath();
+                ctx.moveTo(x + LANE_WIDTH / 2, 0);
+                ctx.lineTo(x + LANE_WIDTH / 2, CANVAS_HEIGHT - 100);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.font = 'bold 40px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${i + 1}`, x + LANE_WIDTH / 2, 40);
+            }
+
+            // Draw cannons (original size)
+            const cannonY = CANVAS_HEIGHT - 70;
+            cannons.forEach((cannon, i) => {
+                const x = i * LANE_WIDTH + LANE_WIDTH / 2;
+
+                // Draw upgrade button above cannon if available
+                if (cannon.upgradeLevel < MAX_UPGRADE_LEVEL) {
+                    const cost = getUpgradeCost(cannon.upgradeLevel);
+                    const canAfford = score >= cost;
+
+                    if (canAfford) {
+                        const upgradeY = cannonY - 90;
+
+                        // Button background
+                        ctx.fillStyle = 'rgba(46, 204, 113, 0.9)';
+                        ctx.shadowColor = '#2ecc71';
+                        ctx.shadowBlur = 10;
+                        ctx.fillRect(x - 25, upgradeY - 15, 50, 30);
+                        ctx.shadowBlur = 0;
+
+                        // Border
+                        ctx.strokeStyle = '#27ae60';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x - 25, upgradeY - 15, 50, 30);
+
+                        // "UP" text
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 14px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('UP', x, upgradeY - 5);
+
+                        // Cost
+                        ctx.font = 'bold 10px Arial';
+                        ctx.fillStyle = '#ffd700';
+                        ctx.fillText(`${cost}`, x, upgradeY + 8);
+                    }
+                }
+
+                // Show upgrade level if upgraded
+                if (cannon.upgradeLevel > 0) {
+                    ctx.fillStyle = '#ffd700';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`Lv${cannon.upgradeLevel}`, x, cannonY - 55);
+                }
+
+                // Upgrade visual enhancement
+                const upgradeScale = 1 + (cannon.upgradeLevel * 0.1); // 10% bigger per level
+                const baseWidth = 25;
+                const baseHeight = 30;
+                const barrelWidth = 15;
+                const barrelHeight = 50;
+                const tipRadius = 15;
+
+                // Upgrade color tiers
+                let cannonColor = cannon.canFire ? '#4CAF50' : '#999';
+                let cannonTipColor = cannon.canFire ? '#66BB6A' : '#aaa';
+
+                if (cannon.upgradeLevel >= 4) {
+                    cannonColor = cannon.canFire ? '#9C27B0' : '#999'; // Purple for level 4-5
+                    cannonTipColor = cannon.canFire ? '#BA68C8' : '#aaa';
+                } else if (cannon.upgradeLevel >= 2) {
+                    cannonColor = cannon.canFire ? '#FF9800' : '#999'; // Orange for level 2-3
+                    cannonTipColor = cannon.canFire ? '#FFB74D' : '#aaa';
+                }
+
+                // Cannon base
+                ctx.fillStyle = '#555';
+                ctx.fillRect(
+                    x - baseWidth * upgradeScale,
+                    cannonY + 20,
+                    baseWidth * 2 * upgradeScale,
+                    baseHeight
+                );
+
+                // Cannon barrel with upgrade size
+                ctx.fillStyle = cannonColor;
+                ctx.shadowColor = cannon.canFire ? cannonColor : 'transparent';
+                ctx.shadowBlur = cannon.canFire ? 15 + cannon.upgradeLevel * 3 : 0;
+                ctx.fillRect(
+                    x - barrelWidth * upgradeScale,
+                    cannonY - 30,
+                    barrelWidth * 2 * upgradeScale,
+                    barrelHeight
+                );
+                ctx.shadowBlur = 0;
+
+                // Cannon tip with upgrade size
+                ctx.fillStyle = cannonTipColor;
+                ctx.beginPath();
+                ctx.arc(x, cannonY - 30, tipRadius * upgradeScale, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Upgrade visual effects (glow rings for high levels)
+                if (cannon.upgradeLevel >= 3 && cannon.canFire) {
+                    ctx.strokeStyle = cannonColor;
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.5;
+                    ctx.beginPath();
+                    ctx.arc(x, cannonY - 30, tipRadius * upgradeScale + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+
+                if (cannon.upgradeLevel >= 5 && cannon.canFire) {
+                    ctx.strokeStyle = cannonTipColor;
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.3;
+                    ctx.beginPath();
+                    ctx.arc(x, cannonY - 30, tipRadius * upgradeScale + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+
+                // Cooldown status bar (always shown)
+                const cooldownPercent = cannon.canFire ? 1 : (Date.now() - cannon.lastFired) / CANNON_COOLDOWN;
+
+                // Background bar
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(x - 25, cannonY + 55, 50, 5);
+
+                // Progress bar (green when ready, red when reloading)
+                ctx.fillStyle = cannon.canFire ? 'rgba(76, 175, 80, 0.8)' : 'rgba(255, 0, 0, 0.5)';
+                ctx.fillRect(x - 25, cannonY + 55, 50 * cooldownPercent, 5);
+            });
+
+            // Draw enemies
+            enemies.forEach(enemy => {
+                // Shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.beginPath();
+                ctx.arc(enemy.x + 3, enemy.y + 3, enemy.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Enemy body
+                ctx.fillStyle = enemy.color;
+                ctx.shadowColor = enemy.color;
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.size / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Power-up indicator (different icons for different power-ups)
+                if (enemy.isPowerUp) {
+                    ctx.fillStyle = '#ffff00';
+                    ctx.font = 'bold 30px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    if (enemy.powerUpType === 'speed') {
+                        ctx.fillText('⚡', enemy.x, enemy.y);
+                    } else if (enemy.powerUpType === 'rapid') {
+                        ctx.fillText('🔥', enemy.x, enemy.y);
+                    }
+                }
+
+                // Eyes (not for power-up enemies - they have the lightning icon instead)
+                if (!enemy.isPowerUp) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(enemy.x - 8, enemy.y - 5, 5, 0, Math.PI * 2);
+                    ctx.arc(enemy.x + 8, enemy.y - 5, 5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.arc(enemy.x - 8, enemy.y - 5, 3, 0, Math.PI * 2);
+                    ctx.arc(enemy.x + 8, enemy.y - 5, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Health bar
+                if (enemy.health < enemy.maxHealth) {
+                    const barWidth = enemy.size;
+                    const barHeight = 5;
+                    const barX = enemy.x - barWidth / 2;
+                    const barY = enemy.y - enemy.size / 2 - 10;
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(barX, barY, barWidth, barHeight);
+
+                    const healthColor = enemy.health / enemy.maxHealth > 0.5 ? '#2ecc71' : '#e74c3c';
+                    ctx.fillStyle = healthColor;
+                    ctx.fillRect(barX, barY, barWidth * (enemy.health / enemy.maxHealth), barHeight);
+                }
+            });
+
+            // Draw projectiles
+            projectiles.forEach(proj => {
+                ctx.fillStyle = proj.color;
+                ctx.shadowColor = proj.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Trail
+                for (let i = 1; i <= 3; i++) {
+                    ctx.fillStyle = `rgba(255, 215, 0, ${0.5 - i * 0.15})`;
+                    ctx.beginPath();
+                    ctx.arc(proj.x, proj.y + i * 10, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Draw effects
+            effects.forEach(effect => {
+                if (effect.isText) {
+                    const alpha = effect.life / 30;
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = effect.color;
+                    ctx.font = 'bold 30px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = effect.color;
+                    ctx.shadowBlur = 10;
+                    ctx.fillText(effect.text, effect.x, effect.y);
+                    ctx.shadowBlur = 0;
+                    ctx.restore();
+                } else {
+                    const alpha = effect.life / 30;
+                    ctx.fillStyle = effect.color.includes('rgb')
+                        ? effect.color.replace(')', `, ${alpha})`).replace('rgb', 'rgba')
+                        : effect.color + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, effect.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Combo display
+            if (combo > 0) {
+                ctx.save();
+                ctx.translate(CANVAS_WIDTH / 2, 80);
+
+                const scale = 1 + Math.min(combo / 20, 0.5);
+                ctx.scale(scale, scale);
+
+                ctx.fillStyle = combo >= 20 ? '#ff0000' : combo >= 10 ? '#ff6b00' : '#ffd700';
+                ctx.font = 'bold 50px Arial';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.shadowBlur = 20;
+                ctx.fillText(`${combo}x`, 0, 0);
+                ctx.shadowBlur = 0;
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText('COMBO', 0, 25);
+
+                ctx.restore();
+            }
+
+            // Power-up status indicators
+            let yOffset = 130;
+
+            if (powerUpActive) {
+                const timeLeft = Math.ceil((powerUpEndTime - Date.now()) / 1000);
+
+                ctx.save();
+                ctx.translate(CANVAS_WIDTH / 2, yOffset);
+
+                ctx.fillStyle = '#2ecc71';
+                ctx.shadowColor = '#2ecc71';
+                ctx.shadowBlur = 15;
+                ctx.font = 'bold 30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`⚡ 2배 속도 ${timeLeft}초`, 0, 0);
+                ctx.shadowBlur = 0;
+
+                ctx.restore();
+                yOffset += 40;
+            }
+
+            if (rapidFireActive) {
+                const timeLeft = Math.ceil((rapidFireEndTime - Date.now()) / 1000);
+
+                ctx.save();
+                ctx.translate(CANVAS_WIDTH / 2, yOffset);
+
+                ctx.fillStyle = '#ff6600';
+                ctx.shadowColor = '#ff6600';
+                ctx.shadowBlur = 15;
+                ctx.font = 'bold 30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`🔥 연사 모드 ${timeLeft}초`, 0, 0);
+                ctx.shadowBlur = 0;
+
+                ctx.restore();
+            }
+        }
+
+        function gameLoop() {
+            if (gameState === 'playing' && !isPaused) {
+                updateGame();
+                drawGame();
+            } else if (gameState === 'playing' && isPaused) {
+                // Still draw when paused, just don't update
+                drawGame();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateUI() {
+            document.getElementById('headerScore').textContent = score.toLocaleString();
+            document.getElementById('headerLives').textContent = lives;
+
+            // Update speed boost button
+            const speedBtn = document.getElementById('speedBoostBtn');
+            if (speedBtn) {
+                if (speedBoostActive) {
+                    speedBtn.classList.add('active');
+                    speedBtn.classList.remove('disabled');
+                    const timeLeft = Math.ceil((speedBoostEndTime - Date.now()) / 1000);
+                    speedBtn.textContent = `${timeLeft}`;
+                } else {
+                    speedBtn.classList.remove('active');
+                    speedBtn.textContent = '⚡';
+                    if (score >= SPEED_BOOST_COST && gameState === 'playing') {
+                        speedBtn.classList.remove('disabled');
+                    } else {
+                        speedBtn.classList.add('disabled');
+                    }
+                }
+            }
+
+            // Update upgrade buttons affordability
+            updateUpgradeUI();
+        }
+
+        function buySpeedBoost() {
+            if (gameState !== 'playing') return;
+            if (speedBoostActive) return;
+            if (score < SPEED_BOOST_COST) return;
+
+            score -= SPEED_BOOST_COST;
+            speedBoostActive = true;
+            speedBoostEndTime = Date.now() + SPEED_BOOST_DURATION;
+
+            updateUI();
+            playSound('hit');
+
+            // Visual notification
+            effects.push({
+                id: Date.now() + Math.random(),
+                x: CANVAS_WIDTH / 2,
+                y: 100,
+                vx: 0,
+                vy: -2,
+                life: 60,
+                color: '#ff6b6b',
+                size: 1,
+                text: '⚡ 속도 부스트 활성화!',
+                isText: true
+            });
+        }
+
+        function endGame() {
+            gameState = 'gameover';
+            if (spawnInterval) clearInterval(spawnInterval);
+
+            // Stop background music
+            stopBackgroundMusic();
+
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('killCount').textContent = kills;
+            document.getElementById('maxComboDisplay').textContent = maxCombo;
+            document.getElementById('waveDisplay').textContent = wave;
+
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                localStorage.setItem('cannonDefender_highScore', highScore);
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+
+            if (highScore > 0 && !isNewRecord) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
+            }
+
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Upgrade system
+        const BASE_UPGRADE_COST = 100;
+        const MAX_UPGRADE_LEVEL = 999; // Essentially unlimited
+
+        function getUpgradeCost(level) {
+            // Exponential cost: 100, 200, 400, 800, 1600, 3200...
+            return BASE_UPGRADE_COST * Math.pow(2, level);
+        }
+
+        function upgradeCannon(laneIndex) {
+            if (gameState !== 'playing') return;
+
+            const cannon = cannons[laneIndex];
+            if (!cannon) return;
+
+            if (cannon.upgradeLevel >= MAX_UPGRADE_LEVEL) {
+                return; // Already max level
+            }
+
+            const cost = getUpgradeCost(cannon.upgradeLevel);
+
+            if (score >= cost) {
+                score -= cost;
+                cannon.upgradeLevel++;
+                updateUI();
+                updateUpgradeUI();
+
+                // Visual feedback
+                effects.push({
+                    id: Date.now() + Math.random(),
+                    x: laneIndex * LANE_WIDTH + LANE_WIDTH / 2,
+                    y: CANVAS_HEIGHT - 100,
+                    vx: 0,
+                    vy: -3,
+                    life: 60,
+                    color: '#2ecc71',
+                    size: 1,
+                    text: '⬆️ 업그레이드!',
+                    isText: true
+                });
+
+                playSound('hit');
+            }
+        }
+
+        function updateUpgradeUI() {
+            // No longer needed - upgrade buttons are drawn on canvas
+        }
+
+        // Level system functions
+        function showLevelClear() {
+            gameState = 'levelClear';
+            const overlay = document.getElementById('levelClearOverlay');
+            const levelBonus = currentLevel * 500; // Bonus increases with level
+
+            // Stop spawning
+            if (spawnInterval) {
+                clearInterval(spawnInterval);
+                spawnInterval = null;
+            }
+
+            // Award bonus points
+            score += levelBonus;
+
+            // Update display
+            document.getElementById('clearedLevel').textContent = currentLevel;
+            document.getElementById('levelKillsDisplay').textContent = KILLS_PER_LEVEL;
+            document.getElementById('levelBonus').textContent = levelBonus;
+
+            overlay.classList.add('active');
+
+            // Pause music
+            if (bgMusic) bgMusic.pause();
+        }
+
+        function nextLevel() {
+            const overlay = document.getElementById('levelClearOverlay');
+            overlay.classList.remove('active');
+
+            currentLevel++;
+            levelKills = 0;
+
+            // Check if it's boss level (every 5 levels)
+            if (currentLevel % 5 === 0) {
+                spawnBoss();
+            }
+
+            gameState = 'playing';
+            startEnemySpawning();
+
+            // Resume music
+            if (bgMusic && isMusicEnabled) bgMusic.play();
+        }
+
+        function spawnBoss() {
+            isBossWave = true;
+            bossActive = true;
+
+            const bossType = enemyTypes[6]; // level_boss
+            const lane = 2; // Middle lane
+
+            // Boss health scales with level
+            const bossHealth = bossType.health + (currentLevel * 10);
+
+            enemies.push({
+                id: Date.now() + Math.random(),
+                ...bossType,
+                lane,
+                x: lane * LANE_WIDTH + LANE_WIDTH / 2,
+                y: -bossType.size,
+                health: bossHealth,
+                maxHealth: bossHealth,
+                speed: bossType.speed
+            });
+
+            // Boss notification
+            effects.push({
+                id: Date.now() + Math.random(),
+                x: CANVAS_WIDTH / 2,
+                y: CANVAS_HEIGHT / 3,
+                vx: 0,
+                vy: 0,
+                life: 120,
+                color: '#ff1744',
+                size: 1,
+                text: `⚠️ 보스 등장! ⚠️`,
+                isText: true
+            });
+        }
+
+        // Initialize on load
+        init();
+    </script>
+    <script>
+        // Auto fullscreen on load
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log(err));
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }
+        
+        // Try on first user interaction
+        let hasTriedFullscreen = false;
+        document.addEventListener("click", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+        
+        document.addEventListener("touchstart", () => {
+            if (!hasTriedFullscreen) {
+                hasTriedFullscreen = true;
+                enterFullscreen();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
