@@ -279,11 +279,24 @@
                 if (!cake.stopped) {
                     cake.x += cake.direction * cake.speed;
 
-                    // Check if cake reached center (player position)
+                    // Check if cake reached player position
                     const playerCenterX = player.x + player.width / 2;
-                    const cakeCenterX = cake.x + cake.width / 2;
 
-                    if (Math.abs(playerCenterX - cakeCenterX) < 20) {
+                    // Different stopping position based on direction
+                    let shouldStop = false;
+                    if (cake.direction > 0) {
+                        // Coming from left - stop when left edge reaches player center
+                        if (cake.x <= playerCenterX && cake.x + cake.width >= playerCenterX) {
+                            shouldStop = true;
+                        }
+                    } else {
+                        // Coming from right - stop when right edge reaches player center
+                        if (cake.x + cake.width >= playerCenterX && cake.x <= playerCenterX) {
+                            shouldStop = true;
+                        }
+                    }
+
+                    if (shouldStop) {
                         // Stop the cake
                         cake.stopped = true;
                         cake.direction = 0;
@@ -294,9 +307,16 @@
                         }
                     }
 
-                    // Remove if goes off screen
-                    if (cake.x > canvas.width + cakeWidth || cake.x < -cakeWidth) {
-                        gameOver();
+                    // Only game over if cake goes too far off screen without stopping
+                    if (cake === currentCake && !cake.stopped) {
+                        if (cake.x > canvas.width + cakeWidth * 2 || cake.x < -cakeWidth * 2) {
+                            if (!isDying) {
+                                isDying = true;
+                                setTimeout(() => {
+                                    gameOver();
+                                }, 500);
+                            }
+                        }
                     }
                 }
             });
