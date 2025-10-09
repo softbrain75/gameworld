@@ -178,6 +178,8 @@
         const gravity = 0.5;
         const cakeWidth = 120;
         const cakeHeight = 30;
+        let cameraOffsetY = 0; // Camera follows player
+        let isDying = false; // Death animation flag
 
         // Audio context
         let audioContext = null;
@@ -223,6 +225,8 @@
             cakes = [];
             stackedCakes = [];
             score = 0;
+            cameraOffsetY = 0;
+            isDying = false;
 
             // Starting plate
             stackedCakes.push({
@@ -265,6 +269,10 @@
         // Game loop
         function update() {
             if (gameState !== 'playing') return;
+
+            // Camera follows player upward
+            const targetCameraY = Math.max(0, (canvas.height - 100) - player.y - canvas.height * 0.6);
+            cameraOffsetY += (targetCameraY - cameraOffsetY) * 0.1;
 
             // Update flying cakes
             cakes.forEach(cake => {
@@ -324,22 +332,33 @@
                     }
                 }
 
-                // Check if player fell off
-                if (player.y > canvas.height) {
-                    gameOver();
+                // Check if player fell off screen (after falling far enough)
+                if (player.y > canvas.height - 100 + cameraOffsetY + canvas.height) {
+                    if (!isDying) {
+                        isDying = true;
+                        setTimeout(() => {
+                            gameOver();
+                        }, 1000); // Wait 1 second to show falling animation
+                    }
                 }
 
                 // Check collision with moving cake (hit by cake = game over)
-                cakes.forEach(cake => {
-                    if (!cake.stopped) {
-                        if (player.x + player.width > cake.x &&
-                            player.x < cake.x + cake.width &&
-                            player.y + player.height > cake.y &&
-                            player.y < cake.y + cake.height) {
-                            gameOver();
+                if (!isDying) {
+                    cakes.forEach(cake => {
+                        if (!cake.stopped) {
+                            if (player.x + player.width > cake.x &&
+                                player.x < cake.x + cake.width &&
+                                player.y + player.height > cake.y &&
+                                player.y < cake.y + cake.height) {
+                                isDying = true;
+                                playSound('gameover');
+                                setTimeout(() => {
+                                    gameOver();
+                                }, 1000); // Wait 1 second to show falling animation
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
 
@@ -361,6 +380,10 @@
                 }
             }
 
+            // Save context and apply camera offset
+            ctx.save();
+            ctx.translate(0, cameraOffsetY);
+
             // Draw stacked cakes (tower)
             stackedCakes.forEach((cake, index) => {
                 drawCake(cake.x, cake.y, cake.width, cake.height, index === 0);
@@ -375,7 +398,10 @@
             // Draw player (Girl character)
             drawGirl(player.x, player.y);
 
-            // Draw score in center top
+            // Restore context
+            ctx.restore();
+
+            // Draw score in center top (fixed position, not affected by camera)
             ctx.fillStyle = 'white';
             ctx.font = 'bold 80px Arial';
             ctx.textAlign = 'center';
@@ -499,7 +525,8 @@
             if (gameState !== 'playing') return;
 
             gameState = 'gameover';
-            playSound('gameover');
+
+            // Show game over screen after animation
             document.getElementById('gameoverScreen').classList.remove('hidden');
 
             document.getElementById('finalScore').textContent = score;
@@ -514,7 +541,7 @@
 
         // Jump function
         function jump() {
-            if (gameState === 'playing' && player.canJump && !player.falling) {
+            if (gameState === 'playing' && player.canJump && !player.falling && !isDying) {
                 player.velocityY = player.jumpPower;
                 player.falling = true;
                 player.canJump = false;
