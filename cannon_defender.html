@@ -718,11 +718,19 @@
                     </div>
 
                     <div class="enemy-types" style="margin-top: 15px;">
-                        <p style="color: #cyan; font-weight: bold;">🎁 파워업 (20킬마다):</p>
-                        <p><span style="color: #2ecc71;">⚡</span> 속도 부스트 (10초간 2배 속도)</p>
-                        <p><span style="color: #ff6600;">🔥</span> 연사 모드 (8초간 자동 연사)</p>
+                        <p style="color: #cyan; font-weight: bold;">🎁 파워업 (20킬마다, 각 10초 지속):</p>
+                        <p><span style="color: #2ecc71;">⚡</span> 속도 부스트 (2배 속도)</p>
+                        <p><span style="color: #ff6600;">🔥</span> 연사 모드 (자동 연사)</p>
                         <p><span style="color: #ff69b4;">💖</span> 생명 추가 (하트 +1)</p>
-                        <p><span style="color: #ffd700;">⚡💀</span> 원킬 모드 (5발 원킬!)</p>
+                        <p><span style="color: #ffd700;">⚡💀</span> 원킬 모드 (체력 무시!)</p>
+                    </div>
+
+                    <div class="enemy-types" style="margin-top: 15px;">
+                        <p style="color: #cyan; font-weight: bold;">⌨️ 키보드 단축키:</p>
+                        <p>H / Space: 첫 번째 대포 발사</p>
+                        <p>J, K, L, ; : 2~5번째 대포 발사</p>
+                        <p>G: 모든 대포 발사</p>
+                        <p>P / ESC: 일시정지</p>
                     </div>
                 </div>
             </div>
@@ -1026,7 +1034,7 @@
         let speedBoostActive = false;
         let speedBoostEndTime = 0;
         let oneKillActive = false;
-        let oneKillCount = 0; // 원킬 남은 횟수
+        let oneKillEndTime = 0;
         const SPEED_BOOST_COST = 500;
         const SPEED_BOOST_DURATION = 15000; // 15 seconds
         let isPaused = false;
@@ -1161,7 +1169,15 @@
                 return;
             }
 
-            // Fire cannons: h, j, k, l, ; (lanes 0-4)
+            // Fire cannons: h, j, k, l, ; (lanes 0-4) OR Space (lane 0)
+            if (key === ' ') {
+                // Space bar fires lane 0
+                if (cannons[0]?.canFire) {
+                    fireCannon(0);
+                }
+                return;
+            }
+
             const fireKeys = ['h', 'j', 'k', 'l', ';'];
             const fireIndex = fireKeys.indexOf(key);
             if (fireIndex !== -1 && cannons[fireIndex]?.canFire) {
@@ -1455,6 +1471,11 @@
                 updateUI();
             }
 
+            // Check one-kill expiration
+            if (oneKillActive && Date.now() > oneKillEndTime) {
+                oneKillActive = false;
+            }
+
             // Update enemies
             for (let i = enemies.length - 1; i >= 0; i--) {
                 const enemy = enemies[i];
@@ -1531,13 +1552,8 @@
                             }
 
                             // 원킬 모드면 즉시 죽임
-                            if (oneKillActive && oneKillCount > 0) {
+                            if (oneKillActive) {
                                 enemy.health = 0;
-                                oneKillCount--;
-                                if (oneKillCount <= 0) {
-                                    oneKillActive = false;
-                                }
-                                updateUI();
                             } else {
                                 // Level 10+ cannons deal 2x damage
                                 const damage = proj.cannonLevel >= 10 ? 2 : 1;
@@ -1604,7 +1620,7 @@
                                         });
                                     } else if (enemy.powerUpType === 'rapid') {
                                         rapidFireActive = true;
-                                        rapidFireEndTime = Date.now() + 8000; // 8 seconds
+                                        rapidFireEndTime = Date.now() + 10000; // 10 seconds
 
                                         // Start rapid fire
                                         if (rapidFireInterval) clearInterval(rapidFireInterval);
@@ -1655,9 +1671,9 @@
                                             isText: true
                                         });
                                     } else if (enemy.powerUpType === 'onekill') {
-                                        // 원킬 5발
+                                        // 원킬 10초
                                         oneKillActive = true;
-                                        oneKillCount = 5;
+                                        oneKillEndTime = Date.now() + 10000; // 10 seconds
                                         effects.push({
                                             id: Date.now() + Math.random(),
                                             x: enemy.x,
@@ -1667,10 +1683,9 @@
                                             life: 60,
                                             color: '#ffd700',
                                             size: 1,
-                                            text: '⚡ 원킬 5발!',
+                                            text: '⚡ 원킬 10초!',
                                             isText: true
                                         });
-                                        updateUI();
                                     }
                                 }
 
@@ -2086,7 +2101,9 @@
             }
 
             // 원킬 모드 표시
-            if (oneKillActive && oneKillCount > 0) {
+            if (oneKillActive) {
+                const timeLeft = Math.ceil((oneKillEndTime - Date.now()) / 1000);
+
                 ctx.save();
                 ctx.translate(CANVAS_WIDTH / 2, yOffset);
 
@@ -2095,7 +2112,7 @@
                 ctx.shadowBlur = 15;
                 ctx.font = 'bold 30px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText(`⚡💀 원킬 ${oneKillCount}발 남음`, 0, 0);
+                ctx.fillText(`⚡💀 원킬 ${timeLeft}초`, 0, 0);
                 ctx.shadowBlur = 0;
 
                 ctx.restore();
