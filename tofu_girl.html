@@ -362,7 +362,7 @@
                     }
                 }
 
-                // Check collision with moving tofu (only side collision = game over)
+                // Check collision with moving tofu (side collision = game over)
                 if (!isDying) {
                     cakes.forEach(cake => {
                         if (!cake.stopped) {
@@ -375,21 +375,25 @@
                             if (overlapX && overlapY) {
                                 // Distinguish between landing from top vs side collision
                                 const playerBottom = player.y + player.height;
-                                const playerCenterX = player.x + player.width / 2;
+                                const playerTop = player.y;
                                 const cakeTop = cake.y;
-                                const cakeCenterX = cake.x + cake.width / 2;
+                                const cakeBottom = cake.y + cake.height;
 
-                                const distanceFromTop = playerBottom - cakeTop;
-                                const horizontalDistance = Math.abs(playerCenterX - cakeCenterX);
+                                // Check if player is mostly above the tofu (landing from top)
+                                const playerMiddleY = player.y + player.height / 2;
 
-                                // If player is falling down and landing on top (not edge) = OK
-                                // Allow landing if player is reasonably above tofu and horizontally close
-                                if (player.velocityY > 0 && distanceFromTop >= 0 && distanceFromTop < 30 &&
-                                    horizontalDistance < cake.width * 0.6) {
+                                // Landing criteria:
+                                // 1. Player is falling down
+                                // 2. Player's center is above tofu's center
+                                // 3. Player's bottom is close to tofu's top
+                                if (player.velocityY > 0 &&
+                                    playerMiddleY < cakeTop + 10 &&
+                                    playerBottom >= cakeTop &&
+                                    playerBottom <= cakeTop + 20) {
                                     // Landing from top - allow it
                                     return;
                                 } else {
-                                    // Side collision - game over
+                                    // Side collision or bad landing - game over
                                     isDying = true;
                                     playSound('gameover');
                                     setTimeout(() => {
