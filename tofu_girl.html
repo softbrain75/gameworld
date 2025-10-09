@@ -255,7 +255,7 @@
 
             currentCake = {
                 x: startX,
-                y: topCake.y - player.height - 10, // Spawn lower, touching the top cake
+                y: topCake.y, // Same Y position as top cake (touching ground)
                 width: cakeWidth,
                 height: cakeHeight,
                 direction: direction,
@@ -316,12 +316,16 @@
 
                 // Check landing on stopped cake
                 if (currentCake && currentCake.stopped) {
-                    if (player.y + player.height >= currentCake.y &&
-                        player.y + player.height <= currentCake.y + cakeHeight + 10 &&
+                    const topCake = stackedCakes[stackedCakes.length - 1];
+                    const landingY = topCake.y - cakeHeight;
+
+                    if (player.y + player.height >= landingY &&
+                        player.y + player.height <= landingY + cakeHeight + 10 &&
                         player.x + player.width > currentCake.x &&
                         player.x < currentCake.x + currentCake.width) {
 
-                        // Landed successfully
+                        // Landed successfully - move cake on top of previous cake
+                        currentCake.y = landingY;
                         player.y = currentCake.y - player.height;
                         player.velocityY = 0;
                         player.falling = false;
