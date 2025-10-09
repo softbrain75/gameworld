@@ -116,6 +116,7 @@
 
     <div id="menuScreen" class="screen">
         <h1>🍰 Tofu Girl</h1>
+        <div class="info">화면을 눌러 점프!</div>
         <div class="info">날아오는 케이크 위에 착지하세요!</div>
         <div class="info">케이크가 중앙에 오면 자동으로 멈춥니다</div>
         <div class="info">케이크에 맞으면 게임 오버!</div>
@@ -163,7 +164,9 @@
             width: 50,
             height: 70,
             velocityY: 0,
-            falling: false
+            falling: false,
+            jumpPower: -15,
+            canJump: true
         };
 
         // Game variables
@@ -235,6 +238,7 @@
             player.y = canvas.height - 100 - cakeHeight - player.height;
             player.velocityY = 0;
             player.falling = false;
+            player.canJump = true;
 
             // Spawn first cake
             spawnCake();
@@ -305,6 +309,7 @@
                         player.y = currentCake.y - player.height;
                         player.velocityY = 0;
                         player.falling = false;
+                        player.canJump = true;
 
                         // Add to stacked cakes
                         stackedCakes.push(currentCake);
@@ -507,9 +512,29 @@
             document.getElementById('gameoverHighScore').textContent = highScore;
         }
 
+        // Jump function
+        function jump() {
+            if (gameState === 'playing' && player.canJump && !player.falling) {
+                player.velocityY = player.jumpPower;
+                player.falling = true;
+                player.canJump = false;
+            }
+        }
+
         // Event listeners
         document.getElementById('startBtn').addEventListener('click', startGame);
         document.getElementById('retryBtn').addEventListener('click', startGame);
+
+        // Jump controls - mouse/touch on canvas
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            jump();
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
+        });
 
         // High score display
         document.getElementById('menuHighScore').textContent = highScore;
