@@ -279,25 +279,12 @@
                 if (!cake.stopped) {
                     cake.x += cake.direction * cake.speed;
 
-                    // Check if cake reached player position
+                    // Check if cake reached player position (same position for both directions)
                     const playerCenterX = player.x + player.width / 2;
+                    const cakeCenterX = cake.x + cake.width / 2;
 
-                    // Different stopping position based on direction
-                    let shouldStop = false;
-                    if (cake.direction > 0) {
-                        // Coming from left - stop when left edge reaches player center
-                        if (cake.x <= playerCenterX && cake.x + cake.width >= playerCenterX) {
-                            shouldStop = true;
-                        }
-                    } else {
-                        // Coming from right - stop when right edge reaches player center
-                        if (cake.x + cake.width >= playerCenterX && cake.x <= playerCenterX) {
-                            shouldStop = true;
-                        }
-                    }
-
-                    if (shouldStop) {
-                        // Stop the cake
+                    if (Math.abs(playerCenterX - cakeCenterX) < 20) {
+                        // Stop the cake at center
                         cake.stopped = true;
                         cake.direction = 0;
 
