@@ -1546,9 +1546,21 @@
                         if (distance < 30) {
                             hit = true;
 
-                            // 그룹에 히트 표시
+                            // 그룹에 히트 표시 및 같은 그룹의 다른 포탄 제거
                             if (projectileGroups[proj.groupId]) {
                                 projectileGroups[proj.groupId].hit = true;
+
+                                // 같은 그룹의 다른 포탄들을 즉시 제거
+                                for (let j = projectiles.length - 1; j >= 0; j--) {
+                                    if (projectiles[j].groupId === proj.groupId && j !== i) {
+                                        const group = projectileGroups[projectiles[j].groupId];
+                                        if (group) {
+                                            group.count--;
+                                        }
+                                        projectiles.splice(j, 1);
+                                        if (j < i) i--; // 인덱스 조정
+                                    }
+                                }
                             }
 
                             // 원킬 모드면 즉시 죽임
