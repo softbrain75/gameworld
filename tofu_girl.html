@@ -279,15 +279,15 @@
                 if (!cake.stopped) {
                     cake.x += cake.direction * cake.speed;
 
-                    // Check if cake reached exact center position
-                    const screenCenterX = canvas.width / 2;
+                    // Check if tofu reached player center position
+                    const playerCenterX = player.x + player.width / 2;
                     const cakeCenterX = cake.x + cake.width / 2;
 
-                    if (Math.abs(screenCenterX - cakeCenterX) < 5) {
-                        // Stop the cake at exact center
+                    if (Math.abs(playerCenterX - cakeCenterX) < 30) {
+                        // Stop the tofu at player center
                         cake.stopped = true;
                         cake.direction = 0;
-                        cake.x = screenCenterX - cake.width / 2; // Snap to center
+                        cake.x = playerCenterX - cake.width / 2; // Snap to player center
 
                         // Check if player can land on it
                         if (!player.falling) {
@@ -314,33 +314,44 @@
                 player.velocityY += gravity;
                 player.y += player.velocityY;
 
-                // Check landing on stopped cake
+                // Check landing on stopped tofu (more forgiving)
                 if (currentCake && currentCake.stopped) {
                     const topCake = stackedCakes[stackedCakes.length - 1];
                     const landingY = topCake.y - cakeHeight;
 
-                    if (player.y + player.height >= landingY &&
-                        player.y + player.height <= landingY + cakeHeight + 10 &&
-                        player.x + player.width > currentCake.x &&
-                        player.x < currentCake.x + currentCake.width) {
+                    // More forgiving landing detection
+                    const playerBottom = player.y + player.height;
+                    const tofuTop = landingY;
+                    const tofuBottom = landingY + cakeHeight;
 
-                        // Landed successfully - move cake on top of previous cake
-                        currentCake.y = landingY;
-                        player.y = currentCake.y - player.height;
-                        player.velocityY = 0;
-                        player.falling = false;
-                        player.canJump = true;
+                    // Check if player is falling and overlaps with tofu
+                    if (playerBottom >= tofuTop && playerBottom <= tofuBottom + 20 &&
+                        player.velocityY > 0) {
 
-                        // Add to stacked cakes
-                        stackedCakes.push(currentCake);
-                        score++;
+                        // Check horizontal overlap - allow landing anywhere on tofu
+                        const playerCenterX = player.x + player.width / 2;
+                        const tofuLeft = currentCake.x;
+                        const tofuRight = currentCake.x + currentCake.width;
 
-                        playSound('land');
+                        if (playerCenterX >= tofuLeft - 10 && playerCenterX <= tofuRight + 10) {
+                            // Landed successfully - move tofu on top of previous tofu
+                            currentCake.y = landingY;
+                            player.y = currentCake.y - player.height;
+                            player.velocityY = 0;
+                            player.falling = false;
+                            player.canJump = true;
 
-                        // Spawn next cake
-                        setTimeout(() => {
-                            spawnCake();
-                        }, 500);
+                            // Add to stacked cakes
+                            stackedCakes.push(currentCake);
+                            score++;
+
+                            playSound('land');
+
+                            // Spawn next cake
+                            setTimeout(() => {
+                                spawnCake();
+                            }, 500);
+                        }
                     }
                 }
 
@@ -354,19 +365,35 @@
                     }
                 }
 
-                // Check collision with moving cake (hit by cake = game over)
+                // Check collision with moving tofu (only side collision = game over)
                 if (!isDying) {
                     cakes.forEach(cake => {
                         if (!cake.stopped) {
-                            if (player.x + player.width > cake.x &&
-                                player.x < cake.x + cake.width &&
-                                player.y + player.height > cake.y &&
-                                player.y < cake.y + cake.height) {
-                                isDying = true;
-                                playSound('gameover');
-                                setTimeout(() => {
-                                    gameOver();
-                                }, 1000); // Wait 1 second to show falling animation
+                            // Check if there's overlap
+                            const overlapX = player.x + player.width > cake.x &&
+                                           player.x < cake.x + cake.width;
+                            const overlapY = player.y + player.height > cake.y &&
+                                           player.y < cake.y + cake.height;
+
+                            if (overlapX && overlapY) {
+                                // Distinguish between landing from top vs side collision
+                                const playerBottom = player.y + player.height;
+                                const cakeTop = cake.y;
+                                const distanceFromTop = Math.abs(playerBottom - cakeTop);
+
+                                // If player is falling down and close to tofu top = landing attempt (OK)
+                                // If player hits side = game over
+                                if (player.velocityY > 0 && distanceFromTop < 15) {
+                                    // Landing from top - allow it
+                                    return;
+                                } else {
+                                    // Side collision - game over
+                                    isDying = true;
+                                    playSound('gameover');
+                                    setTimeout(() => {
+                                        gameOver();
+                                    }, 1000);
+                                }
                             }
                         }
                     });
@@ -396,15 +423,15 @@
             ctx.save();
             ctx.translate(0, cameraOffsetY);
 
-            // Draw stacked cakes (tower)
+            // Draw stacked tofu (tower)
             stackedCakes.forEach((cake, index) => {
-                drawCake(cake.x, cake.y, cake.width, cake.height, index === 0);
+                drawTofu(cake.x, cake.y, cake.width, cake.height, index === 0);
             });
 
-            // Draw flying cakes
+            // Draw flying tofu
             cakes.forEach((cake, index) => {
                 if (index < stackedCakes.length - 1) return; // Don't draw already stacked cakes
-                drawCake(cake.x, cake.y, cake.width, cake.height, false);
+                drawTofu(cake.x, cake.y, cake.width, cake.height, false);
             });
 
             // Draw player (Girl character)
@@ -424,7 +451,7 @@
             ctx.fillText(score, canvas.width / 2, 80);
         }
 
-        function drawCake(x, y, width, height, isPlate) {
+        function drawTofu(x, y, width, height, isPlate) {
             if (isPlate) {
                 // Draw white plate
                 ctx.fillStyle = '#ffffff';
@@ -435,21 +462,22 @@
                 ctx.lineWidth = 3;
                 ctx.stroke();
             } else {
-                // Draw cake layers
-                // Bottom layer (darker)
-                ctx.fillStyle = '#f4d58d';
-                ctx.fillRect(x, y, width, height / 2);
+                // Draw tofu (white block)
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(x, y, width, height);
 
-                // Brown cream layer
-                ctx.fillStyle = '#8b4513';
-                ctx.fillRect(x, y + height / 2, width, height / 4);
+                // Add grid lines for texture
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x + width / 2, y);
+                ctx.lineTo(x + width / 2, y + height);
+                ctx.moveTo(x, y + height / 2);
+                ctx.lineTo(x + width, y + height / 2);
+                ctx.stroke();
 
-                // Top layer (lighter)
-                ctx.fillStyle = '#ffe4b5';
-                ctx.fillRect(x, y + height * 3 / 4, width, height / 4);
-
-                // Border
-                ctx.strokeStyle = '#8b4513';
+                // Black border
+                ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(x, y, width, height);
             }
