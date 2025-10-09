@@ -8,7 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
      crossorigin="anonymous"></script>
-    <title>Tofu Girl 🐰</title>
+    <title>Tofu Girl 🍰</title>
     <style>
         * {
             margin: 0;
@@ -24,7 +24,7 @@
             height: calc(var(--vh, 1vh) * 100);
             overflow: hidden;
             font-family: 'Malgun Gothic', sans-serif;
-            background: linear-gradient(to bottom, #ffb3d9 0%, #ff69b4 100%);
+            background: linear-gradient(to bottom, #d4a5ff 0%, #b88dd9 100%);
             touch-action: none;
             display: flex;
             justify-content: center;
@@ -33,7 +33,7 @@
 
         #gameCanvas {
             display: block;
-            background: linear-gradient(to bottom, #ffb3d9 0%, #ff69b4 100%);
+            background: linear-gradient(to bottom, #d4a5ff 0%, #b88dd9 100%);
             max-width: 100%;
             max-height: 100%;
             width: 100vw;
@@ -51,7 +51,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(255, 105, 180, 0.95);
+            background: rgba(180, 141, 217, 0.95);
             color: white;
             z-index: 10;
         }
@@ -80,7 +80,7 @@
             border: none;
             border-radius: 10px;
             background: linear-gradient(145deg, #fff, #ffd700);
-            color: #ff69b4;
+            color: #9966cc;
             cursor: pointer;
             font-weight: bold;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
@@ -91,38 +91,17 @@
             transform: scale(0.95);
         }
 
-        .hud {
+        .countdown {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 215, 0, 0.9);
-            padding: 10px 20px;
-            border-radius: 30px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-
-        .coin-icon {
-            width: 30px;
-            height: 30px;
-            background: #ffd700;
-            border-radius: 50%;
-            border: 3px solid #ff8c00;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
             font-weight: bold;
-            color: #ff8c00;
-        }
-
-        .score {
-            color: #fff;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: white;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+            z-index: 100;
+            pointer-events: none;
         }
 
         @media (max-width: 768px) {
@@ -136,25 +115,22 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="menuScreen" class="screen">
-        <h1>🐰 Tofu Girl</h1>
-        <div class="info">두부 위에서 점프하며 올라가세요!</div>
-        <div class="info">화면을 터치하여 점프</div>
-        <div class="info">코인을 모으고 높이 올라가세요!</div>
-        <div class="info" style="margin-top: 1rem;">최고 기록: <span id="menuHighScore">0</span>점</div>
+        <h1>🍰 Tofu Girl</h1>
+        <div class="info">날아오는 케이크 위에 착지하세요!</div>
+        <div class="info">케이크가 중앙에 오면 자동으로 멈춥니다</div>
+        <div class="info">케이크에 맞으면 게임 오버!</div>
+        <div class="info" style="margin-top: 1rem;">최고 기록: <span id="menuHighScore">0</span>층</div>
         <button id="startBtn">게임 시작</button>
     </div>
 
     <div id="gameoverScreen" class="screen hidden">
         <h1>게임 오버</h1>
-        <div class="info">획득 점수: <span id="finalScore">0</span>점</div>
-        <div class="info">최고 기록: <span id="gameoverHighScore">0</span>점</div>
+        <div class="info">쌓은 층수: <span id="finalScore">0</span>층</div>
+        <div class="info">최고 기록: <span id="gameoverHighScore">0</span>층</div>
         <button id="retryBtn">다시 하기</button>
     </div>
 
-    <div class="hud hidden" id="gameHud">
-        <div class="coin-icon">₩</div>
-        <div class="score" id="scoreDisplay">0</div>
-    </div>
+    <div id="countdown" class="countdown hidden"></div>
 
     <script>
         // Viewport height fix for mobile
@@ -180,30 +156,25 @@
         let gameState = 'menu';
         let highScore = parseInt(localStorage.getItem('tofuGirl_highScore')) || 0;
 
-        // Player (Tofu Girl character)
+        // Player (Girl character)
         const player = {
             x: 0,
             y: 0,
-            width: 40,
-            height: 60,
+            width: 50,
+            height: 70,
             velocityY: 0,
-            velocityX: 0,
-            jumping: false,
-            color: '#ffb3d9'
+            falling: false
         };
 
         // Game variables
-        let platforms = [];
-        let coins = [];
+        let cakes = []; // Flying cakes
+        let stackedCakes = []; // Stacked cakes (tower)
         let score = 0;
-        let cameraY = 0;
-        const gravity = 0.6;
-        const jumpPower = -15;
-        const platformWidth = 100;
-        const platformHeight = 20;
-
-        // Input
-        let touchStarted = false;
+        let currentCake = null;
+        let cakeSpeed = 3;
+        const gravity = 0.5;
+        const cakeWidth = 120;
+        const cakeHeight = 30;
 
         // Audio context
         let audioContext = null;
@@ -227,14 +198,9 @@
                 gainNode.connect(audioContext.destination);
 
                 switch(type) {
-                    case 'jump':
-                        oscillator.frequency.value = 500;
+                    case 'land':
+                        oscillator.frequency.value = 600;
                         gainNode.gain.value = 0.1;
-                        oscillator.type = 'sine';
-                        break;
-                    case 'coin':
-                        oscillator.frequency.value = 800;
-                        gainNode.gain.value = 0.08;
                         oscillator.type = 'sine';
                         break;
                     case 'gameover':
@@ -249,239 +215,242 @@
             } catch (e) {}
         }
 
-        // Initialize platforms
-        function initPlatforms() {
-            platforms = [];
-            coins = [];
+        // Initialize game
+        function initGame() {
+            cakes = [];
+            stackedCakes = [];
+            score = 0;
 
-            // Starting platform
-            platforms.push({
-                x: canvas.width / 2 - platformWidth / 2,
+            // Starting plate
+            stackedCakes.push({
+                x: canvas.width / 2 - cakeWidth / 2,
                 y: canvas.height - 100,
-                width: platformWidth,
-                height: platformHeight,
-                color: '#fff'
+                width: cakeWidth,
+                height: cakeHeight,
+                stopped: true
             });
 
-            // Generate initial platforms
-            let lastY = canvas.height - 100;
-            for (let i = 0; i < 10; i++) {
-                lastY -= 80 + Math.random() * 40;
-                const x = Math.random() * (canvas.width - platformWidth);
-                platforms.push({
-                    x: x,
-                    y: lastY,
-                    width: platformWidth,
-                    height: platformHeight,
-                    color: i % 2 === 0 ? '#fff' : '#fffacd'
-                });
+            // Player starts on the plate
+            player.x = canvas.width / 2 - player.width / 2;
+            player.y = canvas.height - 100 - cakeHeight - player.height;
+            player.velocityY = 0;
+            player.falling = false;
 
-                // Add coin above some platforms
-                if (Math.random() > 0.5) {
-                    coins.push({
-                        x: x + platformWidth / 2,
-                        y: lastY - 40,
-                        radius: 15,
-                        collected: false
-                    });
-                }
-            }
+            // Spawn first cake
+            spawnCake();
+        }
+
+        function spawnCake() {
+            const direction = Math.random() > 0.5 ? 1 : -1;
+            const startX = direction > 0 ? -cakeWidth : canvas.width;
+            const topCake = stackedCakes[stackedCakes.length - 1];
+
+            currentCake = {
+                x: startX,
+                y: topCake.y - cakeHeight - player.height - 20,
+                width: cakeWidth,
+                height: cakeHeight,
+                direction: direction,
+                speed: cakeSpeed + score * 0.1,
+                stopped: false
+            };
+
+            cakes.push(currentCake);
         }
 
         // Game loop
         function update() {
             if (gameState !== 'playing') return;
 
-            // Apply gravity
-            player.velocityY += gravity;
-            player.y += player.velocityY;
-            player.x += player.velocityX;
+            // Update flying cakes
+            cakes.forEach(cake => {
+                if (!cake.stopped) {
+                    cake.x += cake.direction * cake.speed;
 
-            // Horizontal bounds
-            if (player.x < 0) player.x = 0;
-            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+                    // Check if cake reached center (player position)
+                    const playerCenterX = player.x + player.width / 2;
+                    const cakeCenterX = cake.x + cake.width / 2;
 
-            // Platform collision
-            let onPlatform = false;
-            platforms.forEach(platform => {
-                if (player.velocityY > 0 &&
-                    player.x + player.width > platform.x &&
-                    player.x < platform.x + platform.width &&
-                    player.y + player.height > platform.y &&
-                    player.y + player.height < platform.y + platform.height + 10) {
+                    if (Math.abs(playerCenterX - cakeCenterX) < 20) {
+                        // Stop the cake
+                        cake.stopped = true;
+                        cake.direction = 0;
 
-                    player.y = platform.y - player.height;
-                    player.velocityY = 0;
-                    player.jumping = false;
-                    onPlatform = true;
-                }
-            });
+                        // Check if player can land on it
+                        if (!player.falling) {
+                            player.falling = true;
+                        }
+                    }
 
-            // Coin collection
-            coins.forEach(coin => {
-                if (!coin.collected) {
-                    const dx = player.x + player.width / 2 - coin.x;
-                    const dy = player.y + player.height / 2 - coin.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance < player.width / 2 + coin.radius) {
-                        coin.collected = true;
-                        score += 100;
-                        playSound('coin');
-                        document.getElementById('scoreDisplay').textContent = score.toLocaleString();
+                    // Remove if goes off screen
+                    if (cake.x > canvas.width + cakeWidth || cake.x < -cakeWidth) {
+                        gameOver();
                     }
                 }
             });
 
-            // Camera follow player (move camera up when player goes up)
-            if (player.y < canvas.height / 2) {
-                const diff = canvas.height / 2 - player.y;
-                cameraY += diff;
-                player.y = canvas.height / 2;
+            // Player falling physics
+            if (player.falling) {
+                player.velocityY += gravity;
+                player.y += player.velocityY;
 
-                // Move platforms down (relative to camera)
-                platforms.forEach(p => p.y += diff);
-                coins.forEach(c => c.y += diff);
+                // Check landing on stopped cake
+                if (currentCake && currentCake.stopped) {
+                    if (player.y + player.height >= currentCake.y &&
+                        player.y + player.height <= currentCake.y + cakeHeight + 10 &&
+                        player.x + player.width > currentCake.x &&
+                        player.x < currentCake.x + currentCake.width) {
 
-                // Add score for climbing
-                score += Math.floor(diff / 10);
-                document.getElementById('scoreDisplay').textContent = score.toLocaleString();
-            }
+                        // Landed successfully
+                        player.y = currentCake.y - player.height;
+                        player.velocityY = 0;
+                        player.falling = false;
 
-            // Generate new platforms as we climb
-            const highestPlatform = platforms.reduce((min, p) => Math.min(min, p.y), Infinity);
-            if (highestPlatform > 0) {
-                let lastY = highestPlatform;
-                for (let i = 0; i < 3; i++) {
-                    lastY -= 80 + Math.random() * 40;
-                    const x = Math.random() * (canvas.width - platformWidth);
-                    platforms.push({
-                        x: x,
-                        y: lastY,
-                        width: platformWidth,
-                        height: platformHeight,
-                        color: Math.random() > 0.5 ? '#fff' : '#fffacd'
-                    });
+                        // Add to stacked cakes
+                        stackedCakes.push(currentCake);
+                        score++;
 
-                    if (Math.random() > 0.5) {
-                        coins.push({
-                            x: x + platformWidth / 2,
-                            y: lastY - 40,
-                            radius: 15,
-                            collected: false
-                        });
+                        playSound('land');
+
+                        // Spawn next cake
+                        setTimeout(() => {
+                            spawnCake();
+                        }, 500);
                     }
                 }
+
+                // Check if player fell off
+                if (player.y > canvas.height) {
+                    gameOver();
+                }
+
+                // Check collision with moving cake (hit by cake = game over)
+                cakes.forEach(cake => {
+                    if (!cake.stopped) {
+                        if (player.x + player.width > cake.x &&
+                            player.x < cake.x + cake.width &&
+                            player.y + player.height > cake.y &&
+                            player.y < cake.y + cake.height) {
+                            gameOver();
+                        }
+                    }
+                });
             }
-
-            // Remove off-screen platforms and coins
-            platforms = platforms.filter(p => p.y < canvas.height + 100);
-            coins = coins.filter(c => c.y < canvas.height + 100);
-
-            // Game over if fall below screen
-            if (player.y > canvas.height) {
-                gameOver();
-            }
-
-            // Friction
-            player.velocityX *= 0.95;
         }
 
         function draw() {
             // Clear
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#ffb3d9');
-            gradient.addColorStop(1, '#ff69b4');
+            gradient.addColorStop(0, '#d4a5ff');
+            gradient.addColorStop(1, '#b88dd9');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw city silhouette background
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            // Draw background pattern
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
             for (let i = 0; i < 10; i++) {
-                const x = i * 80;
-                const height = 100 + Math.random() * 100;
-                ctx.fillRect(x, canvas.height - height, 60, height);
+                for (let j = 0; j < 10; j++) {
+                    if ((i + j) % 2 === 0) {
+                        ctx.fillRect(i * 80, j * 80, 80, 80);
+                    }
+                }
             }
 
-            // Draw platforms
-            platforms.forEach(platform => {
-                // Shadow
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-                ctx.fillRect(platform.x + 5, platform.y + 5, platform.width, platform.height);
+            // Draw stacked cakes (tower)
+            stackedCakes.forEach((cake, index) => {
+                drawCake(cake.x, cake.y, cake.width, cake.height, index === 0);
+            });
 
-                // Platform
-                ctx.fillStyle = platform.color;
-                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+            // Draw flying cakes
+            cakes.forEach((cake, index) => {
+                if (index < stackedCakes.length - 1) return; // Don't draw already stacked cakes
+                drawCake(cake.x, cake.y, cake.width, cake.height, false);
+            });
+
+            // Draw player (Girl character)
+            drawGirl(player.x, player.y);
+
+            // Draw score in center top
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.lineWidth = 8;
+            ctx.strokeText(score, canvas.width / 2, 80);
+            ctx.fillText(score, canvas.width / 2, 80);
+        }
+
+        function drawCake(x, y, width, height, isPlate) {
+            if (isPlate) {
+                // Draw white plate
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            } else {
+                // Draw cake layers
+                // Bottom layer (darker)
+                ctx.fillStyle = '#f4d58d';
+                ctx.fillRect(x, y, width, height / 2);
+
+                // Brown cream layer
+                ctx.fillStyle = '#8b4513';
+                ctx.fillRect(x, y + height / 2, width, height / 4);
+
+                // Top layer (lighter)
+                ctx.fillStyle = '#ffe4b5';
+                ctx.fillRect(x, y + height * 3 / 4, width, height / 4);
 
                 // Border
-                ctx.strokeStyle = '#ddd';
+                ctx.strokeStyle = '#8b4513';
                 ctx.lineWidth = 2;
-                ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
-            });
+                ctx.strokeRect(x, y, width, height);
+            }
+        }
 
-            // Draw coins
-            coins.forEach(coin => {
-                if (!coin.collected) {
-                    // Coin glow
-                    ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
-                    ctx.beginPath();
-                    ctx.arc(coin.x, coin.y, coin.radius + 5, 0, Math.PI * 2);
-                    ctx.fill();
+        function drawGirl(x, y) {
+            // Body (dress with apron)
+            ctx.fillStyle = '#ffb3d9';
+            ctx.fillRect(x + 15, y + 35, 20, 35);
 
-                    // Coin
-                    ctx.fillStyle = '#ffd700';
-                    ctx.beginPath();
-                    ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
-                    ctx.fill();
+            // Apron (white)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 18, y + 40, 14, 25);
 
-                    // Coin border
-                    ctx.strokeStyle = '#ff8c00';
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-
-                    // Coin symbol
-                    ctx.fillStyle = '#ff8c00';
-                    ctx.font = 'bold 16px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('₩', coin.x, coin.y);
-                }
-            });
-
-            // Draw player (Tofu Girl)
-            // Body
-            ctx.fillStyle = player.color;
+            // Head
+            ctx.fillStyle = '#ffd0b0';
             ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y + player.height / 3, player.width / 2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillRect(player.x + player.width / 4, player.y + player.height / 3, player.width / 2, player.height * 2 / 3);
-
-            // Bunny ears
-            ctx.fillStyle = player.color;
-            ctx.beginPath();
-            ctx.ellipse(player.x + player.width / 3, player.y + 5, 8, 20, -0.2, 0, Math.PI * 2);
-            ctx.ellipse(player.x + player.width * 2 / 3, player.y + 5, 8, 20, 0.2, 0, Math.PI * 2);
+            ctx.arc(x + 25, y + 20, 15, 0, Math.PI * 2);
             ctx.fill();
 
-            // Face
-            ctx.fillStyle = '#fff';
+            // Hair (black)
+            ctx.fillStyle = '#2c2c2c';
             ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y + player.height / 3, player.width / 3, 0, Math.PI * 2);
+            ctx.arc(x + 25, y + 15, 16, Math.PI, Math.PI * 2);
             ctx.fill();
 
             // Eyes
             ctx.fillStyle = '#000';
             ctx.beginPath();
-            ctx.arc(player.x + player.width / 2 - 8, player.y + player.height / 3 - 5, 3, 0, Math.PI * 2);
-            ctx.arc(player.x + player.width / 2 + 8, player.y + player.height / 3 - 5, 3, 0, Math.PI * 2);
+            ctx.arc(x + 20, y + 20, 2, 0, Math.PI * 2);
+            ctx.arc(x + 30, y + 20, 2, 0, Math.PI * 2);
             ctx.fill();
 
-            // Mouth
+            // Mouth (smile)
             ctx.strokeStyle = '#000';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.arc(player.x + player.width / 2, player.y + player.height / 3, 8, 0.2, Math.PI - 0.2);
+            ctx.arc(x + 25, y + 22, 6, 0.2, Math.PI - 0.2);
             ctx.stroke();
+
+            // Arms
+            ctx.fillStyle = '#ffd0b0';
+            ctx.fillRect(x + 8, y + 40, 8, 15);
+            ctx.fillRect(x + 34, y + 40, 8, 15);
         }
 
         function gameLoop() {
@@ -490,81 +459,61 @@
             requestAnimationFrame(gameLoop);
         }
 
-        function jump() {
-            if (!player.jumping && gameState === 'playing') {
-                player.velocityY = jumpPower;
-                player.jumping = true;
-                playSound('jump');
-            }
+        function showCountdown(callback) {
+            const countdownEl = document.getElementById('countdown');
+            countdownEl.classList.remove('hidden');
+            let count = 3;
+
+            countdownEl.textContent = count;
+
+            const interval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownEl.textContent = count;
+                } else {
+                    countdownEl.classList.add('hidden');
+                    clearInterval(interval);
+                    callback();
+                }
+            }, 1000);
         }
 
         function startGame() {
-            gameState = 'playing';
             document.getElementById('menuScreen').classList.add('hidden');
             document.getElementById('gameoverScreen').classList.add('hidden');
-            document.getElementById('gameHud').classList.remove('hidden');
 
-            // Reset
-            player.x = canvas.width / 2 - player.width / 2;
-            player.y = canvas.height - 200;
-            player.velocityY = 0;
-            player.velocityX = 0;
-            player.jumping = false;
-            score = 0;
-            cameraY = 0;
-
-            initPlatforms();
+            initGame();
             initAudio();
 
-            document.getElementById('scoreDisplay').textContent = '0';
+            showCountdown(() => {
+                gameState = 'playing';
+            });
         }
 
         function gameOver() {
+            if (gameState !== 'playing') return;
+
             gameState = 'gameover';
             playSound('gameover');
-            document.getElementById('gameHud').classList.add('hidden');
             document.getElementById('gameoverScreen').classList.remove('hidden');
 
-            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('finalScore').textContent = score;
 
             if (score > highScore) {
                 highScore = score;
                 localStorage.setItem('tofuGirl_highScore', highScore);
             }
 
-            document.getElementById('gameoverHighScore').textContent = highScore.toLocaleString();
+            document.getElementById('gameoverHighScore').textContent = highScore;
         }
 
         // Event listeners
         document.getElementById('startBtn').addEventListener('click', startGame);
         document.getElementById('retryBtn').addEventListener('click', startGame);
 
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            jump();
-        });
-
-        canvas.addEventListener('click', (e) => {
-            e.preventDefault();
-            jump();
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === ' ') {
-                e.preventDefault();
-                jump();
-            }
-            if (e.key === 'ArrowLeft') {
-                player.velocityX = -3;
-            }
-            if (e.key === 'ArrowRight') {
-                player.velocityX = 3;
-            }
-        });
-
         // High score display
-        document.getElementById('menuHighScore').textContent = highScore.toLocaleString();
-        document.getElementById('gameoverHighScore').textContent = highScore.toLocaleString();
+        document.getElementById('menuHighScore').textContent = highScore;
+        document.getElementById('gameoverHighScore').textContent = highScore;
 
         // Start game loop
         gameLoop();
