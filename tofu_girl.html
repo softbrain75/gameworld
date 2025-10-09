@@ -366,27 +366,27 @@
                 if (!isDying) {
                     cakes.forEach(cake => {
                         if (!cake.stopped) {
-                            // Check if there's overlap
-                            const overlapX = player.x + player.width > cake.x &&
-                                           player.x < cake.x + cake.width;
-                            const overlapY = player.y + player.height > cake.y &&
-                                           player.y < cake.y + cake.height;
+                            const playerBottom = player.y + player.height;
+                            const playerTop = player.y;
+                            const cakeTop = cake.y;
+                            const cakeBottom = cake.y + cake.height;
+
+                            // Tighter collision boxes to avoid false positives
+                            const overlapX = player.x + player.width - 5 > cake.x &&
+                                           player.x + 5 < cake.x + cake.width;
+                            const overlapY = playerBottom > cakeTop &&
+                                           playerTop < cakeBottom;
 
                             if (overlapX && overlapY) {
-                                const playerBottom = player.y + player.height;
-                                const playerTop = player.y;
-                                const cakeTop = cake.y;
-                                const cakeBottom = cake.y + cake.height;
+                                // Check if player is coming from above (landing) or from side (collision)
+                                // Landing: player's head is still above tofu
+                                // Side collision: player's head is already inside tofu
 
-                                // Key distinction: Check if player's BODY is inside tofu
-                                // If player's top is inside tofu = side collision
-                                // If only player's bottom (feet) touch tofu top = landing
-
-                                if (player.velocityY > 0 && playerTop > cakeTop - 5) {
-                                    // Player's body is entering tofu from above - this is landing (OK)
+                                if (player.velocityY > 0 && playerTop >= cakeTop - 10) {
+                                    // Player is above or just entering from top - this is landing (OK)
                                     return;
                                 } else {
-                                    // Player's body is already inside tofu = side collision (GAME OVER)
+                                    // Player hit from side - game over
                                     isDying = true;
                                     playSound('gameover');
                                     setTimeout(() => {
