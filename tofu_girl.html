@@ -289,10 +289,7 @@
                         cake.direction = 0;
                         cake.x = playerCenterX - cake.width / 2; // Snap to player center
 
-                        // Check if player can land on it
-                        if (!player.falling) {
-                            player.falling = true;
-                        }
+                        // Don't automatically make player fall - wait for jump input
                     }
 
                     // Only game over if cake goes too far off screen without stopping
