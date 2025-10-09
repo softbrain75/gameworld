@@ -373,27 +373,20 @@
                                            player.y < cake.y + cake.height;
 
                             if (overlapX && overlapY) {
-                                // Distinguish between landing from top vs side collision
                                 const playerBottom = player.y + player.height;
                                 const playerTop = player.y;
                                 const cakeTop = cake.y;
                                 const cakeBottom = cake.y + cake.height;
 
-                                // Check if player is mostly above the tofu (landing from top)
-                                const playerMiddleY = player.y + player.height / 2;
+                                // Key distinction: Check if player's BODY is inside tofu
+                                // If player's top is inside tofu = side collision
+                                // If only player's bottom (feet) touch tofu top = landing
 
-                                // Landing criteria:
-                                // 1. Player is falling down
-                                // 2. Player's center is above tofu's center
-                                // 3. Player's bottom is close to tofu's top
-                                if (player.velocityY > 0 &&
-                                    playerMiddleY < cakeTop + 10 &&
-                                    playerBottom >= cakeTop &&
-                                    playerBottom <= cakeTop + 20) {
-                                    // Landing from top - allow it
+                                if (player.velocityY > 0 && playerTop > cakeTop - 5) {
+                                    // Player's body is entering tofu from above - this is landing (OK)
                                     return;
                                 } else {
-                                    // Side collision or bad landing - game over
+                                    // Player's body is already inside tofu = side collision (GAME OVER)
                                     isDying = true;
                                     playSound('gameover');
                                     setTimeout(() => {
