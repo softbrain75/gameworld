@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
@@ -22,7 +22,7 @@
         }
 
         body {
-            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+            font-family: 'NanumSquare', sans-serif;
             background: #f5f5f5;
             min-height: 100vh;
             padding: 0;
@@ -319,7 +319,7 @@
             color: #333;
             outline: none;
             transition: all 0.2s ease;
-            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+            font-family: 'NanumSquare', sans-serif;
         }
 
         .search-input:focus {
@@ -405,7 +405,13 @@
         }
 
         .tabs-container {
-            padding: 0 20px 20px;
+            padding: 0 12px 20px;
+        }
+
+        @media (max-width: 479px) {
+            .tabs-container {
+                padding: 0 8px 20px;
+            }
         }
 
         h1 {
@@ -425,7 +431,7 @@
             display: flex;
             overflow-x: auto;
             gap: 10px;
-            padding: 0 10px;
+            padding: 0;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -438,7 +444,7 @@
             background: rgba(255, 255, 255, 0.2);
             color: white;
             border: 2px solid transparent;
-            padding: 12px 24px;
+            padding: 6px 12px;
             border-radius: 25px;
             cursor: pointer;
             white-space: nowrap;
@@ -909,7 +915,7 @@
             border: 1px solid #e0e0e0;
             border-radius: 4px;
             font-size: 14px;
-            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+            font-family: 'NanumSquare', sans-serif;
             transition: border-color 0.2s ease;
         }
 
@@ -929,7 +935,7 @@
             font-weight: 500;
             cursor: pointer;
             transition: background 0.2s ease;
-            font-family: 'Roboto', 'Malgun Gothic', sans-serif;
+            font-family: 'NanumSquare', sans-serif;
         }
 
         .auth-btn:hover {
@@ -1390,25 +1396,6 @@
     </div>
 
     <div class="container">
-        <!-- Statistics -->
-        <div class="stats">
-            <h2>📊 게임 통계</h2>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-value">56</div>
-                    <div class="stat-label">전체 게임</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">56</div>
-                    <div class="stat-label">플레이 가능</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">개발 예정</div>
-                </div>
-            </div>
-        </div>
-
         <!-- All Games -->
         <div id="all" class="category-section active">
             <div class="category-title">🌟 전체 게임</div>
@@ -2720,21 +2707,22 @@
             tabs[5].innerHTML = `😊 ${t('tabCasual')}`;
             tabs[6].innerHTML = `🎯 ${t('tabStrategy')}`;
 
-            // 통계 섹션
-            document.querySelector('.stats h2').textContent = `📊 ${t('statsTitle')}`;
-            const statLabels = document.querySelectorAll('.stat-label');
-            statLabels[0].textContent = t('totalGames');
-            statLabels[1].textContent = t('playableGames');
-            statLabels[2].textContent = t('comingSoon');
+            // 카테고리 제목 (게임 수 포함)
+            const totalCount = gameDatabase.length;
+            const actionCount = gameDatabase.filter(g => g.category === 'action').length;
+            const puzzleCount = gameDatabase.filter(g => g.category === 'puzzle').length;
+            const arcadeCount = gameDatabase.filter(g => g.category === 'arcade').length;
+            const rhythmCount = gameDatabase.filter(g => g.category === 'rhythm').length;
+            const casualCount = gameDatabase.filter(g => g.category === 'casual').length;
+            const strategyCount = gameDatabase.filter(g => g.category === 'strategy').length;
 
-            // 카테고리 제목
-            document.querySelector('#all .category-title').innerHTML = `🌟 ${t('allGames')}`;
-            document.querySelector('#action .category-title').innerHTML = `⚡ ${t('actionGames')}`;
-            document.querySelector('#puzzle .category-title').innerHTML = `🧩 ${t('puzzleGames')}`;
-            document.querySelector('#arcade .category-title').innerHTML = `🕹️ ${t('arcadeGames')}`;
-            document.querySelector('#rhythm .category-title').innerHTML = `🎵 ${t('rhythmGames')}`;
-            document.querySelector('#casual .category-title').innerHTML = `😊 ${t('casualGames')}`;
-            document.querySelector('#strategy .category-title').innerHTML = `🎯 ${t('strategyGames')}`;
+            document.querySelector('#all .category-title').innerHTML = `🌟 ${t('allGames')} (${totalCount})`;
+            document.querySelector('#action .category-title').innerHTML = `⚡ ${t('actionGames')} (${actionCount})`;
+            document.querySelector('#puzzle .category-title').innerHTML = `🧩 ${t('puzzleGames')} (${puzzleCount})`;
+            document.querySelector('#arcade .category-title').innerHTML = `🕹️ ${t('arcadeGames')} (${arcadeCount})`;
+            document.querySelector('#rhythm .category-title').innerHTML = `🎵 ${t('rhythmGames')} (${rhythmCount})`;
+            document.querySelector('#casual .category-title').innerHTML = `😊 ${t('casualGames')} (${casualCount})`;
+            document.querySelector('#strategy .category-title').innerHTML = `🎯 ${t('strategyGames')} (${strategyCount})`;
 
             // 검색 모달
             document.querySelector('.search-title').textContent = t('searchTitle');
