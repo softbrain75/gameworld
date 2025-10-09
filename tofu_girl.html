@@ -378,12 +378,17 @@
                             if (overlapX && overlapY) {
                                 // Distinguish between landing from top vs side collision
                                 const playerBottom = player.y + player.height;
+                                const playerCenterX = player.x + player.width / 2;
                                 const cakeTop = cake.y;
-                                const distanceFromTop = Math.abs(playerBottom - cakeTop);
+                                const cakeCenterX = cake.x + cake.width / 2;
 
-                                // If player is falling down and close to tofu top = landing attempt (OK)
-                                // If player hits side = game over
-                                if (player.velocityY > 0 && distanceFromTop < 15) {
+                                const distanceFromTop = playerBottom - cakeTop;
+                                const horizontalDistance = Math.abs(playerCenterX - cakeCenterX);
+
+                                // If player is falling down and landing on top (not edge) = OK
+                                // Allow landing if player is reasonably above tofu and horizontally close
+                                if (player.velocityY > 0 && distanceFromTop >= 0 && distanceFromTop < 30 &&
+                                    horizontalDistance < cake.width * 0.6) {
                                     // Landing from top - allow it
                                     return;
                                 } else {
