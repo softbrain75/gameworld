@@ -165,7 +165,7 @@
             height: 70,
             velocityY: 0,
             falling: false,
-            jumpPower: -15,
+            jumpPower: -10, // Lower jump power
             canJump: true
         };
 
@@ -177,7 +177,7 @@
         let cakeSpeed = 3;
         const gravity = 0.5;
         const cakeWidth = 120;
-        const cakeHeight = 30;
+        const cakeHeight = 50; // Thicker cakes
         let cameraOffsetY = 0; // Camera follows player
         let isDying = false; // Death animation flag
 
@@ -279,14 +279,15 @@
                 if (!cake.stopped) {
                     cake.x += cake.direction * cake.speed;
 
-                    // Check if cake reached player position (same position for both directions)
-                    const playerCenterX = player.x + player.width / 2;
+                    // Check if cake reached exact center position
+                    const screenCenterX = canvas.width / 2;
                     const cakeCenterX = cake.x + cake.width / 2;
 
-                    if (Math.abs(playerCenterX - cakeCenterX) < 20) {
-                        // Stop the cake at center
+                    if (Math.abs(screenCenterX - cakeCenterX) < 5) {
+                        // Stop the cake at exact center
                         cake.stopped = true;
                         cake.direction = 0;
+                        cake.x = screenCenterX - cake.width / 2; // Snap to center
 
                         // Check if player can land on it
                         if (!player.falling) {
