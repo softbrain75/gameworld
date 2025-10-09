@@ -255,7 +255,7 @@
 
             currentCake = {
                 x: startX,
-                y: topCake.y, // Same Y position as top cake (touching ground)
+                y: topCake.y - cakeHeight, // Spawn at the height where it will be placed
                 width: cakeWidth,
                 height: cakeHeight,
                 direction: direction,
