@@ -2209,12 +2209,25 @@
 
             // 게임 종료 시 이번판 점수를 통합 포인트로 적립
             console.log('🎮 Game Over! GameScore:', gameScore);
+            console.log('🔍 CurrentUser:', currentUser ? currentUser.email : 'guest');
+            console.log('🔍 CurrentProfile before:', currentProfile);
 
             let totalPoints = gameScore;
             try {
+                // 프로필을 다시 로드하여 최신 상태 확인
+                if (currentUser) {
+                    await loadUserProfile();
+                    console.log('🔍 CurrentProfile after reload:', currentProfile);
+                }
+
                 // 통합 포인트에 이번판 점수 추가
+                console.log('💾 Calling addGamePoints with:', gameScore);
                 const result = await addGamePoints(gameScore, 'cannon_defender');
                 console.log('📊 Points result:', result);
+
+                if (!result || !result.success) {
+                    console.error('⚠️ addGamePoints failed:', result);
+                }
 
                 // 포인트 표시 업데이트
                 await updatePointsDisplay();
@@ -2222,6 +2235,10 @@
                 // 전체 포인트 표시
                 if (currentProfile && currentProfile.total_points !== undefined) {
                     totalPoints = currentProfile.total_points;
+                    console.log('✅ Total points updated:', totalPoints);
+                } else {
+                    console.warn('⚠️ currentProfile still not available, using gameScore');
+                    totalPoints = gameScore;
                 }
             } catch (error) {
                 console.error('❌ Error in addGamePoints:', error);
