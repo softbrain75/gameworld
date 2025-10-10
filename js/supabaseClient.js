@@ -191,7 +191,7 @@ async function loadUserProfile() {
         const { data, error } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', currentUser.id)
+            .eq('id', window.currentUser?.id || currentUser.id)
             .single();
 
         if (error) throw error;
@@ -261,7 +261,7 @@ async function reauthenticateUser(password) {
 
         // 현재 이메일과 비밀번호로 재로그인 시도
         const { error } = await supabase.auth.signInWithPassword({
-            email: currentProfile.email,
+            email: window.currentProfile?.email || currentProfile.email,
             password: password
         });
 
@@ -285,7 +285,7 @@ async function deleteAccount() {
         const { error } = await supabase
             .from('profiles')
             .update({ deleted_at: new Date().toISOString() })
-            .eq('id', currentUser.id);
+            .eq('id', window.currentUser?.id || currentUser.id);
 
         if (error) throw error;
 
@@ -312,7 +312,7 @@ async function addPoints(points) {
 
     try {
         const { data, error } = await supabase.rpc('update_user_points', {
-            user_id: currentUser.id,
+            user_id: window.currentUser?.id || currentUser.id,
             points_to_add: points
         });
 
@@ -330,11 +330,16 @@ async function addPoints(points) {
 
 // 현재 포인트 가져오기
 function getCurrentPoints() {
-    if (currentProfile) {
-        return currentProfile.total_points;
+    try {
+        if (window.currentProfile) {
+            return window.currentProfile.total_points || 0;
+        }
+        // 비로그인 사용자는 localStorage에서 가져오기
+        return parseInt(localStorage.getItem('guest_total_points') || '0');
+    } catch (e) {
+        console.warn('getCurrentPoints error:', e);
+        return parseInt(localStorage.getItem('guest_total_points') || '0');
     }
-    // 비로그인 사용자는 localStorage에서 가져오기
-    return parseInt(localStorage.getItem('guest_total_points') || '0');
 }
 
 // 비로그인 사용자 포인트 저장 (localStorage)
@@ -366,17 +371,17 @@ async function addGamePoints(gameScore, gameId) {
     // 게임 점수를 그대로 포인트로 변환
     const pointsToAdd = Math.floor(gameScore);
 
-    console.log('🎮 Adding points:', { gameScore, pointsToAdd, gameId, currentUser: !!currentUser });
+    console.log('🎮 Adding points:', { gameScore, pointsToAdd, gameId, currentUser: !!window.currentUser });
 
-    if (currentUser && currentProfile) {
+    if (window.currentUser && window.currentProfile) {
         // 로그인 사용자: Supabase에 직접 포인트 추가
         try {
-            const newTotal = currentProfile.total_points + pointsToAdd;
+            const newTotal = (window.currentProfile.total_points || 0) + pointsToAdd;
 
             const { data, error } = await supabase
                 .from('profiles')
                 .update({ total_points: newTotal })
-                .eq('id', currentUser.id)
+                .eq('id', window.currentUser.id)
                 .select();
 
             if (error) throw error;
