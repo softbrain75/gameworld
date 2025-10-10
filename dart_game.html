@@ -933,6 +933,11 @@
         // ============================================
         window.addEventListener('load', async () => {
             await updatePointsDisplay();
+
+            // 조회수 증가
+            if (window.incrementGameView) {
+                await window.incrementGameView('dart_game.html');
+            }
         });
     </script>
 </body>
