@@ -1053,6 +1053,11 @@
             isDying = true;
             tumbleStartTime = Date.now();
 
+            // 캐릭터도 떨어지게 설정
+            player.falling = true;
+            player.velocityY = 0; // 초기 속도 0에서 중력으로 가속
+            player.canJump = false;
+
             playSound('fall'); // 타워 무너질 때 사운드
 
             // 타워가 쓰러지는 애니메이션 (1초 후 게임오버)
