@@ -6,9 +6,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
-     crossorigin="anonymous"></script>
-    <title>Tofu Girl 🍰</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
+    <title>Tofu Girl - 게임세상</title>
     <style>
         * {
             margin: 0;
@@ -24,16 +25,15 @@
             height: calc(var(--vh, 1vh) * 100);
             overflow: hidden;
             font-family: 'Malgun Gothic', sans-serif;
-            background: linear-gradient(to bottom, #d4a5ff 0%, #b88dd9 100%);
             touch-action: none;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
 
         #gameCanvas {
             display: block;
-            background: linear-gradient(to bottom, #d4a5ff 0%, #b88dd9 100%);
             max-width: 100%;
             max-height: 100%;
             width: 100vw;
@@ -41,54 +41,252 @@
             height: calc(var(--vh, 1vh) * 100);
         }
 
-        .screen {
+        #bgCanvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(180, 141, 217, 0.95);
-            color: white;
-            z-index: 10;
+            z-index: -1;
         }
 
         .hidden {
             display: none !important;
         }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        /* 메뉴 화면 */
+        .menu-screen {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+            background: rgba(180, 141, 217, 0.95);
+            z-index: 10;
+            top: 0;
+            left: 0;
         }
 
-        .info {
-            font-size: 1.1rem;
-            margin: 0.5rem 0;
-            text-align: center;
-            padding: 0 2rem;
+        .menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        button {
-            font-size: 1.5rem;
-            padding: 1rem 3rem;
-            margin: 1rem;
-            border: none;
-            border-radius: 10px;
-            background: linear-gradient(145deg, #fff, #ffd700);
-            color: #9966cc;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
+        .menu-back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
         }
 
-        button:active {
+        .menu-back-btn:hover,
+        .menu-back-btn:active {
+            background: rgba(255, 255, 255, 0.2);
             transform: scale(0.95);
+        }
+
+        .menu-game-title {
+            flex: 1;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .menu-points {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffd700;
+            flex-shrink: 0;
+        }
+
+        .menu-body {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .menu-content {
+            width: 90%;
+            max-width: 600px;
+            padding: 0 20px;
+        }
+
+        .intro-section {
+            padding: 20px 0;
+            margin-bottom: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+        }
+
+        .intro-section:last-of-type {
+            border-bottom: none;
+        }
+
+        .intro-section h2 {
+            margin-bottom: 12px;
+            font-size: 20px;
+            text-align: left;
+        }
+
+        .intro-section ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .intro-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #FF6360 0%, #E35450 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 99, 96, 0.4);
+            margin-bottom: 20px;
+        }
+
+        .start-btn:hover,
+        .start-btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 99, 96, 0.6);
+        }
+
+        /* 게임 화면 */
+        .game-container {
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        .game-container.hidden {
+            display: none;
+        }
+
+        .game-container #gameCanvas {
+            flex: 1;
+            display: block;
+            width: 100%;
+            height: auto;
+            touch-action: none;
+        }
+
+        /* 게임 헤더 */
+        .stats {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 12px;
+            color: white;
+        }
+
+        .back-btn-game {
+            background: transparent;
+            border: none;
+            color: #FF6360;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 4px;
+        }
+
+        .back-btn-game .material-icons {
+            font-size: 24px;
+        }
+
+        .back-btn-game:hover {
+            background: rgba(255, 99, 96, 0.1);
+        }
+
+        .back-btn-game:active {
+            background: rgba(255, 99, 96, 0.2);
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-item:first-of-type {
+            margin-left: auto;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FF6360;
+        }
+
+        /* 게임오버 화면 */
+        .gameover-title {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #FF6360;
+            text-shadow: 0 0 10px rgba(255, 99, 96, 0.5);
+        }
+
+        .score-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .countdown {
@@ -112,23 +310,115 @@
     </style>
 </head>
 <body>
+    <canvas id="bgCanvas"></canvas>
     <canvas id="gameCanvas"></canvas>
 
-    <div id="menuScreen" class="screen">
-        <h1>🍰 Tofu Girl</h1>
-        <div class="info">화면을 눌러 점프!</div>
-        <div class="info">날아오는 케이크 위에 착지하세요!</div>
-        <div class="info">케이크가 중앙에 오면 자동으로 멈춥니다</div>
-        <div class="info">케이크에 맞으면 게임 오버!</div>
-        <div class="info" style="margin-top: 1rem;">최고 기록: <span id="menuHighScore">0</span>층</div>
-        <button id="startBtn">게임 시작</button>
+    <!-- 메뉴 화면 -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">Tofu Girl</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="menuPoints">0</span>
+            </div>
+        </div>
+
+        <div class="menu-body">
+            <div class="menu-content">
+                <!-- 게임 시작 버튼 (최상단) -->
+                <button class="start-btn" onclick="startGame()">게임 시작</button>
+
+                <!-- 게임 소개 -->
+                <div class="intro-section">
+                    <h2>🎯 게임 방법</h2>
+                    <ul>
+                        <li>화면을 눌러 점프하세요</li>
+                        <li>날아오는 두부 위에 착지하세요</li>
+                        <li>두부가 화면 중앙에 오면 자동으로 멈춥니다</li>
+                    </ul>
+                </div>
+
+                <div class="intro-section">
+                    <h2>🏆 점수 획득</h2>
+                    <ul>
+                        <li>착지 성공: 100점 (난이도가 오를수록 더 많은 점수!)</li>
+                        <li>최고 기록: <span id="menuHighScore">0</span>점</li>
+                    </ul>
+                </div>
+
+                <div class="intro-section">
+                    <h2>⚠️ 주의</h2>
+                    <ul>
+                        <li>두부에 맞으면 게임 오버!</li>
+                        <li>타워가 너무 기울면 무너집니다</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="gameoverScreen" class="screen hidden">
-        <h1>게임 오버</h1>
-        <div class="info">쌓은 층수: <span id="finalScore">0</span>층</div>
-        <div class="info">최고 기록: <span id="gameoverHighScore">0</span>층</div>
-        <button id="retryBtn">다시 하기</button>
+    <!-- 게임 화면 -->
+    <div id="gameContainer" class="game-container hidden">
+        <!-- 상단 헤더 -->
+        <div class="stats">
+            <a href="#" class="back-btn-game" onclick="handleGameExit(event)">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="stat-item">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Tower</div>
+                <div class="stat-value" id="towerHeight">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임오버 화면 -->
+    <div id="gameoverScreen" class="menu-screen hidden">
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">게임 오버</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="gameoverPoints">0</span>
+            </div>
+        </div>
+
+        <div class="menu-body">
+            <div class="menu-content">
+                <div class="gameover-title">Game Over</div>
+
+                <div class="score-info">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>이번판 점수</span>
+                        <span style="color: #FF6360; font-weight: bold; font-size: 1.3em;" id="finalScore">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>통합 포인트</span>
+                        <span style="color: #00ff00; font-weight: bold; font-size: 1.3em;" id="totalPoints">0</span>
+                    </div>
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>쌓은 층수</span>
+                            <span style="color: #ffcc00; font-weight: bold;" id="finalTowerHeight">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>최고 점수</span>
+                            <span style="color: #ff6b6b; font-weight: bold;" id="gameoverHighScore">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="start-btn" onclick="restartGame()">다시 하기</button>
+            </div>
+        </div>
     </div>
 
     <div id="countdown" class="countdown hidden"></div>
@@ -145,59 +435,427 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Load character images
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+
+        // SVG 캐릭터 이미지 로드 (3가지 상태: 정지, 점프, 착지)
         const characterImages = {
-            head: new Image(),
-            arm: new Image(),
-            hand: new Image(),
-            leg: new Image(),
-            neck: new Image(),
-            face: new Image(),
-            hair: new Image(),
-            shirt: new Image(),
-            shirtArm: new Image(),
-            pants: new Image(),
-            shoes: new Image(),
+            idle: new Image(),
+            jump: new Image(),
+            land: new Image(),
             loaded: false
         };
 
-        // Load images - 여성 캐릭터
-        characterImages.head.src = 'tofu_character/PNG/Skin/Tint 1/tint1_head.png';
-        characterImages.arm.src = 'tofu_character/PNG/Skin/Tint 1/tint1_arm.png';
-        characterImages.hand.src = 'tofu_character/PNG/Skin/Tint 1/tint1_hand.png';
-        characterImages.leg.src = 'tofu_character/PNG/Skin/Tint 1/tint1_leg.png';
-        characterImages.neck.src = 'tofu_character/PNG/Skin/Tint 1/tint1_neck.png';
-        characterImages.face.src = 'tofu_character/PNG/Face/Completes/face2.png';
-        characterImages.hair.src = 'tofu_character/PNG/Hair/Black/blackWoman3.png';
-        characterImages.shirt.src = 'tofu_character/PNG/Shirts/Blue/blueShirt1.png';
-        characterImages.shirtArm.src = 'tofu_character/PNG/Shirts/Blue/blueArm_short.png';
-        characterImages.pants.src = 'tofu_character/PNG/Pants/Blue 1/pantsBlue1_short.png';
-        characterImages.shoes.src = 'tofu_character/PNG/Shoes/Blue/blueShoe1.png';
+        // 정지 상태 SVG
+        const idleSVG = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root{
+      --line:#242424;
+      --skin:#FFE8D9;
+      --blush:#FF9DB0;
+      --hair:#2F2A2A;
+      --dress:#FF6360;
+      --dress-dark:#E35450;
+      --shoe:#E0504B;
+    }
+    .line{ stroke:var(--line); stroke-width:7; stroke-linecap:round; stroke-linejoin:round; }
+  </style>
+  <g id="character" transform="translate(110,70)">
+    <path d="M70,128c-10,62 34,102 116,102s142-44 140-108c-2-48-50-90-116-90S78,72 70,128z" fill="var(--hair)" class="line"/>
+    <g id="head" transform="translate(18,20)">
+      <circle cx="168" cy="138" r="96" fill="var(--skin)" class="line"/>
+      <path d="M86,118c22-48 72-80 120-80 50,0 94,30 110,76 -22-8-44-12-66-10 -20,1-42,8-63,17 -18-7-36-10-54-8 -14,1-28,2-47,5z" fill="#3A3331" class="line"/>
+      <path d="M82,112c20-40 70-64 126-64 56,0 96,22 114,58 -12,10-26,16-42,20 -20-38-76-48-136-18 -14-6-34-1-62,4z" fill="var(--dress)" class="line"/>
+      <g id="face">
+        <path d="M128,152 q16,18 32,0" class="line"/>
+        <path d="M178,152 q16,18 32,0" class="line"/>
+        <path d="M152,176 q16,14 32,0 v10 c-10,14-22,14-32,0z" fill="#E65A56" class="line"/>
+        <circle cx="118" cy="172" r="14" fill="var(--blush)" opacity="0.9"/>
+        <circle cx="214" cy="172" r="14" fill="var(--blush)" opacity="0.9"/>
+      </g>
+    </g>
+    <g id="body" transform="translate(16,210)">
+      <path d="M54,24 C96,0 158,-2 206,18 c30,12 56,40 66,82 3,14-6,26-18,30 -76,26-156,26-232,0 -12-4-20-16-18-30 6-36 18-64 30-84z" fill="var(--dress)" class="line"/>
+      <path d="M82,54 c64,22 106,22 170,0" stroke="var(--dress-dark)" stroke-width="9" opacity="0.18"/>
+    </g>
+    <g id="armL" transform="translate(68,258) rotate(-20)">
+      <path d="M0,0 c30,-8 50,6 58,18" fill="none" class="line"/>
+      <circle cx="66" cy="22" r="18" fill="var(--skin)" class="line"/>
+    </g>
+    <g id="armR" transform="translate(288,264) rotate(20)">
+      <path d="M0,0 c30,-8 50,6 58,18" fill="none" class="line"/>
+      <circle cx="66" cy="22" r="18" fill="var(--skin)" class="line"/>
+    </g>
+    <g id="legB" transform="translate(240,360) rotate(-5)">
+      <path d="M0,0 c8,24 2,48 -4,74" fill="none" class="line"/>
+      <path d="M-20,80 h56 v22 c0,9-7,16-16,16 h-24 c-9,0-16-7-16-16z" fill="var(--shoe)" class="line"/>
+    </g>
+    <g id="legF" transform="translate(126,362) rotate(5)">
+      <path d="M0,0 c-6,26 -2,50 4,76" fill="none" class="line"/>
+      <path d="M-20,80 h56 v22 c0,9-7,16-16,16 h-24 c-9,0-16-7-16-16z" fill="var(--shoe)" class="line"/>
+    </g>
+  </g>
+</svg>`;
 
-        // Check if all images are loaded
+        // 점프 중 SVG (팔 위로, 다리 쭉)
+        const jumpSVG = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root{
+      --line:#242424;
+      --skin:#FFE8D9;
+      --blush:#FF9DB0;
+      --hair:#2F2A2A;
+      --dress:#FF6360;
+      --dress-dark:#E35450;
+      --shoe:#E0504B;
+    }
+    .line{ stroke:var(--line); stroke-width:7; stroke-linecap:round; stroke-linejoin:round; }
+  </style>
+  <g id="character" transform="translate(110,70)">
+    <path d="M70,128c-10,62 34,102 116,102s142-44 140-108c-2-48-50-90-116-90S78,72 70,128z" fill="var(--hair)" class="line"/>
+    <g id="head" transform="translate(18,20)">
+      <circle cx="168" cy="138" r="96" fill="var(--skin)" class="line"/>
+      <path d="M86,118c22-48 72-80 120-80 50,0 94,30 110,76 -22-8-44-12-66-10 -20,1-42,8-63,17 -18-7-36-10-54-8 -14,1-28,2-47,5z" fill="#3A3331" class="line"/>
+      <path d="M82,112c20-40 70-64 126-64 56,0 96,22 114,58 -12,10-26,16-42,20 -20-38-76-48-136-18 -14-6-34-1-62,4z" fill="var(--dress)" class="line"/>
+      <g id="face">
+        <circle cx="138" cy="152" r="8" fill="var(--line)"/>
+        <circle cx="194" cy="152" r="8" fill="var(--line)"/>
+        <path d="M152,176 q16,12 32,0" fill="none" class="line"/>
+        <circle cx="118" cy="172" r="14" fill="var(--blush)" opacity="0.9"/>
+        <circle cx="214" cy="172" r="14" fill="var(--blush)" opacity="0.9"/>
+      </g>
+    </g>
+    <g id="body" transform="translate(16,210)">
+      <path d="M54,24 C96,0 158,-2 206,18 c30,12 56,40 66,82 3,14-6,26-18,30 -76,26-156,26-232,0 -12-4-20-16-18-30 6-36 18-64 30-84z" fill="var(--dress)" class="line"/>
+      <path d="M82,54 c64,22 106,22 170,0" stroke="var(--dress-dark)" stroke-width="9" opacity="0.18"/>
+    </g>
+    <g id="armL" transform="translate(68,258) rotate(-110)">
+      <path d="M0,0 c30,-8 50,6 58,18" fill="none" class="line"/>
+      <circle cx="66" cy="22" r="18" fill="var(--skin)" class="line"/>
+    </g>
+    <g id="armR" transform="translate(288,264) rotate(-80)">
+      <path d="M0,0 c30,-8 50,6 58,18" fill="none" class="line"/>
+      <circle cx="66" cy="22" r="18" fill="var(--skin)" class="line"/>
+    </g>
+    <g id="legB" transform="translate(240,360) rotate(0)">
+      <path d="M0,0 c0,26 0,50 0,76" fill="none" class="line"/>
+      <path d="M-20,80 h56 v22 c0,9-7,16-16,16 h-24 c-9,0-16-7-16-16z" fill="var(--shoe)" class="line"/>
+    </g>
+    <g id="legF" transform="translate(126,362) rotate(0)">
+      <path d="M0,0 c0,26 0,50 0,76" fill="none" class="line"/>
+      <path d="M-20,80 h56 v22 c0,9-7,16-16,16 h-24 c-9,0-16-7-16-16z" fill="var(--shoe)" class="line"/>
+    </g>
+  </g>
+</svg>`;
+
+        // 착지 SVG (무릎 굽히기, 스쿼시)
+        const landSVG = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root{
+      --line:#242424;
+      --skin:#FFE8D9;
+      --blush:#FF9DB0;
+      --hair:#2F2A2A;
+      --dress:#FF6360;
+      --dress-dark:#E35450;
+      --shoe:#E0504B;
+    }
+    .line{ stroke:var(--line); stroke-width:7; stroke-linecap:round; stroke-linejoin:round; }
+  </style>
+  <g id="character" transform="translate(110,120) scale(1.05, 0.95)">
+    <path d="M70,128c-10,62 34,102 116,102s142-44 140-108c-2-48-50-90-116-90S78,72 70,128z" fill="var(--hair)" class="line"/>
+    <g id="head" transform="translate(18,20)">
+      <circle cx="168" cy="138" r="96" fill="var(--skin)" class="line"/>
+      <path d="M86,118c22-48 72-80 120-80 50,0 94,30 110,76 -22-8-44-12-66-10 -20,1-42,8-63,17 -18-7-36-10-54-8 -14,1-28,2-47,5z" fill="#3A3331" class="line"/>
+      <path d="M82,112c20-40 70-64 126-64 56,0 96,22 114,58 -12,10-26,16-42,20 -20-38-76-48-136-18 -14-6-34-1-62,4z" fill="var(--dress)" class="line"/>
+      <g id="face">
+        <path d="M128,152 q16,18 32,0" class="line"/>
+        <path d="M178,152 q16,18 32,0" class="line"/>
+        <path d="M152,176 q16,14 32,0 v10 c-10,14-22,14-32,0z" fill="#E65A56" class="line"/>
+        <circle cx="118" cy="172" r="14" fill="var(--blush)" opacity="0.9"/>
+        <circle cx="214" cy="172" r="14" fill="var(--blush)" opacity="0.9"/>
+      </g>
+    </g>
+    <g id="body" transform="translate(16,210)">
+      <path d="M54,24 C96,0 158,-2 206,18 c30,12 56,40 66,82 3,14-6,26-18,30 -76,26-156,26-232,0 -12-4-20-16-18-30 6-36 18-64 30-84z" fill="var(--dress)" class="line"/>
+      <path d="M82,54 c64,22 106,22 170,0" stroke="var(--dress-dark)" stroke-width="9" opacity="0.18"/>
+    </g>
+    <g id="armL" transform="translate(68,258) rotate(-40)">
+      <path d="M0,0 c30,-8 50,6 58,18" fill="none" class="line"/>
+      <circle cx="66" cy="22" r="18" fill="var(--skin)" class="line"/>
+    </g>
+    <g id="armR" transform="translate(288,264) rotate(40)">
+      <path d="M0,0 c30,-8 50,6 58,18" fill="none" class="line"/>
+      <circle cx="66" cy="22" r="18" fill="var(--skin)" class="line"/>
+    </g>
+    <g id="legB" transform="translate(240,360) rotate(-35)">
+      <path d="M0,0 c12,20 8,40 0,60" fill="none" class="line"/>
+      <path d="M-20,66 h56 v22 c0,9-7,16-16,16 h-24 c-9,0-16-7-16-16z" fill="var(--shoe)" class="line"/>
+    </g>
+    <g id="legF" transform="translate(126,362) rotate(35)">
+      <path d="M0,0 c-12,20 -8,40 0,60" fill="none" class="line"/>
+      <path d="M-20,66 h56 v22 c0,9-7,16-16,16 h-24 c-9,0-16-7-16-16z" fill="var(--shoe)" class="line"/>
+    </g>
+  </g>
+</svg>`;
+
+        // SVG를 이미지로 변환
+        const blobIdle = new Blob([idleSVG], {type: 'image/svg+xml'});
+        const blobJump = new Blob([jumpSVG], {type: 'image/svg+xml'});
+        const blobLand = new Blob([landSVG], {type: 'image/svg+xml'});
+
+        characterImages.idle.src = URL.createObjectURL(blobIdle);
+        characterImages.jump.src = URL.createObjectURL(blobJump);
+        characterImages.land.src = URL.createObjectURL(blobLand);
+
         let loadedCount = 0;
-        const totalImages = 11;
-        Object.keys(characterImages).forEach(key => {
-            if (key !== 'loaded' && characterImages[key] instanceof Image) {
-                characterImages[key].onload = () => {
-                    loadedCount++;
-                    if (loadedCount === totalImages) {
-                        characterImages.loaded = true;
-                    }
-                };
-            }
-        });
+        characterImages.idle.onload = () => {
+            loadedCount++;
+            if (loadedCount === 3) characterImages.loaded = true;
+        };
+        characterImages.jump.onload = () => {
+            loadedCount++;
+            if (loadedCount === 3) characterImages.loaded = true;
+        };
+        characterImages.land.onload = () => {
+            loadedCount++;
+            if (loadedCount === 3) characterImages.loaded = true;
+        };
 
-        // Canvas setup
+        // 착지 애니메이션 타이머
+        let landingTime = 0;
+
+        // 두부 SVG 이미지 로드
+        const tofuSVG = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="480" height="300" viewBox="0 0 480 300" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root{
+      --line:#3a1f14;
+      --base1:#F6EBDD;
+      --base2:#ECDDC8;
+      --base3:#E2D2BC;
+      --pore:#D6C6AF;
+      --shadow:#e7e0d4;
+    }
+  </style>
+  <defs>
+    <linearGradient id="tofuFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"  stop-color="var(--base1)"/>
+      <stop offset="0.55" stop-color="var(--base2)"/>
+      <stop offset="1"  stop-color="var(--base3)"/>
+    </linearGradient>
+    <linearGradient id="edgeShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="0.25" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="0.75" stop-color="#000000" stop-opacity="0.06"/>
+      <stop offset="1"   stop-color="#000000" stop-opacity="0.10"/>
+    </linearGradient>
+    <pattern id="pores" patternUnits="userSpaceOnUse" width="48" height="48">
+      <circle cx="10" cy="16" r="2.6" fill="var(--pore)" opacity="0.55"/>
+      <circle cx="32" cy="10" r="2.0" fill="var(--pore)" opacity="0.45"/>
+      <circle cx="22" cy="34" r="2.2" fill="var(--pore)" opacity="0.40"/>
+      <circle cx="40" cy="28" r="1.8" fill="var(--pore)" opacity="0.35"/>
+      <circle cx="14" cy="40" r="1.6" fill="var(--pore)" opacity="0.30"/>
+    </pattern>
+    <filter id="innerSoft" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="b"/>
+      <feOffset dx="0" dy="1" result="o"/>
+      <feComposite in="o" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="inner"/>
+      <feColorMatrix in="inner" type="matrix"
+        values="0 0 0 0 0,
+                0 0 0 0 0,
+                0 0 0 0 0,
+                0 0 0 0.35 0"/>
+      <feBlend in="SourceGraphic" mode="normal"/>
+    </filter>
+  </defs>
+  <g id="tofu-rect" filter="url(#innerSoft)">
+    <rect x="60" y="44" width="360" height="200" rx="22" ry="22"
+          fill="url(#tofuFill)" stroke="var(--line)" stroke-width="10"/>
+    <rect x="60" y="44" width="360" height="200" rx="22" ry="22"
+          fill="url(#pores)" opacity="0.9"/>
+    <rect x="65" y="49" width="350" height="190" rx="18" ry="18"
+          fill="url(#edgeShade)" opacity="0.85"/>
+  </g>
+</svg>`;
+
+        const tofuImage = new Image();
+        const tofuBlob = new Blob([tofuSVG], {type: 'image/svg+xml'});
+        tofuImage.src = URL.createObjectURL(tofuBlob);
+        let tofuLoaded = false;
+        tofuImage.onload = () => {
+            tofuLoaded = true;
+        };
+
+        // 배경 SVG 로드 (자연 풍경)
+        const bgSVG = `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+  <!-- ===== Colors ===== -->
+  <style>
+    :root{
+      --skyTop:#AEE3FF; --skyBot:#EAF8FF;
+      --sun:#FFE06B;
+      --far:#9ED0A8; --mid:#6FB07F; --near:#3F8B5E; --ground:#2E6F4A;
+      --treeDark:#245C3F; --treeMid:#2F724F; --treeLight:#3F8B5E;
+    }
+  </style>
+
+  <!-- ===== Gradients / Symbols ===== -->
+  <defs>
+    <!-- sky -->
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--skyTop)"/><stop offset="1" stop-color="var(--skyBot)"/>
+    </linearGradient>
+
+    <!-- pine tree symbol (scale로 크기 조절) -->
+    <symbol id="pine" viewBox="0 0 60 100">
+      <g>
+        <polygon points="30,0 60,36 44,36 58,58 42,58 56,78 0,78 14,58  -2,58 12,36 -4,36" fill="currentColor"/>
+        <rect x="26" y="78" width="8" height="22" fill="#6B4E2E" rx="2"/>
+      </g>
+    </symbol>
+
+    <!-- cloud -->
+    <symbol id="cloud" viewBox="0 0 220 120">
+      <g fill="#fff" opacity="0.9">
+        <ellipse cx="70" cy="70" rx="60" ry="36"/>
+        <ellipse cx="110" cy="60" rx="52" ry="32"/>
+        <ellipse cx="150" cy="74" rx="46" ry="28"/>
+        <ellipse cx="105" cy="85" rx="90" ry="34" opacity="0.95"/>
+      </g>
+    </symbol>
+  </defs>
+
+  <!-- sky & sun -->
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <circle cx="240" cy="150" r="70" fill="var(--sun)" opacity="0.9"/>
+
+  <!-- clouds -->
+  <g opacity="0.85">
+    <use href="#cloud" x="200" y="120">
+      <animate attributeName="x" values="-300;1600" dur="65s" repeatCount="indefinite"/>
+    </use>
+    <use href="#cloud" x="900" y="180" transform="scale(1.15)">
+      <animate attributeName="x" values="-300;1600" dur="75s" repeatCount="indefinite" begin="-12s"/>
+    </use>
+    <use href="#cloud" x="600" y="80" transform="scale(0.9)" opacity="0.7">
+      <animate attributeName="x" values="-300;1600" dur="55s" repeatCount="indefinite" begin="-6s"/>
+    </use>
+  </g>
+
+  <!-- ===== Far Hills (tile width = 800) ===== -->
+  <g id="far-tile">
+    <path d="M0,520 C120,470 220,480 360,520 C520,570 640,540 800,520 L800,900 L0,900 Z" fill="var(--far)"/>
+  </g>
+  <use href="#far-tile" x="0"/><use href="#far-tile" x="800"/>
+
+  <!-- ===== Mid Hills (+ sparse trees) ===== -->
+  <g id="mid-tile" transform="translate(0,40)">
+    <path d="M0,560 C160,520 280,560 420,590 C560,620 700,600 800,580 L800,900 L0,900 Z" fill="var(--mid)"/>
+    <!-- trees (currentColor로 층별 색상 지정) -->
+    <g style="color:#2E7751">
+      <use href="#pine" x="60"  y="540" transform="scale(0.9)"/>
+      <use href="#pine" x="180" y="550" transform="scale(0.8)"/>
+      <use href="#pine" x="320" y="545" transform="scale(1.0)"/>
+      <use href="#pine" x="520" y="560" transform="scale(0.85)"/>
+      <use href="#pine" x="690" y="548" transform="scale(0.95)"/>
+    </g>
+  </g>
+  <use href="#mid-tile" x="0"/><use href="#mid-tile" x="800"/>
+
+  <!-- ===== Near Hills (dense trees) ===== -->
+  <g id="near-tile" transform="translate(0,80)">
+    <path d="M0,620 C160,590 260,620 420,650 C600,685 700,670 800,660 L800,900 L0,900 Z" fill="var(--near)"/>
+    <g style="color:#2C6D49">
+      <use href="#pine" x="30"  y="610" transform="scale(1.1)"/>
+      <use href="#pine" x="110" y="620" transform="scale(0.95)"/>
+      <use href="#pine" x="190" y="612" transform="scale(1.25)"/>
+      <use href="#pine" x="280" y="618" transform="scale(1.05)"/>
+      <use href="#pine" x="360" y="624" transform="scale(1.15)"/>
+      <use href="#pine" x="470" y="616" transform="scale(1.2)"/>
+      <use href="#pine" x="560" y="628" transform="scale(1.0)"/>
+      <use href="#pine" x="640" y="614" transform="scale(1.3)"/>
+      <use href="#pine" x="730" y="626" transform="scale(1.05)"/>
+    </g>
+  </g>
+  <use href="#near-tile" x="0"/><use href="#near-tile" x="800"/>
+
+  <!-- ground strip -->
+  <rect y="780" width="1600" height="120" fill="var(--ground)"/>
+</svg>`;
+
+        const bgImage = new Image();
+        const bgBlob = new Blob([bgSVG], {type: 'image/svg+xml'});
+        bgImage.src = URL.createObjectURL(bgBlob);
+        let bgLoaded = false;
+        bgImage.onload = () => {
+            bgLoaded = true;
+            drawBackground();
+        };
+
+        // Canvas setup (초기 크기 설정)
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            if (bgLoaded) {
+                drawBackground();
+            }
         }
         resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+
+        // 배경 그리기 (비율 유지하면서 꽉 차게)
+        function drawBackground() {
+            if (!bgLoaded) return;
+
+            const bgWidth = 1600;  // SVG 원본 너비
+            const bgHeight = 900;  // SVG 원본 높이
+            const bgRatio = bgWidth / bgHeight; // 1600/900 = 1.778
+
+            const canvasWidth = bgCanvas.width;
+            const canvasHeight = bgCanvas.height;
+            const canvasRatio = canvasWidth / canvasHeight;
+
+            let drawWidth, drawHeight, offsetX, offsetY;
+
+            // 캔버스의 긴 쪽을 배경의 짧은 쪽에 맞춤 (cover 효과)
+            if (canvasRatio > bgRatio) {
+                // 캔버스가 더 넓음 (가로가 김) → 가로를 꽉 채움
+                drawWidth = canvasWidth;
+                drawHeight = canvasWidth / bgRatio;
+                offsetX = 0;
+                offsetY = (canvasHeight - drawHeight) / 2;
+            } else {
+                // 캔버스가 더 높음 (세로가 김) → 세로를 꽉 채움
+                drawHeight = canvasHeight;
+                drawWidth = canvasHeight * bgRatio;
+                offsetX = (canvasWidth - drawWidth) / 2;
+                offsetY = 0;
+            }
+
+            bgCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+            bgCtx.drawImage(bgImage, offsetX, offsetY, drawWidth, drawHeight);
+        }
+
+        // ============================================
+        // Supabase 함수들
+        // ============================================
+        async function updatePointsDisplay() {
+            const points = window.getCurrentPoints ? window.getCurrentPoints() : 0;
+            const menuPointsEl = document.getElementById('menuPoints');
+            const gameoverPointsEl = document.getElementById('gameoverPoints');
+
+            if (menuPointsEl) menuPointsEl.textContent = points.toLocaleString();
+            if (gameoverPointsEl) gameoverPointsEl.textContent = points.toLocaleString();
+        }
 
         // Game state
         let gameState = 'menu';
+        let score = 0; // 이번 판 점수 (게임 시작 시 0부터)
         let highScore = parseInt(localStorage.getItem('tofuGirl_highScore')) || 0;
 
         // Player (Girl character)
@@ -209,13 +867,13 @@
             velocityY: 0,
             falling: false,
             jumpPower: -10, // Lower jump power
-            canJump: true
+            canJump: true,
+            facingDirection: 1 // 1: 오른쪽, -1: 왼쪽
         };
 
         // Game variables
         let cakes = []; // Flying cakes
         let stackedCakes = []; // Stacked cakes (tower)
-        let score = 0;
         let currentCake = null;
         let cakeSpeed = 3;
         const gravity = 0.5;
@@ -223,6 +881,13 @@
         const cakeHeight = 50; // Thicker cakes
         let cameraOffsetY = 0; // Camera follows player
         let isDying = false; // Death animation flag
+        let isTumbling = false; // 무너지는 중
+        const maxOffset = 40; // 최대 허용 offset (픽셀)
+        let tumbleStartTime = 0; // 무너지기 시작 시간
+        let tumbleDirection = 0; // 무너지는 방향 (-1: 왼쪽, 1: 오른쪽)
+        let isHitByTofu = false; // 두부에 맞음
+        let hitDirection = 0; // 맞은 방향
+        let hitStartTime = 0; // 맞은 시작 시간
 
         // Audio context
         let audioContext = null;
@@ -270,6 +935,12 @@
             score = 0;
             cameraOffsetY = 0;
             isDying = false;
+            isTumbling = false;
+            tumbleStartTime = 0;
+            tumbleDirection = 0;
+            isHitByTofu = false;
+            hitDirection = 0;
+            hitStartTime = 0;
 
             // Starting plate
             stackedCakes.push({
@@ -280,9 +951,10 @@
                 stopped: true
             });
 
-            // Player starts on the plate
+            // Player starts on the plate (정확히 두부 위에)
+            const startPlate = stackedCakes[0];
             player.x = canvas.width / 2 - player.width / 2;
-            player.y = canvas.height - 100 - cakeHeight - player.height;
+            player.y = startPlate.y - player.height; // 두부 바로 위
             player.velocityY = 0;
             player.falling = false;
             player.canJump = true;
@@ -309,6 +981,57 @@
             cakes.push(currentCake);
         }
 
+        // 무게중심 체크 함수
+        function checkBalance() {
+            if (stackedCakes.length < 3) return true; // 2개 이하는 무너지지 않음
+
+            // 각 케이크의 중심 X 좌표 계산하고 어느 쪽으로 쏠렸는지 확인
+            let totalOffsetLeft = 0;
+            let totalOffsetRight = 0;
+
+            for (let i = 1; i < stackedCakes.length; i++) {
+                const currentCenter = stackedCakes[i].x + stackedCakes[i].width / 2;
+                const belowCenter = stackedCakes[i - 1].x + stackedCakes[i - 1].width / 2;
+                const offset = currentCenter - belowCenter;
+
+                if (offset < 0) {
+                    totalOffsetLeft += Math.abs(offset);
+                } else {
+                    totalOffsetRight += offset;
+                }
+            }
+
+            // 평균 offset이 maxOffset을 넘으면 무너짐
+            const avgOffsetLeft = totalOffsetLeft / (stackedCakes.length - 1);
+            const avgOffsetRight = totalOffsetRight / (stackedCakes.length - 1);
+
+            if (avgOffsetLeft > maxOffset) {
+                tumbleDirection = -1; // 왼쪽으로 무너짐
+                return false;
+            }
+            if (avgOffsetRight > maxOffset) {
+                tumbleDirection = 1; // 오른쪽으로 무너짐
+                return false;
+            }
+
+            return true;
+        }
+
+        // 타워 무너지기 애니메이션
+        function tumbleTower() {
+            if (isTumbling) return;
+            isTumbling = true;
+            isDying = true;
+            tumbleStartTime = Date.now();
+
+            playSound('gameover');
+
+            // 타워가 쓰러지는 애니메이션 (1초 후 게임오버)
+            setTimeout(() => {
+                gameOver();
+            }, 1000);
+        }
+
         // Game loop
         function update() {
             if (gameState !== 'playing') return;
@@ -322,18 +1045,8 @@
                 if (!cake.stopped) {
                     cake.x += cake.direction * cake.speed;
 
-                    // Check if tofu reached player center position
-                    const playerCenterX = player.x + player.width / 2;
-                    const cakeCenterX = cake.x + cake.width / 2;
-
-                    if (Math.abs(playerCenterX - cakeCenterX) < 30) {
-                        // Stop the tofu at player center
-                        cake.stopped = true;
-                        cake.direction = 0;
-                        cake.x = playerCenterX - cake.width / 2; // Snap to player center
-
-                        // Don't automatically make player fall - wait for jump input
-                    }
+                    // 케이크는 계속 날아가고, 캐릭터가 착지할 때만 멈춤
+                    // (기존의 자동 멈춤 로직 제거)
 
                     // Only game over if cake goes too far off screen without stopping
                     if (cake === currentCake && !cake.stopped) {
@@ -349,51 +1062,94 @@
                 }
             });
 
+            // 날아오는 두부와 충돌 체크 (항상 체크!)
+            if (!isDying && currentCake && !currentCake.stopped) {
+                const playerBottom = player.y + player.height;
+                const playerTop = player.y;
+                const playerLeft = player.x;
+                const playerRight = player.x + player.width;
+                const playerCenterX = player.x + player.width / 2;
+
+                const cakeTop = currentCake.y;
+                const cakeBottom = currentCake.y + currentCake.height;
+                const cakeLeft = currentCake.x;
+                const cakeRight = currentCake.x + currentCake.width;
+
+                const topCake = stackedCakes[stackedCakes.length - 1];
+                const landingY = topCake.y - cakeHeight;
+
+                // 충돌: 캐릭터와 두부가 겹치면 무조건 체크
+                const overlapX = playerRight > cakeLeft && playerLeft < cakeRight;
+                const overlapY = playerBottom > cakeTop && playerTop < cakeBottom;
+
+                // 캐릭터가 두부를 바라보도록 (두부 방향의 반대)
+                player.facingDirection = -currentCake.direction;
+
+                if (overlapX && overlapY) {
+                    // 착지 가능한 경우: 위에서 떨어지고, 두부 범위 안에 있음
+                    const isValidLanding =
+                        player.falling &&
+                        player.velocityY > 0 &&
+                        playerBottom >= landingY &&
+                        playerBottom <= landingY + cakeHeight + 20 &&
+                        playerCenterX >= cakeLeft &&
+                        playerCenterX <= cakeRight;
+
+                    if (isValidLanding) {
+                        // 착지 성공!
+                        currentCake.stopped = true;
+                        currentCake.direction = 0;
+                        currentCake.y = landingY;
+
+                        player.y = currentCake.y - player.height;
+                        player.velocityY = 0;
+                        player.falling = false;
+                        player.canJump = true;
+
+                        landingTime = Date.now();
+
+                        stackedCakes.push(currentCake);
+
+                        // 점수 계산: 기본 100점 + 난이도에 따른 추가 점수
+                        const towerHeight = stackedCakes.length - 1; // 시작 플레이트 제외
+                        const basePoints = 100;
+                        const difficultyBonus = Math.floor(towerHeight / 5) * 50; // 5층마다 50점 추가
+                        const pointsEarned = basePoints + difficultyBonus;
+                        score += pointsEarned;
+
+                        playSound('land');
+
+                        // UI 업데이트
+                        updateUI();
+
+                        if (!checkBalance()) {
+                            tumbleTower();
+                            return;
+                        }
+
+                        setTimeout(() => {
+                            spawnCake();
+                        }, 500);
+                    } else {
+                        // 충돌! 날아감
+                        isDying = true;
+                        isHitByTofu = true;
+                        hitDirection = currentCake.direction;
+                        hitStartTime = Date.now();
+                        player.falling = true;
+
+                        playSound('gameover');
+                        setTimeout(() => {
+                            gameOver();
+                        }, 1000);
+                    }
+                }
+            }
+
             // Player falling physics
             if (player.falling) {
                 player.velocityY += gravity;
                 player.y += player.velocityY;
-
-                // Check landing on stopped tofu (more forgiving)
-                if (currentCake && currentCake.stopped) {
-                    const topCake = stackedCakes[stackedCakes.length - 1];
-                    const landingY = topCake.y - cakeHeight;
-
-                    // More forgiving landing detection
-                    const playerBottom = player.y + player.height;
-                    const tofuTop = landingY;
-                    const tofuBottom = landingY + cakeHeight;
-
-                    // Check if player is falling and overlaps with tofu
-                    if (playerBottom >= tofuTop && playerBottom <= tofuBottom + 20 &&
-                        player.velocityY > 0) {
-
-                        // Check horizontal overlap - allow landing anywhere on tofu
-                        const playerCenterX = player.x + player.width / 2;
-                        const tofuLeft = currentCake.x;
-                        const tofuRight = currentCake.x + currentCake.width;
-
-                        if (playerCenterX >= tofuLeft - 10 && playerCenterX <= tofuRight + 10) {
-                            // Landed successfully - move tofu on top of previous tofu
-                            currentCake.y = landingY;
-                            player.y = currentCake.y - player.height;
-                            player.velocityY = 0;
-                            player.falling = false;
-                            player.canJump = true;
-
-                            // Add to stacked cakes
-                            stackedCakes.push(currentCake);
-                            score++;
-
-                            playSound('land');
-
-                            // Spawn next cake
-                            setTimeout(() => {
-                                spawnCake();
-                            }, 500);
-                        }
-                    }
-                }
 
                 // Check if player fell off screen (after falling far enough)
                 if (player.y > canvas.height - 100 + cameraOffsetY + canvas.height) {
@@ -401,73 +1157,50 @@
                         isDying = true;
                         setTimeout(() => {
                             gameOver();
-                        }, 1000); // Wait 1 second to show falling animation
+                        }, 1000);
                     }
-                }
-
-                // Check collision with moving tofu (side collision = game over)
-                if (!isDying) {
-                    cakes.forEach(cake => {
-                        if (!cake.stopped) {
-                            const playerBottom = player.y + player.height;
-                            const playerTop = player.y;
-                            const cakeTop = cake.y;
-                            const cakeBottom = cake.y + cake.height;
-
-                            // Tighter collision boxes to avoid false positives
-                            const overlapX = player.x + player.width - 5 > cake.x &&
-                                           player.x + 5 < cake.x + cake.width;
-                            const overlapY = playerBottom > cakeTop &&
-                                           playerTop < cakeBottom;
-
-                            if (overlapX && overlapY) {
-                                // Check if player is coming from above (landing) or from side (collision)
-                                // Landing: player's head is still above tofu
-                                // Side collision: player's head is already inside tofu
-
-                                if (player.velocityY > 0 && playerTop >= cakeTop - 10) {
-                                    // Player is above or just entering from top - this is landing (OK)
-                                    return;
-                                } else {
-                                    // Player hit from side - game over
-                                    isDying = true;
-                                    playSound('gameover');
-                                    setTimeout(() => {
-                                        gameOver();
-                                    }, 1000);
-                                }
-                            }
-                        }
-                    });
                 }
             }
         }
 
         function draw() {
-            // Clear
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#d4a5ff');
-            gradient.addColorStop(1, '#b88dd9');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw background pattern
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-            for (let i = 0; i < 10; i++) {
-                for (let j = 0; j < 10; j++) {
-                    if ((i + j) % 2 === 0) {
-                        ctx.fillRect(i * 80, j * 80, 80, 80);
-                    }
-                }
-            }
+            // Clear (투명하게)
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Save context and apply camera offset
             ctx.save();
             ctx.translate(0, cameraOffsetY);
 
-            // Draw stacked tofu (tower)
+            // Draw stacked tofu (tower) with tumble animation
             stackedCakes.forEach((cake, index) => {
-                drawTofu(cake.x, cake.y, cake.width, cake.height, index === 0);
+                let drawX = cake.x;
+                let drawY = cake.y;
+                let rotation = 0;
+
+                // 무너지는 애니메이션 적용
+                if (isTumbling && tumbleStartTime > 0) {
+                    const elapsed = Date.now() - tumbleStartTime;
+                    const progress = Math.min(elapsed / 1000, 1); // 0~1
+
+                    // 위쪽 케이크일수록 더 많이 움직임
+                    const heightFactor = index / stackedCakes.length;
+
+                    // 회전 (위쪽일수록 많이 회전)
+                    rotation = tumbleDirection * progress * heightFactor * Math.PI / 6; // 최대 30도
+
+                    // 옆으로 이동
+                    drawX += tumbleDirection * progress * heightFactor * 100;
+
+                    // 아래로 떨어짐
+                    drawY += progress * progress * heightFactor * 200; // 가속도
+                }
+
+                ctx.save();
+                ctx.translate(drawX + cake.width / 2, drawY + cake.height / 2);
+                ctx.rotate(rotation);
+                ctx.translate(-cake.width / 2, -cake.height / 2);
+                drawTofu(0, 0, cake.width, cake.height, index === 0);
+                ctx.restore();
             });
 
             // Draw flying tofu
@@ -476,8 +1209,37 @@
                 drawTofu(cake.x, cake.y, cake.width, cake.height, false);
             });
 
-            // Draw player (Girl character)
-            drawGirl(player.x, player.y);
+            // Draw player (Girl character) with hit animation
+            let playerDrawX = player.x;
+            let playerDrawY = player.y;
+            let playerRotation = 0;
+
+            // 두부에 맞아서 날아가는 애니메이션
+            if (isHitByTofu && hitStartTime > 0) {
+                const elapsed = Date.now() - hitStartTime;
+                const progress = Math.min(elapsed / 1000, 1); // 0~1
+
+                // 맞은 방향으로 날아감
+                playerDrawX += hitDirection * progress * 300;
+
+                // 위로 살짝 올라갔다가 떨어짐 (포물선)
+                playerDrawY -= Math.sin(progress * Math.PI) * 100;
+                playerDrawY += progress * progress * 200; // 중력
+
+                // 회전하면서 날아감
+                playerRotation = hitDirection * progress * Math.PI * 2; // 360도 회전
+            }
+
+            ctx.save();
+            ctx.translate(playerDrawX + player.width / 2, playerDrawY + player.height / 2);
+
+            // 캐릭터 좌우 반전 (두부 보는 방향)
+            ctx.scale(player.facingDirection, 1);
+
+            ctx.rotate(playerRotation);
+            ctx.translate(-player.width / 2, -player.height / 2);
+            drawGirl(0, 0);
+            ctx.restore();
 
             // Restore context
             ctx.restore();
@@ -504,30 +1266,32 @@
                 ctx.lineWidth = 3;
                 ctx.stroke();
             } else {
-                // Draw tofu (white block)
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(x, y, width, height);
+                if (tofuLoaded) {
+                    // SVG 두부 그리기
+                    // SVG는 480x300 크기, 실제 두부는 60~420 (360px width), 44~244 (200px height)
+                    // 게임의 width, height에 맞춰서 스케일 조정
+                    const scaleX = width / 360;
+                    const scaleY = height / 200;
 
-                // Add grid lines for texture
-                ctx.strokeStyle = '#e0e0e0';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(x + width / 2, y);
-                ctx.lineTo(x + width / 2, y + height);
-                ctx.moveTo(x, y + height / 2);
-                ctx.lineTo(x + width, y + height / 2);
-                ctx.stroke();
-
-                // Black border
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, width, height);
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.scale(scaleX, scaleY);
+                    ctx.drawImage(tofuImage, -60, -44); // SVG의 실제 두부 시작점 offset
+                    ctx.restore();
+                } else {
+                    // Fallback: 로딩 중일 때 간단한 사각형
+                    ctx.fillStyle = '#F6EBDD';
+                    ctx.fillRect(x, y, width, height);
+                    ctx.strokeStyle = '#3a1f14';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x, y, width, height);
+                }
             }
         }
 
         function drawGirl(x, y) {
             if (!characterImages.loaded) {
-                // Fallback: Draw simple character while images are loading
+                // Fallback: Draw simple character while SVG is loading
                 ctx.fillStyle = '#ffb3d9';
                 ctx.fillRect(x + 15, y + 35, 20, 35);
                 ctx.fillStyle = '#ffd0b0';
@@ -537,70 +1301,27 @@
                 return;
             }
 
-            // Scale factor
-            const scale = 0.3;
-            const centerX = x + 25;
+            // SVG는 512x512 크기
+            const drawWidth = 100;
+            const drawHeight = 100;
 
-            // Top-left 기준으로 정확하게 쌓아올리기
-            let currentY = y;
+            // 현재 시간 체크
+            const now = Date.now();
 
-            // === 머리 부분 (Hair, Head, Face 같은 위치) ===
-            ctx.save();
-            ctx.translate(centerX, currentY);
-            ctx.scale(scale, scale);
-            // Hair (제일 뒤)
-            ctx.drawImage(characterImages.hair, -characterImages.hair.width/2, 0);
-            // Head skin
-            ctx.drawImage(characterImages.head, -characterImages.head.width/2, 0);
-            // Face (제일 앞)
-            ctx.drawImage(characterImages.face, -characterImages.face.width/2, 0);
-            ctx.restore();
+            // 상태에 따라 다른 이미지 표시
+            let currentImage;
+            if (now - landingTime < 200) {
+                // 착지 후 0.2초 동안 착지 모션
+                currentImage = characterImages.land;
+            } else if (player.falling) {
+                // 점프 중
+                currentImage = characterImages.jump;
+            } else {
+                // 정지 상태
+                currentImage = characterImages.idle;
+            }
 
-            currentY += characterImages.head.height * scale;
-
-            // === 목 ===
-            ctx.save();
-            ctx.translate(centerX, currentY);
-            ctx.scale(scale, scale);
-            ctx.drawImage(characterImages.neck, -characterImages.neck.width/2, 0);
-            ctx.restore();
-
-            currentY += characterImages.neck.height * scale;
-
-            // === 상체 (Arm, Shirt, ShirtArm, Hand 같은 위치) ===
-            ctx.save();
-            ctx.translate(centerX, currentY);
-            ctx.scale(scale, scale);
-            // Arms skin (제일 뒤)
-            ctx.drawImage(characterImages.arm, -characterImages.arm.width/2, 0);
-            // Shirt body
-            ctx.drawImage(characterImages.shirt, -characterImages.shirt.width/2, 0);
-            // Shirt arms
-            ctx.drawImage(characterImages.shirtArm, -characterImages.shirtArm.width/2, 0);
-            // Hands (제일 앞)
-            ctx.drawImage(characterImages.hand, -characterImages.hand.width/2, 0);
-            ctx.restore();
-
-            currentY += characterImages.shirt.height * scale;
-
-            // === 하체 (Leg, Pants 같은 위치) ===
-            ctx.save();
-            ctx.translate(centerX, currentY);
-            ctx.scale(scale, scale);
-            // Leg skin (제일 뒤)
-            ctx.drawImage(characterImages.leg, -characterImages.leg.width/2, 0);
-            // Pants (위)
-            ctx.drawImage(characterImages.pants, -characterImages.pants.width/2, 0);
-            ctx.restore();
-
-            currentY += characterImages.leg.height * scale;
-
-            // === 신발 ===
-            ctx.save();
-            ctx.translate(centerX, currentY);
-            ctx.scale(scale, scale);
-            ctx.drawImage(characterImages.shoes, -characterImages.shoes.width/2, 0);
-            ctx.restore();
+            ctx.drawImage(currentImage, x - 25, y - 15, drawWidth, drawHeight);
         }
 
         function gameLoop() {
@@ -625,37 +1346,117 @@
                     clearInterval(interval);
                     callback();
                 }
-            }, 1000);
+            }, 600); // 1000ms → 600ms (더 빠르게)
         }
 
-        function startGame() {
+        // UI 업데이트 함수
+        function updateUI() {
+            const scoreEl = document.getElementById('score');
+            const towerHeightEl = document.getElementById('towerHeight');
+
+            if (scoreEl) scoreEl.textContent = score.toLocaleString();
+            if (towerHeightEl) towerHeightEl.textContent = (stackedCakes.length - 1); // 시작 플레이트 제외
+        }
+
+        // 게임 시작
+        window.startGame = async function() {
+            score = 0; // 항상 0부터 시작
+            gameState = 'starting';
+
             document.getElementById('menuScreen').classList.add('hidden');
             document.getElementById('gameoverScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
 
             initGame();
             initAudio();
+            updateUI();
+
+            // 캔버스 크기 조정
+            resizeCanvasForGame();
+
+            await updatePointsDisplay();
 
             showCountdown(() => {
                 gameState = 'playing';
             });
+        };
+
+        // 게임 재시작
+        window.restartGame = function() {
+            startGame();
+        };
+
+        // 게임 종료 (이전 버튼)
+        async function handleGameExit(event) {
+            event.preventDefault();
+
+            if (gameState === 'playing' && confirm('게임을 종료하시겠습니까?\n현재 점수가 통합 포인트에 저장됩니다.')) {
+                gameState = 'exiting';
+
+                // 점수 저장
+                if (window.addGamePoints) {
+                    await window.addGamePoints(score, 'tofu_girl.html');
+                }
+                await updatePointsDisplay();
+
+                // 메뉴로 돌아가기
+                document.getElementById('gameContainer').classList.add('hidden');
+                document.getElementById('menuScreen').classList.remove('hidden');
+                gameState = 'menu';
+            }
         }
 
-        function gameOver() {
+        // 게임 오버
+        async function gameOver() {
             if (gameState !== 'playing') return;
 
             gameState = 'gameover';
 
-            // Show game over screen after animation
-            document.getElementById('gameoverScreen').classList.remove('hidden');
-
-            document.getElementById('finalScore').textContent = score;
-
+            // 최고 점수 업데이트
             if (score > highScore) {
                 highScore = score;
                 localStorage.setItem('tofuGirl_highScore', highScore);
             }
 
-            document.getElementById('gameoverHighScore').textContent = highScore;
+            // 점수 저장 및 표시
+            let totalPoints = 0;
+            if (window.addGamePoints) {
+                const result = await window.addGamePoints(score, 'tofu_girl.html');
+                totalPoints = result?.newTotal || 0;
+            }
+            await updatePointsDisplay();
+
+            // 게임오버 화면에 점수 표시
+            const towerHeight = stackedCakes.length - 1; // 시작 플레이트 제외
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('totalPoints').textContent = totalPoints.toLocaleString();
+            document.getElementById('finalTowerHeight').textContent = towerHeight + '층';
+            document.getElementById('gameoverHighScore').textContent = highScore.toLocaleString();
+
+            // 화면 전환
+            document.getElementById('gameContainer').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // 캔버스 리사이즈 (게임 플레이용)
+        function resizeCanvasForGame() {
+            const stats = document.querySelector('.stats');
+            if (!stats) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                return;
+            }
+
+            const statsHeight = stats.offsetHeight;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - statsHeight;
+
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight - statsHeight;
+
+            if (bgLoaded) {
+                drawBackground();
+            }
         }
 
         // Jump function
@@ -666,10 +1467,6 @@
                 player.canJump = false;
             }
         }
-
-        // Event listeners
-        document.getElementById('startBtn').addEventListener('click', startGame);
-        document.getElementById('retryBtn').addEventListener('click', startGame);
 
         // Jump controls - mouse/touch on canvas
         canvas.addEventListener('mousedown', (e) => {
@@ -682,9 +1479,32 @@
             jump();
         });
 
-        // High score display
-        document.getElementById('menuHighScore').textContent = highScore;
-        document.getElementById('gameoverHighScore').textContent = highScore;
+        // 초기화
+        window.addEventListener('load', async () => {
+            // ⚠️ 중요: Supabase 초기화 대기 (포인트 표시를 위해 필수)
+            if (window.waitForSupabaseInit) {
+                await window.waitForSupabaseInit();
+            }
+
+            await updatePointsDisplay();
+
+            // 최고 점수 표시
+            document.getElementById('menuHighScore').textContent = highScore.toLocaleString();
+
+            // 조회수 증가
+            if (window.incrementGameView) {
+                await window.incrementGameView('tofu_girl.html');
+            }
+        });
+
+        // 리사이즈 이벤트
+        window.addEventListener('resize', () => {
+            if (gameState === 'playing') {
+                resizeCanvasForGame();
+            } else {
+                resizeCanvas();
+            }
+        });
 
         // Start game loop
         gameLoop();
