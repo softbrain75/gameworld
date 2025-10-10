@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
@@ -11,7 +12,8 @@
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    <!-- Supabase Client -->
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabaseClient.js"></script>
 
     <style>
@@ -636,7 +638,7 @@
                 }
 
                 // 화면 밖으로 나가면
-                if (dart.y > canvas.height + 100 || dart.x < -100 || dart.x > canvas.width + 100) {
+                if (dart && (dart.y > canvas.height + 100 || dart.x < -100 || dart.x > canvas.width + 100)) {
                     dartsLeft--;
                     dart = null;
                     dartTrail = [];
