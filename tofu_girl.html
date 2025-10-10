@@ -972,13 +972,17 @@
             const startX = direction > 0 ? -cakeWidth : canvas.width;
             const topCake = stackedCakes[stackedCakes.length - 1];
 
+            // 층수에 따라 속도 증가 (시작 플레이트 제외)
+            const towerHeight = stackedCakes.length - 1;
+            const speedIncrease = towerHeight * 0.1; // 층마다 0.1씩 증가
+
             currentCake = {
                 x: startX,
                 y: topCake.y - cakeHeight, // Spawn at the height where it will be placed
                 width: cakeWidth,
                 height: cakeHeight,
                 direction: direction,
-                speed: cakeSpeed + score * 0.1,
+                speed: cakeSpeed + speedIncrease,
                 stopped: false
             };
 
