@@ -294,6 +294,73 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        /* 캐릭터 선택 */
+        .character-selection {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .character-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid transparent;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 150px;
+        }
+
+        .character-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .character-card.selected {
+            border-color: #FF6360;
+            background: rgba(255, 99, 96, 0.2);
+        }
+
+        .character-preview {
+            font-size: 60px;
+            text-align: center;
+            margin-bottom: 10px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character-name {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .character-check {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #FF6360;
+            color: white;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .character-card.selected .character-check {
+            display: flex;
+        }
+
         .countdown {
             position: absolute;
             top: 50%;
@@ -334,6 +401,23 @@
             <div class="menu-content">
                 <!-- 게임 시작 버튼 (최상단) -->
                 <button class="start-btn" onclick="startGame()">게임 시작</button>
+
+                <!-- 캐릭터 선택 -->
+                <div class="intro-section">
+                    <h2>👥 캐릭터 선택</h2>
+                    <div class="character-selection">
+                        <div class="character-card" data-character="tofu-girl" onclick="selectCharacter('tofu-girl')">
+                            <div class="character-preview" id="preview-tofu-girl">🍰</div>
+                            <div class="character-name">두부 걸</div>
+                            <div class="character-check" id="check-tofu-girl">✓</div>
+                        </div>
+                        <div class="character-card" data-character="space-warrior" onclick="selectCharacter('space-warrior')">
+                            <div class="character-preview" id="preview-space-warrior">🚀</div>
+                            <div class="character-name">우주 전사</div>
+                            <div class="character-check" id="check-space-warrior"></div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- 게임 소개 -->
                 <div class="intro-section">
@@ -443,13 +527,23 @@
         const bgCanvas = document.getElementById('bgCanvas');
         const bgCtx = bgCanvas.getContext('2d');
 
-        // SVG 캐릭터 이미지 로드 (3가지 상태: 정지, 점프, 착지)
-        const characterImages = {
-            idle: new Image(),
-            jump: new Image(),
-            land: new Image(),
-            loaded: false
+        // 캐릭터 데이터 (2명의 캐릭터, 각각 3가지 상태)
+        const characters = {
+            'tofu-girl': {
+                idle: new Image(),
+                jump: new Image(),
+                land: new Image(),
+                loaded: false
+            },
+            'space-warrior': {
+                idle: new Image(),
+                jump: new Image(),
+                land: new Image(),
+                loaded: false
+            }
         };
+
+        let currentCharacterImages = characters['tofu-girl']; // 기본 캐릭터
 
         // 정지 상태 SVG
         const idleSVG = `<?xml version="1.0" encoding="UTF-8"?>
@@ -612,23 +706,37 @@
         const blobJump = new Blob([jumpSVG], {type: 'image/svg+xml'});
         const blobLand = new Blob([landSVG], {type: 'image/svg+xml'});
 
-        characterImages.idle.src = URL.createObjectURL(blobIdle);
-        characterImages.jump.src = URL.createObjectURL(blobJump);
-        characterImages.land.src = URL.createObjectURL(blobLand);
+        // 두부 걸 캐릭터 로드
+        characters['tofu-girl'].idle.src = URL.createObjectURL(blobIdle);
+        characters['tofu-girl'].jump.src = URL.createObjectURL(blobJump);
+        characters['tofu-girl'].land.src = URL.createObjectURL(blobLand);
 
         let loadedCount = 0;
-        characterImages.idle.onload = () => {
+        characters['tofu-girl'].idle.onload = () => {
             loadedCount++;
-            if (loadedCount === 3) characterImages.loaded = true;
+            if (loadedCount === 3) {
+                characters['tofu-girl'].loaded = true;
+                currentCharacterImages = characters[selectedCharacter];
+            }
         };
-        characterImages.jump.onload = () => {
+        characters['tofu-girl'].jump.onload = () => {
             loadedCount++;
-            if (loadedCount === 3) characterImages.loaded = true;
+            if (loadedCount === 3) {
+                characters['tofu-girl'].loaded = true;
+                currentCharacterImages = characters[selectedCharacter];
+            }
         };
-        characterImages.land.onload = () => {
+        characters['tofu-girl'].land.onload = () => {
             loadedCount++;
-            if (loadedCount === 3) characterImages.loaded = true;
+            if (loadedCount === 3) {
+                characters['tofu-girl'].loaded = true;
+                currentCharacterImages = characters[selectedCharacter];
+            }
         };
+
+        // 우주 전사 캐릭터 SVG (간단 버전) - 나중에 구현
+        // TODO: 우주 전사 3가지 상태 SVG 추가
+        characters['space-warrior'] = characters['tofu-girl']; // 임시로 같은 이미지 사용
 
         // 착지 애니메이션 타이머
         let landingTime = 0;
@@ -1325,7 +1433,7 @@
         }
 
         function drawGirl(x, y) {
-            if (!characterImages.loaded) {
+            if (!currentCharacterImages.loaded) {
                 // Fallback: Draw simple character while SVG is loading
                 ctx.fillStyle = '#ffb3d9';
                 ctx.fillRect(x + 15, y + 35, 20, 35);
@@ -1347,13 +1455,13 @@
             let currentImage;
             if (now - landingTime < 200) {
                 // 착지 후 0.2초 동안 착지 모션
-                currentImage = characterImages.land;
+                currentImage = currentCharacterImages.land;
             } else if (player.falling) {
                 // 점프 중
-                currentImage = characterImages.jump;
+                currentImage = currentCharacterImages.jump;
             } else {
                 // 정지 상태
-                currentImage = characterImages.idle;
+                currentImage = currentCharacterImages.idle;
             }
 
             ctx.drawImage(currentImage, x - 25, y - 15, drawWidth, drawHeight);
@@ -1514,6 +1622,35 @@
             jump();
         });
 
+        // ============================================
+        // 캐릭터 선택 시스템
+        // ============================================
+        let selectedCharacter = localStorage.getItem('tofuGirl_selectedCharacter') || 'tofu-girl';
+
+        function selectCharacter(characterId) {
+            selectedCharacter = characterId;
+            localStorage.setItem('tofuGirl_selectedCharacter', characterId);
+
+            // 캐릭터 이미지 변경
+            if (characters[characterId] && characters[characterId].loaded) {
+                currentCharacterImages = characters[characterId];
+            }
+
+            // UI 업데이트
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            const selectedCard = document.querySelector(`[data-character="${characterId}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+        }
+
+        function loadCharacterSelection() {
+            // 선택된 캐릭터 UI 표시
+            selectCharacter(selectedCharacter);
+        }
+
         // 초기화
         window.addEventListener('load', async () => {
             // ⚠️ 중요: Supabase 초기화 대기 (포인트 표시를 위해 필수)
@@ -1525,6 +1662,9 @@
 
             // 최고 점수 표시
             document.getElementById('menuHighScore').textContent = highScore.toLocaleString();
+
+            // 캐릭터 선택 로드
+            loadCharacterSelection();
 
             // 조회수 증가
             if (window.incrementGameView) {
