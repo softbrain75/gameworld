@@ -387,55 +387,10 @@
         setViewportHeight();
 
         // ============================================
-        // Supabase 함수들
+        // Supabase 함수들 (window 전역 함수 사용)
         // ============================================
-        async function getCurrentPoints() {
-            try {
-                const { data: { user } } = await _supabaseClient.auth.getUser();
-                if (!user) return 0;
-
-                const { data, error } = await _supabaseClient
-                    .from('profiles')
-                    .select('total_points')
-                    .eq('id', user.id)
-                    .single();
-
-                if (error) throw error;
-                return data?.total_points || 0;
-            } catch (e) {
-                console.error('Error getting points:', e);
-                return 0;
-            }
-        }
-
-        async function addGamePoints(points, gameUrl) {
-            try {
-                const { data: { user } } = await _supabaseClient.auth.getUser();
-                if (!user) {
-                    console.log('Not logged in, skipping point update');
-                    return 0;
-                }
-
-                const result = await _supabaseClient.rpc('update_user_points', {
-                    p_user_id: user.id,
-                    p_points_to_add: points
-                });
-
-                if (result.error) throw result.error;
-
-                await _supabaseClient.rpc('increment_game_view_logged', {
-                    p_game_url: gameUrl
-                });
-
-                return result.data || 0;
-            } catch (e) {
-                console.error('Error adding points:', e);
-                return 0;
-            }
-        }
-
         async function updatePointsDisplay() {
-            const points = await getCurrentPoints();
+            const points = window.getCurrentPoints ? window.getCurrentPoints() : 0;
             const menuPointsEl = document.getElementById('menuPoints');
             const gameoverPointsEl = document.getElementById('gameoverPoints');
 
@@ -563,7 +518,9 @@
                 gameState = 'exiting';
 
                 // 점수 저장
-                await addGamePoints(score, 'dart_game.html');
+                if (window.addGamePoints) {
+                    await window.addGamePoints(score, 'dart_game.html');
+                }
                 await updatePointsDisplay();
 
                 // 메뉴로 돌아가기
@@ -586,7 +543,11 @@
             }
 
             // 점수 저장 및 표시
-            const totalPoints = await addGamePoints(score, 'dart_game.html');
+            let totalPoints = 0;
+            if (window.addGamePoints) {
+                const result = await window.addGamePoints(score, 'dart_game.html');
+                totalPoints = result?.newTotal || 0;
+            }
             await updatePointsDisplay();
 
             // 게임오버 화면에 점수 표시
@@ -713,13 +674,15 @@
             }
 
             // 다트 궤적 그리기
-            if (dartTrail.length > 0) {
+            if (dartTrail.length > 0 && dartTrail[0]) {
                 ctx.strokeStyle = 'rgba(255, 200, 100, 0.5)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(dartTrail[0].x, dartTrail[0].y);
                 for (let i = 1; i < dartTrail.length; i++) {
-                    ctx.lineTo(dartTrail[i].x, dartTrail[i].y);
+                    if (dartTrail[i]) {
+                        ctx.lineTo(dartTrail[i].x, dartTrail[i].y);
+                    }
                 }
                 ctx.stroke();
             }
