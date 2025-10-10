@@ -7,7 +7,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
      crossorigin="anonymous"></script>
     <title>스타워즈 X-Wing - 게임세상</title>
     <style>
@@ -43,9 +44,75 @@
             height: calc(var(--vh, 1vh) * 100);
             background: #000000;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             z-index: 1000;
+        }
+
+        .menu-header {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0 12px;
+            height: 56px;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(255, 204, 0, 0.3);
+            border-bottom: 2px solid rgba(255, 204, 0, 0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-back-btn {
+            background: transparent;
+            border: none;
+            color: #ffcc00;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .menu-back-btn .material-icons {
+            font-size: 24px;
+        }
+
+        .menu-back-btn:hover {
+            background: rgba(255, 204, 0, 0.1);
+        }
+
+        .menu-game-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 0.15px;
+            color: #ffcc00;
+        }
+
+        .menu-points {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 204, 0, 0.15);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #ffcc00;
+        }
+
+        .menu-body {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            padding: 20px 0;
         }
 
         .menu-content, .gameover-content {
@@ -55,7 +122,6 @@
             text-align: center;
             color: white;
             max-width: 90%;
-            width: 500px;
             border: 4px solid #ffcc00;
             box-shadow: 0 0 40px rgba(255, 204, 0, 0.7);
         }
@@ -128,19 +194,6 @@
             transform: scale(0.95);
         }
 
-        .back-btn {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 204, 0, 0.3);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            text-decoration: none;
-            z-index: 100;
-            font-size: 0.9em;
-            border: 1px solid rgba(255, 204, 0, 0.5);
-        }
 
         .game-container {
             flex: 1;
@@ -152,18 +205,54 @@
 
         .stats {
             display: flex;
-            justify-content: space-around;
-            padding: 10px;
+            align-items: center;
+            padding: 8px 12px;
             background: rgba(0, 0, 0, 0.9);
             color: white;
             font-size: 1em;
             border-bottom: 2px solid rgba(255, 204, 0, 0.5);
+            gap: 12px;
+        }
+
+        .back-btn-game {
+            background: transparent;
+            border: none;
+            color: #ffcc00;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            margin-right: 4px;
+        }
+
+        .back-btn-game .material-icons {
+            font-size: 24px;
+        }
+
+        .back-btn-game:hover {
+            background: rgba(255, 204, 0, 0.1);
+        }
+
+        .back-btn-game:active {
+            background: rgba(255, 204, 0, 0.2);
         }
 
         .stat-item {
             display: flex;
             flex-direction: column;
             align-items: center;
+            flex: 1;
+        }
+
+        .stat-item:first-of-type {
+            margin-left: auto;
         }
 
         .stat-label {
@@ -254,36 +343,46 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-btn">← 홈으로</a>
-
     <!-- Menu Screen -->
     <div id="menuScreen" class="menu-screen">
-        <div class="menu-content">
-            <div class="game-icon">✈️⚔️</div>
-            <h1>X-WING</h1>
-            <div class="subtitle">타이파이터 헌터</div>
-
-            <div id="highScore" class="high-score hidden">
-                <div style="opacity: 0.8;">🏆 최고 기록</div>
-                <div style="font-size: 2em; font-weight: bold; color: #ffcc00;" id="highScoreValue">0</div>
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">스타워즈 X-Wing</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="menuPoints">0</span>
             </div>
+        </div>
+        <div class="menu-body">
+            <div class="menu-content">
+                <div class="game-icon">✈️⚔️</div>
+                <h1>X-WING</h1>
+                <div class="subtitle">타이파이터 헌터</div>
 
-            <button class="btn" onclick="startGame()">🚀 출격</button>
+                <div id="highScore" class="high-score hidden">
+                    <div style="opacity: 0.8;">🏆 최고 기록</div>
+                    <div style="font-size: 2em; font-weight: bold; color: #ffcc00;" id="highScoreValue">0</div>
+                </div>
 
-            <div class="instructions">
-                <p style="font-weight: bold; color: #ffcc00; margin-bottom: 10px; font-size: 1.1em;">🎮 게임 방법</p>
-                <p style="color: #00ff00; font-weight: bold; font-size: 1.1em;">🖱️ 마우스/손가락으로 조준!</p>
-                <p>⊕ 조준선을 드래그해서 움직입니다</p>
-                <p>🎯 타이파이터에 조준선을 맞추면...</p>
-                <p style="color: #00ff00; font-weight: bold;">💥 자동으로 레이저 발사!</p>
-                <p>👾 TIE Fighter HP: 3</p>
-                <p style="color: #ff4444;">⚠️ 적이 화면을 벗어나면 체력 -10</p>
+                <button class="btn" onclick="startGame()">🚀 출격</button>
 
-                <div class="tip-box">
-                    <p style="color: #ffcc00; font-weight: bold;">💡 팁:</p>
-                    <p style="font-size: 0.9em;">• 적이 큽니다! 조준이 쉬워요!</p>
-                    <p style="font-size: 0.9em;">• 빨간 테두리 = 타겟 락온!</p>
-                    <p style="font-size: 0.9em; color: #00ff00;">• 드래그해서 빠르게 조준하세요!</p>
+                <div class="instructions">
+                    <p style="font-weight: bold; color: #ffcc00; margin-bottom: 10px; font-size: 1.1em;">🎮 게임 방법</p>
+                    <p style="color: #00ff00; font-weight: bold; font-size: 1.1em;">🖱️ 마우스/손가락으로 조준!</p>
+                    <p>⊕ 조준선을 드래그해서 움직입니다</p>
+                    <p>🎯 타이파이터에 조준선을 맞추면...</p>
+                    <p style="color: #00ff00; font-weight: bold;">💥 자동으로 레이저 발사!</p>
+                    <p>👾 TIE Fighter HP: 3</p>
+                    <p style="color: #ff4444;">⚠️ 적이 화면을 벗어나면 체력 -10</p>
+
+                    <div class="tip-box">
+                        <p style="color: #ffcc00; font-weight: bold;">💡 팁:</p>
+                        <p style="font-size: 0.9em;">• 적이 큽니다! 조준이 쉬워요!</p>
+                        <p style="font-size: 0.9em;">• 빨간 테두리 = 타겟 락온!</p>
+                        <p style="font-size: 0.9em; color: #00ff00;">• 드래그해서 빠르게 조준하세요!</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -291,38 +390,64 @@
 
     <!-- Game Over Screen -->
     <div id="gameoverScreen" class="gameover-screen hidden">
-        <div class="gameover-content">
-            <div class="game-icon">💥</div>
-            <h1 style="font-size: 2.5em; color: #ff4444;">격추됨!</h1>
-
-            <div class="score-display" id="finalScore">0</div>
-            <div id="newRecord" class="hidden" style="color: #ffcc00; font-size: 1.3em; margin: 10px 0; font-weight: bold;">
-                🎉 신기록! 🎉
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">스타워즈 X-Wing</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="gameoverPoints">0</span>
             </div>
+        </div>
+        <div class="menu-body">
+            <div class="gameover-content">
+                <div class="game-icon">💥</div>
+                <h1 style="font-size: 2.5em; color: #ff4444;">격추됨!</h1>
 
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div style="opacity: 0.8; font-size: 0.9em;">격추</div>
-                    <div style="font-size: 2em; font-weight: bold; color: #ffcc00;" id="killCount">0</div>
+                <!-- 점수 정보 -->
+                <div class="score-info" style="background: rgba(255,204,0,0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="opacity: 0.8;">이번판 점수</span>
+                        <span style="font-size: 1.3em; font-weight: bold; color: #ffcc00;" id="finalScore">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="opacity: 0.8;">통합 포인트</span>
+                        <span style="font-size: 1.3em; font-weight: bold; color: #00ff00;" id="totalPoints">0</span>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <div style="opacity: 0.8; font-size: 0.9em;">평균 점수</div>
-                    <div style="font-size: 2em; font-weight: bold; color: #4488ff;" id="avgScore">0</div>
+
+                <div id="newRecord" class="hidden" style="color: #ffcc00; font-size: 1.3em; margin: 10px 0; font-weight: bold;">
+                    🎉 신기록! 🎉
                 </div>
-            </div>
 
-            <div id="highScoreDisplay" class="high-score hidden">
-                <div style="opacity: 0.8;">최고 기록</div>
-                <div style="font-size: 1.8em; font-weight: bold; color: #ffcc00;" id="highScoreDisplayValue">0</div>
-            </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div style="opacity: 0.8; font-size: 0.9em;">격추</div>
+                        <div style="font-size: 2em; font-weight: bold; color: #ffcc00;" id="killCount">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div style="opacity: 0.8; font-size: 0.9em;">평균 점수</div>
+                        <div style="font-size: 2em; font-weight: bold; color: #4488ff;" id="avgScore">0</div>
+                    </div>
+                </div>
 
-            <button class="btn" onclick="startGame()">🔄 재출격</button>
+                <div id="highScoreDisplay" class="high-score hidden">
+                    <div style="opacity: 0.8;">최고 기록</div>
+                    <div style="font-size: 1.8em; font-weight: bold; color: #ffcc00;" id="highScoreDisplayValue">0</div>
+                </div>
+
+                <button class="btn" onclick="startGame()">🔄 재출격</button>
+            </div>
         </div>
     </div>
 
     <!-- Game Screen -->
     <div id="gameContainer" class="game-container hidden">
         <div class="stats">
+            <a href="#" class="back-btn-game" onclick="handleGameExit(event)">
+                <span class="material-icons">arrow_back</span>
+            </a>
             <div class="stat-item">
                 <div class="stat-label">Score</div>
                 <div class="stat-value" id="score">0</div>
@@ -334,9 +459,6 @@
             <div class="stat-item">
                 <div class="stat-label">Kills</div>
                 <div class="stat-value" id="kills">0</div>
-            </div>
-            <div id="lockedDisplay" class="stat-item locked-indicator hidden">
-                <div class="stat-value">🎯 LOCKED</div>
             </div>
         </div>
         <canvas id="gameCanvas"></canvas>
@@ -361,7 +483,7 @@
 
         // Game state
         let gameState = 'menu';
-        let score = 0;
+        let score = 0; // 이번 판 점수 (게임 시작 시 0부터)
         let shields = 100;
         let kills = 0;
         let highScore = localStorage.getItem('xwing_highScore') || 0;
@@ -384,6 +506,12 @@
             const container = document.getElementById('gameContainer');
             const stats = container.querySelector('.stats');
             const msg = container.querySelector('.game-message');
+
+            if (!stats || !msg) {
+                console.warn('Stats or message element not found');
+                return;
+            }
+
             canvas.width = Math.min(window.innerWidth, 800);
             canvas.height = window.innerHeight - stats.offsetHeight - msg.offsetHeight;
 
@@ -456,12 +584,8 @@
             document.getElementById('gameoverScreen').classList.add('hidden');
             document.getElementById('gameContainer').classList.remove('hidden');
 
-            // 통합 포인트를 게임 시작 점수로 사용
-            const pointsResult = await usePointsForGameStart();
-            const startingScore = pointsResult.startingScore || 0;
-
             gameState = 'playing';
-            score = startingScore; // 통합 포인트를 초기 점수로 설정
+            score = 0; // 이번 판 점수는 0부터 시작
             shields = 100;
             kills = 0;
             enemies = [];
@@ -718,6 +842,11 @@
             // Update message
             const msgTitle = document.getElementById('msgTitle');
             const msgDetail = document.getElementById('msgDetail');
+
+            if (!msgTitle || !msgDetail) {
+                return; // Skip message updates if elements not found
+            }
+
             if (targetLocked) {
                 msgTitle.textContent = '🎯 TARGET LOCKED - FIRING!';
                 msgTitle.style.color = '#ff0000';
@@ -732,14 +861,6 @@
                 msgTitle.style.color = '#00ff00';
             }
             msgDetail.textContent = `적: ${enemies.length} • 실드: ${shields}%`;
-
-            // Update locked indicator
-            const lockedDisplay = document.getElementById('lockedDisplay');
-            if (targetLocked) {
-                lockedDisplay.classList.remove('hidden');
-            } else {
-                lockedDisplay.classList.add('hidden');
-            }
         }
 
         function drawGame() {
@@ -913,10 +1034,16 @@
 
             const avgScore = kills > 0 ? Math.round(score / kills) : 0;
 
-            // 게임 종료 시 점수를 통합 포인트로 적립
+            // 게임 종료 시 이번 판 점수를 통합 포인트에 적립
             await addGamePoints(score, 'xwing');
 
+            // 통합 포인트 가져오기
+            const totalPoints = getCurrentPoints();
+
+            // 화면 표시
             document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('totalPoints').textContent = totalPoints.toLocaleString();
+            document.getElementById('gameoverPoints').textContent = totalPoints.toLocaleString();
             document.getElementById('killCount').textContent = kills;
             document.getElementById('avgScore').textContent = avgScore;
 
@@ -935,6 +1062,30 @@
             }
 
             document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // 게임 나가기 처리 (이전 버튼)
+        async function handleGameExit(event) {
+            event.preventDefault();
+
+            if (gameState === 'playing' && confirm('게임을 종료하시겠습니까?\n현재 점수가 통합 포인트에 저장됩니다.')) {
+                gameState = 'exiting';
+
+                // 음악 정지
+                stopBackgroundMusic();
+
+                // 현재 점수를 통합 포인트에 저장
+                await addGamePoints(score, 'xwing');
+
+                // 포인트 표시 업데이트
+                updatePointsDisplay();
+
+                // 메뉴로 돌아가기
+                document.getElementById('gameContainer').classList.add('hidden');
+                document.getElementById('menuScreen').classList.remove('hidden');
+
+                gameState = 'menu';
+            }
         }
 
         // Initialize on load
@@ -975,15 +1126,32 @@
     <script src="js/supabaseClient.js"></script>
 
     <script>
+        // 포인트 표시 업데이트
+        function updatePointsDisplay() {
+            const points = getCurrentPoints();
+            const menuPointsEl = document.getElementById('menuPoints');
+            const gameoverPointsEl = document.getElementById('gameoverPoints');
+
+            if (menuPointsEl) menuPointsEl.textContent = points;
+            if (gameoverPointsEl) gameoverPointsEl.textContent = points;
+        }
+
         // 페이지 로드 시 세션 확인 후 조회수 증가
         window.addEventListener('DOMContentLoaded', async () => {
             // 세션 확인 (supabaseClient.js에서 currentUser 설정)
             await getCurrentSession();
 
+            // 포인트 표시 업데이트
+            updatePointsDisplay();
+
             // 세션 확인 후 조회수 증가
             await incrementGameView('xwing.html');
             console.log('📊 Game view recorded');
         });
+
+        // 로그인/로그아웃 시 포인트 업데이트
+        window.addEventListener('userSignedIn', updatePointsDisplay);
+        window.addEventListener('userSignedOut', updatePointsDisplay);
     </script>
 </body>
 </html>

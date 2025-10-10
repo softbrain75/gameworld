@@ -19,6 +19,60 @@ let currentProfile = null;
 // 회원가입
 async function signUp(username, email, password) {
     try {
+        // 1. username 중복 체크 (탈퇴하지 않은 계정만)
+        const { data: existingUsername, error: usernameError } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('username', username)
+            .is('deleted_at', null)
+            .maybeSingle();
+
+        if (usernameError && usernameError.code !== 'PGRST116') {
+            throw usernameError;
+        }
+
+        if (existingUsername) {
+            return { success: false, error: '이미 사용 중인 아이디입니다.' };
+        }
+
+        // 2. 탈퇴한 계정이 있는지 확인
+        const { data: deletedProfile, error: checkError } = await supabase
+            .from('profiles')
+            .select('id, deleted_at')
+            .eq('email', email)
+            .not('deleted_at', 'is', null)
+            .maybeSingle();
+
+        if (checkError && checkError.code !== 'PGRST116') {
+            throw checkError;
+        }
+
+        // 2. 탈퇴한 계정이 있으면 비밀번호 재설정 이메일 발송
+        if (deletedProfile) {
+            console.log('탈퇴한 계정 발견, 비밀번호 재설정 이메일 발송:', email);
+
+            // 새로운 username을 임시로 저장 (비밀번호 재설정 후 사용)
+            localStorage.setItem(`reactivate_username_${email}`, username);
+            localStorage.setItem(`reactivate_profile_id_${email}`, deletedProfile.id);
+
+            // 비밀번호 재설정 이메일 발송
+            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password.html?reactivate=true`,
+            });
+
+            if (resetError) {
+                console.error('비밀번호 재설정 이메일 발송 실패:', resetError);
+                throw resetError;
+            }
+
+            return {
+                success: true,
+                needsPasswordReset: true,
+                message: '이메일로 비밀번호 재설정 링크를 발송했습니다. 이메일을 확인하여 새 비밀번호를 설정하면 가입이 완료됩니다.'
+            };
+        }
+
+        // 3. 새 회원가입
         const { data, error } = await supabase.auth.signUp({
             email: email,
             password: password,
@@ -53,10 +107,10 @@ async function signUp(username, email, password) {
 // 로그인
 async function signIn(username, password) {
     try {
-        // username으로 email 찾기
+        // username으로 email 찾기 (탈퇴하지 않은 계정만)
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('email')
+            .select('email, deleted_at')
             .eq('username', username)
             .maybeSingle(); // single() 대신 maybeSingle() 사용
 
@@ -71,6 +125,11 @@ async function signIn(username, password) {
 
         if (!profile) {
             return { success: false, error: '아이디 또는 비밀번호가 일치하지 않습니다.' };
+        }
+
+        // 탈퇴한 계정은 로그인 불가
+        if (profile.deleted_at) {
+            return { success: false, error: '아이디 또는 비밀번호를 확인해주세요.' };
         }
 
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -215,25 +274,22 @@ async function reauthenticateUser(password) {
     }
 }
 
-// 회원 탈퇴
+// 회원 탈퇴 (소프트 삭제)
 async function deleteAccount() {
     try {
         if (!currentUser) {
             throw new Error('로그인이 필요합니다.');
         }
 
-        // Supabase Admin API를 통해 사용자 삭제
-        // 참고: 클라이언트에서는 직접 삭제 불가, 서버 함수 필요
-        // 대신 프로필을 비활성화하거나 support에 요청하도록 안내
-
-        // 임시 방법: 프로필 데이터 삭제 후 로그아웃
+        // deleted_at 컬럼에 현재 시간 설정 (소프트 삭제)
         const { error } = await supabase
             .from('profiles')
-            .delete()
+            .update({ deleted_at: new Date().toISOString() })
             .eq('id', currentUser.id);
 
         if (error) throw error;
 
+        // 로그아웃
         await signOut();
 
         return { success: true };
@@ -464,6 +520,7 @@ window.resetPassword = resetPassword;
 window.updatePassword = updatePassword;
 window.updateUserEmail = updateUserEmail;
 window.reauthenticateUser = reauthenticateUser;
+window.deleteAccount = deleteAccount;
 window.getCurrentPoints = getCurrentPoints;
 window.usePointsForGameStart = usePointsForGameStart;
 window.addGamePoints = addGamePoints;

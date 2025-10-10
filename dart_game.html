@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>다트 게임</title>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Supabase Client -->
+    <script src="js/supabaseClient.js"></script>
+
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            touch-action: none;
+        }
+
+        /* 메뉴 화면 */
+        .menu-screen {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+        }
+
+        .menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .menu-back-btn:hover,
+        .menu-back-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        .menu-game-title {
+            flex: 1;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .menu-points {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffd700;
+            flex-shrink: 0;
+        }
+
+        .menu-body {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .menu-content {
+            width: 90%;
+            max-width: 600px;
+            padding: 0 20px;
+        }
+
+        .intro-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .intro-section h2 {
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+
+        .intro-section p {
+            margin: 8px 0;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-top: 20px;
+        }
+
+        .start-btn:hover,
+        .start-btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        /* 게임 화면 */
+        .game-container {
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .game-container.hidden {
+            display: none;
+        }
+
+        /* 게임 헤더 */
+        .stats {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 12px;
+        }
+
+        .back-btn-game {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            margin-right: 4px;
+        }
+
+        .back-btn-game:hover,
+        .back-btn-game:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-item:first-of-type {
+            margin-left: auto;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        /* 캔버스 */
+        #gameCanvas {
+            flex: 1;
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            touch-action: none;
+        }
+
+        /* 게임오버 화면 */
+        .gameover-title {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .score-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 모바일 뷰포트 높이 fix */
+        @media screen and (max-width: 768px) {
+            .menu-game-title {
+                font-size: 16px;
+            }
+
+            .menu-points {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 메뉴 화면 -->
+    <div id="menuScreen" class="menu-screen">
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">🎯 다트 게임</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="menuPoints">0</span>
+            </div>
+        </div>
+
+        <div class="menu-body">
+            <div class="menu-content">
+                <!-- 게임 소개 -->
+                <div class="intro-section">
+                    <h2>🎯 게임 방법</h2>
+                    <p>• 화면을 터치/드래그하여 다트를 조준하세요</p>
+                    <p>• 과녁은 멀리 있어 작게 보입니다</p>
+                    <p>• 드래그 방향과 거리를 잘 조절하세요</p>
+                    <p>• 손을 떼면 다트가 발사됩니다</p>
+                </div>
+
+                <div class="intro-section">
+                    <h2>🏆 점수 획득</h2>
+                    <p>• 🔴 불즈아이 (중앙): 50점</p>
+                    <p>• 🔵 25점 링: 25점</p>
+                    <p>• 🟢 트리플 링: 섹터 점수 × 3</p>
+                    <p>• 🟡 더블 링: 섹터 점수 × 2</p>
+                    <p>• ⚪ 일반 영역: 섹터 점수</p>
+                    <p>• ❌ 과녁 밖: 0점</p>
+                </div>
+
+                <div class="intro-section">
+                    <h2>⚡ 팁</h2>
+                    <p>• 드래그 거리가 멀수록 강하게 던집니다</p>
+                    <p>• 방향을 정확히 조준하는 것이 중요합니다</p>
+                    <p>• 과녁이 멀리 있으므로 각도를 잘 계산하세요</p>
+                    <p>• 다트 10개로 최고 점수를 노려보세요!</p>
+                </div>
+
+                <button class="start-btn" onclick="startGame()">게임 시작</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 화면 -->
+    <div id="gameContainer" class="game-container hidden">
+        <!-- 상단 헤더 -->
+        <div class="stats">
+            <a href="#" class="back-btn-game" onclick="handleGameExit(event)">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="stat-item">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Darts</div>
+                <div class="stat-value" id="dartsLeft">10</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Round</div>
+                <div class="stat-value" id="round">1</div>
+            </div>
+        </div>
+
+        <!-- 게임 캔버스 -->
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- 게임오버 화면 -->
+    <div id="gameoverScreen" class="menu-screen hidden">
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">게임 오버</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="gameoverPoints">0</span>
+            </div>
+        </div>
+
+        <div class="menu-body">
+            <div class="menu-content">
+                <div class="gameover-title">Game Over</div>
+
+                <div class="score-info">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>이번판 점수</span>
+                        <span style="color: #ffcc00; font-weight: bold;" id="finalScore">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>통합 포인트</span>
+                        <span style="color: #00ff00; font-weight: bold;" id="totalPoints">0</span>
+                    </div>
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>최고 점수</span>
+                            <span style="color: #ff6b6b; font-weight: bold;" id="highScore">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="start-btn" onclick="restartGame()">다시 하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // 모바일 뷰포트 높이 fix
+        // ============================================
+        function setViewportHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', setViewportHeight);
+        setViewportHeight();
+
+        // ============================================
+        // Supabase 함수들
+        // ============================================
+        async function getCurrentPoints() {
+            try {
+                const { data: { user } } = await _supabaseClient.auth.getUser();
+                if (!user) return 0;
+
+                const { data, error } = await _supabaseClient
+                    .from('profiles')
+                    .select('total_points')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) throw error;
+                return data?.total_points || 0;
+            } catch (e) {
+                console.error('Error getting points:', e);
+                return 0;
+            }
+        }
+
+        async function addGamePoints(points, gameUrl) {
+            try {
+                const { data: { user } } = await _supabaseClient.auth.getUser();
+                if (!user) {
+                    console.log('Not logged in, skipping point update');
+                    return 0;
+                }
+
+                const result = await _supabaseClient.rpc('update_user_points', {
+                    p_user_id: user.id,
+                    p_points_to_add: points
+                });
+
+                if (result.error) throw result.error;
+
+                await _supabaseClient.rpc('increment_game_view_logged', {
+                    p_game_url: gameUrl
+                });
+
+                return result.data || 0;
+            } catch (e) {
+                console.error('Error adding points:', e);
+                return 0;
+            }
+        }
+
+        async function updatePointsDisplay() {
+            const points = await getCurrentPoints();
+            const menuPointsEl = document.getElementById('menuPoints');
+            const gameoverPointsEl = document.getElementById('gameoverPoints');
+
+            if (menuPointsEl) menuPointsEl.textContent = points;
+            if (gameoverPointsEl) gameoverPointsEl.textContent = points;
+        }
+
+        // ============================================
+        // Web Audio API (사운드)
+        // ============================================
+        let audioContext = null;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(type) {
+                    case 'throw':
+                        oscillator.frequency.value = 400;
+                        gainNode.gain.value = 0.08;
+                        oscillator.type = 'sine';
+                        oscillator.stop(audioContext.currentTime + 0.08);
+                        break;
+                    case 'hit':
+                        oscillator.frequency.value = 600;
+                        gainNode.gain.value = 0.1;
+                        oscillator.type = 'sine';
+                        oscillator.stop(audioContext.currentTime + 0.1);
+                        break;
+                    case 'bullseye':
+                        oscillator.frequency.value = 800;
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        oscillator.stop(audioContext.currentTime + 0.15);
+                        break;
+                }
+
+                oscillator.start();
+            } catch (e) {}
+        }
+
+        // ============================================
+        // 게임 변수
+        // ============================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameState = 'menu'; // 'menu', 'playing', 'aiming', 'throwing', 'gameover', 'exiting'
+        let score = 0; // 이번 판 점수
+        let highScore = parseInt(localStorage.getItem('dart_game_highScore')) || 0;
+        let dartsLeft = 10;
+        let round = 1;
+
+        // 다트 관련 변수
+        let aimStartX = 0;
+        let aimStartY = 0;
+        let aimCurrentX = 0;
+        let aimCurrentY = 0;
+        let isAiming = false;
+
+        let dart = null;
+        let dartTrail = [];
+
+        // 과녁 변수 (화면 상단 중앙, 매우 작게)
+        const targetX = 0; // 캔버스 중앙 기준 (나중에 계산)
+        const targetY = 0; // 화면 상단에서 조금 아래
+        const targetRadius = 30; // 작은 과녁
+
+        // 다트보드 섹터 점수 (20개 섹터, 시계방향)
+        const sectorScores = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+
+        // ============================================
+        // 게임 시작
+        // ============================================
+        window.startGame = async function() {
+            score = 0;
+            dartsLeft = 10;
+            round = 1;
+            gameState = 'playing';
+
+            // 화면 전환
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+            document.getElementById('gameoverScreen').classList.add('hidden');
+
+            // 게임 초기화
+            initGame();
+
+            // 포인트 표시 업데이트
+            await updatePointsDisplay();
+
+            resizeCanvas();
+            gameLoop();
+        };
+
+        // ============================================
+        // 게임 재시작
+        // ============================================
+        window.restartGame = function() {
+            startGame();
+        };
+
+        // ============================================
+        // 게임 종료 (이전 버튼)
+        // ============================================
+        async function handleGameExit(event) {
+            event.preventDefault();
+
+            if (gameState === 'playing' && confirm('게임을 종료하시겠습니까?\n현재 점수가 통합 포인트에 저장됩니다.')) {
+                gameState = 'exiting';
+
+                // 점수 저장
+                await addGamePoints(score, 'dart_game.html');
+                await updatePointsDisplay();
+
+                // 메뉴로 돌아가기
+                document.getElementById('gameContainer').classList.add('hidden');
+                document.getElementById('menuScreen').classList.remove('hidden');
+                gameState = 'menu';
+            }
+        }
+
+        // ============================================
+        // 게임 오버
+        // ============================================
+        async function gameOver() {
+            gameState = 'gameover';
+
+            // 최고 점수 업데이트
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('dart_game_highScore', highScore);
+            }
+
+            // 점수 저장 및 표시
+            const totalPoints = await addGamePoints(score, 'dart_game.html');
+            await updatePointsDisplay();
+
+            // 게임오버 화면에 점수 표시
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('totalPoints').textContent = totalPoints;
+            document.getElementById('highScore').textContent = highScore;
+
+            // 화면 전환
+            document.getElementById('gameContainer').classList.add('hidden');
+            document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // ============================================
+        // 게임 초기화
+        // ============================================
+        function initGame() {
+            dart = null;
+            dartTrail = [];
+            isAiming = false;
+        }
+
+        // ============================================
+        // 캔버스 리사이즈
+        // ============================================
+        function resizeCanvas() {
+            const stats = document.querySelector('.stats');
+            if (!stats) return;
+
+            const statsHeight = stats.offsetHeight;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - statsHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', resizeCanvas);
+
+        // ============================================
+        // 게임 루프
+        // ============================================
+        function gameLoop() {
+            if (gameState === 'playing' || gameState === 'throwing') {
+                updateGame();
+                drawGame();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateGame() {
+            // 다트 비행 중 업데이트
+            if (dart && gameState === 'throwing') {
+                dart.x += dart.vx;
+                dart.y += dart.vy;
+                dart.vy += 0.2; // 중력
+
+                // 궤적 추가
+                dartTrail.push({ x: dart.x, y: dart.y });
+                if (dartTrail.length > 15) dartTrail.shift();
+
+                // 과녁 충돌 체크 (과녁은 화면 상단 중앙)
+                const targetCenterX = canvas.width / 2;
+                const targetCenterY = 80;
+                const dist = Math.sqrt(Math.pow(dart.x - targetCenterX, 2) + Math.pow(dart.y - targetCenterY, 2));
+
+                if (dist < targetRadius + 5) {
+                    // 과녁에 맞음!
+                    const hitScore = calculateScore(dart.x - targetCenterX, dart.y - targetCenterY);
+                    score += hitScore;
+                    dartsLeft--;
+
+                    if (hitScore === 50) {
+                        playSound('bullseye');
+                    } else if (hitScore > 0) {
+                        playSound('hit');
+                    }
+
+                    // 다음 라운드
+                    dart = null;
+                    dartTrail = [];
+                    gameState = 'playing';
+
+                    if (dartsLeft <= 0) {
+                        gameOver();
+                    } else {
+                        round++;
+                    }
+                }
+
+                // 화면 밖으로 나가면
+                if (dart.y > canvas.height + 100 || dart.x < -100 || dart.x > canvas.width + 100) {
+                    dartsLeft--;
+                    dart = null;
+                    dartTrail = [];
+                    gameState = 'playing';
+
+                    if (dartsLeft <= 0) {
+                        gameOver();
+                    } else {
+                        round++;
+                    }
+                }
+            }
+
+            // UI 업데이트
+            const scoreEl = document.getElementById('score');
+            const dartsLeftEl = document.getElementById('dartsLeft');
+            const roundEl = document.getElementById('round');
+
+            if (scoreEl) scoreEl.textContent = score;
+            if (dartsLeftEl) dartsLeftEl.textContent = dartsLeft;
+            if (roundEl) roundEl.textContent = round;
+        }
+
+        function drawGame() {
+            // 배경 (나무 질감)
+            ctx.fillStyle = '#2c1810';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 과녁 그리기 (화면 상단 중앙, 작게)
+            drawTarget(canvas.width / 2, 80);
+
+            // 조준선 그리기
+            if (isAiming && gameState === 'playing') {
+                drawAimLine();
+            }
+
+            // 다트 궤적 그리기
+            if (dartTrail.length > 0) {
+                ctx.strokeStyle = 'rgba(255, 200, 100, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(dartTrail[0].x, dartTrail[0].y);
+                for (let i = 1; i < dartTrail.length; i++) {
+                    ctx.lineTo(dartTrail[i].x, dartTrail[i].y);
+                }
+                ctx.stroke();
+            }
+
+            // 다트 그리기
+            if (dart) {
+                drawDart(dart.x, dart.y, dart.angle);
+            }
+
+            // 안내 메시지
+            if (gameState === 'playing' && !isAiming && !dart) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.font = '18px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('화면을 터치/드래그하여 조준하세요', canvas.width / 2, canvas.height - 50);
+            }
+        }
+
+        // 과녁 그리기
+        function drawTarget(x, y) {
+            const r = targetRadius;
+
+            // 더블 링 (외곽, 빨강/초록)
+            for (let i = 0; i < 20; i++) {
+                const angle1 = (i * 18 - 90) * Math.PI / 180;
+                const angle2 = ((i + 1) * 18 - 90) * Math.PI / 180;
+
+                ctx.fillStyle = i % 2 === 0 ? '#000' : '#fff';
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.arc(x, y, r, angle1, angle2);
+                ctx.closePath();
+                ctx.fill();
+
+                // 더블 링 (빨강/초록)
+                ctx.fillStyle = i % 2 === 0 ? '#d32f2f' : '#388e3c';
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.arc(x, y, r * 0.95, angle1, angle2);
+                ctx.arc(x, y, r * 0.85, angle2, angle1, true);
+                ctx.closePath();
+                ctx.fill();
+
+                // 일반 영역 (검정/흰색)
+                ctx.fillStyle = i % 2 === 0 ? '#000' : '#fff';
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.arc(x, y, r * 0.85, angle1, angle2);
+                ctx.arc(x, y, r * 0.55, angle2, angle1, true);
+                ctx.closePath();
+                ctx.fill();
+
+                // 트리플 링 (빨강/초록)
+                ctx.fillStyle = i % 2 === 0 ? '#d32f2f' : '#388e3c';
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.arc(x, y, r * 0.55, angle1, angle2);
+                ctx.arc(x, y, r * 0.45, angle2, angle1, true);
+                ctx.closePath();
+                ctx.fill();
+
+                // 내부 일반 영역 (검정/흰색)
+                ctx.fillStyle = i % 2 === 0 ? '#000' : '#fff';
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.arc(x, y, r * 0.45, angle1, angle2);
+                ctx.arc(x, y, r * 0.2, angle2, angle1, true);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // 25점 링 (초록)
+            ctx.fillStyle = '#388e3c';
+            ctx.beginPath();
+            ctx.arc(x, y, r * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 불즈아이 (빨강)
+            ctx.fillStyle = '#d32f2f';
+            ctx.beginPath();
+            ctx.arc(x, y, r * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 조준선 그리기
+        function drawAimLine() {
+            const dx = aimCurrentX - aimStartX;
+            const dy = aimCurrentY - aimStartY;
+            const power = Math.min(Math.sqrt(dx * dx + dy * dy) / 3, 100);
+
+            // 조준선
+            ctx.strokeStyle = `rgba(255, 200, 100, ${0.3 + power / 200})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(aimStartX, aimStartY);
+            ctx.lineTo(aimStartX - dx * 1.5, aimStartY - dy * 1.5);
+            ctx.stroke();
+
+            // 파워 표시
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Power: ${Math.floor(power)}%`, aimStartX, aimStartY + 30);
+        }
+
+        // 다트 그리기
+        function drawDart(x, y, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            // 날개
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.moveTo(-10, -3);
+            ctx.lineTo(-15, -8);
+            ctx.lineTo(-15, 2);
+            ctx.closePath();
+            ctx.fill();
+
+            // 몸통
+            ctx.fillStyle = '#666';
+            ctx.fillRect(-10, -2, 15, 4);
+
+            // 팁
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.moveTo(5, 0);
+            ctx.lineTo(10, -2);
+            ctx.lineTo(10, 2);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // 점수 계산
+        function calculateScore(dx, dy) {
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const angle = (Math.atan2(dy, dx) * 180 / Math.PI + 450) % 360; // 0도가 위쪽
+            const sectorIndex = Math.floor(angle / 18);
+            const sectorScore = sectorScores[sectorIndex];
+
+            // 불즈아이
+            if (dist < targetRadius * 0.1) return 50;
+
+            // 25점 링
+            if (dist < targetRadius * 0.2) return 25;
+
+            // 트리플 링
+            if (dist >= targetRadius * 0.45 && dist < targetRadius * 0.55) {
+                return sectorScore * 3;
+            }
+
+            // 더블 링
+            if (dist >= targetRadius * 0.85 && dist < targetRadius * 0.95) {
+                return sectorScore * 2;
+            }
+
+            // 일반 영역
+            if (dist < targetRadius) {
+                return sectorScore;
+            }
+
+            // 과녁 밖
+            return 0;
+        }
+
+        // ============================================
+        // 터치/마우스 이벤트
+        // ============================================
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleTouchStart(e.touches[0]);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handleTouchMove(e.touches[0]);
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleTouchEnd();
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            handleTouchStart(e);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            handleTouchMove(e);
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            handleTouchEnd();
+        });
+
+        function handleTouchStart(touch) {
+            if (gameState !== 'playing') return;
+
+            const rect = canvas.getBoundingClientRect();
+            aimStartX = touch.clientX - rect.left;
+            aimStartY = touch.clientY - rect.top;
+            aimCurrentX = aimStartX;
+            aimCurrentY = aimStartY;
+            isAiming = true;
+        }
+
+        function handleTouchMove(touch) {
+            if (!isAiming || gameState !== 'playing') return;
+
+            const rect = canvas.getBoundingClientRect();
+            aimCurrentX = touch.clientX - rect.left;
+            aimCurrentY = touch.clientY - rect.top;
+        }
+
+        function handleTouchEnd() {
+            if (!isAiming || gameState !== 'playing') return;
+
+            const dx = aimCurrentX - aimStartX;
+            const dy = aimCurrentY - aimStartY;
+            const power = Math.sqrt(dx * dx + dy * dy) / 3;
+
+            if (power > 5) {
+                // 다트 발사
+                const angle = Math.atan2(-dy, -dx);
+                dart = {
+                    x: aimStartX,
+                    y: aimStartY,
+                    vx: -Math.cos(angle) * power * 0.3,
+                    vy: -Math.sin(angle) * power * 0.3,
+                    angle: angle
+                };
+
+                dartTrail = [{ x: dart.x, y: dart.y }];
+                gameState = 'throwing';
+                playSound('throw');
+            }
+
+            isAiming = false;
+        }
+
+        // ============================================
+        // 초기화
+        // ============================================
+        window.addEventListener('load', async () => {
+            await updatePointsDisplay();
+        });
+    </script>
+</body>
+</html>

@@ -7,6 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
     <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1161,23 +1162,131 @@
         }
 
         /* 통계 테이블 */
+        /* Stats Page (Full Screen) */
+        .stats-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            background: #f5f5f5;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stats-header {
+            display: flex;
+            align-items: center;
+            background: #6200ea;
+            color: white;
+            padding: 0 12px;
+            height: 56px;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-btn-stats {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .back-btn-stats:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .back-btn-stats .material-icons {
+            font-size: 24px;
+        }
+
+        .stats-page-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 0.15px;
+        }
+
+        .stats-content {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: auto;
+            padding: 0;
+        }
+
         .stats-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            table-layout: fixed;
         }
 
         .stats-table th {
             background: #6200ea;
             color: white;
-            padding: 12px;
+            padding: 8px 4px;
             text-align: left;
             font-weight: 500;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .stats-table th:first-child {
+            text-align: center;
+            width: 50px;
+        }
+
+        .stats-table th:nth-child(2) {
+            width: 50px;
+        }
+
+        .stats-table th:last-child {
+            text-align: center;
+            width: 80px;
         }
 
         .stats-table td {
-            padding: 12px;
+            padding: 8px 4px;
             border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap;
+        }
+
+        .stats-table td:first-child {
+            text-align: center;
+        }
+
+        .stats-table td:nth-child(3) {
+            /* 게임명 셀 - 말줄임표 적용 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .stats-table td:nth-child(3) a {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #212121;
+            text-decoration: none;
+        }
+
+        .stats-table td:last-child {
+            text-align: center;
         }
 
         .stats-table tr:hover {
@@ -1273,30 +1382,19 @@
             color: #212121;
         }
 
-        .language-drawer-item .switch {
-            margin-left: auto;
+        .language-select {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 120px;
         }
 
-        .language-drawer-item .slider {
-            background-color: #e0e0e0;
-        }
-
-        .language-drawer-item input:checked + .slider {
-            background-color: #b39ddb;
-        }
-
-        .language-drawer-item .language-text {
-            color: #616161;
-        }
-
-        .language-drawer-item input:checked ~ .language-text.ko {
-            opacity: 1;
-            color: #212121;
-        }
-
-        .language-drawer-item input:not(:checked) ~ .language-text.en {
-            opacity: 1;
-            color: #212121;
+        .language-select:focus {
+            outline: none;
+            border-color: #b39ddb;
         }
     </style>
 </head>
@@ -1315,12 +1413,13 @@
             <div class="drawer-divider"></div>
             <div class="language-drawer-item">
                 <span data-i18n="language">언어 선택</span>
-                <label class="switch">
-                    <input type="checkbox" id="languageToggleDrawer" onchange="toggleLanguage()">
-                    <span class="slider"></span>
-                    <span class="language-text ko">KO</span>
-                    <span class="language-text en">EN</span>
-                </label>
+                <select class="language-select" id="languageSelect" onchange="changeLanguage()">
+                    <option value="ko">한국어 (KO)</option>
+                    <option value="en">English (EN)</option>
+                    <option value="zh-CN">简体中文 (ZH)</option>
+                    <option value="es">Español (ES)</option>
+                    <option value="pt">Português (PT)</option>
+                </select>
             </div>
         </div>
     </div>
@@ -1403,14 +1502,15 @@
     </div>
 
     <!-- Stats Modal -->
-    <div id="statsModal" class="search-overlay">
-        <div class="search-box" style="max-width: 800px;">
-            <div class="search-header">
-                <button class="search-close-btn" onclick="closeStats()"><span class="material-icons">close</span></button>
-                <h2 class="search-title">📊 게임 조회수 통계</h2>
-            </div>
-            <div id="statsTable" style="overflow-x: auto; overflow-y: auto; flex: 1;"></div>
+    <!-- Stats Page (Full Screen) -->
+    <div id="statsPage" class="stats-page" style="display: none;">
+        <div class="stats-header">
+            <button class="back-btn-stats" onclick="closeStats()">
+                <span class="material-icons">arrow_back</span>
+            </button>
+            <h2 class="stats-page-title">📊 게임 조회수 통계</h2>
         </div>
+        <div id="statsTable" class="stats-content"></div>
     </div>
 
     <div class="container">
@@ -1560,6 +1660,11 @@
                 <a href="target_shooter.html" class="game-card">
                     <h3><span class="game-icon">🎯</span> 타겟 슈터</h3>
                     <p>나타나는 타겟을 빠르게 터치! 정확도와 속도를 겨루는 반사신경 게임!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="dart_game.html" class="game-card">
+                    <h3><span class="game-icon">🎯</span> 다트 게임</h3>
+                    <p>터치/드래그로 다트를 조준하고 발사! 멀리 있는 과녁을 맞춰 고득점을 노려보세요!</p>
                     <span class="badge new">NEW</span>
                 </a>
                 <a href="spin_master.html" class="game-card">
@@ -1898,14 +2003,42 @@
     <script src="js/supabaseClient.js"></script>
     <!-- gamePoints.js는 제거 (supabaseClient.js의 포인트 시스템 사용) -->
 
+    <script src="translations.json" type="application/json" id="translationsData"></script>
+    <script src="games.json" type="application/json" id="gamesData"></script>
+
     <script>
         // ============================================
         // 다국어 지원 시스템
         // ============================================
 
-        let currentLanguage = 'en'; // 기본 언어는 영어
+        // 브라우저 언어 자동 감지 (5개 언어 지원: ko, en, zh-CN, es, pt)
+        function detectBrowserLanguage() {
+            const saved = localStorage.getItem('language');
+            if (saved) return saved;
 
-        const translations = {
+            const browserLang = navigator.language.toLowerCase();
+            if (browserLang.startsWith('ko')) return 'ko';
+            if (browserLang.startsWith('zh')) return 'zh-CN';
+            if (browserLang.startsWith('es')) return 'es';
+            if (browserLang.startsWith('pt')) return 'pt';
+            return 'en'; // 기본값
+        }
+
+        let currentLanguage = detectBrowserLanguage();
+
+        // 번역 데이터 및 게임 데이터 (외부 JSON 파일에서 로드)
+        let translations = {};
+        let gameDatabase = [];
+
+        // JSON 파일 로드
+        async function loadTranslations() {
+            try {
+                const response = await fetch('translations.json');
+                translations = await response.json();
+            } catch (error) {
+                console.error('번역 파일 로드 실패:', error);
+                // 폴백: 한국어 기본값
+                translations = {
             ko: {
                 // 헤더
                 title: '게임나라',
@@ -2051,6 +2184,7 @@
                 login: 'Login',
                 signup: 'Sign Up',
                 passwordReset: 'Reset Password',
+                username: 'Username',
                 email: 'Email',
                 password: 'Password',
                 passwordConfirm: 'Confirm Password',
@@ -2064,19 +2198,54 @@
                 myInfoTitle: 'Account Info',
                 totalPoints: 'Total Points',
                 joinDate: 'Join Date',
+                editInfo: 'Edit Profile',
                 deleteAccount: 'Delete Account',
 
+                // Edit Info
+                editInfoTitle: 'Edit Profile',
+                changeEmail: 'Change Email',
+                changePassword: 'Change Password',
+                currentEmail: 'Current Email',
+                currentPassword: 'Current Password',
+                newEmail: 'New Email',
+                newPassword: 'New Password',
+                newPasswordConfirm: 'Confirm New Password',
+                changeEmailBtn: 'Update Email',
+                changePasswordBtn: 'Update Password',
+
                 // Messages
+                usernamePlaceholder: 'Letters, numbers, underscore only (3-20 chars)',
                 emailPlaceholder: 'example@email.com',
                 passwordPlaceholder: 'Enter password',
                 password6chars: 'At least 6 characters',
                 passwordConfirmPlaceholder: 'Confirm password',
-                resetEmailPlaceholder: 'Enter registered email'
+                resetEmailPlaceholder: 'Enter your registered email'
             }
-        };
+                };
+            }
+        }
 
-        // Game data for search
-        const gameDatabase = [
+        async function loadGames() {
+            try {
+                const response = await fetch('games.json');
+                gameDatabase = await response.json();
+            } catch (error) {
+                console.error('게임 데이터 로드 실패:', error);
+                gameDatabase = [];
+            }
+        }
+
+        // 페이지 로드시 데이터 로드 및 초기화
+        (async function init() {
+            await Promise.all([loadTranslations(), loadGames()]);
+            // 데이터 로드 완료 후 UI 초기화
+            if (Object.keys(translations).length > 0) {
+                initLanguage();
+            }
+        })();
+
+        // 임시 gameDatabase (삭제 예정 - 호환성 유지)
+        /*const gameDatabase = [
             {
                 name: { ko: '갤럭시 워', en: 'Galaxy War' },
                 url: 'galaxy_war.html',
@@ -2331,6 +2500,17 @@
                 },
                 category: 'arcade',
                 releaseDate: '2025-07-25'
+            },
+            {
+                name: { ko: '다트 게임', en: 'Dart Game' },
+                url: 'dart_game.html',
+                icon: '🎯',
+                description: {
+                    ko: '터치/드래그로 다트를 조준하고 발사! 멀리 있는 과녁을 맞춰 고득점을 노려보세요!',
+                    en: 'Aim and throw darts with touch/drag! Hit the distant target for high scores!'
+                },
+                category: 'arcade',
+                releaseDate: '2025-10-10'
             },
             {
                 name: { ko: '스핀 마스터', en: 'Spin Master' },
@@ -2742,7 +2922,7 @@
                 category: 'action',
                 releaseDate: '2025-10-09'
             }
-        ];
+        ];*/
 
         // ============================================
         // 언어 전환 시스템
@@ -2750,27 +2930,29 @@
 
         // 번역 텍스트 가져오기
         function t(key) {
+            if (!translations[currentLanguage]) return key;
             return translations[currentLanguage][key] || key;
         }
 
         // 게임 이름 가져오기
         function getGameName(game) {
-            return typeof game.name === 'object' ? game.name[currentLanguage] : game.name;
+            if (!game || !game.name) return '';
+            return typeof game.name === 'object' ? (game.name[currentLanguage] || game.name.en || '') : game.name;
         }
 
         // 게임 설명 가져오기
         function getGameDescription(game) {
-            return typeof game.description === 'object' ? game.description[currentLanguage] : game.description;
+            if (!game || !game.description) return '';
+            return typeof game.description === 'object' ? (game.description[currentLanguage] || game.description.en || '') : game.description;
         }
 
         // 언어 전환
-        function toggleLanguage() {
-            // 드로어에서 토글되었는지 확인
-            const drawerToggle = document.getElementById('languageToggleDrawer');
-            currentLanguage = drawerToggle.checked ? 'ko' : 'en';
+        function changeLanguage() {
+            const languageSelect = document.getElementById('languageSelect');
+            currentLanguage = languageSelect.value;
 
             // localStorage에 저장
-            localStorage.setItem('preferredLanguage', currentLanguage);
+            localStorage.setItem('language', currentLanguage);
 
             // UI 업데이트
             updateAllTranslations();
@@ -2871,12 +3053,10 @@
 
         // 페이지 로드 시 언어 설정
         function initLanguage() {
-            const savedLanguage = localStorage.getItem('preferredLanguage') || 'en';
-            currentLanguage = savedLanguage;
-
-            const drawerToggle = document.getElementById('languageToggleDrawer');
-            if (drawerToggle) {
-                drawerToggle.checked = (savedLanguage === 'ko');
+            // currentLanguage는 이미 detectBrowserLanguage()에서 설정됨
+            const languageSelect = document.getElementById('languageSelect');
+            if (languageSelect) {
+                languageSelect.value = currentLanguage;
             }
 
             updateAllTranslations();
@@ -2886,26 +3066,26 @@
         // 조회수 추적 시스템 (localStorage + Supabase)
         // ============================================
 
-        // 게임 조회수 가져오기 (로그인: Supabase, 비로그인: localStorage)
+        // 게임 조회수 가져오기 (game_stats VIEW에서 total_views)
         async function getGameViews(gameUrl) {
-            if (currentUser) {
-                // Supabase에서 조회수 가져오기
-                try {
-                    const { count, error } = await supabase
-                        .from('game_views_logged')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('game_url', gameUrl);
+            try {
+                // Supabase game_stats VIEW에서 total_views 가져오기
+                const { data, error } = await supabase
+                    .from('game_stats')
+                    .select('total_views')
+                    .eq('game_url', gameUrl)
+                    .single();
 
-                    if (error) throw error;
-                    return count || 0;
-                } catch (error) {
-                    console.error('Error fetching views:', error);
-                    return 0;
+                if (error) {
+                    // 조회수가 없는 경우 (아직 한 번도 플레이 안 됨)
+                    if (error.code === 'PGRST116') return 0;
+                    throw error;
                 }
-            } else {
-                // localStorage에서 조회수 가져오기
-                const views = JSON.parse(localStorage.getItem('game_views_anonymous') || '{}');
-                return views[gameUrl] || 0;
+
+                return data?.total_views || 0;
+            } catch (error) {
+                console.error('Error fetching views:', error);
+                return 0;
             }
         }
 
@@ -2949,9 +3129,16 @@
         // 최근 플레이한 게임 5개 가져오기
         async function getRecentGames() {
             const recent = JSON.parse(localStorage.getItem('recent_games') || '[]');
-            const games = recent.slice(0, 5).map(url =>
-                gameDatabase.find(game => game.url === url)
-            ).filter(game => game);
+            console.log('Recent games from localStorage:', recent);
+            console.log('gameDatabase length:', gameDatabase.length);
+
+            const games = recent.slice(0, 5).map(url => {
+                const found = gameDatabase.find(game => game.url === url);
+                console.log('Looking for:', url, 'Found:', !!found);
+                return found;
+            }).filter(game => game);
+
+            console.log('Found recent games:', games.length);
 
             // 조회수 추가
             const gamesWithViews = await Promise.all(
@@ -2980,27 +3167,39 @@
 
         // 신규 게임 5개 가져오기 (30일 이내 출시)
         async function getNewGames() {
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            try {
+                // Supabase에서 최근 30일 이내 출시된 게임 가져오기
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
 
-            const games = gameDatabase
-                .filter(game => {
-                    if (!game.releaseDate) return false;
-                    const releaseDate = new Date(game.releaseDate);
-                    return releaseDate >= thirtyDaysAgo;
-                })
-                .sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate))
-                .slice(0, 5);
+                const { data, error } = await supabase
+                    .from('game_stats')
+                    .select('game_url, release_date, total_views')
+                    .gte('release_date', thirtyDaysAgoStr)
+                    .order('release_date', { ascending: false })
+                    .limit(5);
 
-            // 조회수 추가
-            const gamesWithViews = await Promise.all(
-                games.map(async game => ({
-                    ...game,
-                    views: await getGameViews(game.url)
-                }))
-            );
+                if (error) {
+                    console.error('Error fetching new games:', error);
+                    return [];
+                }
 
-            return gamesWithViews;
+                // gameDatabase와 병합하여 전체 게임 정보 포함
+                const gamesWithDetails = data.map(item => {
+                    const game = gameDatabase.find(g => g.url === item.game_url);
+                    return game ? {
+                        ...game,
+                        releaseDate: item.release_date,
+                        views: item.total_views || 0
+                    } : null;
+                }).filter(g => g !== null);
+
+                return gamesWithDetails;
+            } catch (error) {
+                console.error('Error in getNewGames:', error);
+                return [];
+            }
         }
 
         // Search functionality
@@ -3008,6 +3207,17 @@
             document.getElementById('searchOverlay').classList.add('active');
             document.getElementById('searchInput').value = '';
             document.body.style.overflow = 'hidden';
+
+            // gameDatabase 로딩 대기
+            if (gameDatabase.length === 0) {
+                document.getElementById('searchResults').innerHTML = '<div style="padding: 20px; text-align: center;">로딩 중...</div>';
+                // 최대 3초 대기
+                let attempts = 0;
+                while (gameDatabase.length === 0 && attempts < 30) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+            }
 
             // 검색창이 비어있을 때 최근/인기/신규 게임 표시
             await showDefaultSearchResults();
@@ -3023,9 +3233,9 @@
         async function showDefaultSearchResults() {
             const resultsContainer = document.getElementById('searchResults');
 
-            const recentGames = getRecentGames();
+            const recentGames = await getRecentGames();
             const popularGames = await getPopularGames();
-            const newGames = getNewGames();
+            const newGames = await getNewGames();
 
             let html = '';
 
@@ -3098,14 +3308,45 @@
             resultsContainer.innerHTML = html;
         }
 
+        // 최근 검색어 관리
+        function getSearchHistory() {
+            const history = localStorage.getItem('searchHistory');
+            return history ? JSON.parse(history) : [];
+        }
+
+        function addToSearchHistory(query) {
+            if (!query || query.trim() === '') return;
+
+            let history = getSearchHistory();
+            // 중복 제거
+            history = history.filter(item => item !== query);
+            // 최상단에 추가
+            history.unshift(query);
+            // 최대 10개만 유지
+            if (history.length > 10) {
+                history = history.slice(0, 10);
+            }
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+        }
+
+        function clearSearchHistory() {
+            localStorage.removeItem('searchHistory');
+            performSearch(); // 검색 결과 새로고침
+        }
+
         async function performSearch() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const resultsContainer = document.getElementById('searchResults');
 
             if (query === '') {
                 await showDefaultSearchResults();
+                // 최근 검색어 표시
+                showRecentSearches(resultsContainer);
                 return;
             }
+
+            // 검색어 저장
+            addToSearchHistory(query);
 
             const filteredGames = gameDatabase.filter(game => {
                 const gameName = getGameName(game).toLowerCase();
@@ -3131,24 +3372,46 @@
             resultsContainer.innerHTML = resultsHTML;
         }
 
+        function showRecentSearches(container) {
+            const history = getSearchHistory();
+            if (history.length === 0) return;
+
+            let html = '<div class="search-section" style="margin-top: 0;">';
+            html += '<div class="search-section-title" style="display: flex; justify-content: space-between; align-items: center;">';
+            html += '<span>🕐 최근 검색어</span>';
+            html += '<button onclick="clearSearchHistory()" style="background: none; border: none; color: #6200ea; font-size: 12px; cursor: pointer; padding: 4px 8px;">전체 삭제</button>';
+            html += '</div>';
+            html += '<div class="recent-search-tags" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">';
+
+            history.forEach(query => {
+                html += `<button onclick="document.getElementById('searchInput').value='${query}'; performSearch();" style="background: #f0f0f0; border: 1px solid #e0e0e0; border-radius: 16px; padding: 6px 12px; font-size: 13px; cursor: pointer; color: #212121;">${query}</button>`;
+            });
+
+            html += '</div></div>';
+
+            // 기존 콘텐츠 앞에 추가
+            container.innerHTML = html + container.innerHTML;
+        }
+
         // ============================================
         // 통계 모달
         // ============================================
 
         async function openStats() {
-            document.getElementById('statsModal').classList.add('active');
+            // 페이지 표시
+            document.getElementById('statsPage').style.display = 'flex';
             document.body.style.overflow = 'hidden';
 
-            // 통계 모달 제목 업데이트
-            document.querySelector('#statsModal .search-title').textContent = `📊 ${t('statsModalTitle')}`;
+            // 헤더 제목 업데이트
+            document.querySelector('.stats-page-title').textContent = `📊 ${t('statsModalTitle')}`;
 
             // 모든 게임의 조회수 가져오기
             const gamesWithViews = await Promise.all(
                 gameDatabase.map(async game => {
-                    const viewData = await getGameViews(game.url);
+                    const totalViews = await getGameViews(game.url);
                     return {
                         ...game,
-                        views: viewData.total_views || 0
+                        views: totalViews || 0
                     };
                 })
             );
@@ -3156,18 +3419,13 @@
             // 조회수로 정렬
             gamesWithViews.sort((a, b) => b.views - a.views);
 
-            // 영어 텍스트 길이에 맞게 컬럼 width 조정
-            const rankWidth = currentLanguage === 'en' ? '70px' : '60px';
-            const iconWidth = currentLanguage === 'en' ? '70px' : '60px';
-            const viewWidth = currentLanguage === 'en' ? '120px' : '100px';
-
-            // 테이블 생성
+            // 테이블 생성 (Rank 가운데, Views 우측 정렬)
             let html = '<table class="stats-table">';
             html += '<thead><tr>';
-            html += `<th style="width: ${rankWidth};">${t('rank')}</th>`;
-            html += `<th style="width: ${iconWidth};">${t('icon')}</th>`;
-            html += `<th>${t('gameName')}</th>`;
-            html += `<th style="width: ${viewWidth}; text-align: right;">${t('viewCount')}</th>`;
+            html += `<th>${t('rank')}</th>`;
+            html += `<th>${t('icon')}</th>`;
+            html += `<th style="width: 100%;">${t('gameName')}</th>`;
+            html += `<th>${t('viewCount')}</th>`;
             html += '</tr></thead>';
             html += '<tbody>';
 
@@ -3176,7 +3434,7 @@
                 html += `<td class="stats-rank">${index + 1}</td>`;
                 html += `<td style="font-size: 24px;">${game.icon}</td>`;
                 html += `<td><a href="${game.url}" style="color: #212121; text-decoration: none;">${getGameName(game)}</a></td>`;
-                html += `<td style="text-align: right; font-weight: 500;">${game.views.toLocaleString()}</td>`;
+                html += `<td style="font-weight: 500;">${game.views.toLocaleString()}</td>`;
                 html += '</tr>';
             });
 
@@ -3186,7 +3444,7 @@
         }
 
         function closeStats() {
-            document.getElementById('statsModal').classList.remove('active');
+            document.getElementById('statsPage').style.display = 'none';
             document.body.style.overflow = 'auto';
         }
 
@@ -3222,11 +3480,7 @@
             }
         });
 
-        document.getElementById('statsModal').addEventListener('click', (e) => {
-            if (e.target.id === 'statsModal') {
-                closeStats();
-            }
-        });
+        // Stats page는 모달이 아니므로 배경 클릭 이벤트 불필요
 
         // Tab switching
         function showCategory(category) {
@@ -3389,13 +3643,20 @@
             const result = await signUp(username, email, password);
 
             if (result.success) {
-                successDiv.textContent = '회원가입 완료! 바로 로그인할 수 있습니다.';
-                successDiv.classList.add('active');
+                if (result.needsPasswordReset) {
+                    // 탈퇴 계정 재활성화: 비밀번호 재설정 이메일 발송됨
+                    successDiv.textContent = result.message || '이메일로 비밀번호 재설정 링크를 발송했습니다.';
+                    successDiv.classList.add('active');
+                } else {
+                    // 일반 회원가입 성공
+                    successDiv.textContent = '회원가입 완료! 바로 로그인할 수 있습니다.';
+                    successDiv.classList.add('active');
 
-                setTimeout(() => {
-                    switchAuthTab('login');
-                    document.getElementById('loginUsername').value = username;
-                }, 2000);
+                    setTimeout(() => {
+                        switchAuthTab('login');
+                        document.getElementById('loginUsername').value = username;
+                    }, 2000);
+                }
             } else {
                 errorDiv.textContent = result.error || '회원가입에 실패했습니다.';
                 errorDiv.classList.add('active');
@@ -3654,9 +3915,9 @@
             iconBtn.classList.remove('logged-out');
             iconBtn.classList.add('logged-in');
 
-            // 이메일 표시
+            // username 표시
             if (currentProfile) {
-                document.getElementById('userEmailDisplay').textContent = currentProfile.email;
+                document.getElementById('userEmailDisplay').textContent = currentProfile.username;
             }
         }
 
