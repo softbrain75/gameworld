@@ -39,23 +39,28 @@
         }
 
         /* 메뉴 화면 */
-        .menu-screen {
-            display: flex;
-            flex-direction: column;
+        .menu-screen, .gameover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100vh;
             height: calc(var(--vh, 1vh) * 100);
-            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
         }
 
         .menu-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
             background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 0 12px;
+            height: 56px;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -67,8 +72,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
             text-decoration: none;
             color: white;
             transition: all 0.3s ease;
@@ -77,8 +80,7 @@
 
         .menu-back-btn:hover,
         .menu-back-btn:active {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(0.95);
+            opacity: 0.7;
         }
 
         .menu-game-title {
@@ -109,28 +111,51 @@
         }
 
         .menu-content {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
             width: 90%;
-            max-width: 600px;
-            padding: 0 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            align-self: flex-start;  /* 상단에 위치 */
         }
 
         .intro-section {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 0;
+            margin-bottom: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+        }
+
+        .intro-section:last-of-type {
+            border-bottom: none;
         }
 
         .intro-section h2 {
             margin-bottom: 12px;
             font-size: 20px;
+            text-align: left;
+        }
+
+        .intro-section ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .intro-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+            opacity: 0.9;
         }
 
         .intro-section p {
             margin: 8px 0;
             line-height: 1.6;
             opacity: 0.9;
+            text-align: left;
         }
 
         .start-btn {
@@ -145,7 +170,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            margin-top: 20px;
+            margin-bottom: 20px;
         }
 
         .start-btn:hover,
@@ -277,7 +302,7 @@
             <a href="index.html" class="menu-back-btn">
                 <span class="material-icons">arrow_back</span>
             </a>
-            <div class="menu-game-title">🎯 다트 게임</div>
+            <div class="menu-game-title">다트 게임</div>
             <div class="menu-points">
                 <span>🏆</span>
                 <span id="menuPoints">0</span>
@@ -286,34 +311,41 @@
 
         <div class="menu-body">
             <div class="menu-content">
+                <!-- 게임 시작 버튼 (최상단) -->
+                <button class="start-btn" onclick="startGame()">게임 시작</button>
+
                 <!-- 게임 소개 -->
                 <div class="intro-section">
                     <h2>🎯 게임 방법</h2>
-                    <p>• 화면을 터치/드래그하여 다트를 조준하세요</p>
-                    <p>• 과녁은 멀리 있어 작게 보입니다</p>
-                    <p>• 드래그 방향과 거리를 잘 조절하세요</p>
-                    <p>• 손을 떼면 다트가 발사됩니다</p>
+                    <ul>
+                        <li>화면을 터치/드래그하여 다트를 조준하세요</li>
+                        <li>과녁은 멀리 있어 작게 보입니다</li>
+                        <li>드래그 방향과 거리를 잘 조절하세요</li>
+                        <li>손을 떼면 다트가 발사됩니다</li>
+                    </ul>
                 </div>
 
                 <div class="intro-section">
                     <h2>🏆 점수 획득</h2>
-                    <p>• 🔴 불즈아이 (중앙): 50점</p>
-                    <p>• 🔵 25점 링: 25점</p>
-                    <p>• 🟢 트리플 링: 섹터 점수 × 3</p>
-                    <p>• 🟡 더블 링: 섹터 점수 × 2</p>
-                    <p>• ⚪ 일반 영역: 섹터 점수</p>
-                    <p>• ❌ 과녁 밖: 0점</p>
+                    <ul>
+                        <li>🔴 불즈아이 (중앙): 50점</li>
+                        <li>🔵 25점 링: 25점</li>
+                        <li>🟢 트리플 링: 섹터 점수 × 3</li>
+                        <li>🟡 더블 링: 섹터 점수 × 2</li>
+                        <li>⚪ 일반 영역: 섹터 점수</li>
+                        <li>❌ 과녁 밖: 0점</li>
+                    </ul>
                 </div>
 
                 <div class="intro-section">
                     <h2>⚡ 팁</h2>
-                    <p>• 드래그 거리가 멀수록 강하게 던집니다</p>
-                    <p>• 방향을 정확히 조준하는 것이 중요합니다</p>
-                    <p>• 과녁이 멀리 있으므로 각도를 잘 계산하세요</p>
-                    <p>• 다트 10개로 최고 점수를 노려보세요!</p>
+                    <ul>
+                        <li>드래그 거리가 멀수록 강하게 던집니다</li>
+                        <li>방향을 정확히 조준하는 것이 중요합니다</li>
+                        <li>과녁이 멀리 있으므로 각도를 잘 계산하세요</li>
+                        <li>다트 10개로 최고 점수를 노려보세요!</li>
+                    </ul>
                 </div>
-
-                <button class="start-btn" onclick="startGame()">게임 시작</button>
             </div>
         </div>
     </div>
@@ -939,6 +971,11 @@
         // 초기화
         // ============================================
         window.addEventListener('load', async () => {
+            // Supabase 초기화 대기
+            if (window.waitForSupabaseInit) {
+                await window.waitForSupabaseInit();
+            }
+
             await updatePointsDisplay();
 
             // 조회수 증가

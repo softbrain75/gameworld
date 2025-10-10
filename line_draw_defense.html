@@ -2,14 +2,20 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
-     crossorigin="anonymous"></script>
+    <meta name="theme-color" content="#1a1a2e">
     <title>라인 드로우 디펜스 - 게임세상</title>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
+
     <style>
         :root {
             --vh: 1vh;
@@ -43,9 +49,67 @@
             height: calc(var(--vh, 1vh) * 100);
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             z-index: 1000;
+        }
+
+        .menu-header {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            padding: 0 12px;
+            height: 56px;
+            gap: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .menu-back-btn:hover,
+        .menu-back-btn:active {
+            opacity: 0.7;
+        }
+
+        .menu-game-title {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffd700;
+        }
+
+        .menu-points {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #ffd700;
+            flex-shrink: 0;
+        }
+
+        .menu-body {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            padding: 20px 0;
         }
 
         .menu-content, .gameover-content {
@@ -55,8 +119,9 @@
             text-align: center;
             color: white;
             max-width: 90%;
-            width: 400px;
+            width: 90%;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            align-self: flex-start;
         }
 
         h1 {
@@ -86,38 +151,61 @@
             line-height: 1.6;
         }
 
-        .btn {
-            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+        .start-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.5em;
-            border-radius: 50px;
+            border-radius: 12px;
             cursor: pointer;
-            margin: 10px;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            margin-bottom: 20px;
         }
 
-        .btn:hover {
-            transform: scale(1.05);
+        .start-btn:hover,
+        .start-btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
 
-        .btn:active {
-            transform: scale(0.95);
+        .intro-section {
+            padding: 20px 0;
+            margin-bottom: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
         }
 
-        .back-btn {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            text-decoration: none;
-            z-index: 100;
-            font-size: 0.9em;
+        .intro-section:last-of-type {
+            border-bottom: none;
+        }
+
+        .intro-section h2 {
+            margin-bottom: 12px;
+            font-size: 20px;
+            text-align: left;
+        }
+
+        .intro-section ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .intro-section li {
+            margin: 8px 0;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .intro-section p {
+            margin: 8px 0;
+            line-height: 1.6;
+            opacity: 0.9;
+            text-align: left;
         }
 
         .game-container {
@@ -130,27 +218,61 @@
 
         .stats {
             display: flex;
-            justify-content: space-around;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            font-size: 1.1em;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 12px;
+        }
+
+        .back-btn-game {
+            background: transparent;
+            border: none;
+            color: #ffd700;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 4px;
+        }
+
+        .back-btn-game .material-icons {
+            font-size: 24px;
+        }
+
+        .back-btn-game:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .back-btn-game:active {
+            background: rgba(255, 215, 0, 0.2);
         }
 
         .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-item:first-of-type {
+            margin-left: auto;
         }
 
         .stat-label {
-            font-size: 0.7em;
-            opacity: 0.8;
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 2px;
+            color: white;
         }
 
         .stat-value {
-            font-size: 1.3em;
+            font-size: 18px;
             font-weight: bold;
+            color: #ffd700;
         }
 
         canvas {
@@ -192,53 +314,104 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-btn">← 홈으로</a>
-
     <!-- Menu Screen -->
     <div id="menuScreen" class="menu-screen">
-        <div class="menu-content">
-            <div class="game-icon">🔥✍️</div>
-            <h1>라인 드로우 디펜스</h1>
-            <div class="instructions">
-                <p>✍️ 손가락으로 선을 그어 방어벽 만들기</p>
-                <p>🔥 방어벽이 불타면서 적을 태움</p>
-                <p>⚡ 적이 화면 끝에 닿으면 생명 감소</p>
-                <p>💎 최대한 오래 살아남으세요!</p>
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">라인 드로우 디펜스</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="menuPoints">0</span>
             </div>
-            <div id="highScore" class="high-score hidden">
-                <div style="opacity: 0.8;">최고 기록</div>
-                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+        </div>
+
+        <div class="menu-body">
+            <div class="menu-content">
+                <!-- 게임 시작 버튼 (최상단) -->
+                <button class="start-btn" onclick="startGame()">게임 시작</button>
+
+                <!-- 게임 소개 -->
+                <div class="intro-section">
+                    <h2>🎯 게임 방법</h2>
+                    <ul>
+                        <li>손가락/마우스로 화면에 선을 그으세요</li>
+                        <li>그린 선은 불타는 방어벽이 됩니다</li>
+                        <li>적이 방어벽에 닿으면 불에 타서 파괴됩니다</li>
+                        <li>적이 화면 끝에 도달하면 생명이 감소합니다</li>
+                    </ul>
+                </div>
+
+                <div class="intro-section">
+                    <h2>🏆 점수 획득</h2>
+                    <ul>
+                        <li>🔴 빨강 적 (기본): 10점</li>
+                        <li>🔵 파랑 적 (빠름): 15점</li>
+                        <li>🟡 노랑 적 (강함): 25점</li>
+                        <li>⚡ 최대한 오래 살아남으세요!</li>
+                    </ul>
+                </div>
+
+                <div class="intro-section">
+                    <h2>⚡ 팁</h2>
+                    <ul>
+                        <li>방어벽은 시간이 지나면 사라집니다</li>
+                        <li>전략적으로 선을 그어 적을 막으세요</li>
+                        <li>여러 개의 짧은 선이 효과적일 수 있습니다</li>
+                    </ul>
+                </div>
+
+                <div id="highScore" class="high-score hidden">
+                    <div style="opacity: 0.8;">최고 기록</div>
+                    <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+                </div>
             </div>
-            <button class="btn" onclick="startGame()">🔥 시작하기</button>
         </div>
     </div>
 
     <!-- Game Over Screen -->
     <div id="gameoverScreen" class="gameover-screen hidden">
-        <div class="gameover-content">
-            <div class="game-icon">💥</div>
-            <h1>게임 오버</h1>
-            <div class="score-display" id="finalScore">0</div>
-            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
-                🎉 신기록! 🎉
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">라인 드로우 디펜스</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="gameoverPoints">0</span>
             </div>
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div style="opacity: 0.8;">처치한 적</div>
-                    <div style="font-size: 1.8em; font-weight: bold;" id="killCount">0</div>
+        </div>
+
+        <div class="menu-body">
+            <div class="gameover-content">
+                <div class="game-icon">💥</div>
+                <h1>게임 오버</h1>
+                <div class="score-display" id="finalScore">0</div>
+                <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
+                    🎉 신기록! 🎉
                 </div>
-                <div class="stat-box">
-                    <div style="opacity: 0.8;">생존 시간</div>
-                    <div style="font-size: 1.8em; font-weight: bold;" id="survivalTime">0s</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div style="opacity: 0.8;">처치한 적</div>
+                        <div style="font-size: 1.8em; font-weight: bold;" id="killCount">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div style="opacity: 0.8;">생존 시간</div>
+                        <div style="font-size: 1.8em; font-weight: bold;" id="survivalTime">0s</div>
+                    </div>
                 </div>
+                <button class="start-btn" onclick="startGame()">🔄 재도전</button>
             </div>
-            <button class="btn" onclick="startGame()">🔄 재도전</button>
         </div>
     </div>
 
     <!-- Game Screen -->
     <div id="gameContainer" class="game-container hidden">
         <div class="stats">
+            <a href="#" class="back-btn-game" onclick="handleGameExit(event)">
+                <span class="material-icons">arrow_back</span>
+            </a>
             <div class="stat-item">
                 <div class="stat-label">점수</div>
                 <div class="stat-value" id="score">0</div>
@@ -627,8 +800,16 @@
             document.getElementById('kills').textContent = kills;
         }
 
-        function endGame() {
+        async function endGame() {
             gameState = 'gameover';
+
+            // Supabase 점수 추가
+            if (window.addGamePoints) {
+                await window.addGamePoints(score, 'line_draw_defense.html');
+            }
+
+            // 포인트 표시 업데이트
+            await updatePointsDisplay();
 
             document.getElementById('finalScore').textContent = score.toLocaleString();
             document.getElementById('killCount').textContent = kills;
@@ -686,6 +867,64 @@
             updateUI();
             startEnemySpawning();
         };
+
+        // ============================================
+        // Supabase 연동
+        // ============================================
+        async function updatePointsDisplay() {
+            const points = window.getCurrentPoints ? window.getCurrentPoints() : 0;
+            const menuPointsEl = document.getElementById('menuPoints');
+            const gameoverPointsEl = document.getElementById('gameoverPoints');
+
+            if (menuPointsEl) menuPointsEl.textContent = points;
+            if (gameoverPointsEl) gameoverPointsEl.textContent = points;
+        }
+
+        // 게임 중 이전 버튼 클릭 처리
+        async function handleGameExit(event) {
+            event.preventDefault();
+
+            // 현재 점수를 통합 점수에 추가
+            if (score > 0 && window.addGamePoints) {
+                await window.addGamePoints(score, 'line_draw_defense.html');
+            }
+
+            // 메뉴로 돌아가기
+            document.getElementById('gameContainer').classList.add('hidden');
+            document.getElementById('menuScreen').classList.remove('hidden');
+            gameState = 'menu';
+
+            // 적 스폰 중지
+            if (spawnInterval) {
+                clearInterval(spawnInterval);
+            }
+
+            // 포인트 표시 업데이트
+            await updatePointsDisplay();
+        }
+
+        // ============================================
+        // 초기화
+        // ============================================
+        window.addEventListener('load', async () => {
+            // Supabase 초기화 대기
+            if (window.waitForSupabaseInit) {
+                await window.waitForSupabaseInit();
+            }
+
+            await updatePointsDisplay();
+
+            // 조회수 증가
+            if (window.incrementGameView) {
+                await window.incrementGameView('line_draw_defense.html');
+            }
+
+            // 최고 기록 표시
+            if (highScore > 0) {
+                document.getElementById('highScore').classList.remove('hidden');
+                document.getElementById('highScoreValue').textContent = highScore;
+            }
+        });
 
         // Initialize on load
         init();

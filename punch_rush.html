@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9906225455543284"
-     crossorigin="anonymous"></script>
+    <meta name="theme-color" content="#1a1a2e">
     <title>펀치 러쉬 - 게임세상</title>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
     <style>
         :root {
             --vh: 1vh;
@@ -43,9 +47,68 @@
             height: calc(var(--vh, 1vh) * 100);
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             z-index: 1000;
+        }
+
+        .menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-back-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .menu-back-btn:hover,
+        .menu-back-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        .menu-game-title {
+            flex: 1;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .menu-points {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffd700;
+            flex-shrink: 0;
+        }
+
+        .menu-body {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto;
+            padding: 20px 0;
         }
 
         .menu-content, .gameover-content {
@@ -55,9 +118,10 @@
             text-align: center;
             color: white;
             max-width: 90%;
-            width: 400px;
+            width: 90%;
             border: 3px solid #e74c3c;
             box-shadow: 0 0 40px rgba(231, 76, 60, 0.5);
+            align-self: flex-start;
         }
 
         h1 {
@@ -80,54 +144,88 @@
             50% { transform: scale(1.2); }
         }
 
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
+        .intro-section {
+            padding: 20px 0;
+            margin-bottom: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             text-align: left;
-            font-size: 0.9em;
         }
 
-        .instructions p {
+        .intro-section:last-of-type {
+            border-bottom: none;
+        }
+
+        .intro-section h2 {
+            margin-bottom: 12px;
+            font-size: 20px;
+            text-align: left;
+        }
+
+        .intro-section ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .intro-section li {
             margin: 8px 0;
-            line-height: 1.5;
+            line-height: 1.6;
+            opacity: 0.9;
         }
 
-        .btn {
+        .intro-section p {
+            margin: 8px 0;
+            line-height: 1.6;
+            opacity: 0.9;
+            text-align: left;
+        }
+
+        .btn, .start-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: bold;
             background: linear-gradient(45deg, #e74c3c, #c0392b);
             color: white;
             border: none;
-            padding: 15px 40px;
-            font-size: 1.5em;
-            border-radius: 50px;
+            border-radius: 12px;
             cursor: pointer;
-            margin: 10px;
-            box-shadow: 0 0 30px rgba(231, 76, 60, 0.5);
-            transition: transform 0.2s;
-            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            margin-bottom: 20px;
         }
 
-        .btn:hover {
-            transform: scale(1.05);
+        .btn:hover, .start-btn:hover,
+        .btn:active, .start-btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
         }
 
-        .btn:active {
-            transform: scale(0.95);
-        }
-
-        .back-btn {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
+        .back-btn-game {
+            background: transparent;
+            border: none;
+            color: #ffd700;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-decoration: none;
-            z-index: 100;
-            font-size: 0.9em;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 4px;
+        }
+
+        .back-btn-game .material-icons {
+            font-size: 24px;
+        }
+
+        .back-btn-game:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .back-btn-game:active {
+            background: rgba(255, 215, 0, 0.2);
         }
 
         .game-container {
@@ -140,30 +238,33 @@
 
         .stats {
             display: flex;
-            justify-content: space-around;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            font-size: 1em;
-            border-bottom: 2px solid rgba(231, 76, 60, 0.3);
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 12px;
         }
 
         .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-item:first-of-type {
+            margin-left: auto;
         }
 
         .stat-label {
-            font-size: 0.7em;
-            opacity: 0.8;
-            color: #e74c3c;
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 2px;
         }
 
         .stat-value {
-            font-size: 1.5em;
+            font-size: 18px;
             font-weight: bold;
-            color: #ffff00;
+            color: #ffd700;
         }
 
         canvas {
@@ -215,65 +316,118 @@
             transition: width 0.1s linear;
             box-shadow: 0 0 20px rgba(231, 76, 60, 0.8);
         }
+
+        /* 모바일 뷰포트 높이 fix */
+        @media screen and (max-width: 768px) {
+            .menu-game-title {
+                font-size: 16px;
+            }
+
+            .menu-points {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-btn">← 홈으로</a>
-
     <!-- Menu Screen -->
     <div id="menuScreen" class="menu-screen">
-        <div class="menu-content">
-            <div class="game-icon">🥊💥</div>
-            <h1>펀치 러쉬</h1>
-            <p style="color: #e74c3c; margin-bottom: 20px;">샌드백을 연타하세요!</p>
-
-            <div id="highScore" class="high-score hidden">
-                <div style="opacity: 0.8;">🏆 최고 기록</div>
-                <div style="font-size: 2em; font-weight: bold; color: #ffd700;" id="highScoreValue">0</div>
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">펀치 러쉬</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="menuPoints">0</span>
             </div>
+        </div>
 
-            <button class="btn" onclick="startGame()">🥊 시작</button>
+        <div class="menu-body">
+            <div class="menu-content">
+                <!-- 게임 시작 버튼 (최상단) -->
+                <button class="start-btn" onclick="startGame()">게임 시작</button>
 
-            <div class="instructions">
-                <p style="font-weight: bold; color: #e74c3c; margin-bottom: 10px;">🎮 게임 방법</p>
-                <p>👊 샌드백을 빠르게 터치!</p>
-                <p>⚡ 연속 터치로 콤보 증가!</p>
-                <p>💥 타이밍 좋게 터치하면 크리티컬!</p>
-                <p>🌟 크리티컬 = 2배 점수!</p>
-                <p>⏱️ 60초 안에 최대한 많이 터치!</p>
-                <p>💨 화려한 타격 파티클 효과!</p>
+                <!-- 게임 소개 -->
+                <div class="intro-section">
+                    <h2>🎮 게임 방법</h2>
+                    <ul>
+                        <li>샌드백을 빠르게 터치!</li>
+                        <li>연속 터치로 콤보 증가!</li>
+                        <li>타이밍 좋게 터치하면 크리티컬!</li>
+                    </ul>
+                </div>
+
+                <div class="intro-section">
+                    <h2>🏆 점수 획득</h2>
+                    <ul>
+                        <li>일반 터치: 10점 × 콤보</li>
+                        <li>크리티컬 터치: 20점 × 콤보</li>
+                        <li>타이밍: 150~300ms 간격</li>
+                    </ul>
+                </div>
+
+                <div class="intro-section">
+                    <h2>⚡ 팁</h2>
+                    <ul>
+                        <li>60초 안에 최대한 많이 터치!</li>
+                        <li>일정한 리듬으로 터치하면 크리티컬!</li>
+                        <li>콤보를 유지하면 점수가 급상승!</li>
+                        <li>화려한 타격 파티클 효과를 즐기세요!</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Game Over Screen -->
-    <div id="gameoverScreen" class="gameover-screen hidden">
-        <div class="gameover-content">
-            <div class="game-icon">💪</div>
-            <h1>게임 오버</h1>
-
-            <div class="score-display" id="finalScore">0</div>
-            <div id="newRecord" class="hidden" style="color: #ffd700; font-size: 1.2em; margin: 10px 0;">
-                🎉 신기록! 🎉
+    <div id="gameoverScreen" class="menu-screen hidden">
+        <div class="menu-header">
+            <a href="index.html" class="menu-back-btn">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <div class="menu-game-title">게임 오버</div>
+            <div class="menu-points">
+                <span>🏆</span>
+                <span id="gameoverPoints">0</span>
             </div>
+        </div>
 
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div style="opacity: 0.8; font-size: 0.8em;">총 펀치</div>
-                    <div style="font-size: 1.8em; font-weight: bold;" id="punchCount">0</div>
+        <div class="menu-body">
+            <div class="gameover-content">
+                <div class="game-icon">💪</div>
+                <h1 style="font-size: 2.5em; margin-bottom: 20px; color: #e74c3c;">Game Over</h1>
+
+                <div class="score-info" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>이번판 점수</span>
+                        <span style="color: #ffcc00; font-weight: bold;" id="finalScore">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>통합 포인트</span>
+                        <span style="color: #00ff00; font-weight: bold;" id="totalPoints">0</span>
+                    </div>
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>최고 점수</span>
+                            <span style="color: #ff6b6b; font-weight: bold;" id="highScore">0</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <div style="opacity: 0.8; font-size: 0.8em;">크리티컬</div>
-                    <div style="font-size: 1.8em; font-weight: bold;" id="criticalCount">0</div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div style="opacity: 0.8; font-size: 0.8em;">총 펀치</div>
+                        <div style="font-size: 1.8em; font-weight: bold;" id="punchCount">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div style="opacity: 0.8; font-size: 0.8em;">크리티컬</div>
+                        <div style="font-size: 1.8em; font-weight: bold;" id="criticalCount">0</div>
+                    </div>
                 </div>
-            </div>
 
-            <div id="highScoreDisplay" class="high-score hidden">
-                <div style="opacity: 0.8;">최고 기록</div>
-                <div style="font-size: 1.5em; font-weight: bold; color: #ffd700;" id="highScoreDisplayValue">0</div>
+                <button class="start-btn" onclick="startGame()">다시 하기</button>
             </div>
-
-            <button class="btn" onclick="startGame()">🔄 다시하기</button>
         </div>
     </div>
 
@@ -281,6 +435,9 @@
     <div id="gameContainer" class="game-container hidden">
         <div class="timer-bar" id="timerBar"></div>
         <div class="stats">
+            <a href="#" class="back-btn-game" onclick="handleGameExit(event)">
+                <span class="material-icons">arrow_back</span>
+            </a>
             <div class="stat-item">
                 <div class="stat-label">점수</div>
                 <div class="stat-value" id="score">0</div>
@@ -298,7 +455,9 @@
     </div>
 
     <script>
-        // Viewport height fix
+        // ============================================
+        // 모바일 뷰포트 높이 fix
+        // ============================================
         function setVH() {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -306,6 +465,18 @@
         setVH();
         window.addEventListener('resize', setVH);
         window.addEventListener('orientationchange', setVH);
+
+        // ============================================
+        // Supabase 함수들 (window 전역 함수 사용)
+        // ============================================
+        async function updatePointsDisplay() {
+            const points = window.getCurrentPoints ? window.getCurrentPoints() : 0;
+            const menuPointsEl = document.getElementById('menuPoints');
+            const gameoverPointsEl = document.getElementById('gameoverPoints');
+
+            if (menuPointsEl) menuPointsEl.textContent = points;
+            if (gameoverPointsEl) gameoverPointsEl.textContent = points;
+        }
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -624,32 +795,74 @@
         }
 
         // End game
-        function endGame() {
+        async function endGame() {
             gameState = 'gameover';
 
+            // 최고 점수 업데이트
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('punchRush_highScore', highScore);
+            }
+
+            // 점수 저장 및 표시
+            let totalPoints = 0;
+            if (window.addGamePoints) {
+                const result = await window.addGamePoints(score, 'punch_rush.html');
+                totalPoints = result?.newTotal || 0;
+            }
+            await updatePointsDisplay();
+
+            // 게임오버 화면에 점수 표시
             document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('totalPoints').textContent = totalPoints.toLocaleString();
+            document.getElementById('highScore').textContent = highScore.toLocaleString();
             document.getElementById('punchCount').textContent = punchCount;
             document.getElementById('criticalCount').textContent = criticalCount;
 
-            const isNewRecord = score > highScore;
-            if (isNewRecord) {
-                highScore = score;
-                localStorage.setItem('punchRush_highScore', highScore);
-                document.getElementById('newRecord').classList.remove('hidden');
-            } else {
-                document.getElementById('newRecord').classList.add('hidden');
-            }
-
-            if (highScore > 0 && !isNewRecord) {
-                document.getElementById('highScoreDisplay').classList.remove('hidden');
-                document.getElementById('highScoreDisplayValue').textContent = parseInt(highScore).toLocaleString();
-            }
-
+            // 화면 전환
+            document.getElementById('gameContainer').classList.add('hidden');
             document.getElementById('gameoverScreen').classList.remove('hidden');
+        }
+
+        // Game exit (back button)
+        async function handleGameExit(event) {
+            event.preventDefault();
+
+            if (gameState === 'playing' && confirm('게임을 종료하시겠습니까?\n현재 점수가 통합 포인트에 저장됩니다.')) {
+                gameState = 'exiting';
+
+                // 점수 저장
+                if (window.addGamePoints) {
+                    await window.addGamePoints(score, 'punch_rush.html');
+                }
+                await updatePointsDisplay();
+
+                // 메뉴로 돌아가기
+                document.getElementById('gameContainer').classList.add('hidden');
+                document.getElementById('menuScreen').classList.remove('hidden');
+                gameState = 'menu';
+            }
         }
 
         // Initialize on load
         init();
+
+        // ============================================
+        // Supabase 초기화 및 조회수 증가
+        // ============================================
+        window.addEventListener('load', async () => {
+            // ⚠️ 중요: Supabase 초기화 대기 (포인트 표시를 위해 필수)
+            if (window.waitForSupabaseInit) {
+                await window.waitForSupabaseInit();
+            }
+
+            await updatePointsDisplay();
+
+            // 조회수 증가
+            if (window.incrementGameView) {
+                await window.incrementGameView('punch_rush.html');
+            }
+        });
     </script>
     <script>
         // Auto fullscreen on load

@@ -145,6 +145,49 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
+        // Load character images
+        const characterImages = {
+            head: new Image(),
+            arm: new Image(),
+            hand: new Image(),
+            leg: new Image(),
+            neck: new Image(),
+            face: new Image(),
+            hair: new Image(),
+            shirt: new Image(),
+            shirtArm: new Image(),
+            pants: new Image(),
+            shoes: new Image(),
+            loaded: false
+        };
+
+        // Load images - 여성 캐릭터
+        characterImages.head.src = 'tofu_character/PNG/Skin/Tint 1/tint1_head.png';
+        characterImages.arm.src = 'tofu_character/PNG/Skin/Tint 1/tint1_arm.png';
+        characterImages.hand.src = 'tofu_character/PNG/Skin/Tint 1/tint1_hand.png';
+        characterImages.leg.src = 'tofu_character/PNG/Skin/Tint 1/tint1_leg.png';
+        characterImages.neck.src = 'tofu_character/PNG/Skin/Tint 1/tint1_neck.png';
+        characterImages.face.src = 'tofu_character/PNG/Face/Completes/face2.png';
+        characterImages.hair.src = 'tofu_character/PNG/Hair/Black/blackWoman3.png';
+        characterImages.shirt.src = 'tofu_character/PNG/Shirts/Blue/blueShirt1.png';
+        characterImages.shirtArm.src = 'tofu_character/PNG/Shirts/Blue/blueArm_short.png';
+        characterImages.pants.src = 'tofu_character/PNG/Pants/Blue 1/pantsBlue1_short.png';
+        characterImages.shoes.src = 'tofu_character/PNG/Shoes/Blue/blueShoe1.png';
+
+        // Check if all images are loaded
+        let loadedCount = 0;
+        const totalImages = 11;
+        Object.keys(characterImages).forEach(key => {
+            if (key !== 'loaded' && characterImages[key] instanceof Image) {
+                characterImages[key].onload = () => {
+                    loadedCount++;
+                    if (loadedCount === totalImages) {
+                        characterImages.loaded = true;
+                    }
+                };
+            }
+        });
+
         // Canvas setup
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -483,44 +526,81 @@
         }
 
         function drawGirl(x, y) {
-            // Body (dress with apron)
-            ctx.fillStyle = '#ffb3d9';
-            ctx.fillRect(x + 15, y + 35, 20, 35);
+            if (!characterImages.loaded) {
+                // Fallback: Draw simple character while images are loading
+                ctx.fillStyle = '#ffb3d9';
+                ctx.fillRect(x + 15, y + 35, 20, 35);
+                ctx.fillStyle = '#ffd0b0';
+                ctx.beginPath();
+                ctx.arc(x + 25, y + 20, 15, 0, Math.PI * 2);
+                ctx.fill();
+                return;
+            }
 
-            // Apron (white)
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(x + 18, y + 40, 14, 25);
+            // Scale factor
+            const scale = 0.3;
+            const centerX = x + 25;
 
-            // Head
-            ctx.fillStyle = '#ffd0b0';
-            ctx.beginPath();
-            ctx.arc(x + 25, y + 20, 15, 0, Math.PI * 2);
-            ctx.fill();
+            // Top-left 기준으로 정확하게 쌓아올리기
+            let currentY = y;
 
-            // Hair (black)
-            ctx.fillStyle = '#2c2c2c';
-            ctx.beginPath();
-            ctx.arc(x + 25, y + 15, 16, Math.PI, Math.PI * 2);
-            ctx.fill();
+            // === 머리 부분 (Hair, Head, Face 같은 위치) ===
+            ctx.save();
+            ctx.translate(centerX, currentY);
+            ctx.scale(scale, scale);
+            // Hair (제일 뒤)
+            ctx.drawImage(characterImages.hair, -characterImages.hair.width/2, 0);
+            // Head skin
+            ctx.drawImage(characterImages.head, -characterImages.head.width/2, 0);
+            // Face (제일 앞)
+            ctx.drawImage(characterImages.face, -characterImages.face.width/2, 0);
+            ctx.restore();
 
-            // Eyes
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(x + 20, y + 20, 2, 0, Math.PI * 2);
-            ctx.arc(x + 30, y + 20, 2, 0, Math.PI * 2);
-            ctx.fill();
+            currentY += characterImages.head.height * scale;
 
-            // Mouth (smile)
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.arc(x + 25, y + 22, 6, 0.2, Math.PI - 0.2);
-            ctx.stroke();
+            // === 목 ===
+            ctx.save();
+            ctx.translate(centerX, currentY);
+            ctx.scale(scale, scale);
+            ctx.drawImage(characterImages.neck, -characterImages.neck.width/2, 0);
+            ctx.restore();
 
-            // Arms
-            ctx.fillStyle = '#ffd0b0';
-            ctx.fillRect(x + 8, y + 40, 8, 15);
-            ctx.fillRect(x + 34, y + 40, 8, 15);
+            currentY += characterImages.neck.height * scale;
+
+            // === 상체 (Arm, Shirt, ShirtArm, Hand 같은 위치) ===
+            ctx.save();
+            ctx.translate(centerX, currentY);
+            ctx.scale(scale, scale);
+            // Arms skin (제일 뒤)
+            ctx.drawImage(characterImages.arm, -characterImages.arm.width/2, 0);
+            // Shirt body
+            ctx.drawImage(characterImages.shirt, -characterImages.shirt.width/2, 0);
+            // Shirt arms
+            ctx.drawImage(characterImages.shirtArm, -characterImages.shirtArm.width/2, 0);
+            // Hands (제일 앞)
+            ctx.drawImage(characterImages.hand, -characterImages.hand.width/2, 0);
+            ctx.restore();
+
+            currentY += characterImages.shirt.height * scale;
+
+            // === 하체 (Leg, Pants 같은 위치) ===
+            ctx.save();
+            ctx.translate(centerX, currentY);
+            ctx.scale(scale, scale);
+            // Leg skin (제일 뒤)
+            ctx.drawImage(characterImages.leg, -characterImages.leg.width/2, 0);
+            // Pants (위)
+            ctx.drawImage(characterImages.pants, -characterImages.pants.width/2, 0);
+            ctx.restore();
+
+            currentY += characterImages.leg.height * scale;
+
+            // === 신발 ===
+            ctx.save();
+            ctx.translate(centerX, currentY);
+            ctx.scale(scale, scale);
+            ctx.drawImage(characterImages.shoes, -characterImages.shoes.width/2, 0);
+            ctx.restore();
         }
 
         function gameLoop() {

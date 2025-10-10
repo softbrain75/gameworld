@@ -509,9 +509,19 @@ supabase.auth.onAuthStateChange((event, session) => {
 // ============================================
 // 페이지 로드 시 세션 확인
 // ============================================
+let supabaseInitPromise = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
-    await getCurrentSession();
+    supabaseInitPromise = getCurrentSession();
+    await supabaseInitPromise;
 });
+
+// Supabase 초기화 대기 함수
+async function waitForSupabaseInit() {
+    if (supabaseInitPromise) {
+        await supabaseInitPromise;
+    }
+}
 
 // ============================================
 // 전역 함수 노출 (index.html에서 사용)
@@ -532,6 +542,7 @@ window.addGamePoints = addGamePoints;
 window.incrementGameView = incrementGameView;
 window.getGameViews = getGameViews;
 window.getAllGameViews = getAllGameViews;
+window.waitForSupabaseInit = waitForSupabaseInit;
 
 // 현재 사용자 정보 getter로 노출
 Object.defineProperty(window, 'currentUser', {
