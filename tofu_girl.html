@@ -921,6 +921,19 @@
                         gainNode.gain.value = 0.1;
                         oscillator.type = 'sine';
                         break;
+                    case 'hit':
+                        // 부딪힐 때 - 날카로운 충돌음
+                        oscillator.frequency.value = 800;
+                        gainNode.gain.value = 0.15;
+                        oscillator.type = 'square';
+                        break;
+                    case 'fall':
+                        // 떨어질 때 - 하강하는 소리
+                        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.3);
+                        gainNode.gain.value = 0.12;
+                        oscillator.type = 'sine';
+                        break;
                     case 'gameover':
                         oscillator.frequency.value = 200;
                         gainNode.gain.value = 0.12;
@@ -929,7 +942,9 @@
                 }
 
                 oscillator.start();
-                oscillator.stop(audioContext.currentTime + 0.1);
+                // fall 사운드는 좀 더 길게
+                const duration = type === 'fall' ? 0.3 : 0.1;
+                oscillator.stop(audioContext.currentTime + duration);
             } catch (e) {}
         }
 
@@ -1033,7 +1048,7 @@
             isDying = true;
             tumbleStartTime = Date.now();
 
-            playSound('gameover');
+            playSound('fall'); // 타워 무너질 때 사운드
 
             // 타워가 쓰러지는 애니메이션 (1초 후 게임오버)
             setTimeout(() => {
@@ -1147,7 +1162,7 @@
                         hitStartTime = Date.now();
                         player.falling = true;
 
-                        playSound('gameover');
+                        playSound('hit'); // 부딪힐 때 사운드
                         setTimeout(() => {
                             gameOver();
                         }, 1000);
@@ -1164,6 +1179,7 @@
                 if (player.y > canvas.height - 100 + cameraOffsetY + canvas.height) {
                     if (!isDying) {
                         isDying = true;
+                        playSound('fall'); // 떨어질 때 사운드
                         setTimeout(() => {
                             gameOver();
                         }, 1000);
