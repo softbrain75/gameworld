@@ -138,25 +138,64 @@
 
         <div class="highlight-box">
             <strong>📌 요약</strong><br>
-            게임나라는 사용자의 개인정보를 수집, 저장 또는 전송하지 않습니다.
-            모든 게임 데이터는 기기의 로컬 스토리지에만 저장됩니다.
+            게임나라는 회원가입 시 이메일, 사용자명, 비밀번호를 수집합니다.
+            수집된 정보는 계정 관리 및 게임 점수 저장 목적으로만 사용됩니다.
         </div>
 
         <h2><span class="material-icons">info</span>1. 수집하는 개인정보</h2>
-        <p>게임나라는 다음과 같은 정보를 <strong>수집하지 않습니다</strong>:</p>
+
+        <h3>가. 회원가입 시 수집하는 정보 (선택사항)</h3>
+        <p>게임나라는 회원가입을 선택한 사용자에게 다음 정보를 수집합니다:</p>
         <ul>
-            <li>개인 식별 정보 (이름, 이메일, 전화번호 등)</li>
+            <li><strong>이메일 주소</strong>: 계정 식별 및 비밀번호 재설정</li>
+            <li><strong>사용자명 (닉네임)</strong>: 게임 내 표시 및 식별</li>
+            <li><strong>비밀번호</strong>: 계정 보안 (암호화 저장)</li>
+        </ul>
+        <p class="highlight-box">
+            <strong>중요:</strong> 회원가입은 <strong>선택사항</strong>입니다.
+            회원가입 없이도 모든 게임을 플레이할 수 있습니다.
+        </p>
+
+        <h3>나. 수집하지 않는 정보</h3>
+        <p>게임나라는 다음 정보를 수집하지 않습니다:</p>
+        <ul>
+            <li>실명 (본명)</li>
+            <li>전화번호</li>
             <li>위치 정보</li>
             <li>연락처</li>
             <li>사진 또는 파일</li>
-            <li>기기 고유 식별자</li>
-            <li>결제 정보</li>
+            <li>결제 정보 (무료 게임)</li>
         </ul>
 
-        <h2><span class="material-icons">description</span>2. 정보 사용</h2>
-        <p>게임나라는 순수 WebView 앱으로, Vercel에 호스팅된 웹사이트(<a href="https://gameworld.vercel.app" target="_blank">https://gameworld.vercel.app</a>)를 로드합니다.</p>
-        <p>서버에 어떠한 사용자 정보도 전송하거나 저장하지 않습니다.</p>
-        <p>게임 진행 상황(점수, 설정, 캐릭터 선택 등)은 <strong>기기의 로컬 스토리지에만 저장</strong>되며, 외부로 전송되지 않습니다.</p>
+        <h2><span class="material-icons">description</span>2. 정보 사용 목적</h2>
+
+        <p>수집된 개인정보는 다음 목적으로만 사용됩니다:</p>
+        <ul>
+            <li><strong>계정 관리</strong>: 로그인, 로그아웃, 비밀번호 재설정</li>
+            <li><strong>게임 점수 저장</strong>: 사용자별 최고 점수 및 게임 기록 보관</li>
+            <li><strong>사용자 식별</strong>: 게임 내 닉네임 표시</li>
+            <li><strong>서비스 개선</strong>: 사용자 피드백 수집 및 대응</li>
+        </ul>
+
+        <p class="highlight-box">
+            <strong>중요:</strong> 수집된 정보는 위 목적 이외의 용도로 사용되지 않으며,
+            마케팅, 광고 등의 목적으로 사용되지 않습니다.
+        </p>
+
+        <h3>가. 회원 정보</h3>
+        <p>회원가입 시 입력한 정보는 서버에 저장되어 계정 관리에 사용됩니다:</p>
+        <ul>
+            <li>이메일: 계정 식별 및 비밀번호 재설정 시 사용</li>
+            <li>사용자명: 게임 내 표시용</li>
+            <li>비밀번호: 암호화되어 저장 (복호화 불가능)</li>
+        </ul>
+
+        <h3>나. 게임 데이터</h3>
+        <p>게임 진행 상황은 다음과 같이 저장됩니다:</p>
+        <ul>
+            <li><strong>회원</strong>: 서버에 저장 (다른 기기에서도 접속 가능)</li>
+            <li><strong>비회원</strong>: 기기의 로컬 스토리지에만 저장 (다른 기기에서 접속 불가)</li>
+        </ul>
 
         <h2><span class="material-icons">storage</span>3. 쿠키 및 로컬 스토리지</h2>
         <p>게임나라는 다음 목적으로 브라우저 로컬 스토리지를 사용합니다:</p>
