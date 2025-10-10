@@ -887,7 +887,6 @@
         let cameraOffsetY = 0; // Camera follows player
         let isDying = false; // Death animation flag
         let isTumbling = false; // 무너지는 중
-        const maxOffset = 40; // 최대 허용 offset (픽셀)
         let tumbleStartTime = 0; // 무너지기 시작 시간
         let tumbleDirection = 0; // 무너지는 방향 (-1: 왼쪽, 1: 오른쪽)
         let isHitByTofu = false; // 두부에 맞음
@@ -1005,37 +1004,43 @@
             cakes.push(currentCake);
         }
 
-        // 무게중심 체크 함수
+        // 무게중심 체크 함수 - 물리적으로 정확하게
         function checkBalance() {
             if (stackedCakes.length < 3) return true; // 2개 이하는 무너지지 않음
 
-            // 각 케이크의 중심 X 좌표 계산하고 어느 쪽으로 쏠렸는지 확인
-            let totalOffsetLeft = 0;
-            let totalOffsetRight = 0;
-
+            // 각 두부가 바로 아래 두부의 범위를 벗어나는지 체크
             for (let i = 1; i < stackedCakes.length; i++) {
-                const currentCenter = stackedCakes[i].x + stackedCakes[i].width / 2;
-                const belowCenter = stackedCakes[i - 1].x + stackedCakes[i - 1].width / 2;
-                const offset = currentCenter - belowCenter;
+                const current = stackedCakes[i];
+                const below = stackedCakes[i - 1];
 
-                if (offset < 0) {
-                    totalOffsetLeft += Math.abs(offset);
-                } else {
-                    totalOffsetRight += offset;
+                const currentLeft = current.x;
+                const currentRight = current.x + current.width;
+                const currentCenter = current.x + current.width / 2;
+
+                const belowLeft = below.x;
+                const belowRight = below.x + below.width;
+
+                // 현재 두부의 중심이 아래 두부의 범위를 완전히 벗어났는지 체크
+                if (currentCenter < belowLeft) {
+                    // 중심이 왼쪽으로 완전히 벗어남
+                    tumbleDirection = -1;
+                    return false;
+                } else if (currentCenter > belowRight) {
+                    // 중심이 오른쪽으로 완전히 벗어남
+                    tumbleDirection = 1;
+                    return false;
                 }
-            }
 
-            // 평균 offset이 maxOffset을 넘으면 무너짐
-            const avgOffsetLeft = totalOffsetLeft / (stackedCakes.length - 1);
-            const avgOffsetRight = totalOffsetRight / (stackedCakes.length - 1);
+                // 또는 두부의 절반 이상이 벗어났는지 체크 (더 관대한 조건)
+                const overlapLeft = Math.max(currentLeft, belowLeft);
+                const overlapRight = Math.min(currentRight, belowRight);
+                const overlapWidth = overlapRight - overlapLeft;
 
-            if (avgOffsetLeft > maxOffset) {
-                tumbleDirection = -1; // 왼쪽으로 무너짐
-                return false;
-            }
-            if (avgOffsetRight > maxOffset) {
-                tumbleDirection = 1; // 오른쪽으로 무너짐
-                return false;
+                // 겹치는 부분이 현재 두부 너비의 30% 미만이면 무너짐
+                if (overlapWidth < current.width * 0.3) {
+                    tumbleDirection = currentCenter < belowLeft + below.width / 2 ? -1 : 1;
+                    return false;
+                }
             }
 
             return true;
