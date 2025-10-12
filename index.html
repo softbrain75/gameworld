@@ -1514,6 +1514,12 @@
     </div>
 
     <div class="container">
+        <!-- Recently Played Games -->
+        <div id="recent" class="category-section active" style="display: none;">
+            <div class="category-title">🕐 최근한 게임</div>
+            <div class="game-grid" id="recentPlayedGames"></div>
+        </div>
+
         <!-- All Games -->
         <div id="all" class="category-section active">
             <div class="category-title">🌟 전체 게임</div>
@@ -3020,7 +3026,7 @@
         }
 
         // 게임 카드 업데이트
-        function updateGameCards() {
+        async function updateGameCards() {
             // 각 카테고리별 게임 카드 업데이트
             const categories = ['action', 'puzzle', 'arcade', 'rhythm', 'casual', 'strategy'];
 
@@ -3039,15 +3045,77 @@
                 }
             });
 
-            // 전체 게임 섹션도 업데이트
+            // 전체 게임 섹션 업데이트 - 조회수 기준 정렬
+            await updateAllGamesSection();
+
+            // 최근한 게임 섹션 업데이트
+            await updateRecentPlayedSection();
+        }
+
+        // 전체 게임 섹션 - 조회수 순으로 정렬
+        async function updateAllGamesSection() {
             const allGamesContainer = document.getElementById('allGames');
-            if (allGamesContainer) {
+            if (!allGamesContainer) return;
+
+            try {
+                // 모든 게임에 조회수 정보 추가
+                const gamesWithViews = await Promise.all(
+                    gameDatabase.map(async (game) => {
+                        const views = await getGameViews(game.url);
+                        return { ...game, views };
+                    })
+                );
+
+                // 조회수 기준 내림차순 정렬
+                gamesWithViews.sort((a, b) => b.views - a.views);
+
+                // HTML 생성
+                allGamesContainer.innerHTML = gamesWithViews.map(game => `
+                    <a href="${game.url}" class="game-card" onclick="incrementGameView('${game.url}'); addToRecentGames('${game.url}');">
+                        <h3><span class="game-icon">${game.icon}</span> ${getGameName(game)}</h3>
+                        <p>${getGameDescription(game)}</p>
+                        ${game.views > 0 ? `<div style="font-size: 12px; color: #999; margin-top: 8px;">👁️ ${game.views.toLocaleString()} ${t('views')}</div>` : ''}
+                    </a>
+                `).join('');
+            } catch (error) {
+                console.error('Error updating all games:', error);
+                // 에러 발생 시 기본 정렬로 표시
                 allGamesContainer.innerHTML = gameDatabase.map(game => `
-                    <a href="${game.url}" class="game-card">
+                    <a href="${game.url}" class="game-card" onclick="incrementGameView('${game.url}'); addToRecentGames('${game.url}');">
                         <h3><span class="game-icon">${game.icon}</span> ${getGameName(game)}</h3>
                         <p>${getGameDescription(game)}</p>
                     </a>
                 `).join('');
+            }
+        }
+
+        // 최근한 게임 섹션 업데이트
+        async function updateRecentPlayedSection() {
+            const recentSection = document.getElementById('recent');
+            const recentContainer = document.getElementById('recentPlayedGames');
+            if (!recentContainer) return;
+
+            try {
+                const recentGames = await getRecentGames();
+
+                if (recentGames.length > 0) {
+                    // 최근한 게임이 있으면 섹션 표시
+                    recentSection.style.display = 'block';
+
+                    // 최근한 게임은 게임 타이틀만 보여주기
+                    recentContainer.innerHTML = recentGames.map(game => `
+                        <a href="${game.url}" class="game-card" onclick="incrementGameView('${game.url}'); addToRecentGames('${game.url}');">
+                            <h3><span class="game-icon">${game.icon}</span> ${getGameName(game)}</h3>
+                            ${game.views > 0 ? `<div style="font-size: 12px; color: #999; margin-top: 8px;">👁️ ${game.views.toLocaleString()} ${t('views')}</div>` : ''}
+                        </a>
+                    `).join('');
+                } else {
+                    // 최근한 게임이 없으면 섹션 숨기기
+                    recentSection.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error updating recent games:', error);
+                recentSection.style.display = 'none';
             }
         }
 
