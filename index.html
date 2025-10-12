@@ -1413,7 +1413,7 @@
         <div class="drawer-menu">
             <button class="drawer-item" onclick="openStats(); closeDrawer();">
                 <span class="drawer-item-icon">📊</span>
-                <span data-i18n="statistics">통계 조회</span>
+                <span data-i18n="statistics">참여통계</span>
             </button>
             <div class="drawer-divider"></div>
             <div class="language-drawer-item">
@@ -1515,7 +1515,7 @@
             <button class="back-btn-stats" onclick="closeStats()">
                 <span class="material-icons">arrow_back</span>
             </button>
-            <h2 class="stats-page-title">📊 게임 조회수 통계</h2>
+            <h2 class="stats-page-title">📊 게임 참여수 통계</h2>
         </div>
         <div id="statsTable" class="stats-content"></div>
     </div>
@@ -2059,7 +2059,7 @@
                 menu: '메뉴',
 
                 // 드로어
-                statistics: '통계 조회',
+                statistics: '참여통계',
                 language: '언어 선택',
 
                 // 탭
@@ -2093,14 +2093,14 @@
                 popularGames: '인기 있는 게임',
                 newGames: '신규 게임',
                 noResults: '검색 결과가 없습니다',
-                views: '조회',
+                views: '게임참여',
 
                 // 통계 모달
-                statsModalTitle: '게임 조회수 통계',
+                statsModalTitle: '게임 참여수 통계',
                 rank: '순위',
                 icon: '아이콘',
                 gameName: '게임명',
-                viewCount: '조회수',
+                viewCount: '게임참여수',
 
                 // 인증
                 login: '로그인',
@@ -3566,6 +3566,19 @@
 
             // Show selected section
             document.getElementById(category).classList.add('active');
+
+            // "최근한 게임"은 전체 탭에만 표시
+            const recentSection = document.getElementById('recent');
+            if (recentSection) {
+                if (category === 'all') {
+                    // 전체 탭일 때만 최근한 게임 표시 (데이터가 있는 경우에만)
+                    const recentGames = JSON.parse(localStorage.getItem('recent_games') || '[]');
+                    recentSection.style.display = recentGames.length > 0 ? 'block' : 'none';
+                } else {
+                    // 다른 탭에서는 항상 숨김
+                    recentSection.style.display = 'none';
+                }
+            }
 
             // Update active tab
             document.querySelectorAll('.tab').forEach(tab => {
