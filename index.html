@@ -415,14 +415,17 @@
         }
 
         .tabs-container {
-            padding: 0 12px 20px;
-            margin-top: 12px;
+            padding: 16px 12px 20px;
+            background: #6200ea;
+            position: sticky;
+            top: 56px;
+            z-index: 99;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         @media (max-width: 479px) {
             .tabs-container {
-                padding: 0 8px 20px;
-                margin-top: 8px;
+                padding: 12px 8px 16px;
             }
         }
 
@@ -1478,16 +1481,18 @@
                 </div>
             </div>
         </div>
-        <div class="tabs-container">
-            <div class="tabs">
-                <div class="tab active" onclick="showCategory('all')">🌟 전체</div>
-                <div class="tab" onclick="showCategory('action')">⚡ 액션</div>
-                <div class="tab" onclick="showCategory('puzzle')">🧩 퍼즐</div>
-                <div class="tab" onclick="showCategory('arcade')">🕹️ 아케이드</div>
-                <div class="tab" onclick="showCategory('rhythm')">🎵 리듬</div>
-                <div class="tab" onclick="showCategory('casual')">😊 캐주얼</div>
-                <div class="tab" onclick="showCategory('strategy')">🎯 전략</div>
-            </div>
+    </div>
+
+    <!-- Category Tabs (outside header) -->
+    <div class="tabs-container">
+        <div class="tabs">
+            <div class="tab active" onclick="showCategory('all')">🌟 전체</div>
+            <div class="tab" onclick="showCategory('action')">⚡ 액션</div>
+            <div class="tab" onclick="showCategory('puzzle')">🧩 퍼즐</div>
+            <div class="tab" onclick="showCategory('arcade')">🕹️ 아케이드</div>
+            <div class="tab" onclick="showCategory('rhythm')">🎵 리듬</div>
+            <div class="tab" onclick="showCategory('casual')">😊 캐주얼</div>
+            <div class="tab" onclick="showCategory('strategy')">🎯 전략</div>
         </div>
     </div>
 
