@@ -3078,10 +3078,10 @@
 
                 // HTML 생성
                 allGamesContainer.innerHTML = gamesWithViews.map(game => `
-                    <a href="${game.url}" class="game-card" onclick="incrementGameView('${game.url}'); addToRecentGames('${game.url}');">
+                    <a href="${game.url}" class="game-card" onclick="incrementGameView('${game.url}'); addToRecentGames('${game.url}');" style="position: relative;">
+                        ${game.views > 0 ? `<div style="position: absolute; top: 8px; right: 8px; font-size: 10px; color: #999;">🎮 ${game.views.toLocaleString()}</div>` : ''}
                         <h3><span class="game-icon">${game.icon}</span> ${getGameName(game)}</h3>
                         <p>${getGameDescription(game)}</p>
-                        ${game.views > 0 ? `<div style="font-size: 12px; color: #999; margin-top: 8px;">🎮 ${game.views.toLocaleString()} ${t('views')}</div>` : ''}
                     </a>
                 `).join('');
             } catch (error) {
@@ -3111,9 +3111,9 @@
 
                     // 최근한 게임은 게임 타이틀만 보여주기
                     recentContainer.innerHTML = recentGames.map(game => `
-                        <a href="${game.url}" class="game-card" onclick="incrementGameView('${game.url}'); addToRecentGames('${game.url}');">
+                        <a href="${game.url}" class="game-card" onclick="incrementGameView('${game.url}'); addToRecentGames('${game.url}');" style="position: relative;">
+                            ${game.views > 0 ? `<div style="position: absolute; top: 8px; right: 8px; font-size: 10px; color: #999;">🎮 ${game.views.toLocaleString()}</div>` : ''}
                             <h3><span class="game-icon">${game.icon}</span> ${getGameName(game)}</h3>
-                            ${game.views > 0 ? `<div style="font-size: 12px; color: #999; margin-top: 8px;">🎮 ${game.views.toLocaleString()} ${t('views')}</div>` : ''}
                         </a>
                     `).join('');
                 } else {
