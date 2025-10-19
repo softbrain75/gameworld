@@ -1508,21 +1508,21 @@
             // Update flying cakes
             cakes.forEach(cake => {
                 if (!cake.stopped) {
-                    // 중앙 영역 체크
+                    // 먼저 이동
+                    cake.x += cake.direction * cake.speed;
+
+                    // 이동 후 중앙 영역 체크
                     const screenCenterX = canvas.width / 2;
                     const cakeCenterX = cake.x + cake.width / 2;
                     const distanceFromCenter = Math.abs(cakeCenterX - screenCenterX);
 
-                    // 두부가 중앙 영역에 도달하면 멈춤 (부드럽게)
-                    if (distanceFromCenter < centerZoneWidth / 2) {
+                    // 두부가 중앙 영역에 도달하면 멈춤
+                    if (distanceFromCenter <= centerZoneWidth / 2) {
                         if (cake === currentCake && !cakeStoppedAtCenter) {
                             cake.stopped = true;
                             cake.direction = 0;
                             cakeStoppedAtCenter = true;
                         }
-                    } else {
-                        // 중앙이 아니면 계속 이동
-                        cake.x += cake.direction * cake.speed;
                     }
 
                     // Only game over if cake goes too far off screen without stopping
