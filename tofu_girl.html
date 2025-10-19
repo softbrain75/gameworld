@@ -1057,6 +1057,10 @@
         // 착지 애니메이션 타이머
         let landingTime = 0;
 
+        // 중앙 멈춤 시스템
+        let centerZoneWidth = 100; // 중앙 영역 너비
+        let cakeStoppedAtCenter = false; // 두부가 중앙에서 멈췄는지
+
         // 두부 SVG 이미지 로드
         const tofuSVG = `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="480" height="300" viewBox="0 0 480 300" xmlns="http://www.w3.org/2000/svg">
@@ -1425,6 +1429,9 @@
                 stopped: false
             };
 
+            // 새 두부가 생성되면 중앙 멈춤 플래그 초기화
+            cakeStoppedAtCenter = false;
+
             cakes.push(currentCake);
         }
 
@@ -1501,10 +1508,24 @@
             // Update flying cakes
             cakes.forEach(cake => {
                 if (!cake.stopped) {
-                    cake.x += cake.direction * cake.speed;
+                    // 중앙 영역 체크
+                    const screenCenterX = canvas.width / 2;
+                    const cakeCenterX = cake.x + cake.width / 2;
+                    const distanceFromCenter = Math.abs(cakeCenterX - screenCenterX);
 
-                    // 케이크는 계속 날아가고, 캐릭터가 착지할 때만 멈춤
-                    // (기존의 자동 멈춤 로직 제거)
+                    // 두부가 중앙 영역에 도달하면 멈춤
+                    if (distanceFromCenter < centerZoneWidth / 2) {
+                        if (cake === currentCake && !cakeStoppedAtCenter) {
+                            cake.stopped = true;
+                            cake.direction = 0;
+                            cakeStoppedAtCenter = true;
+                            // 중앙에 정확히 위치시키기
+                            cake.x = screenCenterX - cake.width / 2;
+                        }
+                    } else {
+                        // 중앙이 아니면 계속 이동
+                        cake.x += cake.direction * cake.speed;
+                    }
 
                     // Only game over if cake goes too far off screen without stopping
                     if (cake === currentCake && !cake.stopped) {
@@ -1572,7 +1593,13 @@
                         const towerHeight = stackedCakes.length - 1; // 시작 플레이트 제외
                         const basePoints = 100;
                         const difficultyBonus = Math.floor(towerHeight / 5) * 50; // 5층마다 50점 추가
-                        const pointsEarned = basePoints + difficultyBonus;
+                        let pointsEarned = basePoints + difficultyBonus;
+
+                        // 중앙 착지 보너스: 2배!
+                        if (cakeStoppedAtCenter) {
+                            pointsEarned *= 2;
+                        }
+
                         score += pointsEarned;
 
                         playSound('land');
@@ -1625,6 +1652,31 @@
         function draw() {
             // Clear (투명하게)
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 중앙 영역 표시 (카메라 이동 전에 그려서 고정)
+            const screenCenterX = canvas.width / 2;
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)'; // 금색
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 10]); // 점선
+            ctx.beginPath();
+            ctx.moveTo(screenCenterX - centerZoneWidth / 2, 0);
+            ctx.lineTo(screenCenterX - centerZoneWidth / 2, canvas.height);
+            ctx.moveTo(screenCenterX + centerZoneWidth / 2, 0);
+            ctx.lineTo(screenCenterX + centerZoneWidth / 2, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]); // 점선 해제
+
+            // 중앙 영역 배경 (매우 은은하게)
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.05)';
+            ctx.fillRect(screenCenterX - centerZoneWidth / 2, 0, centerZoneWidth, canvas.height);
+
+            // "중앙 착지 2배!" 텍스트
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.8)';
+            ctx.font = 'bold 18px "Malgun Gothic"';
+            ctx.textAlign = 'center';
+            ctx.fillText('중앙 착지 2배!', screenCenterX, 30);
+            ctx.restore();
 
             // Save context and apply camera offset
             ctx.save();
