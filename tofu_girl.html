@@ -1509,21 +1509,33 @@
             // Update flying cakes
             cakes.forEach(cake => {
                 if (!cake.stopped) {
-                    // 먼저 이동
+                    const screenCenterX = canvas.width / 2;
+
+                    // 이동 전 위치
+                    const oldCakeCenterX = cake.x + cake.width / 2;
+
+                    // 이동
                     cake.x += cake.direction * cake.speed;
 
-                    // 이동 후 중앙 영역 체크
-                    const screenCenterX = canvas.width / 2;
-                    const cakeCenterX = cake.x + cake.width / 2;
-                    const distanceFromCenter = Math.abs(cakeCenterX - screenCenterX);
+                    // 이동 후 위치
+                    const newCakeCenterX = cake.x + cake.width / 2;
 
-                    // 두부가 중앙 영역에 도달하면 멈춤
-                    if (distanceFromCenter <= centerZoneWidth / 2) {
-                        if (cake === currentCake && !cakeStoppedAtCenter) {
-                            cake.stopped = true;
-                            cake.direction = 0;
-                            cakeStoppedAtCenter = true;
-                        }
+                    // 중앙을 지나쳤는지 체크 (이동 전후로 중앙을 가로질렀는지)
+                    const crossedCenter =
+                        (cake.direction > 0 && oldCakeCenterX <= screenCenterX && newCakeCenterX >= screenCenterX) ||
+                        (cake.direction < 0 && oldCakeCenterX >= screenCenterX && newCakeCenterX <= screenCenterX);
+
+                    // 또는 현재 중앙 영역 안에 있는지
+                    const distanceFromCenter = Math.abs(newCakeCenterX - screenCenterX);
+                    const inCenterZone = distanceFromCenter <= centerZoneWidth / 2;
+
+                    // 중앙을 지나쳤거나 중앙 영역에 있으면 멈춤
+                    if ((crossedCenter || inCenterZone) && cake === currentCake && !cakeStoppedAtCenter) {
+                        cake.stopped = true;
+                        cake.direction = 0;
+                        cakeStoppedAtCenter = true;
+                        // 정확히 중앙에 위치시키기
+                        cake.x = screenCenterX - cake.width / 2;
                     }
 
                     // Only game over if cake goes too far off screen without stopping
