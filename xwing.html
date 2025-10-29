@@ -1,6 +1,27 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+        <script>
+        (function(){
+            try{
+                const NativeAudio = window.Audio;
+                window.Audio = function(src){
+                    const a = NativeAudio ? new NativeAudio(src) : document.createElement('audio');
+                    a.play = function(){ return Promise.resolve(); };
+                    a.pause = function(){};
+                    return a;
+                };
+                if (window.HTMLMediaElement && HTMLMediaElement.prototype) {
+                    HTMLMediaElement.prototype._nativePlay = HTMLMediaElement.prototype.play;
+                    HTMLMediaElement.prototype.play = function(){ return Promise.resolve(); };
+                    HTMLMediaElement.prototype.pause = function(){};
+                }
+                console.log('[no-audio] disabled');
+            }catch(e){
+                console.warn('[no-audio] failed', e);
+            }
+        })();
+        </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
