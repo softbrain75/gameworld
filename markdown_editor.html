@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Markdown Bold 에디터</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --vh: 1vh;
+            --primary: #6750a4;
+            --primary-dark: #533e8a;
+            --primary-light: #eaddff;
+            --surface: #fffbfe;
+            --surface-dim: #f3eff5;
+            --outline: #79747e;
+            --outline-variant: #ccc0d9;
+            --text-primary: #1f1b28;
+            --text-secondary: #49454e;
+            --success: #52c41a;
+            --error: #f5222d;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f8f5ff 0%, #faf7ff 100%);
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow: hidden;
+            color: var(--text-primary);
+        }
+
+        .container {
+            width: 100%;
+            height: calc(var(--vh, 1vh) * 100);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-icon {
+            font-size: 20px;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--outline-variant);
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: 0 2px 8px rgba(103, 80, 164, 0.2);
+        }
+
+        .toolbar-btn:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(103, 80, 164, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .toolbar-btn:active {
+            transform: translateY(0);
+        }
+
+        .toolbar-btn.secondary {
+            background: var(--outline);
+        }
+
+        .toolbar-btn.secondary:hover {
+            background: #655f6b;
+        }
+
+        .toolbar-btn.copy {
+            background: var(--success);
+        }
+
+        .toolbar-btn.copy:hover {
+            background: #42961b;
+        }
+
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        #editor {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid var(--outline-variant);
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.8;
+            resize: none;
+            font-family: 'Noto Sans KR', monospace;
+            color: var(--text-primary);
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        #editor:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(103, 80, 164, 0.1);
+        }
+
+        #preview {
+            flex: 1;
+            padding: 16px;
+            border: 1px solid var(--outline-variant);
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.8;
+            overflow-y: auto;
+            background: white;
+            color: var(--text-primary);
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .preview-content strong {
+            color: var(--primary);
+            font-weight: 700;
+            background: rgba(103, 80, 164, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+            box-shadow: inset 0 0 0 1px var(--primary-light);
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--outline-variant);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-weight: 600;
+        }
+
+        .stat-value {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .hint {
+            background: rgba(250, 173, 20, 0.1);
+            border: 1px solid #faad14;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #856404;
+            line-height: 1.5;
+        }
+
+        .hint-icon {
+            margin-right: 6px;
+            font-weight: 700;
+        }
+
+        /* Scrollbar 스타일 */
+        #editor::-webkit-scrollbar,
+        #preview::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #editor::-webkit-scrollbar-track,
+        #preview::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #editor::-webkit-scrollbar-thumb,
+        #preview::-webkit-scrollbar-thumb {
+            background: var(--outline-variant);
+            border-radius: 4px;
+        }
+
+        #editor::-webkit-scrollbar-thumb:hover,
+        #preview::-webkit-scrollbar-thumb:hover {
+            background: var(--outline);
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .panel {
+                max-height: 50%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .header p {
+                font-size: 12px;
+            }
+
+            .panel {
+                padding: 16px;
+                border-radius: 20px;
+            }
+
+            .panel-title {
+                font-size: 14px;
+            }
+
+            .toolbar-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
+            #editor,
+            #preview {
+                font-size: 13px;
+                padding: 12px;
+            }
+
+            .editor-toolbar {
+                margin-bottom: 10px;
+                padding-bottom: 10px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                margin-bottom: 16px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .header p {
+                font-size: 11px;
+            }
+
+            .panel {
+                padding: 14px;
+                max-height: 50%;
+            }
+
+            .panel-title {
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+
+            .editor-toolbar {
+                gap: 6px;
+                margin-bottom: 8px;
+                padding-bottom: 8px;
+            }
+
+            .toolbar-btn {
+                padding: 6px 10px;
+                font-size: 10px;
+            }
+
+            #editor,
+            #preview {
+                font-size: 12px;
+                padding: 10px;
+            }
+
+            .stats {
+                gap: 12px;
+                font-size: 11px;
+            }
+
+            .hint {
+                padding: 10px;
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Markdown Bold 에디터</h1>
+            <p>텍스트를 선택하고 Ctrl+B를 눌러 중요한 단어를 Bold 처리하세요</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 에디터 패널 -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="panel-icon">✏️</span>
+                    텍스트 입력
+                </div>
+
+                <div class="hint">
+                    <span class="hint-icon">💡</span>
+                    범위를 선택하고 Ctrl+B (또는 Cmd+B)를 눌러 <strong>bold</strong> 처리하세요
+                </div>
+
+                <div class="editor-toolbar">
+                    <button class="toolbar-btn secondary" id="clear-btn">초기화</button>
+                    <button class="toolbar-btn" id="bold-btn">글꼴 굵게</button>
+                    <button class="toolbar-btn copy" id="copy-btn">복사</button>
+                </div>
+
+                <div class="editor-area">
+                    <textarea id="editor" placeholder="여기에 텍스트를 입력하세요..."></textarea>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-label">글자수:</span>
+                            <span class="stat-value" id="char-count">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Bold 단어:</span>
+                            <span class="stat-value" id="bold-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 미리보기 패널 -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="panel-icon">👀</span>
+                    미리보기 (Markdown)
+                </div>
+
+                <div class="hint">
+                    <span class="hint-icon">📌</span>
+                    **단어** 형식으로 bold 처리됩니다. 이를 복사해서 memory.md에 사용하세요
+                </div>
+
+                <div class="editor-area">
+                    <div id="preview" class="preview-content"></div>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-label">MD 형식:</span>
+                            <span class="stat-value" id="md-format">Markdown</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const charCount = document.getElementById('char-count');
+        const boldCount = document.getElementById('bold-count');
+        const clearBtn = document.getElementById('clear-btn');
+        const boldBtn = document.getElementById('bold-btn');
+        const copyBtn = document.getElementById('copy-btn');
+
+        // Viewport height fix
+        function setVh() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', vh + 'px');
+        }
+
+        setVh();
+        window.addEventListener('resize', setVh);
+
+        // 에디터 입력 이벤트
+        editor.addEventListener('input', updatePreview);
+        editor.addEventListener('keydown', handleKeydown);
+
+        function handleKeydown(e) {
+            // Ctrl+B 또는 Cmd+B
+            if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+                e.preventDefault();
+                makeBold();
+            }
+        }
+
+        function makeBold() {
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+
+            // 선택된 텍스트가 없으면 return
+            if (start === end) {
+                alert('Bold 처리할 텍스트를 선택하세요');
+                return;
+            }
+
+            const selectedText = text.substring(start, end).trim();
+
+            // 이미 bold 처리된 텍스트인지 확인
+            if (selectedText.startsWith('**') && selectedText.endsWith('**')) {
+                // Bold 해제
+                const newText = text.substring(0, start) +
+                               selectedText.slice(2, -2) +
+                               text.substring(end);
+                editor.value = newText;
+                updatePreview();
+                editor.selectionStart = start;
+                editor.selectionEnd = start + selectedText.length - 4;
+            } else {
+                // Bold 적용
+                const boldText = '**' + selectedText + '**';
+                const newText = text.substring(0, start) + boldText + text.substring(end);
+                editor.value = newText;
+                updatePreview();
+                editor.selectionStart = start;
+                editor.selectionEnd = start + boldText.length;
+            }
+
+            editor.focus();
+        }
+
+        function updatePreview() {
+            const text = editor.value;
+
+            // 글자수 업데이트
+            charCount.textContent = text.length;
+
+            // Markdown **bold** 패턴을 HTML <strong>으로 변환하여 미리보기
+            const previewText = text
+                .split(/(\*\*[^*]+\*\*)/g)
+                .map(part => {
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                        const boldContent = part.slice(2, -2);
+                        return `<strong>${escapeHtml(boldContent)}</strong>`;
+                    }
+                    return escapeHtml(part);
+                })
+                .join('');
+
+            preview.innerHTML = previewText;
+
+            // Bold 단어 개수 세기
+            const boldMatches = text.match(/\*\*[^*]+\*\*/g) || [];
+            boldCount.textContent = boldMatches.length;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 버튼 이벤트
+        clearBtn.addEventListener('click', () => {
+            if (editor.value && confirm('모든 텍스트를 삭제하시겠습니까?')) {
+                editor.value = '';
+                updatePreview();
+                editor.focus();
+            }
+        });
+
+        boldBtn.addEventListener('click', makeBold);
+
+        copyBtn.addEventListener('click', () => {
+            const text = editor.value;
+            if (!text) {
+                alert('복사할 텍스트가 없습니다');
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✓ 복사됨';
+                copyBtn.style.background = 'var(--success)';
+
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.background = '';
+                }, 2000);
+            }).catch(() => {
+                alert('복사 실패. 수동으로 복사해주세요');
+            });
+        });
+
+        // 페이지 로드 시 포커스
+        editor.focus();
+    </script>
+</body>
+</html>
