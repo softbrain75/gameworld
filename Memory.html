@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>애국가 기억하기 - Memory Study Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --vh: 1vh;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            height: calc(var(--vh, 1vh) * 100);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .game-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .title h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .title p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .menu-screen, .playing-screen, .gameover-screen {
+            display: none;
+        }
+
+        .menu-screen.active, .playing-screen.active, .gameover-screen.active {
+            display: block;
+        }
+
+        /* Menu Screen */
+        .menu-content {
+            text-align: center;
+        }
+
+        .instructions {
+            background: #f5f7fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+            border-radius: 8px;
+        }
+
+        .instructions h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .difficulty-selection {
+            margin-bottom: 30px;
+        }
+
+        .difficulty-selection h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            padding: 12px 24px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .difficulty-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .mode-btn {
+            padding: 12px 24px;
+            border: 2px solid #764ba2;
+            background: white;
+            color: #764ba2;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .mode-btn:hover {
+            background: #764ba2;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.selected {
+            background: #764ba2;
+            color: white;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Playing Screen */
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f5f7fa;
+            border-radius: 8px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .lyric-display {
+            background: #f9f9f9;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            line-height: 1.8;
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .lyric-word {
+            display: inline-block;
+            margin: 4px;
+            position: relative;
+        }
+
+        .word-visible {
+            color: #333;
+            font-weight: normal;
+        }
+
+        .word-blank-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .word-blank {
+            background: #667eea;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            min-width: 70px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            text-align: center;
+            border: 2px solid #667eea;
+        }
+
+        .word-blank:hover {
+            background: #764ba2;
+            border-color: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .word-blank.revealed {
+            color: #333;
+            background: #e8f4f8;
+            border-color: #27ae60;
+            cursor: default;
+        }
+
+        .word-blank.revealed:hover {
+            background: #e8f4f8;
+            transform: scale(1);
+        }
+
+        .word-input {
+            padding: 4px 8px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 80px;
+            transition: all 0.2s;
+        }
+
+        .word-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: #f0f4ff;
+        }
+
+        .word-input.correct {
+            border-color: #27ae60;
+            background-color: #e8f5e9;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .word-input.incorrect {
+            border-color: #e74c3c;
+            background-color: #ffebee;
+            color: #e74c3c;
+        }
+
+        .feedback-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            font-size: 16px;
+            margin-left: 4px;
+        }
+
+        .feedback-icon.correct {
+            color: #27ae60;
+        }
+
+        .feedback-icon.incorrect {
+            color: #e74c3c;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-section input {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-section button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .input-section button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .input-section button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 10px;
+            min-height: 20px;
+            transition: all 0.3s;
+        }
+
+        .feedback.correct {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .feedback.incorrect {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .hint {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .hint-text {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* Game Over Screen */
+        .gameover-content {
+            text-align: center;
+        }
+
+        .final-score {
+            font-size: 36px;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .stats {
+            background: #f5f7fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: bold;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .retry-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            margin-right: 10px;
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .wrong-retry-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+            margin-right: 10px;
+        }
+
+        .wrong-retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.6);
+        }
+
+        .menu-btn {
+            background: #6c757d;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 600px) {
+            .game-wrapper {
+                padding: 20px;
+                max-height: calc(var(--vh, 1vh) * 100 - 20px);
+            }
+
+            .title h1 {
+                font-size: 22px;
+            }
+
+            .lyric-display {
+                font-size: 14px;
+                padding: 15px;
+                min-height: 120px;
+            }
+
+            .difficulty-buttons {
+                flex-direction: column;
+            }
+
+            .difficulty-btn {
+                width: 100%;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .input-section input {
+                width: 100%;
+            }
+
+            .input-section button {
+                width: 100%;
+            }
+
+            .game-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .retry-btn, .menu-btn {
+                width: 100%;
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-wrapper">
+            <div class="title">
+                <h1>🇰🇷 애국가 기억하기</h1>
+                <p>애국가 가사를 완성하는 스터디 게임</p>
+            </div>
+
+            <!-- Menu Screen -->
+            <div class="menu-screen active">
+                <div class="menu-content">
+                    <div class="instructions">
+                        <h3>📖 게임 방법</h3>
+                        <ol>
+                            <li>난이도를 선택합니다.</li>
+                            <li>애국가 가사 중 가려진 단어를 클릭합니다.</li>
+                            <li>정답을 입력하고 확인 버튼을 클릭합니다.</li>
+                            <li>모든 단어를 맞히면 게임 완료입니다.</li>
+                        </ol>
+                    </div>
+
+                    <div class="difficulty-selection">
+                        <h3>게임 모드 선택</h3>
+                        <div class="difficulty-buttons">
+                            <button class="mode-btn selected" data-mode="random">무작위 모드</button>
+                            <button class="mode-btn" data-mode="bold">Bold 퀴즈 모드</button>
+                        </div>
+                    </div>
+
+                    <div class="difficulty-selection" id="difficulty-section">
+                        <h3>난이도 선택</h3>
+                        <div class="difficulty-buttons">
+                            <button class="difficulty-btn selected" data-difficulty="easy">쉬움 (30%)</button>
+                            <button class="difficulty-btn" data-difficulty="medium">보통 (50%)</button>
+                            <button class="difficulty-btn" data-difficulty="hard">어려움 (70%)</button>
+                        </div>
+                    </div>
+
+                    <button class="start-btn">게임 시작</button>
+                </div>
+            </div>
+
+            <!-- Playing Screen -->
+            <div class="playing-screen">
+                <div class="game-info">
+                    <div class="info-item">
+                        <div class="info-label">맞은 개수</div>
+                        <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">점수</div>
+                        <div class="info-value" id="score">0</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">조건부 힌트</div>
+                        <div class="info-value"><span id="hint-count">3</span></div>
+                    </div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+
+                <div class="hint" id="hint-display" style="display: none;">
+                    💡 <span class="hint-text" id="hint-text"></span>
+                </div>
+
+                <div class="lyric-display" id="lyric-display"></div>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div class="gameover-screen">
+                <div class="gameover-content">
+                    <h2 style="color: #667eea; margin-bottom: 20px;">축하합니다! 🎉</h2>
+                    <div class="final-score" id="final-score">0점</div>
+
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">정답</span>
+                            <span class="stat-value"><span id="stats-correct">0</span>/<span id="stats-total">0</span></span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">정확도</span>
+                            <span class="stat-value" id="stats-accuracy">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">소요 시간</span>
+                            <span class="stat-value" id="stats-time">0초</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">난이도</span>
+                            <span class="stat-value" id="stats-difficulty">-</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="retry-btn">다시 하기</button>
+                        <button class="wrong-retry-btn" id="wrong-retry-btn" style="display: none;">틀린 것만 다시</button>
+                        <button class="menu-btn">메뉴로</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = 'menu';
+        let difficulty = 'easy';
+        let gameMode = 'random'; // 'random' or 'bold'
+        let lyrics = [];
+        let boldWords = []; // bold 처리된 단어들
+        let blanks = [];
+        let wrongAnswers = []; // 틀린 단어 인덱스들
+        let currentBlankIndex = -1;
+        let correctCount = 0;
+        let score = 0;
+        let totalBlanks = 0; // 전체 문제 개수 (100점 만점 계산용)
+        let hintCount = 3;
+        let startTime = 0;
+
+        // Difficulty settings
+        const difficultySettings = {
+            easy: { percentage: 0.3, hints: 5 },
+            medium: { percentage: 0.5, hints: 3 },
+            hard: { percentage: 0.7, hints: 1 }
+        };
+
+        const difficultyLabels = {
+            easy: '쉬움',
+            medium: '보통',
+            hard: '어려움'
+        };
+
+        // Initialize game
+        async function init() {
+            setVh();
+            window.addEventListener('resize', setVh);
+            await loadLyrics();
+            setupEventListeners();
+        }
+
+        function setVh() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', vh + 'px');
+        }
+
+        function loadLyrics() {
+            // memory.md 파일 로드 (로컬 서버 필요)
+            return fetch('memory.md')
+                .then(response => response.text())
+                .then(mdText => {
+                    // markdown에서 bold 단어와 일반 단어 분리
+                    const lines = mdText.split('\n');
+                    let fullText = '';
+                    boldWords = [];
+                    let wordIndex = 0;
+
+                    lines.forEach(line => {
+                        // 제목과 빈 줄 제외
+                        if (line.startsWith('#') || line.trim() === '') return;
+
+                        // **bold** 패턴 찾기
+                        let remaining = line;
+                        while (remaining.length > 0) {
+                            const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+
+                            if (boldMatch) {
+                                // bold 단어를 찾음
+                                const word = boldMatch[1].trim();
+                                if (word) {
+                                    fullText += word + ' ';
+                                    boldWords.push(wordIndex);
+                                    wordIndex++;
+                                }
+                                remaining = remaining.substring(boldMatch[0].length);
+                            } else {
+                                // bold가 아닌 부분 찾기
+                                const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                                if (nonBoldMatch && nonBoldMatch[1].trim()) {
+                                    const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
+                                    words.forEach(word => {
+                                        fullText += word + ' ';
+                                        wordIndex++;
+                                    });
+                                }
+                                remaining = remaining.substring(nonBoldMatch ? nonBoldMatch[0].length : 1);
+                            }
+                        }
+                    });
+
+                    lyrics = fullText.split(/[\s\n]+/).filter(word => word.length > 0);
+                    console.log('Bold 단어 인덱스:', boldWords);
+                    console.log('전체 단어 수:', lyrics.length);
+                    console.log('파싱된 가사:', lyrics);
+                    console.log('Bold 단어들:', boldWords.map(idx => lyrics[idx]));
+                })
+                .catch(err => {
+                    console.error('md 파일 로드 실패:', err);
+                    alert('로컬 서버에서 실행하세요!\n\npython -m http.server 8000\n\n그 후 http://localhost:8000/Memory.html 접속');
+                });
+        }
+
+        function setupEventListeners() {
+            // Mode buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    gameMode = e.target.dataset.mode;
+
+                    // Bold 모드면 난이도 섹션 숨기기
+                    const difficultySection = document.getElementById('difficulty-section');
+                    if (gameMode === 'bold') {
+                        difficultySection.style.display = 'none';
+                    } else {
+                        difficultySection.style.display = 'block';
+                    }
+                });
+            });
+
+            // Difficulty buttons
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    difficulty = e.target.dataset.difficulty;
+                });
+            });
+
+            document.querySelector('.start-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                startGame(false);
+            });
+
+            // Game over buttons
+            document.querySelector('.retry-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                wrongAnswers = []; // 틀린 것 초기화
+                startGame(false);
+            });
+            document.getElementById('wrong-retry-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                startGame(true); // 틀린 것만 다시
+            });
+            document.querySelector('.menu-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                goToMenu();
+            });
+        }
+
+        function setupWordInputListeners() {
+            // 각 입력박스에 이벤트 리스너 추가
+            document.querySelectorAll('.word-input').forEach((input, index) => {
+                const blankIndex = parseInt(input.dataset.index);
+
+                input.addEventListener('input', (e) => {
+                    const userInput = e.target.value.trim();
+                    const correctWord = lyrics[blankIndex];
+
+                    if (userInput === '') {
+                        // 입력이 없으면 상태 제거
+                        input.classList.remove('correct', 'incorrect');
+                        const icon = input.nextElementSibling;
+                        if (icon && icon.classList.contains('feedback-icon')) {
+                            icon.remove();
+                        }
+                    } else if (userInput === correctWord) {
+                        // 정답
+                        input.classList.remove('incorrect');
+                        input.classList.add('correct');
+                        input.disabled = true;
+
+                        // 피드백 아이콘 제거 후 추가
+                        const existingIcon = input.nextElementSibling;
+                        if (existingIcon && existingIcon.classList.contains('feedback-icon')) {
+                            existingIcon.remove();
+                        }
+
+                        const icon = document.createElement('span');
+                        icon.className = 'feedback-icon correct';
+                        icon.textContent = '✓';
+                        input.parentElement.appendChild(icon);
+
+                        correctCount++;
+                        // 100점 만점 계산: (정답 개수 / 전체 문제 개수) * 100
+                        if (totalBlanks > 0) {
+                            score = Math.round((correctCount / totalBlanks) * 100);
+                        }
+                        updateScore();
+
+                        // 모든 단어를 맞혔는지 확인
+                        if (correctCount === blanks.length) {
+                            setTimeout(() => endGame(), 500);
+                        } else {
+                            // 다음 입력박스로 자동 포커스 이동 (순서대로)
+                            setTimeout(() => {
+                                const currentOrder = parseInt(input.dataset.order);
+                                const nextOrder = currentOrder + 1;
+                                const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
+
+                                if (nextInput) {
+                                    nextInput.focus();
+                                }
+                            }, 100);
+                        }
+                    } else {
+                        // 오답
+                        input.classList.remove('correct');
+                        input.classList.add('incorrect');
+
+                        // 틀린 단어 기록 (중복 제거)
+                        if (!wrongAnswers.includes(blankIndex)) {
+                            wrongAnswers.push(blankIndex);
+                        }
+
+                        // 피드백 아이콘 제거 후 추가
+                        const existingIcon = input.nextElementSibling;
+                        if (existingIcon && existingIcon.classList.contains('feedback-icon')) {
+                            existingIcon.remove();
+                        }
+
+                        const icon = document.createElement('span');
+                        icon.className = 'feedback-icon incorrect';
+                        icon.textContent = '✗';
+                        input.parentElement.appendChild(icon);
+                    }
+                });
+
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        input.blur();
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    // Tab 키 처리 (Shift+Tab 제외)
+                    if (e.key === 'Tab' && !e.shiftKey) {
+                        e.preventDefault();
+
+                        // 현재 입력필드의 order 번호 가져오기
+                        const currentOrder = parseInt(input.dataset.order);
+                        const nextOrder = currentOrder + 1;
+
+                        console.log(`Tab: order ${currentOrder} → ${nextOrder}`);
+
+                        // 다음 order의 입력필드 찾기
+                        const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
+
+                        if (nextInput) {
+                            console.log(`다음 입력필드로 이동:`, nextInput.dataset.order);
+                            nextInput.focus();
+                        } else {
+                            console.log(`더 이상 입력필드가 없습니다`);
+                        }
+                    }
+                });
+
+            });
+        }
+
+        function startGame(wrongOnly = false) {
+            console.log('startGame 호출됨, lyrics:', lyrics.length, lyrics);
+
+            gameState = 'playing';
+            correctCount = 0;
+            score = 0;
+            startTime = Date.now();
+            blanks = [];
+            currentBlankIndex = -1;
+
+            // lyrics가 빈 경우 처리
+            if (!lyrics || lyrics.length === 0) {
+                console.error('❌ lyrics가 로드되지 않았습니다!');
+                alert('가사 데이터가 로드되지 않았습니다. 페이지를 새로고침하세요.');
+                return;
+            }
+
+            if (wrongOnly) {
+                // 틀린 것만 다시: wrongAnswers 배열 사용
+                blanks = wrongAnswers.slice().sort((a, b) => a - b);
+                hintCount = 3;
+            } else if (gameMode === 'bold') {
+                // Bold 모드: boldWords 배열에 있는 인덱스들만 사용
+                blanks = boldWords.slice().sort((a, b) => a - b);
+                hintCount = 3; // Bold 모드는 고정 힌트 수
+            } else {
+                // 무작위 모드: 난이도에 따라 난수로 선택
+                hintCount = difficultySettings[difficulty].hints;
+                const blankPercentage = difficultySettings[difficulty].percentage;
+                const numBlanks = Math.ceil(lyrics.length * blankPercentage);
+                console.log('무작위 모드:', { blankPercentage, numBlanks, lyricsLength: lyrics.length });
+
+                const indices = new Set();
+
+                while (indices.size < numBlanks) {
+                    indices.add(Math.floor(Math.random() * lyrics.length));
+                }
+
+                blanks = Array.from(indices).sort((a, b) => a - b);
+            }
+
+            // 100점 만점 계산을 위해 전체 문제 개수 저장
+            totalBlanks = blanks.length;
+
+            console.log('게임 시작:', {
+                gameMode,
+                lyricsLength: lyrics.length,
+                blanksLength: blanks.length,
+                blanks: blanks,
+                wrongOnly: wrongOnly
+            });
+
+            updateUI();
+            showScreen('playing-screen');
+        }
+
+        function updateUI() {
+            // Update lyric display
+            const display = document.getElementById('lyric-display');
+            display.innerHTML = '';
+
+            let blankOrder = 0; // 입력박스 순서 추적
+
+            lyrics.forEach((word, index) => {
+                const wordEl = document.createElement('div');
+                wordEl.className = 'lyric-word';
+
+                if (blanks.includes(index)) {
+                    const container = document.createElement('span');
+                    container.className = 'word-blank-container';
+
+                    const inputEl = document.createElement('input');
+                    inputEl.type = 'text';
+                    inputEl.className = 'word-input';
+                    inputEl.dataset.index = index;
+                    inputEl.dataset.order = blankOrder; // 순서 번호 추가
+                    inputEl.placeholder = '';
+                    inputEl.autocomplete = 'off';
+                    inputEl.spellcheck = 'false';
+
+                    blankOrder++;
+
+                    container.appendChild(inputEl);
+                    wordEl.appendChild(container);
+                } else {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.className = 'word-visible';
+                    wordSpan.textContent = word;
+                    wordEl.appendChild(wordSpan);
+                }
+
+                display.appendChild(wordEl);
+            });
+
+            // 입력박스 이벤트 리스너 설정
+            setupWordInputListeners();
+
+            // Update stats
+            updateScore();
+
+            // Update progress
+            const progress = blanks.length > 0 ? (correctCount / blanks.length) * 100 : 0;
+            document.getElementById('progress-fill').style.width = progress + '%';
+
+            // Hide hint
+            document.getElementById('hint-display').style.display = 'none';
+        }
+
+        function updateScore() {
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('total-blanks').textContent = blanks.length;
+            document.getElementById('score').textContent = score;
+            document.getElementById('hint-count').textContent = hintCount;
+        }
+
+
+        function endGame() {
+            gameState = 'gameover';
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            const totalBlanks = blanks.length;
+
+            document.getElementById('final-score').textContent = score + '점';
+            document.getElementById('stats-correct').textContent = correctCount;
+            document.getElementById('stats-total').textContent = totalBlanks;
+            document.getElementById('stats-accuracy').textContent =
+                Math.round((correctCount / totalBlanks) * 100) + '%';
+            document.getElementById('stats-time').textContent = elapsedTime + '초';
+
+            if (gameMode === 'bold') {
+                document.getElementById('stats-difficulty').textContent = 'Bold 퀴즈 모드';
+            } else {
+                document.getElementById('stats-difficulty').textContent = difficultyLabels[difficulty];
+            }
+
+            // "틀린 것만 다시" 버튼 표시 여부 결정
+            const wrongRetryBtn = document.getElementById('wrong-retry-btn');
+            if (wrongAnswers.length > 0 && wrongAnswers.length < totalBlanks) {
+                // 틀린 것이 있고, 모든 것을 맞추지 못했으면 표시
+                wrongRetryBtn.style.display = 'inline-block';
+            } else {
+                wrongRetryBtn.style.display = 'none';
+            }
+
+            showScreen('gameover-screen');
+        }
+
+        function goToMenu() {
+            gameState = 'menu';
+            wrongAnswers = []; // 틀린 것 초기화
+            showScreen('menu-screen');
+        }
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.menu-screen, .playing-screen, .gameover-screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.querySelector('.' + screenName).classList.add('active');
+        }
+
+        // Start the game
+        init();
+    </script>
+</body>
+</html>
