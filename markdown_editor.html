@@ -235,6 +235,148 @@
             font-weight: 700;
         }
 
+        .file-manager {
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-manager-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-name-input {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .file-name-input input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid var(--outline-variant);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Noto Sans KR';
+            transition: border-color 0.2s;
+        }
+
+        .file-name-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(103, 80, 164, 0.1);
+        }
+
+        .save-btn {
+            padding: 10px 16px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: 0 2px 8px rgba(82, 196, 26, 0.2);
+        }
+
+        .save-btn:hover {
+            background: #42961b;
+            box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--surface-dim);
+            border: 1px solid var(--outline-variant);
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .file-item:hover {
+            background: rgba(103, 80, 164, 0.05);
+            border-color: var(--primary);
+        }
+
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .file-date {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .file-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .load-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .load-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .delete-btn {
+            background: var(--error);
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #d81a2a;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
         /* Scrollbar 스타일 */
         #editor::-webkit-scrollbar,
         #preview::-webkit-scrollbar {
@@ -371,6 +513,23 @@
             <p>텍스트를 선택하고 Ctrl+B를 눌러 중요한 단어를 Bold 처리하세요</p>
         </div>
 
+        <!-- 파일 관리 섹션 -->
+        <div class="file-manager">
+            <div class="file-manager-title">
+                <span>💾</span>
+                파일 관리
+            </div>
+
+            <div class="file-name-input">
+                <input type="text" id="file-name-input" placeholder="파일 이름 입력 (확장자 제외)..." />
+                <button class="save-btn" id="save-file-btn">저장</button>
+            </div>
+
+            <div class="file-list" id="file-list">
+                <div class="empty-message">저장된 파일이 없습니다.</div>
+            </div>
+        </div>
+
         <div class="main-content">
             <!-- 에디터 패널 -->
             <div class="panel">
@@ -438,6 +597,12 @@
         const clearBtn = document.getElementById('clear-btn');
         const boldBtn = document.getElementById('bold-btn');
         const copyBtn = document.getElementById('copy-btn');
+        const fileNameInput = document.getElementById('file-name-input');
+        const saveFileBtn = document.getElementById('save-file-btn');
+        const fileList = document.getElementById('file-list');
+
+        // LocalStorage 키
+        const STORAGE_KEY = 'markdown_files';
 
         // Viewport height fix
         function setVh() {
@@ -559,7 +724,123 @@
             });
         });
 
-        // 페이지 로드 시 포커스
+        // 파일 저장 함수
+        function saveFile() {
+            const fileName = fileNameInput.value.trim();
+            const content = editor.value.trim();
+
+            if (!fileName) {
+                alert('파일 이름을 입력하세요');
+                fileNameInput.focus();
+                return;
+            }
+
+            if (!content) {
+                alert('저장할 내용이 없습니다');
+                return;
+            }
+
+            // 기존 파일 목록 불러오기
+            let files = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+            // 같은 이름의 파일이 있으면 업데이트, 없으면 추가
+            const existingIndex = files.findIndex(f => f.name === fileName);
+            const now = new Date().toLocaleString('ko-KR');
+
+            if (existingIndex >= 0) {
+                if (!confirm(`"${fileName}" 파일을 덮어쓰시겠습니까?`)) {
+                    return;
+                }
+                files[existingIndex] = {
+                    name: fileName,
+                    content: content,
+                    savedAt: now
+                };
+            } else {
+                files.push({
+                    name: fileName,
+                    content: content,
+                    savedAt: now
+                });
+            }
+
+            // LocalStorage에 저장
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+
+            // UI 업데이트
+            fileNameInput.value = '';
+            updateFileList();
+
+            // 성공 메시지
+            const originalText = saveFileBtn.textContent;
+            saveFileBtn.textContent = '✓ 저장됨';
+            saveFileBtn.style.background = 'var(--success)';
+            setTimeout(() => {
+                saveFileBtn.textContent = originalText;
+                saveFileBtn.style.background = '';
+            }, 2000);
+        }
+
+        // 파일 로드 함수
+        function loadFile(fileName) {
+            const files = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const file = files.find(f => f.name === fileName);
+
+            if (file) {
+                editor.value = file.content;
+                updatePreview();
+                fileNameInput.value = fileName;
+                editor.focus();
+            }
+        }
+
+        // 파일 삭제 함수
+        function deleteFile(fileName) {
+            if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
+                return;
+            }
+
+            let files = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            files = files.filter(f => f.name !== fileName);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+            updateFileList();
+        }
+
+        // 파일 목록 업데이트 함수
+        function updateFileList() {
+            const files = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+            if (files.length === 0) {
+                fileList.innerHTML = '<div class="empty-message">저장된 파일이 없습니다.</div>';
+                return;
+            }
+
+            fileList.innerHTML = files.map(file => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <div class="file-name">📄 ${escapeHtml(file.name)}</div>
+                        <div class="file-date">${file.savedAt}</div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-btn load-btn" onclick="loadFile('${file.name.replace(/'/g, "\\'")}')">열기</button>
+                        <button class="file-btn delete-btn" onclick="deleteFile('${file.name.replace(/'/g, "\\'")}')">삭제</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 파일 관리 버튼 이벤트
+        saveFileBtn.addEventListener('click', saveFile);
+        fileNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveFile();
+            }
+        });
+
+        // 페이지 로드 시
+        setVh();
+        window.addEventListener('resize', setVh);
+        updateFileList();
         editor.focus();
     </script>
 </body>
