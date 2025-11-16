@@ -284,6 +284,7 @@
         .custom-select-value {
             flex: 1;
             color: var(--text-primary);
+            text-align: left;
         }
 
         .custom-select-value.placeholder {
@@ -326,6 +327,7 @@
             transition: background 0.2s cubic-bezier(0.2, 0, 0, 1);
             position: relative;
             overflow: hidden;
+            text-align: left;
         }
 
         .custom-select-option:hover {
@@ -380,15 +382,6 @@
 
         .custom-select-menu::-webkit-scrollbar-thumb:hover {
             background: var(--outline);
-        }
-
-        /* Static label for custom select */
-        .data-select-static-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
         }
 
         .mode-selection {
@@ -1137,7 +1130,7 @@
             <div class="menu-screen active">
                 <div class="menu-content">
                     <div class="data-selection" id="data-section">
-                        <label class="data-select-static-label">학습할 파일 선택</label>
+                        <div class="section-title">학습할 파일 선택</div>
                         <div class="data-selector">
                             <div class="data-select-wrapper">
                                 <div id="data-select" class="custom-select" tabindex="0">
