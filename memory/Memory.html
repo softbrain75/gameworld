@@ -186,7 +186,7 @@
 
         .data-select-dropdown:hover {
             border-color: var(--primary);
-            background: var(--primary-light);
+            background: rgba(31, 27, 40, 0.08); /* on-surface 8% opacity - Material Design 3 state layer */
         }
 
         .data-select-dropdown:focus {
@@ -992,7 +992,6 @@
             <div class="menu-screen active">
                 <div class="menu-content">
                     <div class="data-selection" id="data-section">
-                        <div class="section-title">📚 학습 데이터 선택</div>
                         <div class="data-selector">
                             <div class="data-select-wrapper">
                                 <select id="data-select" class="data-select-dropdown">
