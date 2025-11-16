@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
-const PORT = 8000;
+const PORT = process.env.PORT || 8001;
 const HOST = 'localhost';
 
 // MIME 타입 정의
@@ -31,6 +31,12 @@ const mimeTypes = {
 };
 
 const server = http.createServer((req, res) => {
+    // API 엔드포인트 처리
+    if (req.url.startsWith('/api/')) {
+        handleApi(req, res);
+        return;
+    }
+
     // 기본값: index.html
     let filePath = req.url === '/' ? '/index.html' : req.url;
 
@@ -105,6 +111,141 @@ function serveFile(filePath, res) {
         });
         res.end(data);
     });
+}
+
+function handleApi(req, res) {
+    const urlParts = new URL(req.url, `http://${req.headers.host}`);
+    const pathname = urlParts.pathname;
+
+    // CORS 헤더 설정
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+
+    // /api/data/list - 파일 목록 조회
+    if (pathname === '/api/data/list' && req.method === 'GET') {
+        const dataDir = path.join(__dirname, 'memory', 'data');
+        fs.readdir(dataDir, (err, files) => {
+            if (err) {
+                res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ files: [] }));
+                return;
+            }
+
+            const mdFiles = files
+                .filter(file => file.endsWith('.md'))
+                .map(file => {
+                    const filePath = path.join(dataDir, file);
+                    const stats = fs.statSync(filePath);
+                    return {
+                        name: file.replace('.md', ''),
+                        savedAt: new Date(stats.mtime).toLocaleString('ko-KR')
+                    };
+                });
+
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ files: mdFiles }));
+        });
+        return;
+    }
+
+    // /api/data/load?name=filename - 파일 로드
+    if (pathname === '/api/data/load' && req.method === 'GET') {
+        const fileName = urlParts.searchParams.get('name');
+        if (!fileName || fileName.includes('..')) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: '잘못된 파일명' }));
+            return;
+        }
+
+        const filePath = path.join(__dirname, 'memory', 'data', `${fileName}.md`);
+        fs.readFile(filePath, 'utf-8', (err, data) => {
+            if (err) {
+                res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: '파일을 찾을 수 없습니다' }));
+                return;
+            }
+
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ content: data }));
+        });
+        return;
+    }
+
+    // /api/data/save - 파일 저장
+    if (pathname === '/api/data/save' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+
+        req.on('end', () => {
+            try {
+                const { name, content } = JSON.parse(body);
+                if (!name || !content || name.includes('..')) {
+                    res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(JSON.stringify({ error: '잘못된 요청' }));
+                    return;
+                }
+
+                const dataDir = path.join(__dirname, 'memory', 'data');
+
+                // data 폴더가 없으면 생성
+                if (!fs.existsSync(dataDir)) {
+                    fs.mkdirSync(dataDir, { recursive: true });
+                }
+
+                const filePath = path.join(dataDir, `${name}.md`);
+                fs.writeFile(filePath, content, 'utf-8', (err) => {
+                    if (err) {
+                        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                        res.end(JSON.stringify({ error: '파일 저장 실패' }));
+                        return;
+                    }
+
+                    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+                    res.end(JSON.stringify({ success: true, message: '파일이 저장되었습니다' }));
+                });
+            } catch (e) {
+                res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: '잘못된 JSON 형식' }));
+            }
+        });
+        return;
+    }
+
+    // /api/data/delete?name=filename - 파일 삭제
+    if (pathname === '/api/data/delete' && req.method === 'DELETE') {
+        const fileName = urlParts.searchParams.get('name');
+        if (!fileName || fileName.includes('..')) {
+            res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ error: '잘못된 파일명' }));
+            return;
+        }
+
+        const filePath = path.join(__dirname, 'memory', 'data', `${fileName}.md`);
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+                res.end(JSON.stringify({ error: '파일을 찾을 수 없습니다' }));
+                return;
+            }
+
+            res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ success: true, message: '파일이 삭제되었습니다' }));
+        });
+        return;
+    }
+
+    // 존재하지 않는 API
+    res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ error: 'API를 찾을 수 없습니다' }));
 }
 
 server.listen(PORT, HOST, () => {

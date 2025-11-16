@@ -509,8 +509,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📝 Markdown Bold 에디터</h1>
-            <p>텍스트를 선택하고 Ctrl+B를 눌러 중요한 단어를 Bold 처리하세요</p>
+            <h1>📚 학습 데이터 관리</h1>
+            <p>Ctrl+B를 눌러 **bold** 마크다운을 작성하고 data 폴더에 저장하세요</p>
         </div>
 
         <!-- 파일 관리 섹션 -->
@@ -600,9 +600,6 @@
         const fileNameInput = document.getElementById('file-name-input');
         const saveFileBtn = document.getElementById('save-file-btn');
         const fileList = document.getElementById('file-list');
-
-        // LocalStorage 키
-        const STORAGE_KEY = 'markdown_files';
 
         // Viewport height fix
         function setVh() {
@@ -724,8 +721,8 @@
             });
         });
 
-        // 파일 저장 함수
-        function saveFile() {
+        // 파일 저장 함수 (Server API 사용)
+        async function saveFile() {
             const fileName = fileNameInput.value.trim();
             const content = editor.value.trim();
 
@@ -740,93 +737,114 @@
                 return;
             }
 
-            // 기존 파일 목록 불러오기
-            let files = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-
-            // 같은 이름의 파일이 있으면 업데이트, 없으면 추가
-            const existingIndex = files.findIndex(f => f.name === fileName);
-            const now = new Date().toLocaleString('ko-KR');
-
-            if (existingIndex >= 0) {
-                if (!confirm(`"${fileName}" 파일을 덮어쓰시겠습니까?`)) {
-                    return;
-                }
-                files[existingIndex] = {
-                    name: fileName,
-                    content: content,
-                    savedAt: now
-                };
-            } else {
-                files.push({
-                    name: fileName,
-                    content: content,
-                    savedAt: now
+            try {
+                const response = await fetch('/api/data/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: fileName,
+                        content: content
+                    })
                 });
-            }
 
-            // LocalStorage에 저장
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+                const result = await response.json();
 
-            // UI 업데이트
-            fileNameInput.value = '';
-            updateFileList();
+                if (response.ok && result.success) {
+                    // UI 업데이트
+                    fileNameInput.value = '';
+                    updateFileList();
 
-            // 성공 메시지
-            const originalText = saveFileBtn.textContent;
-            saveFileBtn.textContent = '✓ 저장됨';
-            saveFileBtn.style.background = 'var(--success)';
-            setTimeout(() => {
-                saveFileBtn.textContent = originalText;
-                saveFileBtn.style.background = '';
-            }, 2000);
-        }
-
-        // 파일 로드 함수
-        function loadFile(fileName) {
-            const files = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            const file = files.find(f => f.name === fileName);
-
-            if (file) {
-                editor.value = file.content;
-                updatePreview();
-                fileNameInput.value = fileName;
-                editor.focus();
+                    // 성공 메시지
+                    const originalText = saveFileBtn.textContent;
+                    saveFileBtn.textContent = '✓ 저장됨';
+                    saveFileBtn.style.background = 'var(--success)';
+                    setTimeout(() => {
+                        saveFileBtn.textContent = originalText;
+                        saveFileBtn.style.background = '';
+                    }, 2000);
+                } else {
+                    alert(result.error || '파일 저장에 실패했습니다');
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                alert('파일 저장 중 오류가 발생했습니다');
             }
         }
 
-        // 파일 삭제 함수
-        function deleteFile(fileName) {
+        // 파일 로드 함수 (Server API 사용)
+        async function loadFile(fileName) {
+            try {
+                const response = await fetch(`/api/data/load?name=${encodeURIComponent(fileName)}`);
+                const result = await response.json();
+
+                if (response.ok && result.content) {
+                    editor.value = result.content;
+                    updatePreview();
+                    fileNameInput.value = fileName;
+                    editor.focus();
+                } else {
+                    alert(result.error || '파일을 찾을 수 없습니다');
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                alert('파일 로드 중 오류가 발생했습니다');
+            }
+        }
+
+        // 파일 삭제 함수 (Server API 사용)
+        async function deleteFile(fileName) {
             if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
                 return;
             }
 
-            let files = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            files = files.filter(f => f.name !== fileName);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
-            updateFileList();
+            try {
+                const response = await fetch(`/api/data/delete?name=${encodeURIComponent(fileName)}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    updateFileList();
+                } else {
+                    alert(result.error || '파일 삭제에 실패했습니다');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('파일 삭제 중 오류가 발생했습니다');
+            }
         }
 
-        // 파일 목록 업데이트 함수
-        function updateFileList() {
-            const files = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        // 파일 목록 업데이트 함수 (Server API 사용)
+        async function updateFileList() {
+            try {
+                const response = await fetch('/api/data/list');
+                const result = await response.json();
+                const files = result.files || [];
 
-            if (files.length === 0) {
-                fileList.innerHTML = '<div class="empty-message">저장된 파일이 없습니다.</div>';
-                return;
+                if (files.length === 0) {
+                    fileList.innerHTML = '<div class="empty-message">저장된 파일이 없습니다.</div>';
+                    return;
+                }
+
+                fileList.innerHTML = files.map(file => `
+                    <div class="file-item">
+                        <div class="file-info">
+                            <div class="file-name">📄 ${escapeHtml(file.name)}</div>
+                            <div class="file-date">${file.savedAt}</div>
+                        </div>
+                        <div class="file-actions">
+                            <button class="file-btn load-btn" onclick="loadFile('${file.name.replace(/'/g, "\\'")}')">열기</button>
+                            <button class="file-btn delete-btn" onclick="deleteFile('${file.name.replace(/'/g, "\\'")}')">삭제</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('List error:', error);
+                fileList.innerHTML = '<div class="empty-message">파일 목록을 불러올 수 없습니다.</div>';
             }
-
-            fileList.innerHTML = files.map(file => `
-                <div class="file-item">
-                    <div class="file-info">
-                        <div class="file-name">📄 ${escapeHtml(file.name)}</div>
-                        <div class="file-date">${file.savedAt}</div>
-                    </div>
-                    <div class="file-actions">
-                        <button class="file-btn load-btn" onclick="loadFile('${file.name.replace(/'/g, "\\'")}')">열기</button>
-                        <button class="file-btn delete-btn" onclick="deleteFile('${file.name.replace(/'/g, "\\'")}')">삭제</button>
-                    </div>
-                </div>
-            `).join('');
         }
 
         // 파일 관리 버튼 이벤트

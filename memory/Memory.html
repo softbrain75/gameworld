@@ -917,7 +917,7 @@
 
         function loadLyrics() {
             // memory.md 파일 로드 (로컬 서버 필요)
-            return fetch('./memory.md')
+            return fetch('./data/memory.md')
                 .then(response => response.text())
                 .then(mdText => {
                     // markdown에서 bold 단어와 일반 단어 분리
