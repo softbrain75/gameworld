@@ -1335,17 +1335,23 @@
                                 const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
 
                                 if (nextInput) {
-                                    // 입력 필드 선택 및 스크롤
+                                    // iOS Safari/Chrome에서 키보드를 올리기 위한 방법
+                                    // 1. 필드가 disabled가 아닌지 확인
+                                    if (nextInput.hasAttribute('disabled')) {
+                                        nextInput.removeAttribute('disabled');
+                                    }
+
+                                    // 2. 명시적으로 클릭하고 포커스
                                     nextInput.click();
                                     nextInput.focus();
-                                    nextInput.select();
 
-                                    // iOS에서 키보드가 올라오도록 강제 포커스
-                                    setTimeout(() => {
-                                        nextInput.focus();
-                                    }, 50);
+                                    // 3. 스크롤 확인
+                                    nextInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                                    // 4. 값을 설정했다가 해제하면서 커서 표시
+                                    nextInput.setSelectionRange(0, 0);
                                 }
-                            }, 100);
+                            }, 150);
                         }
                     } else {
                         // 오답
@@ -1392,15 +1398,21 @@
 
                         if (nextInput) {
                             console.log(`다음 입력필드로 이동:`, nextInput.dataset.order);
-                            // 입력 필드 선택 및 스크롤
+                            // iOS Safari/Chrome에서 키보드를 올리기 위한 방법
+                            // 1. 필드가 disabled가 아닌지 확인
+                            if (nextInput.hasAttribute('disabled')) {
+                                nextInput.removeAttribute('disabled');
+                            }
+
+                            // 2. 명시적으로 클릭하고 포커스
                             nextInput.click();
                             nextInput.focus();
-                            nextInput.select();
 
-                            // iOS에서 키보드가 올라오도록 강제 포커스
-                            setTimeout(() => {
-                                nextInput.focus();
-                            }, 50);
+                            // 3. 스크롤 확인
+                            nextInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                            // 4. 값을 설정했다가 해제하면서 커서 표시
+                            nextInput.setSelectionRange(0, 0);
                         } else {
                             console.log(`더 이상 입력필드가 없습니다`);
                         }
