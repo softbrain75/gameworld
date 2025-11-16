@@ -1341,10 +1341,14 @@
 
                                 // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
                                 setTimeout(() => {
-                                    nextInput.scrollIntoView({
-                                        behavior: 'smooth',
-                                        block: 'center',
-                                        inline: 'nearest'
+                                    // 입력 필드를 화면의 25% 위치에 배치
+                                    const rect = nextInput.getBoundingClientRect();
+                                    const targetPosition = window.innerHeight * 0.25;
+                                    const scrollAmount = rect.top - targetPosition;
+
+                                    window.scrollBy({
+                                        top: scrollAmount,
+                                        behavior: 'smooth'
                                     });
                                 }, 300);
                             }
@@ -1400,10 +1404,14 @@
 
                             // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
                             setTimeout(() => {
-                                nextInput.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center',
-                                    inline: 'nearest'
+                                // 입력 필드를 화면의 25% 위치에 배치
+                                const rect = nextInput.getBoundingClientRect();
+                                const targetPosition = window.innerHeight * 0.25;
+                                const scrollAmount = rect.top - targetPosition;
+
+                                window.scrollBy({
+                                    top: scrollAmount,
+                                    behavior: 'smooth'
                                 });
                             }, 300);
                         } else {
