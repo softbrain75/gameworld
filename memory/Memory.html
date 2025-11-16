@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>애국가 기억하기 - Memory Study Game</title>
@@ -434,12 +434,14 @@
             border: 2px solid var(--outline-variant);
             background: white;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 16px;
             width: 80px;
             transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
             font-weight: 600;
             text-align: center;
             color: var(--text-primary);
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .word-input:focus {
@@ -792,7 +794,7 @@
             .word-input {
                 width: 70px;
                 padding: 6px 8px;
-                font-size: 13px;
+                font-size: 16px;
                 border-radius: 6px;
             }
 
@@ -1357,6 +1359,17 @@
                         icon.className = 'feedback-icon incorrect';
                         icon.textContent = '✗';
                         input.parentElement.appendChild(icon);
+
+                        // 오답도 자동으로 다음 입력박스로 이동
+                        setTimeout(() => {
+                            const currentOrder = parseInt(input.dataset.order);
+                            const nextOrder = currentOrder + 1;
+                            const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
+
+                            if (nextInput) {
+                                nextInput.focus();
+                            }
+                        }, 100);
                     }
                 });
 
