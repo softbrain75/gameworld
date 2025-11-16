@@ -1702,17 +1702,16 @@
                             const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
 
                             if (nextInput && !nextInput.disabled) {
-                                // 디버깅: 다음 필드의 현재 값 확인
-                                console.log(`다음 필드 이동 전 값: "${nextInput.value}"`);
-
-                                // 다음 필드의 값을 비움 (이전 입력값이 들어오는 것을 방지)
+                                // 다음 필드의 값을 비움 (여러 방법으로 확실히 처리)
                                 nextInput.value = '';
+                                nextInput.setAttribute('value', '');
 
-                                // 디버깅: 값이 제대로 비워졌는지 확인
-                                console.log(`다음 필드 이동 후 값: "${nextInput.value}"`);
-
-                                // 즉시 포커스 (setTimeout 사용하지 않음)
-                                nextInput.focus();
+                                // 포커스 전에 값 초기화 (브라우저 자동완성 방지)
+                                requestAnimationFrame(() => {
+                                    nextInput.value = '';
+                                    nextInput.focus();
+                                    nextInput.select(); // 포커스 후 텍스트 선택하여 새로운 입력 준비
+                                });
 
                                 // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
                                 setTimeout(() => {
@@ -1752,6 +1751,13 @@
                     }
                 });
 
+                input.addEventListener('focus', (e) => {
+                    // 포커스될 때 값을 비워서 자동완성 방지
+                    if (e.target.value) {
+                        e.target.value = '';
+                    }
+                });
+
                 input.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         input.blur();
@@ -1773,16 +1779,16 @@
                         const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
 
                         if (nextInput && !nextInput.disabled) {
-                            console.log(`다음 입력필드로 이동:`, nextInput.dataset.order);
-                            console.log(`이동 전 값: "${nextInput.value}"`);
-
-                            // 다음 필드의 값을 비움 (이전 입력값이 들어오는 것을 방지)
+                            // 다음 필드의 값을 비움 (여러 방법으로 확실히 처리)
                             nextInput.value = '';
+                            nextInput.setAttribute('value', '');
 
-                            console.log(`이동 후 값: "${nextInput.value}"`);
-
-                            // 즉시 포커스
-                            nextInput.focus();
+                            // 포커스 전에 값 초기화 (브라우저 자동완성 방지)
+                            requestAnimationFrame(() => {
+                                nextInput.value = '';
+                                nextInput.focus();
+                                nextInput.select(); // 포커스 후 텍스트 선택하여 새로운 입력 준비
+                            });
 
                             // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
                             setTimeout(() => {
