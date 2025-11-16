@@ -839,6 +839,64 @@
             gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+
+        /* 원본 문서 표시 영역 */
+        .original-text-section {
+            width: 100%;
+            margin-top: 24px;
+        }
+
+        .original-text-content {
+            background: var(--surface-container);
+            border: 1px solid var(--outline-variant);
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            text-align: left;
+            line-height: 1.8;
+            font-size: 15px;
+            color: var(--text-primary);
+            word-break: keep-all;
+        }
+
+        .original-text-content .word-item {
+            display: inline;
+            margin-right: 4px;
+        }
+
+        .original-text-content .word-item.wrong {
+            color: var(--error);
+            font-weight: 700;
+            text-decoration: underline;
+            text-decoration-color: var(--error);
+            text-decoration-thickness: 2px;
+        }
+
+        .original-text-content .word-item.correct {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* 스크롤바 스타일 */
+        .original-text-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .original-text-content::-webkit-scrollbar-track {
+            background: var(--surface-dim);
+            border-radius: 4px;
+        }
+
+        .original-text-content::-webkit-scrollbar-thumb {
+            background: var(--outline-variant);
+            border-radius: 4px;
+        }
+
+        .original-text-content::-webkit-scrollbar-thumb:hover {
+            background: var(--outline);
         }
 
         .btn-base {
@@ -980,6 +1038,12 @@
             .menu-btn {
                 width: 100%;
                 min-width: auto;
+            }
+
+            .original-text-content {
+                padding: 16px;
+                font-size: 14px;
+                max-height: 300px;
             }
         }
 
@@ -1273,8 +1337,6 @@
             <!-- Game Over Screen -->
             <div class="gameover-screen">
                 <div class="gameover-content">
-                    <div class="celebration">🎉</div>
-                    <div class="gameover-title">축하합니다!</div>
                     <div class="final-score" id="final-score">0점</div>
 
                     <div class="stats">
@@ -1300,6 +1362,12 @@
                         <button class="retry-btn btn-base btn-primary">다시 하기</button>
                         <button class="wrong-retry-btn btn-base btn-secondary" id="wrong-retry-btn" style="display: none;">틀린 것만 다시</button>
                         <button class="menu-btn btn-base btn-tertiary">메뉴로</button>
+                    </div>
+
+                    <!-- 원본 문서 표시 -->
+                    <div class="original-text-section">
+                        <div class="section-title">📝 원본 문서</div>
+                        <div class="original-text-content" id="original-text-display"></div>
                     </div>
                 </div>
             </div>
@@ -2092,7 +2160,34 @@
                 wrongRetryBtn.style.display = 'none';
             }
 
+            // 원본 문서 표시
+            displayOriginalText();
+
             showScreen('gameover-screen');
+        }
+
+        function displayOriginalText() {
+            const displayEl = document.getElementById('original-text-display');
+            displayEl.innerHTML = '';
+
+            lyrics.forEach((word, index) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'word-item';
+                wordSpan.textContent = word;
+
+                // blanks에 포함된 단어인지 확인
+                if (blanks.includes(index)) {
+                    // 틀린 단어인지 확인
+                    if (wrongAnswers.includes(index)) {
+                        wordSpan.classList.add('wrong');
+                    } else {
+                        wordSpan.classList.add('correct');
+                    }
+                }
+
+                displayEl.appendChild(wordSpan);
+                displayEl.appendChild(document.createTextNode(' '));
+            });
         }
 
         function goToMenu() {
