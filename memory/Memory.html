@@ -1329,29 +1329,21 @@
                             setTimeout(() => endGame(), 500);
                         } else {
                             // 다음 입력박스로 자동 포커스 이동 (순서대로)
-                            setTimeout(() => {
-                                const currentOrder = parseInt(input.dataset.order);
-                                const nextOrder = currentOrder + 1;
-                                const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
+                            // iOS에서 키보드를 올리려면 사용자 이벤트 컨텍스트 내에서 즉시 실행해야 함
+                            const currentOrder = parseInt(input.dataset.order);
+                            const nextOrder = currentOrder + 1;
+                            const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
 
-                                if (nextInput) {
-                                    // iOS Safari/Chrome에서 키보드를 올리기 위한 방법
-                                    // 1. 필드가 disabled가 아닌지 확인
-                                    if (nextInput.hasAttribute('disabled')) {
-                                        nextInput.removeAttribute('disabled');
-                                    }
+                            if (nextInput && !nextInput.disabled) {
+                                // 즉시 포커스 (setTimeout 사용하지 않음)
+                                nextInput.focus();
+                                nextInput.click();
 
-                                    // 2. 명시적으로 클릭하고 포커스
-                                    nextInput.click();
-                                    nextInput.focus();
-
-                                    // 3. 스크롤 확인
+                                // 스크롤
+                                requestAnimationFrame(() => {
                                     nextInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                                    // 4. 값을 설정했다가 해제하면서 커서 표시
-                                    nextInput.setSelectionRange(0, 0);
-                                }
-                            }, 150);
+                                });
+                            }
                         }
                     } else {
                         // 오답
