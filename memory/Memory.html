@@ -247,6 +247,141 @@
             color: var(--text-tertiary);
         }
 
+        /* Custom Material Design 3 Dropdown Menu */
+        .custom-select {
+            position: relative;
+            width: 100%;
+        }
+
+        .custom-select-trigger {
+            flex: 1;
+            padding: 16px 44px 16px 16px;
+            border: 2px solid var(--outline-variant);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Noto Sans KR', sans-serif;
+            color: var(--text-primary);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            display: flex;
+            align-items: center;
+            min-height: 56px;
+        }
+
+        .custom-select-trigger:hover {
+            border-color: var(--primary);
+            background: rgba(31, 27, 40, 0.08);
+        }
+
+        .custom-select.open .custom-select-trigger {
+            border-color: var(--primary);
+            border-width: 3px;
+            padding: 15px 43px 15px 15px;
+            box-shadow: 0 0 0 4px rgba(103, 80, 164, 0.1);
+        }
+
+        .custom-select-value {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .custom-select-value.placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .custom-select-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-height: 280px;
+            overflow-y: auto;
+            z-index: 1000;
+            opacity: 0;
+            transform: scaleY(0.8);
+            transform-origin: top;
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            padding: 8px 0;
+        }
+
+        .custom-select.open .custom-select-menu {
+            opacity: 1;
+            transform: scaleY(1);
+            pointer-events: all;
+        }
+
+        .custom-select-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            min-height: 48px;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-primary);
+            transition: background 0.2s cubic-bezier(0.2, 0, 0, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .custom-select-option:hover {
+            background: rgba(31, 27, 40, 0.08);
+        }
+
+        .custom-select-option.selected {
+            background: rgba(103, 80, 164, 0.08);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .custom-select-option.selected::before {
+            content: 'check';
+            font-family: 'Material Icons';
+            font-size: 20px;
+            margin-right: 12px;
+            color: var(--primary);
+        }
+
+        /* Ripple effect */
+        .custom-select-option::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(31, 27, 40, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .custom-select-option:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .custom-select-menu::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-select-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-select-menu::-webkit-scrollbar-thumb {
+            background: var(--outline-variant);
+            border-radius: 4px;
+        }
+
+        .custom-select-menu::-webkit-scrollbar-thumb:hover {
+            background: var(--outline);
+        }
+
         .mode-selection {
             margin-bottom: 32px;
         }
@@ -995,11 +1130,14 @@
                     <div class="data-selection" id="data-section">
                         <div class="data-selector">
                             <div class="data-select-wrapper">
-                                <select id="data-select" class="data-select-dropdown">
-                                    <option value="" disabled selected hidden></option>
-                                </select>
-                                <label class="data-select-label" for="data-select">학습할 파일을 선택하세요</label>
-                                <span class="data-select-icon material-icons">expand_more</span>
+                                <div id="data-select" class="custom-select" tabindex="0">
+                                    <div class="custom-select-trigger">
+                                        <span class="custom-select-value placeholder">학습할 파일을 선택하세요</span>
+                                        <span class="data-select-icon material-icons">expand_more</span>
+                                    </div>
+                                    <label class="data-select-label">학습할 파일을 선택하세요</label>
+                                    <div class="custom-select-menu"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="data-info" id="data-info" style="margin-top: 8px; padding: 12px; background: var(--surface-dim); border-radius: 8px; font-size: 13px; color: var(--text-secondary); display: none;">
@@ -1175,13 +1313,12 @@
                     }
                 }
 
-                const selectDropdown = document.getElementById('data-select');
+                const customSelect = document.getElementById('data-select');
+                const menuEl = customSelect.querySelector('.custom-select-menu');
                 const dataInfo = document.getElementById('data-info');
 
-                // 기존 옵션 제거 (첫 번째 옵션 제외)
-                while (selectDropdown.options.length > 1) {
-                    selectDropdown.remove(1);
-                }
+                // 기존 메뉴 아이템 제거
+                menuEl.innerHTML = '';
 
                 if (files.length === 0) {
                     dataInfo.style.display = 'block';
@@ -1191,19 +1328,24 @@
 
                 dataInfo.style.display = 'none';
 
-                // 파일 목록을 옵션으로 추가
-                files.forEach(file => {
-                    const option = document.createElement('option');
-                    option.value = file.name;
-                    option.textContent = `📄 ${file.title || file.name}`;
-                    selectDropdown.appendChild(option);
+                // 파일 목록을 메뉴 아이템으로 추가
+                files.forEach((file, index) => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'custom-select-option';
+                    optionEl.dataset.value = file.name;
+                    optionEl.textContent = `📄 ${file.title || file.name}`;
+
+                    optionEl.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        await selectCustomOption(file.name, `📄 ${file.title || file.name}`);
+                    });
+
+                    menuEl.appendChild(optionEl);
                 });
 
                 // 첫 번째 파일을 기본값으로 선택
                 if (files.length > 0) {
-                    selectDropdown.value = files[0].name;
-                    selectDropdown.classList.add('has-value');
-                    await loadLyricsFromData(files[0].name);
+                    await selectCustomOption(files[0].name, `📄 ${files[0].title || files[0].name}`);
                 }
             } catch (error) {
                 console.error('Data file list load error:', error);
@@ -1350,16 +1492,112 @@
                 });
         }
 
-        function setupEventListeners() {
-            // 데이터 파일 선택 드롭다운
-            const dataSelect = document.getElementById('data-select');
+        // Custom dropdown state
+        let selectedFile = null;
+        let customSelectOpen = false;
 
-            dataSelect.addEventListener('change', async (e) => {
-                if (e.target.value) {
-                    e.target.classList.add('has-value');
-                    await loadLyricsFromData(e.target.value);
-                } else {
-                    e.target.classList.remove('has-value');
+        // Custom dropdown functions
+        function toggleCustomSelect() {
+            const customSelect = document.getElementById('data-select');
+            customSelectOpen = !customSelectOpen;
+
+            if (customSelectOpen) {
+                customSelect.classList.add('open');
+            } else {
+                customSelect.classList.remove('open');
+            }
+        }
+
+        function closeCustomSelect() {
+            const customSelect = document.getElementById('data-select');
+            customSelect.classList.remove('open');
+            customSelectOpen = false;
+        }
+
+        async function selectCustomOption(fileName, fileTitle) {
+            selectedFile = fileName;
+
+            // Update UI
+            const valueEl = document.querySelector('.custom-select-value');
+            const label = document.querySelector('.data-select-label');
+            const customSelect = document.getElementById('data-select');
+
+            valueEl.textContent = fileTitle;
+            valueEl.classList.remove('placeholder');
+            customSelect.classList.add('has-value');
+
+            // Update selected state in menu
+            document.querySelectorAll('.custom-select-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector(`[data-value="${fileName}"]`)?.classList.add('selected');
+
+            // Close menu
+            closeCustomSelect();
+
+            // Load data
+            await loadLyricsFromData(fileName);
+        }
+
+        function setupEventListeners() {
+            // Custom dropdown trigger
+            const customSelect = document.getElementById('data-select');
+            const trigger = customSelect.querySelector('.custom-select-trigger');
+
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleCustomSelect();
+            });
+
+            // Close on outside click
+            document.addEventListener('click', (e) => {
+                if (customSelectOpen && !customSelect.contains(e.target)) {
+                    closeCustomSelect();
+                }
+            });
+
+            // Keyboard navigation
+            customSelect.addEventListener('keydown', (e) => {
+                const options = Array.from(customSelect.querySelectorAll('.custom-select-option'));
+
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (!customSelectOpen) {
+                        toggleCustomSelect();
+                    } else {
+                        // Select first option if none selected
+                        const selected = options.find(opt => opt.classList.contains('selected'));
+                        if (selected) {
+                            selected.click();
+                        } else if (options.length > 0) {
+                            options[0].click();
+                        }
+                    }
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeCustomSelect();
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (!customSelectOpen) {
+                        toggleCustomSelect();
+                    } else {
+                        const currentIndex = options.findIndex(opt => opt.classList.contains('selected'));
+                        const nextIndex = currentIndex < options.length - 1 ? currentIndex + 1 : 0;
+                        if (options[nextIndex]) {
+                            options[nextIndex].click();
+                        }
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (!customSelectOpen) {
+                        toggleCustomSelect();
+                    } else {
+                        const currentIndex = options.findIndex(opt => opt.classList.contains('selected'));
+                        const prevIndex = currentIndex > 0 ? currentIndex - 1 : options.length - 1;
+                        if (options[prevIndex]) {
+                            options[prevIndex].click();
+                        }
+                    }
                 }
             });
 
