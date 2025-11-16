@@ -139,6 +139,62 @@
             margin-bottom: 8px;
         }
 
+        .data-selection {
+            margin-bottom: 32px;
+        }
+
+        .data-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .data-select-dropdown {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--outline-variant);
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Noto Sans KR', sans-serif;
+            color: var(--text-primary);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .data-select-dropdown:hover {
+            border-color: var(--primary);
+        }
+
+        .data-select-dropdown:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(103, 80, 164, 0.1);
+        }
+
+        .refresh-btn {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: 0 2px 8px rgba(103, 80, 164, 0.2);
+        }
+
+        .refresh-btn:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(103, 80, 164, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(0);
+        }
+
         .mode-selection {
             margin-bottom: 32px;
         }
@@ -785,6 +841,19 @@
                         </ol>
                     </div>
 
+                    <div class="data-selection" id="data-section">
+                        <div class="section-title">📚 학습 데이터 선택</div>
+                        <div class="data-selector">
+                            <select id="data-select" class="data-select-dropdown">
+                                <option value="">데이터를 선택하세요...</option>
+                            </select>
+                            <button class="refresh-btn" id="refresh-data-btn">새로고침</button>
+                        </div>
+                        <div class="data-info" id="data-info" style="margin-top: 8px; padding: 12px; background: var(--surface-dim); border-radius: 8px; font-size: 13px; color: var(--text-secondary); display: none;">
+                            선택된 파일이 없습니다. markdown_editor.html에서 파일을 만들어주세요.
+                        </div>
+                    </div>
+
                     <div class="mode-selection">
                         <div class="section-title">게임 모드 선택</div>
                         <div class="mode-buttons">
@@ -906,13 +975,124 @@
         async function init() {
             setVh();
             window.addEventListener('resize', setVh);
-            await loadLyrics();
+            await loadDataFileList();
             setupEventListeners();
         }
 
         function setVh() {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', vh + 'px');
+        }
+
+        // 데이터 파일 목록 로드
+        async function loadDataFileList() {
+            try {
+                const response = await fetch('/api/data/list');
+                const result = await response.json();
+                const files = result.files || [];
+
+                const selectDropdown = document.getElementById('data-select');
+                const dataInfo = document.getElementById('data-info');
+
+                // 기존 옵션 제거 (첫 번째 옵션 제외)
+                while (selectDropdown.options.length > 1) {
+                    selectDropdown.remove(1);
+                }
+
+                if (files.length === 0) {
+                    dataInfo.style.display = 'block';
+                    dataInfo.textContent = '선택된 파일이 없습니다. markdown_editor.html에서 파일을 만들어주세요.';
+                    return;
+                }
+
+                dataInfo.style.display = 'none';
+
+                // 파일 목록을 옵션으로 추가
+                files.forEach(file => {
+                    const option = document.createElement('option');
+                    option.value = file.name;
+                    option.textContent = `📄 ${file.name}`;
+                    selectDropdown.appendChild(option);
+                });
+
+                // 첫 번째 파일을 기본값으로 선택
+                if (files.length > 0) {
+                    selectDropdown.value = files[0].name;
+                    await loadLyricsFromData(files[0].name);
+                }
+            } catch (error) {
+                console.error('Data file list load error:', error);
+                const dataInfo = document.getElementById('data-info');
+                dataInfo.style.display = 'block';
+                dataInfo.textContent = '파일 목록을 불러올 수 없습니다.';
+            }
+        }
+
+        // 선택한 데이터 파일로부터 가사 로드
+        async function loadLyricsFromData(fileName) {
+            try {
+                const response = await fetch(`/api/data/load?name=${encodeURIComponent(fileName)}`);
+                const result = await response.json();
+
+                if (!response.ok || !result.content) {
+                    alert('파일을 불러올 수 없습니다');
+                    return false;
+                }
+
+                return parseLyrics(result.content);
+            } catch (error) {
+                console.error('Load lyrics error:', error);
+                alert('파일 로드 중 오류가 발생했습니다');
+                return false;
+            }
+        }
+
+        // 마크다운 텍스트를 파싱하여 lyrics 배열과 boldWords 배열에 저장
+        function parseLyrics(mdText) {
+            const lines = mdText.split('\n');
+            let fullText = '';
+            boldWords = [];
+            let wordIndex = 0;
+
+            lines.forEach(line => {
+                // 제목과 빈 줄 제외
+                if (line.startsWith('#') || line.trim() === '') return;
+
+                // **bold** 패턴 찾기
+                let remaining = line;
+                while (remaining.length > 0) {
+                    const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+
+                    if (boldMatch) {
+                        // bold 단어를 찾음
+                        const word = boldMatch[1].trim();
+                        if (word) {
+                            fullText += word + ' ';
+                            boldWords.push(wordIndex);
+                            wordIndex++;
+                        }
+                        remaining = remaining.substring(boldMatch[0].length);
+                    } else {
+                        // bold가 아닌 부분 찾기
+                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                        if (nonBoldMatch && nonBoldMatch[1].trim()) {
+                            const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
+                            words.forEach(word => {
+                                fullText += word + ' ';
+                                wordIndex++;
+                            });
+                        }
+                        remaining = remaining.substring(nonBoldMatch ? nonBoldMatch[0].length : 1);
+                    }
+                }
+            });
+
+            lyrics = fullText.split(/[\s\n]+/).filter(word => word.length > 0);
+            console.log('Bold 단어 인덱스:', boldWords);
+            console.log('전체 단어 수:', lyrics.length);
+            console.log('파싱된 가사:', lyrics);
+            console.log('Bold 단어들:', boldWords.map(idx => lyrics[idx]));
+            return true;
         }
 
         function loadLyrics() {
@@ -972,6 +1152,19 @@
         }
 
         function setupEventListeners() {
+            // 데이터 파일 선택 드롭다운
+            document.getElementById('data-select').addEventListener('change', async (e) => {
+                if (e.target.value) {
+                    await loadLyricsFromData(e.target.value);
+                }
+            });
+
+            // 새로고침 버튼
+            document.getElementById('refresh-data-btn').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await loadDataFileList();
+            });
+
             // Mode buttons
             document.querySelectorAll('.mode-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
