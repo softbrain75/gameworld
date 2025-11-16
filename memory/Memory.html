@@ -385,12 +385,54 @@
             margin-bottom: 32px;
         }
 
+        .section-title-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
         .section-title {
             color: var(--text-primary);
-            margin-bottom: 16px;
             font-size: 16px;
             font-weight: 600;
             text-align: left;
+        }
+
+        /* Material Design 3 Icon Button */
+        .edit-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 20px;
+            background: var(--secondary-container);
+            color: var(--on-secondary-container);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-button .material-icons {
+            font-size: 20px;
+        }
+
+        .edit-button:hover {
+            background: var(--secondary-container);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transform: scale(1.05);
+        }
+
+        .edit-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(103, 80, 164, 0.2);
         }
 
         .mode-buttons {
@@ -1019,7 +1061,20 @@
 
             .section-title {
                 font-size: 14px;
+            }
+
+            .section-title-container {
                 margin-bottom: 12px;
+            }
+
+            .edit-button {
+                width: 36px;
+                height: 36px;
+                border-radius: 18px;
+            }
+
+            .edit-button .material-icons {
+                font-size: 18px;
             }
 
             .info-card {
@@ -1127,7 +1182,12 @@
             <div class="menu-screen active">
                 <div class="menu-content">
                     <div class="data-selection" id="data-section">
-                        <div class="section-title">📚 학습 데이터 선택</div>
+                        <div class="section-title-container">
+                            <div class="section-title">📚 학습 데이터 선택</div>
+                            <button class="edit-button" id="edit-data-button" title="학습 데이터 편집">
+                                <span class="material-icons">edit</span>
+                            </button>
+                        </div>
                         <div class="data-selector">
                             <div class="data-select-wrapper">
                                 <div id="data-select" class="custom-select" tabindex="0">
@@ -1537,6 +1597,13 @@
         }
 
         function setupEventListeners() {
+            // Edit button
+            const editButton = document.getElementById('edit-data-button');
+            editButton.addEventListener('click', () => {
+                // markdown_editor.html로 이동
+                window.location.href = './markdown_editor.html';
+            });
+
             // Custom dropdown trigger
             const customSelect = document.getElementById('data-select');
             const trigger = customSelect.querySelector('.custom-select-trigger');
