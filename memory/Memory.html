@@ -381,7 +381,7 @@
             font-weight: 700;
         }
 
-        .lyric-display {
+        .test-display {
             background: var(--surface-dim);
             border: 1px solid var(--outline-variant);
             border-radius: 16px;
@@ -664,7 +664,7 @@
                 font-size: 16px;
             }
 
-            .lyric-display {
+            .test-display {
                 padding: 24px 16px;
                 min-height: 160px;
                 font-size: 15px;
@@ -758,7 +758,7 @@
                 font-size: 20px;
             }
 
-            .lyric-display {
+            .test-display {
                 padding: 20px 12px;
                 min-height: 140px;
                 font-size: 14px;
@@ -917,7 +917,7 @@
                     <span id="hint-text"></span>
                 </div>
 
-                <div class="lyric-display" id="lyric-display"></div>
+                <div class="test-display" id="test-display"></div>
             </div>
 
             <!-- Game Over Screen -->
@@ -1393,8 +1393,8 @@
         }
 
         function updateUI() {
-            // Update lyric display
-            const display = document.getElementById('lyric-display');
+            // Update test display
+            const display = document.getElementById('test-display');
             display.innerHTML = '';
 
             let blankOrder = 0; // 입력박스 순서 추적
