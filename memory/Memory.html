@@ -1753,9 +1753,36 @@
 
                 input.addEventListener('focus', (e) => {
                     // 포커스될 때 값을 비워서 자동완성 방지
+                    console.log(`Focus 이벤트 - 현재 값: "${e.target.value}"`);
                     if (e.target.value) {
+                        console.log(`값을 비웁니다`);
                         e.target.value = '';
                     }
+
+                    // 약간의 딜레이 후에도 다시 확인
+                    setTimeout(() => {
+                        console.log(`Focus 후 0ms - 값: "${e.target.value}"`);
+                        if (e.target.value) {
+                            console.log(`0ms 후에도 값이 있어서 다시 비웁니다`);
+                            e.target.value = '';
+                        }
+                    }, 0);
+
+                    setTimeout(() => {
+                        console.log(`Focus 후 50ms - 값: "${e.target.value}"`);
+                        if (e.target.value) {
+                            console.log(`50ms 후에도 값이 있어서 다시 비웁니다`);
+                            e.target.value = '';
+                        }
+                    }, 50);
+
+                    setTimeout(() => {
+                        console.log(`Focus 후 100ms - 값: "${e.target.value}"`);
+                        if (e.target.value) {
+                            console.log(`100ms 후에도 값이 있어서 다시 비웁니다`);
+                            e.target.value = '';
+                        }
+                    }, 100);
                 });
 
                 input.addEventListener('keypress', (e) => {
