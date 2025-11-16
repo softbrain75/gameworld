@@ -1341,9 +1341,10 @@
 
                                 // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
                                 setTimeout(() => {
-                                    // 입력 필드를 화면의 25% 위치에 배치
+                                    // visualViewport를 사용하여 키보드를 제외한 실제 보이는 영역의 중간에 배치
+                                    const usableHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                                    const targetPosition = usableHeight / 2;
                                     const rect = nextInput.getBoundingClientRect();
-                                    const targetPosition = window.innerHeight * 0.25;
                                     const scrollAmount = rect.top - targetPosition;
 
                                     window.scrollBy({
@@ -1404,9 +1405,10 @@
 
                             // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
                             setTimeout(() => {
-                                // 입력 필드를 화면의 25% 위치에 배치
+                                // visualViewport를 사용하여 키보드를 제외한 실제 보이는 영역의 중간에 배치
+                                const usableHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                                const targetPosition = usableHeight / 2;
                                 const rect = nextInput.getBoundingClientRect();
-                                const targetPosition = window.innerHeight * 0.25;
                                 const scrollAmount = rect.top - targetPosition;
 
                                 window.scrollBy({
