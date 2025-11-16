@@ -1,0 +1,21 @@
+{
+  "name": "gameworld",
+  "version": "1.0.0",
+  "description": "56 Korean mobile games and learning tools",
+  "main": "index.html",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "echo 'Static site - no build needed'"
+  },
+  "keywords": [
+    "games",
+    "html5",
+    "canvas",
+    "mobile",
+    "korean"
+  ],
+  "author": "softbrain75",
+  "license": "MIT",
+  "devDependencies": {}
+}
