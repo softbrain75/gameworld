@@ -634,13 +634,11 @@
 
                     <div class="hint">
                         <span class="hint-icon">💡</span>
-                        범위를 선택하고 Ctrl+B (또는 Cmd+B)를 눌러 <strong>bold</strong> 처리하세요
+                        범위를 선택하고 Ctrl+B (또는 Cmd+B)를 눌러 <strong>TTV 표시</strong>를 하세요
                     </div>
 
                     <div class="editor-toolbar">
-                        <button class="toolbar-btn secondary" id="clear-btn">초기화</button>
-                        <button class="toolbar-btn" id="bold-btn">글꼴 굵게</button>
-                        <button class="toolbar-btn copy" id="copy-btn">복사</button>
+                        <button class="toolbar-btn" id="bold-btn">TTV 표시</button>
                     </div>
 
                     <div class="editor-area">
@@ -676,9 +674,7 @@
         const editor = document.getElementById('editor');
         const charCount = document.getElementById('char-count');
         const boldCount = document.getElementById('bold-count');
-        const clearBtn = document.getElementById('clear-btn');
         const boldBtn = document.getElementById('bold-btn');
-        const copyBtn = document.getElementById('copy-btn');
         const fileNameInput = document.getElementById('file-name-input');
         const saveBtn = document.getElementById('save-btn');
         const fileList = document.getElementById('file-list');
@@ -779,36 +775,7 @@
         }
 
         // Button events
-        clearBtn.addEventListener('click', () => {
-            if (editor.value && confirm('모든 텍스트를 삭제하시겠습니까?')) {
-                editor.value = '';
-                updatePreview();
-                editor.focus();
-            }
-        });
-
         boldBtn.addEventListener('click', makeBold);
-
-        copyBtn.addEventListener('click', () => {
-            const text = editor.value;
-            if (!text) {
-                alert('복사할 텍스트가 없습니다');
-                return;
-            }
-
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = copyBtn.textContent;
-                copyBtn.textContent = '✓ 복사됨';
-                copyBtn.style.background = 'var(--success)';
-
-                setTimeout(() => {
-                    copyBtn.textContent = originalText;
-                    copyBtn.style.background = '';
-                }, 2000);
-            }).catch(() => {
-                alert('복사 실패. 수동으로 복사해주세요');
-            });
-        });
 
         // File operations
         async function saveFile() {
