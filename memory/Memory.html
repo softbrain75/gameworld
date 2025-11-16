@@ -7,6 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>애국가 기억하기 - Memory Study Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -213,8 +214,23 @@
             transform: translateY(-50%);
             pointer-events: none;
             transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-            font-size: 20px;
+            font-family: 'Material Icons';
+            font-size: 24px;
             color: var(--text-secondary);
+            /* Material Icons 최적화 */
+            font-weight: normal;
+            font-style: normal;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            font-feature-settings: 'liga';
         }
 
         .data-select-dropdown:focus ~ .data-select-icon {
@@ -739,7 +755,7 @@
             }
 
             .data-select-icon {
-                font-size: 18px;
+                font-size: 22px;
                 right: 10px;
             }
 
@@ -834,7 +850,7 @@
             }
 
             .data-select-icon {
-                font-size: 16px;
+                font-size: 20px;
             }
 
             .instructions {
@@ -983,7 +999,7 @@
                                     <option value="" disabled selected hidden></option>
                                 </select>
                                 <label class="data-select-label" for="data-select">학습할 파일을 선택하세요</label>
-                                <span class="data-select-icon">▼</span>
+                                <span class="data-select-icon material-icons">expand_more</span>
                             </div>
                         </div>
                         <div class="data-info" id="data-info" style="margin-top: 8px; padding: 12px; background: var(--surface-dim); border-radius: 8px; font-size: 13px; color: var(--text-secondary); display: none;">
