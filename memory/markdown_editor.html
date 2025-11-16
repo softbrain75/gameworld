@@ -509,20 +509,43 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 학습 데이터 관리</h1>
-            <p>Ctrl+B를 눌러 **bold** 마크다운을 작성하고 data 폴더에 저장하세요</p>
+            <h1>📚 학습 데이터 관리 (CRUD)</h1>
+            <p>Create, Read, Update, Delete - 마크다운 파일을 완벽하게 관리하세요</p>
         </div>
 
-        <!-- 파일 관리 섹션 -->
+        <!-- 현재 파일 상태 표시 -->
+        <div class="current-file-status" id="current-file-status" style="display: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--primary-light); border-radius: 12px; margin-bottom: 16px;">
+                <div>
+                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">현재 편집 중</span>
+                    <div style="font-size: 15px; font-weight: 700; color: var(--primary); margin-top: 2px;">
+                        📄 <span id="current-file-name">-</span>
+                    </div>
+                </div>
+                <button class="toolbar-btn secondary" id="new-file-btn" style="margin: 0; font-size: 11px; padding: 6px 12px;">
+                    ➕ 새 파일
+                </button>
+            </div>
+        </div>
+
+        <!-- 파일 관리 섹션 (CRUD) -->
         <div class="file-manager">
             <div class="file-manager-title">
                 <span>💾</span>
-                파일 관리
+                파일 관리 (CRUD)
             </div>
 
             <div class="file-name-input">
                 <input type="text" id="file-name-input" placeholder="파일 이름 입력 (확장자 제외)..." />
-                <button class="save-btn" id="save-file-btn">저장</button>
+                <button class="save-btn" id="create-btn" title="Create - 새 파일 생성">
+                    ➕ 생성
+                </button>
+                <button class="save-btn" id="update-btn" style="display: none; background: #1890ff;" title="Update - 기존 파일 수정">
+                    💾 업데이트
+                </button>
+                <button class="toolbar-btn secondary" id="rename-btn" style="display: none; margin: 0; font-size: 12px;" title="파일 이름 변경">
+                    ✏️ 이름변경
+                </button>
             </div>
 
             <div class="file-list" id="file-list">
@@ -598,8 +621,16 @@
         const boldBtn = document.getElementById('bold-btn');
         const copyBtn = document.getElementById('copy-btn');
         const fileNameInput = document.getElementById('file-name-input');
-        const saveFileBtn = document.getElementById('save-file-btn');
+        const createBtn = document.getElementById('create-btn');
+        const updateBtn = document.getElementById('update-btn');
+        const renameBtn = document.getElementById('rename-btn');
+        const newFileBtn = document.getElementById('new-file-btn');
         const fileList = document.getElementById('file-list');
+        const currentFileStatus = document.getElementById('current-file-status');
+        const currentFileNameDisplay = document.getElementById('current-file-name');
+
+        // 현재 편집 중인 파일명 (CRUD 상태 관리)
+        let currentFileName = null;
 
         // Viewport height fix
         function setVh() {
@@ -721,8 +752,37 @@
             });
         });
 
-        // 파일 저장 함수 (Server API 사용)
-        async function saveFile() {
+        // 모드 전환 함수
+        function switchToCreateMode() {
+            currentFileName = null;
+            fileNameInput.value = '';
+            editor.value = '';
+            updatePreview();
+
+            createBtn.style.display = 'inline-block';
+            updateBtn.style.display = 'none';
+            renameBtn.style.display = 'none';
+            currentFileStatus.style.display = 'none';
+
+            fileNameInput.placeholder = '새 파일 이름 입력...';
+            fileNameInput.focus();
+        }
+
+        function switchToUpdateMode(fileName) {
+            currentFileName = fileName;
+            fileNameInput.value = fileName;
+
+            createBtn.style.display = 'none';
+            updateBtn.style.display = 'inline-block';
+            renameBtn.style.display = 'inline-block';
+            currentFileStatus.style.display = 'block';
+            currentFileNameDisplay.textContent = fileName;
+
+            fileNameInput.placeholder = '파일 이름 수정...';
+        }
+
+        // CREATE - 새 파일 생성
+        async function createFile() {
             const fileName = fileNameInput.value.trim();
             const content = editor.value.trim();
 
@@ -738,6 +798,14 @@
             }
 
             try {
+                // 이미 존재하는 파일인지 확인
+                const existingContent = localStorage.getItem(`markdown_${fileName}`);
+                if (existingContent) {
+                    if (!confirm(`"${fileName}" 파일이 이미 존재합니다. 덮어쓰시겠습니까?`)) {
+                        return;
+                    }
+                }
+
                 // localStorage에 저장
                 localStorage.setItem(`markdown_${fileName}`, content);
 
@@ -747,30 +815,127 @@
                     files.push({
                         name: fileName,
                         title: fileName,
-                        description: '사용자 생성 파일'
+                        description: '사용자 생성 파일 - ' + new Date().toLocaleString('ko-KR')
                     });
                     localStorage.setItem('markdown_files', JSON.stringify(files));
                 }
 
-                // UI 업데이트
-                fileNameInput.value = '';
+                // Update 모드로 전환
+                switchToUpdateMode(fileName);
                 updateFileList();
 
                 // 성공 메시지
-                const originalText = saveFileBtn.textContent;
-                saveFileBtn.textContent = '✓ 저장됨';
-                saveFileBtn.style.background = 'var(--success)';
-                setTimeout(() => {
-                    saveFileBtn.textContent = originalText;
-                    saveFileBtn.style.background = '';
-                }, 2000);
+                showSuccessMessage(createBtn, '✓ 생성됨');
             } catch (error) {
-                console.error('Save error:', error);
-                alert('파일 저장 중 오류가 발생했습니다');
+                console.error('Create error:', error);
+                alert('파일 생성 중 오류가 발생했습니다');
             }
         }
 
-        // 파일 로드 함수 (localStorage/파일 모두 지원)
+        // UPDATE - 기존 파일 업데이트
+        async function updateFile() {
+            if (!currentFileName) {
+                alert('편집 중인 파일이 없습니다');
+                return;
+            }
+
+            const content = editor.value.trim();
+            if (!content) {
+                alert('저장할 내용이 없습니다');
+                return;
+            }
+
+            try {
+                // localStorage에 업데이트
+                localStorage.setItem(`markdown_${currentFileName}`, content);
+
+                // 파일 목록의 설명 업데이트 (수정 시간)
+                let files = JSON.parse(localStorage.getItem('markdown_files') || '[]');
+                const fileIndex = files.findIndex(f => f.name === currentFileName);
+                if (fileIndex !== -1) {
+                    files[fileIndex].description = '마지막 수정 - ' + new Date().toLocaleString('ko-KR');
+                    localStorage.setItem('markdown_files', JSON.stringify(files));
+                }
+
+                updateFileList();
+
+                // 성공 메시지
+                showSuccessMessage(updateBtn, '✓ 업데이트됨');
+            } catch (error) {
+                console.error('Update error:', error);
+                alert('파일 업데이트 중 오류가 발생했습니다');
+            }
+        }
+
+        // RENAME - 파일 이름 변경
+        async function renameFile() {
+            if (!currentFileName) {
+                alert('편집 중인 파일이 없습니다');
+                return;
+            }
+
+            const newFileName = prompt('새 파일 이름을 입력하세요:', currentFileName);
+            if (!newFileName || newFileName.trim() === '') {
+                return;
+            }
+
+            const trimmedNewName = newFileName.trim();
+            if (trimmedNewName === currentFileName) {
+                alert('동일한 파일 이름입니다');
+                return;
+            }
+
+            try {
+                // 새 이름으로 파일이 이미 존재하는지 확인
+                const existingContent = localStorage.getItem(`markdown_${trimmedNewName}`);
+                if (existingContent) {
+                    alert('해당 이름의 파일이 이미 존재합니다');
+                    return;
+                }
+
+                // 기존 파일 내용 가져오기
+                const content = localStorage.getItem(`markdown_${currentFileName}`);
+
+                // 새 이름으로 저장
+                localStorage.setItem(`markdown_${trimmedNewName}`, content);
+
+                // 기존 파일 삭제
+                localStorage.removeItem(`markdown_${currentFileName}`);
+
+                // 파일 목록 업데이트
+                let files = JSON.parse(localStorage.getItem('markdown_files') || '[]');
+                const fileIndex = files.findIndex(f => f.name === currentFileName);
+                if (fileIndex !== -1) {
+                    files[fileIndex].name = trimmedNewName;
+                    files[fileIndex].title = trimmedNewName;
+                    files[fileIndex].description = '이름 변경됨 - ' + new Date().toLocaleString('ko-KR');
+                }
+                localStorage.setItem('markdown_files', JSON.stringify(files));
+
+                // 현재 파일명 업데이트
+                switchToUpdateMode(trimmedNewName);
+                updateFileList();
+
+                alert(`파일 이름이 "${currentFileName}"에서 "${trimmedNewName}"(으)로 변경되었습니다`);
+            } catch (error) {
+                console.error('Rename error:', error);
+                alert('파일 이름 변경 중 오류가 발생했습니다');
+            }
+        }
+
+        // 성공 메시지 표시 헬퍼 함수
+        function showSuccessMessage(button, message) {
+            const originalText = button.textContent;
+            const originalBg = button.style.background;
+            button.textContent = message;
+            button.style.background = 'var(--success)';
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = originalBg;
+            }, 2000);
+        }
+
+        // READ - 파일 로드 (localStorage/파일 모두 지원)
         async function loadFile(fileName) {
             try {
                 let content = null;
@@ -793,7 +958,9 @@
                 if (content) {
                     editor.value = content;
                     updatePreview();
-                    fileNameInput.value = fileName;
+
+                    // Update 모드로 전환
+                    switchToUpdateMode(fileName);
                     editor.focus();
                 } else {
                     alert('파일을 찾을 수 없습니다');
@@ -804,7 +971,7 @@
             }
         }
 
-        // 파일 삭제 함수 (localStorage에서만)
+        // DELETE - 파일 삭제 (localStorage에서만)
         async function deleteFile(fileName) {
             if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
                 return;
@@ -819,7 +986,13 @@
                 files = files.filter(f => f.name !== fileName);
                 localStorage.setItem('markdown_files', JSON.stringify(files));
 
+                // 현재 편집 중인 파일이 삭제된 경우 Create 모드로 전환
+                if (currentFileName === fileName) {
+                    switchToCreateMode();
+                }
+
                 updateFileList();
+                alert(`"${fileName}" 파일이 삭제되었습니다`);
             } catch (error) {
                 console.error('Delete error:', error);
                 alert('파일 삭제 중 오류가 발생했습니다');
@@ -875,10 +1048,19 @@
         }
 
         // 파일 관리 버튼 이벤트
-        saveFileBtn.addEventListener('click', saveFile);
+        createBtn.addEventListener('click', createFile);
+        updateBtn.addEventListener('click', updateFile);
+        renameBtn.addEventListener('click', renameFile);
+        newFileBtn.addEventListener('click', switchToCreateMode);
+
         fileNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                saveFile();
+                // Create 모드인지 Update 모드인지에 따라 다른 함수 호출
+                if (currentFileName) {
+                    updateFile();
+                } else {
+                    createFile();
+                }
             }
         });
 
@@ -886,6 +1068,7 @@
         setVh();
         window.addEventListener('resize', setVh);
         updateFileList();
+        switchToCreateMode(); // 초기 상태는 Create 모드
         editor.focus();
     </script>
 </body>
