@@ -1702,8 +1702,14 @@
                             const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
 
                             if (nextInput && !nextInput.disabled) {
+                                // 디버깅: 다음 필드의 현재 값 확인
+                                console.log(`다음 필드 이동 전 값: "${nextInput.value}"`);
+
                                 // 다음 필드의 값을 비움 (이전 입력값이 들어오는 것을 방지)
                                 nextInput.value = '';
+
+                                // 디버깅: 값이 제대로 비워졌는지 확인
+                                console.log(`다음 필드 이동 후 값: "${nextInput.value}"`);
 
                                 // 즉시 포커스 (setTimeout 사용하지 않음)
                                 nextInput.focus();
@@ -1768,9 +1774,12 @@
 
                         if (nextInput && !nextInput.disabled) {
                             console.log(`다음 입력필드로 이동:`, nextInput.dataset.order);
+                            console.log(`이동 전 값: "${nextInput.value}"`);
 
                             // 다음 필드의 값을 비움 (이전 입력값이 들어오는 것을 방지)
                             nextInput.value = '';
+
+                            console.log(`이동 후 값: "${nextInput.value}"`);
 
                             // 즉시 포커스
                             nextInput.focus();
