@@ -3002,12 +3002,13 @@
             // 탭
             const tabs = document.querySelectorAll('.tab');
             tabs[0].innerHTML = `🌟 ${t('tabAll')}`;
-            tabs[1].innerHTML = `⚡ ${t('tabAction')}`;
-            tabs[2].innerHTML = `🧩 ${t('tabPuzzle')}`;
-            tabs[3].innerHTML = `🕹️ ${t('tabArcade')}`;
-            tabs[4].innerHTML = `🎵 ${t('tabRhythm')}`;
-            tabs[5].innerHTML = `😊 ${t('tabCasual')}`;
-            tabs[6].innerHTML = `🎯 ${t('tabStrategy')}`;
+            tabs[1].innerHTML = `📚 ${t('tabLearning') || '학습'}`;
+            tabs[2].innerHTML = `⚡ ${t('tabAction')}`;
+            tabs[3].innerHTML = `🧩 ${t('tabPuzzle')}`;
+            tabs[4].innerHTML = `🕹️ ${t('tabArcade')}`;
+            tabs[5].innerHTML = `🎵 ${t('tabRhythm')}`;
+            tabs[6].innerHTML = `😊 ${t('tabCasual')}`;
+            tabs[7].innerHTML = `🎯 ${t('tabStrategy')}`;
 
             // 카테고리 제목 (게임 수 포함)
             const totalCount = gameDatabase.length;
