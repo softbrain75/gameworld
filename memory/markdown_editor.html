@@ -252,13 +252,21 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            width: 100%;
             cursor: pointer;
             user-select: none;
         }
 
+        .file-manager-title > div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .file-manager-title .toggle-icon {
             transition: transform 0.3s;
+            flex-shrink: 0;
+            font-size: 14px;
         }
 
         .file-manager.collapsed .toggle-icon {
@@ -350,6 +358,8 @@
             font-size: 13px;
             font-weight: 600;
             color: var(--text-primary);
+            word-break: break-word;
+            line-height: 1.4;
         }
 
         .file-date {
@@ -522,7 +532,11 @@
 
         @media (max-width: 600px) {
             .container {
-                padding: 8px;
+                padding: 10px;
+            }
+
+            .file-name-input input::placeholder {
+                font-size: 13px;
             }
 
             .header {
@@ -651,7 +665,7 @@
 
             <div class="file-manager-content" id="file-manager-content">
                 <div class="file-name-input">
-                    <input type="text" id="file-name-input" placeholder="파일 이름 입력 (확장자 제외)..." />
+                    <input type="text" id="file-name-input" placeholder="파일 이름 입력..." />
                     <button class="save-btn" id="save-file-btn">저장</button>
                 </div>
 
