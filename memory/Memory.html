@@ -1532,7 +1532,7 @@
                     const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
 
                     if (boldMatch) {
-                        // bold 단어를 찾음
+                        // TTV를 찾음
                         const word = boldMatch[1].trim();
                         if (word) {
                             fullText += word + ' ';
@@ -1556,10 +1556,10 @@
             });
 
             lyrics = fullText.split(/[\s\n]+/).filter(word => word.length > 0);
-            console.log('Bold 단어 인덱스:', boldWords);
+            console.log('TTV 인덱스:', boldWords);
             console.log('전체 단어 수:', lyrics.length);
             console.log('파싱된 가사:', lyrics);
-            console.log('Bold 단어들:', boldWords.map(idx => lyrics[idx]));
+            console.log('TTV들:', boldWords.map(idx => lyrics[idx]));
             return true;
         }
 
@@ -1568,7 +1568,7 @@
             return fetch('./data/memory.md')
                 .then(response => response.text())
                 .then(mdText => {
-                    // markdown에서 bold 단어와 일반 단어 분리
+                    // markdown에서 TTV와 일반 단어 분리
                     const lines = mdText.split('\n');
                     let fullText = '';
                     boldWords = [];
@@ -1578,13 +1578,13 @@
                         // 제목과 빈 줄 제외
                         if (line.startsWith('#') || line.trim() === '') return;
 
-                        // **bold** 패턴 찾기
+                        // **TTV** 패턴 찾기
                         let remaining = line;
                         while (remaining.length > 0) {
                             const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
 
                             if (boldMatch) {
-                                // bold 단어를 찾음
+                                // TTV를 찾음
                                 const word = boldMatch[1].trim();
                                 if (word) {
                                     fullText += word + ' ';
@@ -1608,10 +1608,10 @@
                     });
 
                     lyrics = fullText.split(/[\s\n]+/).filter(word => word.length > 0);
-                    console.log('Bold 단어 인덱스:', boldWords);
+                    console.log('TTV 인덱스:', boldWords);
                     console.log('전체 단어 수:', lyrics.length);
                     console.log('파싱된 가사:', lyrics);
-                    console.log('Bold 단어들:', boldWords.map(idx => lyrics[idx]));
+                    console.log('TTV들:', boldWords.map(idx => lyrics[idx]));
                 })
                 .catch(err => {
                     console.error('md 파일 로드 실패:', err);
