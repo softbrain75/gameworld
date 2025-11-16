@@ -2013,23 +2013,6 @@
 
             // 게임오버 화면 업데이트
             document.getElementById('final-score').textContent = `${finalScore}점`;
-            document.getElementById('stats-correct').textContent = totalCorrect;
-            document.getElementById('stats-total').textContent = totalQuestions;
-            document.getElementById('stats-accuracy').textContent = `${Math.round((totalCorrect / totalQuestions) * 100)}%`;
-            document.getElementById('stats-difficulty').textContent = difficultySettings[difficulty] ? Object.keys(difficultySettings).find(key => difficultySettings[key] === difficultySettings[difficulty]) : difficulty;
-
-            // 난이도 레이블 표시
-            const difficultyLabels = {
-                easy: '쉬움',
-                medium: '보통',
-                hard: '어려움'
-            };
-            document.getElementById('stats-difficulty').textContent = difficultyLabels[difficulty] || difficulty;
-
-            // 시간 표시
-            const minutes = Math.floor(elapsedSeconds / 60);
-            const seconds = elapsedSeconds % 60;
-            document.getElementById('stats-time').textContent = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
 
             // 틀린 문제가 있으면 "틀린 것만 다시" 버튼 표시
             const wrongRetryBtn = document.getElementById('wrong-retry-btn');
