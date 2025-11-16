@@ -1343,11 +1343,9 @@
                                 setTimeout(() => {
                                     nextInput.scrollIntoView({
                                         behavior: 'smooth',
-                                        block: 'start',
+                                        block: 'center',
                                         inline: 'nearest'
                                     });
-                                    // 추가 여백을 위해 조금 더 위로 스크롤
-                                    window.scrollBy(0, -100);
                                 }, 300);
                             }
                         }
@@ -1404,11 +1402,9 @@
                             setTimeout(() => {
                                 nextInput.scrollIntoView({
                                     behavior: 'smooth',
-                                    block: 'start',
+                                    block: 'center',
                                     inline: 'nearest'
                                 });
-                                // 추가 여백을 위해 조금 더 위로 스크롤
-                                window.scrollBy(0, -100);
                             }, 300);
                         } else {
                             console.log(`더 이상 입력필드가 없습니다`);
