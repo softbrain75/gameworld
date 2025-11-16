@@ -208,10 +208,9 @@
         }
 
         .mode-buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
-            justify-content: flex-start;
-            flex-wrap: wrap;
             margin-bottom: 32px;
         }
 
@@ -245,10 +244,9 @@
         }
 
         .difficulty-buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 12px;
-            justify-content: flex-start;
-            flex-wrap: wrap;
         }
 
         .difficulty-btn {
@@ -711,9 +709,13 @@
                 justify-content: flex-start;
             }
 
-            .mode-buttons,
+            .mode-buttons {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
             .difficulty-buttons {
-                flex-direction: column;
+                grid-template-columns: 1fr;
                 gap: 8px;
             }
 
@@ -884,22 +886,12 @@
         <div class="game-wrapper">
             <div class="title">
                 <h1>메모리 게임</h1>
-                <p>당신은 한 번 보고 읽은 것을 얼마나 기억하고 있다고 생각하는가!</p>
+                <p>읽은 것을 얼마나 기억하고 있을까요</p>
             </div>
 
             <!-- Menu Screen -->
             <div class="menu-screen active">
                 <div class="menu-content">
-                    <div class="instructions">
-                        <h3>📖 게임 방법</h3>
-                        <ol>
-                            <li>게임 모드를 선택합니다.</li>
-                            <li>난이도를 선택합니다.</li>
-                            <li>가려진 단어를 입력하여 완성하세요.</li>
-                            <li>모든 단어를 맞히면 게임이 완료됩니다.</li>
-                        </ol>
-                    </div>
-
                     <div class="data-selection" id="data-section">
                         <div class="section-title">📚 학습 데이터 선택</div>
                         <div class="data-selector">
@@ -931,6 +923,16 @@
                     </div>
 
                     <button class="start-btn">게임 시작</button>
+
+                    <div class="instructions">
+                        <h3>📖 게임 방법</h3>
+                        <ol>
+                            <li>게임 모드를 선택합니다.</li>
+                            <li>난이도를 선택합니다.</li>
+                            <li>가려진 단어를 입력하여 완성하세요.</li>
+                            <li>모든 단어를 맞히면 게임이 완료됩니다.</li>
+                        </ol>
+                    </div>
                 </div>
             </div>
 
