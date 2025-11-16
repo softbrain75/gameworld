@@ -738,54 +738,65 @@
             }
 
             try {
-                const response = await fetch('/api/data/save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
+                // localStorage에 저장
+                localStorage.setItem(`markdown_${fileName}`, content);
+
+                // 파일 목록도 localStorage에 저장
+                let files = JSON.parse(localStorage.getItem('markdown_files') || '[]');
+                if (!files.find(f => f.name === fileName)) {
+                    files.push({
                         name: fileName,
-                        content: content
-                    })
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    // UI 업데이트
-                    fileNameInput.value = '';
-                    updateFileList();
-
-                    // 성공 메시지
-                    const originalText = saveFileBtn.textContent;
-                    saveFileBtn.textContent = '✓ 저장됨';
-                    saveFileBtn.style.background = 'var(--success)';
-                    setTimeout(() => {
-                        saveFileBtn.textContent = originalText;
-                        saveFileBtn.style.background = '';
-                    }, 2000);
-                } else {
-                    alert(result.error || '파일 저장에 실패했습니다');
+                        title: fileName,
+                        description: '사용자 생성 파일'
+                    });
+                    localStorage.setItem('markdown_files', JSON.stringify(files));
                 }
+
+                // UI 업데이트
+                fileNameInput.value = '';
+                updateFileList();
+
+                // 성공 메시지
+                const originalText = saveFileBtn.textContent;
+                saveFileBtn.textContent = '✓ 저장됨';
+                saveFileBtn.style.background = 'var(--success)';
+                setTimeout(() => {
+                    saveFileBtn.textContent = originalText;
+                    saveFileBtn.style.background = '';
+                }, 2000);
             } catch (error) {
                 console.error('Save error:', error);
                 alert('파일 저장 중 오류가 발생했습니다');
             }
         }
 
-        // 파일 로드 함수 (Server API 사용)
+        // 파일 로드 함수 (localStorage/파일 모두 지원)
         async function loadFile(fileName) {
             try {
-                const response = await fetch(`/api/data/load?name=${encodeURIComponent(fileName)}`);
-                const result = await response.json();
+                let content = null;
 
-                if (response.ok && result.content) {
-                    editor.value = result.content;
+                // 먼저 localStorage에서 찾기
+                content = localStorage.getItem(`markdown_${fileName}`);
+
+                // localStorage에 없으면 서버 파일에서 로드 시도
+                if (!content) {
+                    try {
+                        const response = await fetch(`./data/${encodeURIComponent(fileName)}`);
+                        if (response.ok) {
+                            content = await response.text();
+                        }
+                    } catch (e) {
+                        console.log('Server file not found, using localStorage only');
+                    }
+                }
+
+                if (content) {
+                    editor.value = content;
                     updatePreview();
                     fileNameInput.value = fileName;
                     editor.focus();
                 } else {
-                    alert(result.error || '파일을 찾을 수 없습니다');
+                    alert('파일을 찾을 수 없습니다');
                 }
             } catch (error) {
                 console.error('Load error:', error);
@@ -793,36 +804,52 @@
             }
         }
 
-        // 파일 삭제 함수 (Server API 사용)
+        // 파일 삭제 함수 (localStorage에서만)
         async function deleteFile(fileName) {
             if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
                 return;
             }
 
             try {
-                const response = await fetch(`/api/data/delete?name=${encodeURIComponent(fileName)}`, {
-                    method: 'DELETE'
-                });
+                // localStorage에서 파일 삭제
+                localStorage.removeItem(`markdown_${fileName}`);
 
-                const result = await response.json();
+                // 파일 목록에서도 제거
+                let files = JSON.parse(localStorage.getItem('markdown_files') || '[]');
+                files = files.filter(f => f.name !== fileName);
+                localStorage.setItem('markdown_files', JSON.stringify(files));
 
-                if (response.ok && result.success) {
-                    updateFileList();
-                } else {
-                    alert(result.error || '파일 삭제에 실패했습니다');
-                }
+                updateFileList();
             } catch (error) {
                 console.error('Delete error:', error);
                 alert('파일 삭제 중 오류가 발생했습니다');
             }
         }
 
-        // 파일 목록 업데이트 함수 (Server API 사용)
+        // 파일 목록 업데이트 함수 (localStorage + 기본 파일)
         async function updateFileList() {
             try {
-                const response = await fetch('/api/data/list');
-                const result = await response.json();
-                const files = result.files || [];
+                let files = [];
+
+                // localStorage에서 저장된 파일 가져오기
+                const savedFiles = JSON.parse(localStorage.getItem('markdown_files') || '[]');
+                files.push(...savedFiles);
+
+                // 기본 파일 목록도 추가
+                try {
+                    const response = await fetch('./data-files.json');
+                    if (response.ok) {
+                        const defaultFiles = await response.json();
+                        // 중복 제거
+                        for (const file of defaultFiles) {
+                            if (!files.find(f => f.name === file.name)) {
+                                files.push(file);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.log('Default files not available');
+                }
 
                 if (files.length === 0) {
                     fileList.innerHTML = '<div class="empty-message">저장된 파일이 없습니다.</div>';
@@ -832,8 +859,8 @@
                 fileList.innerHTML = files.map(file => `
                     <div class="file-item">
                         <div class="file-info">
-                            <div class="file-name">📄 ${escapeHtml(file.name)}</div>
-                            <div class="file-date">${file.savedAt}</div>
+                            <div class="file-name">📄 ${escapeHtml(file.title || file.name)}</div>
+                            <div class="file-date">${file.description || ''}</div>
                         </div>
                         <div class="file-actions">
                             <button class="file-btn load-btn" onclick="loadFile('${file.name.replace(/'/g, "\\'")}')">열기</button>

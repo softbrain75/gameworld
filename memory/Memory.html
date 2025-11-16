@@ -1050,9 +1050,26 @@
         // 데이터 파일 목록 로드
         async function loadDataFileList() {
             try {
-                const response = await fetch('/api/data/list');
-                const result = await response.json();
-                const files = result.files || [];
+                let files = [];
+
+                // data-files.json에서 기본 파일 로드
+                try {
+                    const response = await fetch('./data-files.json');
+                    if (response.ok) {
+                        const defaultFiles = await response.json();
+                        files.push(...defaultFiles);
+                    }
+                } catch (e) {
+                    console.log('Default files not available');
+                }
+
+                // localStorage에서 사용자가 만든 파일 추가
+                const savedFiles = JSON.parse(localStorage.getItem('markdown_files') || '[]');
+                for (const file of savedFiles) {
+                    if (!files.find(f => f.name === file.name)) {
+                        files.push(file);
+                    }
+                }
 
                 const selectDropdown = document.getElementById('data-select');
                 const dataInfo = document.getElementById('data-info');
@@ -1074,7 +1091,7 @@
                 files.forEach(file => {
                     const option = document.createElement('option');
                     option.value = file.name;
-                    option.textContent = `📄 ${file.name}`;
+                    option.textContent = `📄 ${file.title || file.name}`;
                     selectDropdown.appendChild(option);
                 });
 
@@ -1094,15 +1111,29 @@
         // 선택한 데이터 파일로부터 가사 로드
         async function loadLyricsFromData(fileName) {
             try {
-                const response = await fetch(`/api/data/load?name=${encodeURIComponent(fileName)}`);
-                const result = await response.json();
+                let mdText = null;
 
-                if (!response.ok || !result.content) {
+                // 먼저 localStorage에서 찾기
+                mdText = localStorage.getItem(`markdown_${fileName}`);
+
+                // localStorage에 없으면 서버 파일에서 로드
+                if (!mdText) {
+                    try {
+                        const response = await fetch(`./data/${encodeURIComponent(fileName)}`);
+                        if (response.ok) {
+                            mdText = await response.text();
+                        }
+                    } catch (e) {
+                        console.log('Server file not found');
+                    }
+                }
+
+                if (!mdText) {
                     alert('파일을 불러올 수 없습니다');
                     return false;
                 }
 
-                return parseLyrics(result.content);
+                return parseLyrics(mdText);
             } catch (error) {
                 console.error('Load lyrics error:', error);
                 alert('파일 로드 중 오류가 발생했습니다');
