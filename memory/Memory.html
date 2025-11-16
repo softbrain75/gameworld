@@ -1359,17 +1359,6 @@
                         icon.className = 'feedback-icon incorrect';
                         icon.textContent = '✗';
                         input.parentElement.appendChild(icon);
-
-                        // 오답도 자동으로 다음 입력박스로 이동
-                        setTimeout(() => {
-                            const currentOrder = parseInt(input.dataset.order);
-                            const nextOrder = currentOrder + 1;
-                            const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
-
-                            if (nextInput) {
-                                nextInput.focus();
-                            }
-                        }, 100);
                     }
                 });
 
