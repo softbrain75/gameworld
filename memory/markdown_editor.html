@@ -241,7 +241,7 @@
             box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
             padding: 20px;
             margin-bottom: 20px;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
         }
 
@@ -252,7 +252,28 @@
             margin-bottom: 12px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .file-manager-title .toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .file-manager.collapsed .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .file-manager-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s;
+        }
+
+        .file-manager.collapsed .file-manager-content {
+            max-height: 0 !important;
+            opacity: 0;
         }
 
         .file-name-input {
@@ -403,10 +424,15 @@
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
 
             .panel {
-                max-height: 50%;
+                min-height: 300px;
+            }
+
+            .file-manager {
+                max-height: 250px;
             }
         }
 
@@ -416,16 +442,56 @@
             }
 
             .header h1 {
-                font-size: 24px;
+                font-size: 22px;
             }
 
             .header p {
                 font-size: 12px;
             }
 
+            .file-manager {
+                padding: 16px;
+                border-radius: 20px;
+                max-height: 200px;
+                margin-bottom: 16px;
+            }
+
+            .file-manager-title {
+                font-size: 14px;
+            }
+
+            .file-name-input input {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            .save-btn {
+                padding: 12px 16px;
+                font-size: 13px;
+                min-width: 70px;
+            }
+
+            .file-item {
+                padding: 10px;
+            }
+
+            .file-name {
+                font-size: 13px;
+            }
+
+            .file-date {
+                font-size: 11px;
+            }
+
+            .file-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
             .panel {
                 padding: 16px;
                 border-radius: 20px;
+                min-height: 250px;
             }
 
             .panel-title {
@@ -433,47 +499,99 @@
             }
 
             .toolbar-btn {
-                padding: 8px 12px;
-                font-size: 11px;
+                padding: 10px 14px;
+                font-size: 12px;
             }
 
             #editor,
             #preview {
-                font-size: 13px;
-                padding: 12px;
+                font-size: 14px;
+                padding: 14px;
             }
 
             .editor-toolbar {
                 margin-bottom: 10px;
                 padding-bottom: 10px;
             }
+
+            .hint {
+                padding: 12px;
+                font-size: 12px;
+            }
         }
 
         @media (max-width: 600px) {
             .container {
-                padding: 10px;
+                padding: 8px;
             }
 
             .header {
-                margin-bottom: 16px;
+                margin-bottom: 12px;
             }
 
             .header h1 {
-                font-size: 20px;
+                font-size: 18px;
             }
 
             .header p {
                 font-size: 11px;
+                display: none; /* 모바일에서는 설명 숨김 */
+            }
+
+            .file-manager {
+                padding: 12px;
+                max-height: 180px;
+                margin-bottom: 12px;
+            }
+
+            .file-manager-title {
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+
+            .file-name-input {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .file-name-input input {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            .save-btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .file-item {
+                padding: 10px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .file-actions {
+                width: 100%;
+                gap: 8px;
+            }
+
+            .file-btn {
+                flex: 1;
+                padding: 10px;
+                font-size: 12px;
             }
 
             .panel {
-                padding: 14px;
-                max-height: 50%;
+                padding: 12px;
+                border-radius: 16px;
+                min-height: 220px;
             }
 
             .panel-title {
                 font-size: 13px;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             }
 
             .editor-toolbar {
@@ -483,25 +601,32 @@
             }
 
             .toolbar-btn {
-                padding: 6px 10px;
-                font-size: 10px;
+                padding: 10px 12px;
+                font-size: 11px;
+                flex: 1;
             }
 
             #editor,
             #preview {
-                font-size: 12px;
-                padding: 10px;
+                font-size: 13px;
+                padding: 12px;
+                line-height: 1.6;
             }
 
             .stats {
-                gap: 12px;
+                gap: 10px;
                 font-size: 11px;
+                flex-wrap: wrap;
             }
 
             .hint {
                 padding: 10px;
-                font-size: 12px;
-                margin-bottom: 10px;
+                font-size: 11px;
+                margin-bottom: 8px;
+            }
+
+            .main-content {
+                gap: 10px;
             }
         }
     </style>
@@ -514,19 +639,24 @@
         </div>
 
         <!-- 파일 관리 섹션 -->
-        <div class="file-manager">
-            <div class="file-manager-title">
-                <span>💾</span>
-                파일 관리
+        <div class="file-manager" id="file-manager">
+            <div class="file-manager-title" id="file-manager-toggle">
+                <div>
+                    <span>💾</span>
+                    파일 관리
+                </div>
+                <span class="toggle-icon">▼</span>
             </div>
 
-            <div class="file-name-input">
-                <input type="text" id="file-name-input" placeholder="파일 이름 입력 (확장자 제외)..." />
-                <button class="save-btn" id="save-file-btn">저장</button>
-            </div>
+            <div class="file-manager-content" id="file-manager-content">
+                <div class="file-name-input">
+                    <input type="text" id="file-name-input" placeholder="파일 이름 입력 (확장자 제외)..." />
+                    <button class="save-btn" id="save-file-btn">저장</button>
+                </div>
 
-            <div class="file-list" id="file-list">
-                <div class="empty-message">저장된 파일이 없습니다.</div>
+                <div class="file-list" id="file-list">
+                    <div class="empty-message">저장된 파일이 없습니다.</div>
+                </div>
             </div>
         </div>
 
@@ -882,10 +1012,27 @@
             }
         });
 
+        // 파일 관리 섹션 토글 기능
+        const fileManager = document.getElementById('file-manager');
+        const fileManagerToggle = document.getElementById('file-manager-toggle');
+        const fileManagerContent = document.getElementById('file-manager-content');
+
+        fileManagerToggle.addEventListener('click', () => {
+            fileManager.classList.toggle('collapsed');
+        });
+
+        // 초기 높이 설정 (애니메이션용)
+        function setFileManagerHeight() {
+            if (!fileManager.classList.contains('collapsed')) {
+                fileManagerContent.style.maxHeight = fileManagerContent.scrollHeight + 'px';
+            }
+        }
+
         // 페이지 로드 시
         setVh();
         window.addEventListener('resize', setVh);
         updateFileList();
+        setFileManagerHeight();
         editor.focus();
     </script>
 </body>
