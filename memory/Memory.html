@@ -1951,6 +1951,9 @@
                     inputEl.dataset.order = blankOrder; // 순서 번호 추가
                     inputEl.placeholder = '';
                     inputEl.autocomplete = 'off';
+                    inputEl.setAttribute('autocomplete', 'off');
+                    inputEl.setAttribute('autocorrect', 'off');
+                    inputEl.setAttribute('autocapitalize', 'off');
                     inputEl.spellcheck = 'false';
 
                     blankOrder++;
