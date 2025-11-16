@@ -1335,7 +1335,15 @@
                                 const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
 
                                 if (nextInput) {
+                                    // 입력 필드 선택 및 스크롤
+                                    nextInput.click();
                                     nextInput.focus();
+                                    nextInput.select();
+
+                                    // iOS에서 키보드가 올라오도록 강제 포커스
+                                    setTimeout(() => {
+                                        nextInput.focus();
+                                    }, 50);
                                 }
                             }, 100);
                         }
@@ -1384,7 +1392,15 @@
 
                         if (nextInput) {
                             console.log(`다음 입력필드로 이동:`, nextInput.dataset.order);
+                            // 입력 필드 선택 및 스크롤
+                            nextInput.click();
                             nextInput.focus();
+                            nextInput.select();
+
+                            // iOS에서 키보드가 올라오도록 강제 포커스
+                            setTimeout(() => {
+                                nextInput.focus();
+                            }, 50);
                         } else {
                             console.log(`더 이상 입력필드가 없습니다`);
                         }
