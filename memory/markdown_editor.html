@@ -249,36 +249,7 @@
             margin-bottom: 12px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .file-manager-title > div {
-            display: flex;
-            align-items: center;
             gap: 8px;
-        }
-
-        .file-manager-title .toggle-icon {
-            transition: transform 0.3s;
-            flex-shrink: 0;
-            font-size: 14px;
-        }
-
-        .file-manager.collapsed .toggle-icon {
-            transform: rotate(180deg);
-        }
-
-        .file-manager-content {
-            overflow: hidden;
-            transition: max-height 0.3s ease-out, opacity 0.3s;
-        }
-
-        .file-manager.collapsed .file-manager-content {
-            max-height: 0 !important;
-            opacity: 0;
         }
 
         .file-name-input {
@@ -648,23 +619,18 @@
 
         <!-- 파일 관리 섹션 -->
         <div class="file-manager" id="file-manager">
-            <div class="file-manager-title" id="file-manager-toggle">
-                <div>
-                    <span>💾</span>
-                    파일 관리
-                </div>
-                <span class="toggle-icon">▼</span>
+            <div class="file-manager-title">
+                <span>💾</span>
+                파일 관리
             </div>
 
-            <div class="file-manager-content" id="file-manager-content">
-                <div class="file-name-input">
-                    <input type="text" id="file-name-input" placeholder="파일 이름 입력..." />
-                    <button class="save-btn" id="save-file-btn">저장</button>
-                </div>
+            <div class="file-name-input">
+                <input type="text" id="file-name-input" placeholder="파일 이름 입력..." />
+                <button class="save-btn" id="save-file-btn">저장</button>
+            </div>
 
-                <div class="file-list" id="file-list">
-                    <div class="empty-message">저장된 파일이 없습니다.</div>
-                </div>
+            <div class="file-list" id="file-list">
+                <div class="empty-message">저장된 파일이 없습니다.</div>
             </div>
         </div>
 
@@ -1020,27 +986,10 @@
             }
         });
 
-        // 파일 관리 섹션 토글 기능
-        const fileManager = document.getElementById('file-manager');
-        const fileManagerToggle = document.getElementById('file-manager-toggle');
-        const fileManagerContent = document.getElementById('file-manager-content');
-
-        fileManagerToggle.addEventListener('click', () => {
-            fileManager.classList.toggle('collapsed');
-        });
-
-        // 초기 높이 설정 (애니메이션용)
-        function setFileManagerHeight() {
-            if (!fileManager.classList.contains('collapsed')) {
-                fileManagerContent.style.maxHeight = fileManagerContent.scrollHeight + 'px';
-            }
-        }
-
         // 페이지 로드 시
         setVh();
         window.addEventListener('resize', setVh);
         updateFileList();
-        setFileManagerHeight();
         editor.focus();
     </script>
 </body>
