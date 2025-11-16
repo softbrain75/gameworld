@@ -284,6 +284,7 @@
         .custom-select-value {
             flex: 1;
             color: var(--text-primary);
+            text-align: left;
         }
 
         .custom-select-value.placeholder {
@@ -339,11 +340,8 @@
         }
 
         .custom-select-option.selected::before {
-            content: 'check';
-            font-family: 'Material Icons';
-            font-size: 20px;
-            margin-right: 12px;
-            color: var(--primary);
+            content: '';
+            display: none;
         }
 
         /* Ripple effect */
