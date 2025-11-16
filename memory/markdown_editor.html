@@ -63,176 +63,24 @@
             color: var(--text-secondary);
         }
 
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        /* Mode-based layout */
+        .content-area {
+            flex: 1;
+            display: flex;
             gap: 16px;
-            flex: 1;
             min-height: 0;
         }
 
-        .panel {
-            display: flex;
-            flex-direction: column;
-            background: var(--surface);
-            border-radius: 24px;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
-            padding: 20px;
-        }
-
-        .panel-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .panel-icon {
-            font-size: 20px;
-        }
-
-        .editor-toolbar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--outline-variant);
-            flex-wrap: wrap;
-        }
-
-        .toolbar-btn {
-            padding: 8px 16px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-            box-shadow: 0 2px 8px rgba(103, 80, 164, 0.2);
-        }
-
-        .toolbar-btn:hover {
-            background: var(--primary-dark);
-            box-shadow: 0 4px 12px rgba(103, 80, 164, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .toolbar-btn:active {
-            transform: translateY(0);
-        }
-
-        .toolbar-btn.secondary {
-            background: var(--outline);
-        }
-
-        .toolbar-btn.secondary:hover {
-            background: #655f6b;
-        }
-
-        .toolbar-btn.copy {
-            background: var(--success);
-        }
-
-        .toolbar-btn.copy:hover {
-            background: #42961b;
-        }
-
-        .editor-area {
+        /* List Mode */
+        #list-section {
+            display: none;
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        #editor {
-            flex: 1;
-            min-height: 300px;
-            padding: 16px;
-            border: 2px solid var(--outline-variant);
-            border-radius: 12px;
-            font-size: 14px;
-            line-height: 1.8;
-            resize: none;
-            font-family: 'Noto Sans KR', monospace;
-            color: var(--text-primary);
-            background: white;
-            transition: border-color 0.2s;
-        }
-
-        #editor:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(103, 80, 164, 0.1);
-        }
-
-        #preview {
-            flex: 1;
-            min-height: 300px;
-            padding: 16px;
-            border: 1px solid var(--outline-variant);
-            border-radius: 12px;
-            font-size: 14px;
-            line-height: 1.8;
             overflow-y: auto;
-            background: white;
-            color: var(--text-primary);
-            word-wrap: break-word;
-            white-space: pre-wrap;
         }
 
-        .preview-content strong {
-            color: var(--primary);
-            font-weight: 700;
-            background: rgba(103, 80, 164, 0.1);
-            padding: 2px 4px;
-            border-radius: 4px;
-            box-shadow: inset 0 0 0 1px var(--primary-light);
-        }
-
-        .stats {
+        #list-section.active {
             display: flex;
-            gap: 16px;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid var(--outline-variant);
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .stat-label {
-            font-weight: 600;
-        }
-
-        .stat-value {
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .hint {
-            background: rgba(250, 173, 20, 0.1);
-            border: 1px solid #faad14;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-            font-size: 13px;
-            color: #856404;
-            line-height: 1.5;
-        }
-
-        .hint-icon {
-            margin-right: 6px;
-            font-weight: 700;
+            flex-direction: column;
         }
 
         .file-manager {
@@ -240,42 +88,25 @@
             border-radius: 24px;
             box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
             padding: 20px;
-            margin-bottom: 20px;
+        }
+
+        .file-manager-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
         }
 
         .file-manager-title {
             font-size: 16px;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .file-name-input {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .file-name-input input {
-            flex: 1;
-            padding: 10px 12px;
-            border: 2px solid var(--outline-variant);
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: 'Noto Sans KR';
-            transition: border-color 0.2s;
-        }
-
-        .file-name-input input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(103, 80, 164, 0.1);
-        }
-
-        .save-btn {
+        .create-btn {
             padding: 10px 16px;
             background: var(--success);
             color: white;
@@ -284,11 +115,11 @@
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            transition: all 0.2s;
             box-shadow: 0 2px 8px rgba(82, 196, 26, 0.2);
         }
 
-        .save-btn:hover {
+        .create-btn:hover {
             background: #42961b;
             box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
             transform: translateY(-1px);
@@ -381,39 +212,249 @@
             font-size: 13px;
         }
 
-        /* Scrollbar 스타일 */
-        #editor::-webkit-scrollbar,
-        #preview::-webkit-scrollbar {
+        /* Create/Edit Mode */
+        #editor-section {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        #editor-section.active {
+            display: flex;
+        }
+
+        .editor-container {
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .editor-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .editor-mode {
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            background: var(--surface-dim);
+            border-radius: 4px;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-icon {
+            font-size: 20px;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--outline-variant);
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: 0 2px 8px rgba(103, 80, 164, 0.2);
+        }
+
+        .toolbar-btn:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(103, 80, 164, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .toolbar-btn:active {
+            transform: translateY(0);
+        }
+
+        .toolbar-btn.secondary {
+            background: var(--outline);
+        }
+
+        .toolbar-btn.secondary:hover {
+            background: #655f6b;
+        }
+
+        .toolbar-btn.copy {
+            background: var(--success);
+        }
+
+        .toolbar-btn.copy:hover {
+            background: #42961b;
+        }
+
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        #editor {
+            flex: 1;
+            min-height: 300px;
+            padding: 16px;
+            border: 2px solid var(--outline-variant);
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.8;
+            resize: none;
+            font-family: 'Noto Sans KR', monospace;
+            color: var(--text-primary);
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        #editor:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(103, 80, 164, 0.1);
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--outline-variant);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-weight: 600;
+        }
+
+        .stat-value {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .hint {
+            background: rgba(250, 173, 20, 0.1);
+            border: 1px solid #faad14;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #856404;
+            line-height: 1.5;
+        }
+
+        .hint-icon {
+            margin-right: 6px;
+            font-weight: 700;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--outline-variant);
+        }
+
+        .btn-back {
+            padding: 10px 16px;
+            background: var(--outline);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .btn-back:hover {
+            background: #655f6b;
+        }
+
+        .btn-save {
+            padding: 10px 16px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(82, 196, 26, 0.2);
+            flex: 1;
+        }
+
+        .btn-save:hover {
+            background: #42961b;
+            box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Scrollbar styling */
+        #editor::-webkit-scrollbar {
             width: 8px;
         }
 
-        #editor::-webkit-scrollbar-track,
-        #preview::-webkit-scrollbar-track {
+        #editor::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        #editor::-webkit-scrollbar-thumb,
-        #preview::-webkit-scrollbar-thumb {
+        #editor::-webkit-scrollbar-thumb {
             background: var(--outline-variant);
             border-radius: 4px;
         }
 
-        #editor::-webkit-scrollbar-thumb:hover,
-        #preview::-webkit-scrollbar-thumb:hover {
+        #editor::-webkit-scrollbar-thumb:hover {
             background: var(--outline);
         }
 
-        /* 모바일 반응형 */
+        /* Responsive */
         @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                gap: 12px;
+            .content-area {
+                flex-direction: column;
             }
-
-            .panel {
-                min-height: 300px;
-            }
-
         }
 
         @media (max-width: 768px) {
@@ -432,76 +473,43 @@
             .file-manager {
                 padding: 16px;
                 border-radius: 20px;
-                margin-bottom: 16px;
             }
 
             .file-manager-title {
                 font-size: 14px;
             }
 
-            .file-name-input input {
-                font-size: 14px;
-                padding: 12px;
-            }
-
-            .save-btn {
-                padding: 12px 16px;
-                font-size: 13px;
-                min-width: 70px;
-            }
-
-            .file-item {
-                padding: 10px;
-            }
-
-            .file-name {
-                font-size: 13px;
-            }
-
-            .file-date {
+            .create-btn {
+                padding: 10px 14px;
                 font-size: 11px;
             }
 
-            .panel {
+            .editor-container {
                 padding: 16px;
                 border-radius: 20px;
-                min-height: 250px;
-            }
-
-            .panel-title {
-                font-size: 14px;
-            }
-
-            .toolbar-btn {
-                padding: 10px 14px;
-                font-size: 12px;
-            }
-
-            #editor,
-            #preview {
-                font-size: 14px;
-                padding: 14px;
-                min-height: 250px;
             }
 
             .editor-toolbar {
+                gap: 6px;
                 margin-bottom: 10px;
                 padding-bottom: 10px;
             }
 
-            .hint {
-                padding: 12px;
-                font-size: 12px;
+            .toolbar-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
+            #editor {
+                font-size: 14px;
+                padding: 14px;
+                min-height: 250px;
             }
         }
 
         @media (max-width: 600px) {
             .container {
-                padding: 10px;
-            }
-
-            .file-name-input input::placeholder {
-                font-size: 13px;
+                padding: 8px;
             }
 
             .header {
@@ -513,49 +521,37 @@
             }
 
             .header p {
-                font-size: 11px;
-                display: none; /* 모바일에서는 설명 숨김 */
+                display: none;
             }
 
             .file-manager {
                 padding: 12px;
-                margin-bottom: 12px;
+                border-radius: 16px;
             }
 
             .file-manager-title {
                 font-size: 13px;
-                margin-bottom: 8px;
             }
 
-            .file-name-input {
+            .file-manager-header {
                 flex-direction: column;
+                align-items: flex-start;
                 gap: 8px;
             }
 
-            .file-name-input input {
-                font-size: 14px;
-                padding: 12px;
-            }
-
-            .save-btn {
+            .create-btn {
                 width: 100%;
                 padding: 12px;
-                font-size: 14px;
+                font-size: 12px;
             }
 
             .file-item {
                 padding: 10px;
             }
 
-            .panel {
+            .editor-container {
                 padding: 12px;
                 border-radius: 16px;
-                min-height: 220px;
-            }
-
-            .panel-title {
-                font-size: 13px;
-                margin-bottom: 8px;
             }
 
             .editor-toolbar {
@@ -565,33 +561,25 @@
             }
 
             .toolbar-btn {
-                padding: 10px 12px;
-                font-size: 11px;
+                padding: 8px 12px;
+                font-size: 10px;
                 flex: 1;
             }
 
-            #editor,
-            #preview {
+            #editor {
                 font-size: 13px;
                 padding: 12px;
                 line-height: 1.6;
                 min-height: 200px;
             }
 
-            .stats {
-                gap: 10px;
-                font-size: 11px;
-                flex-wrap: wrap;
+            .editor-actions {
+                flex-direction: column;
             }
 
-            .hint {
-                padding: 10px;
-                font-size: 11px;
-                margin-bottom: 8px;
-            }
-
-            .main-content {
-                gap: 10px;
+            .btn-back,
+            .btn-save {
+                width: 100%;
             }
         }
     </style>
@@ -600,96 +588,101 @@
     <div class="container">
         <div class="header">
             <h1>📚 학습 데이터 관리</h1>
-            <p>Ctrl+B를 눌러 **bold** 마크다운을 작성하고 data 폴더에 저장하세요</p>
+            <p>파일을 선택하거나 새로운 파일을 만들어 **bold** 마크다운을 작성하세요</p>
         </div>
 
-        <!-- 파일 관리 섹션 -->
-        <div class="file-manager" id="file-manager">
-            <div class="file-manager-title">
-                <span>💾</span>
-                파일 관리
-            </div>
-
-            <div class="file-name-input">
-                <input type="text" id="file-name-input" placeholder="파일 이름 입력..." />
-                <button class="save-btn" id="save-file-btn">저장</button>
-            </div>
-
-            <div class="file-list" id="file-list">
-                <div class="empty-message">저장된 파일이 없습니다.</div>
-            </div>
-        </div>
-
-        <div class="main-content">
-            <!-- 에디터 패널 -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-icon">✏️</span>
-                    텍스트 입력
-                </div>
-
-                <div class="hint">
-                    <span class="hint-icon">💡</span>
-                    범위를 선택하고 Ctrl+B (또는 Cmd+B)를 눌러 <strong>bold</strong> 처리하세요
-                </div>
-
-                <div class="editor-toolbar">
-                    <button class="toolbar-btn secondary" id="clear-btn">초기화</button>
-                    <button class="toolbar-btn" id="bold-btn">글꼴 굵게</button>
-                    <button class="toolbar-btn copy" id="copy-btn">복사</button>
-                </div>
-
-                <div class="editor-area">
-                    <textarea id="editor" placeholder="여기에 텍스트를 입력하세요..."></textarea>
-                    <div class="stats">
-                        <div class="stat">
-                            <span class="stat-label">글자수:</span>
-                            <span class="stat-value" id="char-count">0</span>
+        <div class="content-area">
+            <!-- List Mode -->
+            <section id="list-section" class="active">
+                <div class="file-manager">
+                    <div class="file-manager-header">
+                        <div class="file-manager-title">
+                            <span>💾</span>
+                            파일 목록
                         </div>
-                        <div class="stat">
-                            <span class="stat-label">Bold 단어:</span>
-                            <span class="stat-value" id="bold-count">0</span>
-                        </div>
+                        <button class="create-btn" onclick="switchMode('create')">
+                            <span class="material-icons" style="display: inline; margin-right: 4px; font-size: 16px;">add</span>
+                            새 파일
+                        </button>
+                    </div>
+
+                    <div class="file-list" id="file-list">
+                        <div class="empty-message">저장된 파일이 없습니다.</div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- 미리보기 패널 -->
-            <div class="panel">
-                <div class="panel-title">
-                    <span class="panel-icon">👀</span>
-                    미리보기 (Markdown)
-                </div>
+            <!-- Create/Edit Mode -->
+            <section id="editor-section">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <div>
+                            <div class="editor-title">✏️ 파일 편집</div>
+                            <input type="text" id="file-name-input" placeholder="파일 이름 입력..." style="
+                                margin-top: 8px;
+                                padding: 10px 12px;
+                                border: 2px solid var(--outline-variant);
+                                border-radius: 8px;
+                                font-size: 13px;
+                                font-family: 'Noto Sans KR';
+                                width: 200px;
+                                transition: border-color 0.2s;
+                            " />
+                        </div>
+                        <div class="editor-mode" id="mode-indicator">새로 만들기</div>
+                    </div>
 
-                <div class="hint">
-                    <span class="hint-icon">📌</span>
-                    **단어** 형식으로 bold 처리됩니다. 이를 복사해서 memory.md에 사용하세요
-                </div>
+                    <div class="hint">
+                        <span class="hint-icon">💡</span>
+                        범위를 선택하고 Ctrl+B (또는 Cmd+B)를 눌러 <strong>bold</strong> 처리하세요
+                    </div>
 
-                <div class="editor-area">
-                    <div id="preview" class="preview-content"></div>
-                    <div class="stats">
-                        <div class="stat">
-                            <span class="stat-label">MD 형식:</span>
-                            <span class="stat-value" id="md-format">Markdown</span>
+                    <div class="editor-toolbar">
+                        <button class="toolbar-btn secondary" id="clear-btn">초기화</button>
+                        <button class="toolbar-btn" id="bold-btn">글꼴 굵게</button>
+                        <button class="toolbar-btn copy" id="copy-btn">복사</button>
+                    </div>
+
+                    <div class="editor-area">
+                        <textarea id="editor" placeholder="여기에 텍스트를 입력하세요..."></textarea>
+                        <div class="stats">
+                            <div class="stat">
+                                <span class="stat-label">글자수:</span>
+                                <span class="stat-value" id="char-count">0</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Bold 단어:</span>
+                                <span class="stat-value" id="bold-count">0</span>
+                            </div>
                         </div>
                     </div>
+
+                    <div class="editor-actions">
+                        <button class="btn-back" onclick="switchMode('list')">목록으로</button>
+                        <button class="btn-save" id="save-btn">저장</button>
+                    </div>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 
     <script>
+        // State
+        let currentMode = 'list'; // 'list', 'create', 'edit'
+        let currentEditFile = null;
+        let files = [];
+
+        // DOM Elements
         const editor = document.getElementById('editor');
-        const preview = document.getElementById('preview');
         const charCount = document.getElementById('char-count');
         const boldCount = document.getElementById('bold-count');
         const clearBtn = document.getElementById('clear-btn');
         const boldBtn = document.getElementById('bold-btn');
         const copyBtn = document.getElementById('copy-btn');
         const fileNameInput = document.getElementById('file-name-input');
-        const saveFileBtn = document.getElementById('save-file-btn');
+        const saveBtn = document.getElementById('save-btn');
         const fileList = document.getElementById('file-list');
+        const modeIndicator = document.getElementById('mode-indicator');
 
         // Viewport height fix
         function setVh() {
@@ -700,12 +693,42 @@
         setVh();
         window.addEventListener('resize', setVh);
 
-        // 에디터 입력 이벤트
+        // Mode switching
+        function switchMode(mode, fileName = null) {
+            currentMode = mode;
+
+            // Hide/show sections
+            document.getElementById('list-section').classList.toggle('active', mode === 'list');
+            document.getElementById('editor-section').classList.toggle('active', mode !== 'list');
+
+            if (mode === 'list') {
+                updateFileList();
+            } else if (mode === 'create') {
+                currentEditFile = null;
+                editor.value = '';
+                fileNameInput.value = '';
+                fileNameInput.disabled = false;
+                modeIndicator.textContent = '새로 만들기';
+                updatePreview();
+            } else if (mode === 'edit' && fileName) {
+                currentEditFile = fileName;
+                fileNameInput.value = fileName;
+                fileNameInput.disabled = true;
+                modeIndicator.textContent = '수정하기';
+                loadFile(fileName);
+            }
+
+            // Focus editor
+            if (mode !== 'list') {
+                editor.focus();
+            }
+        }
+
+        // Editor functions
         editor.addEventListener('input', updatePreview);
         editor.addEventListener('keydown', handleKeydown);
 
         function handleKeydown(e) {
-            // Ctrl+B 또는 Cmd+B
             if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
                 e.preventDefault();
                 makeBold();
@@ -717,7 +740,6 @@
             const end = editor.selectionEnd;
             const text = editor.value;
 
-            // 선택된 텍스트가 없으면 return
             if (start === end) {
                 alert('Bold 처리할 텍스트를 선택하세요');
                 return;
@@ -725,18 +747,13 @@
 
             const selectedText = text.substring(start, end).trim();
 
-            // 이미 bold 처리된 텍스트인지 확인
             if (selectedText.startsWith('**') && selectedText.endsWith('**')) {
-                // Bold 해제
-                const newText = text.substring(0, start) +
-                               selectedText.slice(2, -2) +
-                               text.substring(end);
+                const newText = text.substring(0, start) + selectedText.slice(2, -2) + text.substring(end);
                 editor.value = newText;
                 updatePreview();
                 editor.selectionStart = start;
                 editor.selectionEnd = start + selectedText.length - 4;
             } else {
-                // Bold 적용
                 const boldText = '**' + selectedText + '**';
                 const newText = text.substring(0, start) + boldText + text.substring(end);
                 editor.value = newText;
@@ -750,25 +767,8 @@
 
         function updatePreview() {
             const text = editor.value;
-
-            // 글자수 업데이트
             charCount.textContent = text.length;
 
-            // Markdown **bold** 패턴을 HTML <strong>으로 변환하여 미리보기
-            const previewText = text
-                .split(/(\*\*[^*]+\*\*)/g)
-                .map(part => {
-                    if (part.startsWith('**') && part.endsWith('**')) {
-                        const boldContent = part.slice(2, -2);
-                        return `<strong>${escapeHtml(boldContent)}</strong>`;
-                    }
-                    return escapeHtml(part);
-                })
-                .join('');
-
-            preview.innerHTML = previewText;
-
-            // Bold 단어 개수 세기
             const boldMatches = text.match(/\*\*[^*]+\*\*/g) || [];
             boldCount.textContent = boldMatches.length;
         }
@@ -779,7 +779,7 @@
             return div.innerHTML;
         }
 
-        // 버튼 이벤트
+        // Button events
         clearBtn.addEventListener('click', () => {
             if (editor.value && confirm('모든 텍스트를 삭제하시겠습니까?')) {
                 editor.value = '';
@@ -811,7 +811,7 @@
             });
         });
 
-        // 파일 저장 함수 (Server API 사용)
+        // File operations
         async function saveFile() {
             const fileName = fileNameInput.value.trim();
             const content = editor.value.trim();
@@ -828,47 +828,45 @@
             }
 
             try {
-                // localStorage에 저장
                 localStorage.setItem(`markdown_${fileName}`, content);
 
-                // 파일 목록도 localStorage에 저장
-                let files = JSON.parse(localStorage.getItem('markdown_files') || '[]');
-                if (!files.find(f => f.name === fileName)) {
-                    files.push({
+                let fileList = JSON.parse(localStorage.getItem('markdown_files') || '[]');
+                if (!fileList.find(f => f.name === fileName)) {
+                    fileList.push({
                         name: fileName,
                         title: fileName,
                         description: '사용자 생성 파일'
                     });
-                    localStorage.setItem('markdown_files', JSON.stringify(files));
+                    localStorage.setItem('markdown_files', JSON.stringify(fileList));
                 }
 
-                // UI 업데이트
-                fileNameInput.value = '';
-                updateFileList();
-
-                // 성공 메시지
-                const originalText = saveFileBtn.textContent;
-                saveFileBtn.textContent = '✓ 저장됨';
-                saveFileBtn.style.background = 'var(--success)';
+                const originalText = saveBtn.textContent;
+                saveBtn.textContent = '✓ 저장됨';
+                saveBtn.style.background = 'var(--success)';
                 setTimeout(() => {
-                    saveFileBtn.textContent = originalText;
-                    saveFileBtn.style.background = '';
+                    saveBtn.textContent = originalText;
+                    saveBtn.style.background = '';
                 }, 2000);
+
+                // Switch to list mode after save
+                switchMode('list');
             } catch (error) {
                 console.error('Save error:', error);
                 alert('파일 저장 중 오류가 발생했습니다');
             }
         }
 
-        // 파일 로드 함수 (localStorage/파일 모두 지원)
+        saveBtn.addEventListener('click', saveFile);
+        fileNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveFile();
+            }
+        });
+
         async function loadFile(fileName) {
             try {
-                let content = null;
+                let content = localStorage.getItem(`markdown_${fileName}`);
 
-                // 먼저 localStorage에서 찾기
-                content = localStorage.getItem(`markdown_${fileName}`);
-
-                // localStorage에 없으면 서버 파일에서 로드 시도
                 if (!content) {
                     try {
                         const response = await fetch(`./data/${encodeURIComponent(fileName)}`);
@@ -876,15 +874,14 @@
                             content = await response.text();
                         }
                     } catch (e) {
-                        console.log('Server file not found, using localStorage only');
+                        console.log('Server file not found');
                     }
                 }
 
                 if (content) {
                     editor.value = content;
                     updatePreview();
-                    fileNameInput.value = fileName;
-                    editor.focus();
+                    switchMode('edit', fileName);
                 } else {
                     alert('파일을 찾을 수 없습니다');
                 }
@@ -894,20 +891,17 @@
             }
         }
 
-        // 파일 삭제 함수 (localStorage에서만)
         async function deleteFile(fileName) {
             if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
                 return;
             }
 
             try {
-                // localStorage에서 파일 삭제
                 localStorage.removeItem(`markdown_${fileName}`);
 
-                // 파일 목록에서도 제거
-                let files = JSON.parse(localStorage.getItem('markdown_files') || '[]');
-                files = files.filter(f => f.name !== fileName);
-                localStorage.setItem('markdown_files', JSON.stringify(files));
+                let fileList = JSON.parse(localStorage.getItem('markdown_files') || '[]');
+                fileList = fileList.filter(f => f.name !== fileName);
+                localStorage.setItem('markdown_files', JSON.stringify(fileList));
 
                 updateFileList();
             } catch (error) {
@@ -916,24 +910,20 @@
             }
         }
 
-        // 파일 목록 업데이트 함수 (localStorage + 기본 파일)
         async function updateFileList() {
             try {
-                let files = [];
+                let filesList = [];
 
-                // localStorage에서 저장된 파일 가져오기
                 const savedFiles = JSON.parse(localStorage.getItem('markdown_files') || '[]');
-                files.push(...savedFiles);
+                filesList.push(...savedFiles);
 
-                // 기본 파일 목록도 추가
                 try {
                     const response = await fetch('./data-files.json');
                     if (response.ok) {
                         const defaultFiles = await response.json();
-                        // 중복 제거
                         for (const file of defaultFiles) {
-                            if (!files.find(f => f.name === file.name)) {
-                                files.push(file);
+                            if (!filesList.find(f => f.name === file.name)) {
+                                filesList.push(file);
                             }
                         }
                     }
@@ -941,12 +931,12 @@
                     console.log('Default files not available');
                 }
 
-                if (files.length === 0) {
+                if (filesList.length === 0) {
                     fileList.innerHTML = '<div class="empty-message">저장된 파일이 없습니다.</div>';
                     return;
                 }
 
-                fileList.innerHTML = files.map(file => `
+                fileList.innerHTML = filesList.map(file => `
                     <div class="file-item" onclick="loadFile('${file.name.replace(/'/g, "\\'")}')">
                         <div class="file-info">
                             <div class="file-name">📄 ${escapeHtml(file.title || file.name)}</div>
@@ -965,19 +955,10 @@
             }
         }
 
-        // 파일 관리 버튼 이벤트
-        saveFileBtn.addEventListener('click', saveFile);
-        fileNameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                saveFile();
-            }
-        });
-
-        // 페이지 로드 시
+        // Initialize
         setVh();
         window.addEventListener('resize', setVh);
         updateFileList();
-        editor.focus();
     </script>
 </body>
 </html>
