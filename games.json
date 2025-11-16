@@ -7,7 +7,7 @@
       "es": "Recordar Himno Nacional",
       "pt": "Lembrar Hino Nacional"
     },
-    "url": "Memory.html",
+    "url": "memory/Memory.html",
     "icon": "🇰🇷",
     "description": {
       "ko": "애국가 가사를 완성하는 스터디 게임! 무작위 모드와 Bold 퀴즈 모드로 재미있게 암기하세요.",
@@ -27,7 +27,7 @@
       "es": "Editor Markdown Negrita",
       "pt": "Editor Markdown Negrita"
     },
-    "url": "markdown_editor.html",
+    "url": "memory/markdown_editor.html",
     "icon": "✏️",
     "description": {
       "ko": "Ctrl+B로 Bold 마크다운을 쉽게 작성! 학습 자료를 만들고 저장하세요.",
