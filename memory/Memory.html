@@ -1702,9 +1702,11 @@
                             const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
 
                             if (nextInput && !nextInput.disabled) {
+                                // 다음 필드의 값을 비움 (이전 입력값이 들어오는 것을 방지)
+                                nextInput.value = '';
+
                                 // 즉시 포커스 (setTimeout 사용하지 않음)
                                 nextInput.focus();
-                                nextInput.click();
 
                                 // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
                                 setTimeout(() => {
@@ -1766,9 +1768,12 @@
 
                         if (nextInput && !nextInput.disabled) {
                             console.log(`다음 입력필드로 이동:`, nextInput.dataset.order);
+
+                            // 다음 필드의 값을 비움 (이전 입력값이 들어오는 것을 방지)
+                            nextInput.value = '';
+
                             // 즉시 포커스
                             nextInput.focus();
-                            nextInput.click();
 
                             // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
                             setTimeout(() => {
