@@ -7,6 +7,7 @@
       "es": "Recordar Himno Nacional",
       "pt": "Lembrar Hino Nacional"
     },
+    "url": "Memory.html",
     "icon": "🇰🇷",
     "description": {
       "ko": "애국가 가사를 완성하는 스터디 게임! 무작위 모드와 Bold 퀴즈 모드로 재미있게 암기하세요.",
@@ -15,7 +16,8 @@
       "es": "¡Juego de estudio para completar la letra del himno nacional! Memoriza fácilmente jugando en modo aleatorio y modo de prueba en negrita.",
       "pt": "Jogo de estudo para completar a letra do hino nacional! Aprenda facilmente jogando no modo aleatório e modo de quiz em negrito."
     },
-    "category": "learning"
+    "category": "learning",
+    "releaseDate": "2025-11-16"
   },
   {
     "name": {
@@ -25,6 +27,7 @@
       "es": "Editor Markdown Negrita",
       "pt": "Editor Markdown Negrita"
     },
+    "url": "markdown_editor.html",
     "icon": "✏️",
     "description": {
       "ko": "Ctrl+B로 Bold 마크다운을 쉽게 작성! 학습 자료를 만들고 저장하세요.",
@@ -33,7 +36,8 @@
       "es": "¡Escribe fácilmente markdown en negrita con Ctrl+B! ¡Crea y guarda tus materiales de estudio!",
       "pt": "Escreva facilmente markdown em negrita com Ctrl+B! Crie e salve seus materiais de estudo."
     },
-    "category": "learning"
+    "category": "learning",
+    "releaseDate": "2025-11-16"
   },
   {
     "name": {
@@ -43,6 +47,7 @@
       "es": "Guerra Galáctica",
       "pt": "Guerra Galáctica"
     },
+    "url": "galaxy_war.html",
     "icon": "🚀",
     "description": {
       "ko": "3D 우주 슈팅! 다가오는 적들을 격파하세요. 5가지 적 타입별 화려한 폭발 효과!",
@@ -51,7 +56,8 @@
       "es": "¡Shooter espacial 3D! Derrota a los enemigos entrantes. 5 tipos de enemigos con efectos de explosión espectaculares!",
       "pt": "Atirador espacial 3D! Derrote os inimigos que chegam. 5 tipos de inimigos com efeitos de explosão espetaculares!"
     },
-    "category": "action"
+    "category": "action",
+    "releaseDate": "2025-09-15"
   },
   {
     "name": {
@@ -61,6 +67,7 @@
       "es": "Star Wars X-Wing",
       "pt": "Star Wars X-Wing"
     },
+    "url": "xwing.html",
     "icon": "✈️",
     "description": {
       "ko": "조준선을 드래그해서 타이파이터를 격추! 자동 조준 레이저로 우주 전투를 즐겨보세요!",
@@ -69,7 +76,8 @@
       "es": "¡Arrastra la mira para derribar TIE Fighters! ¡Disfruta del combate espacial con láseres de apuntado automático!",
       "pt": "Arraste a mira para derrubar TIE Fighters! Desfrute de combate espacial com lasers de mira automática!"
     },
-    "category": "action"
+    "category": "action",
+    "releaseDate": "2025-09-20"
   },
   {
     "name": {
@@ -79,6 +87,7 @@
       "es": "Defensor de Cañón",
       "pt": "Defensor de Canhão"
     },
+    "url": "cannon_defender.html",
     "icon": "🎯",
     "description": {
       "ko": "5개 레인에서 낙하하는 적들을 대포로 격파! 콤보와 웨이브 시스템으로 높은 점수를 노려보세요!",
@@ -87,7 +96,8 @@
       "es": "¡Derrota enemigos que caen en 5 carriles con cañones! ¡Apunta a puntajes altos con sistemas de combo y oleadas!",
       "pt": "Derrote inimigos caindo em 5 pistas com canhões! Busque pontuações altas com sistemas de combo e ondas!"
     },
-    "category": "action"
+    "category": "action",
+    "releaseDate": "2025-09-22"
   },
   {
     "name": {
@@ -97,6 +107,7 @@
       "es": "Defensa de Dibujo de Líneas",
       "pt": "Defesa de Desenho de Linha"
     },
+    "url": "line_draw_defense.html",
     "icon": "🔥",
     "description": {
       "ko": "손가락으로 선을 그어 방어벽을 만들고, 불타는 선으로 적을 태워버리세요!",
@@ -105,7 +116,8 @@
       "es": "¡Dibuja líneas con tu dedo para crear barreras y quema enemigos con líneas en llamas!",
       "pt": "Desenhe linhas com o dedo para criar barreiras e queime inimigos com linhas flamejantes!"
     },
-    "category": "action"
+    "category": "action",
+    "releaseDate": "2025-09-25"
   },
   {
     "name": {
@@ -115,6 +127,7 @@
       "es": "Corte Ninja",
       "pt": "Corte Ninja"
     },
+    "url": "ninja_slash.html",
     "icon": "⚔️",
     "description": {
       "ko": "날아오는 과일을 베고, 폭탄을 피하세요! 화려한 베기 이펙트와 콤보 시스템!",
@@ -123,6 +136,1087 @@
       "es": "¡Corta frutas voladoras y evita bombas! ¡Efectos de corte espectaculares y sistema de combos!",
       "pt": "Corte frutas voadoras e evite bombas! Efeitos de corte espetaculares e sistema de combo!"
     },
-    "category": "action"
+    "category": "action",
+    "releaseDate": "2025-09-28"
+  },
+  {
+    "name": {
+      "ko": "펀치 러쉬",
+      "en": "Punch Rush",
+      "zh-CN": "拳击冲刺",
+      "es": "Golpe Rápido",
+      "pt": "Soco Rápido"
+    },
+    "url": "punch_rush.html",
+    "icon": "🥊",
+    "description": {
+      "ko": "샌드백을 빠르게 터치해서 연속 펀치! 시원한 타격감과 파티클 효과!",
+      "en": "Rapidly tap the punching bag for combo hits! Satisfying impact with particle effects!",
+      "zh-CN": "快速点击沙袋进行连击！令人满意的冲击力和粒子效果！",
+      "es": "¡Toca rápidamente el saco de boxeo para golpes combo! ¡Impacto satisfactorio con efectos de partículas!",
+      "pt": "Toque rapidamente no saco de pancadas para golpes combo! Impacto satisfatório com efeitos de partículas!"
+    },
+    "category": "action",
+    "releaseDate": "2025-10-01"
+  },
+  {
+    "name": {
+      "ko": "아처 마스터",
+      "en": "Archer Master",
+      "zh-CN": "射箭大师",
+      "es": "Maestro Arquero",
+      "pt": "Mestre Arqueiro"
+    },
+    "url": "archer_master.html",
+    "icon": "🏹",
+    "description": {
+      "ko": "드래그해서 화살을 쏘고 표적을 맞추세요! 바람과 거리를 계산하는 실감나는 물리 엔진!",
+      "en": "Drag to shoot arrows and hit targets! Realistic physics with wind and distance calculations!",
+      "zh-CN": "拖动射箭并击中目标！具有风力和距离计算的真实物理引擎！",
+      "es": "¡Arrastra para disparar flechas y golpear objetivos! ¡Física realista con cálculos de viento y distancia!",
+      "pt": "Arraste para atirar flechas e acertar alvos! Física realista com cálculos de vento e distância!"
+    },
+    "category": "action",
+    "releaseDate": "2025-10-03"
+  },
+  {
+    "name": {
+      "ko": "엔드리스 러너",
+      "en": "Endless Runner",
+      "zh-CN": "无尽奔跑",
+      "es": "Corredor Sin Fin",
+      "pt": "Corredor Sem Fim"
+    },
+    "url": "endless_runner.html",
+    "icon": "🏃",
+    "description": {
+      "ko": "끝없이 달리며 장애물을 피하고 코인을 수집하세요! 속도가 점점 빨라집니다!",
+      "en": "Run endlessly, dodge obstacles, and collect coins! Speed increases gradually!",
+      "zh-CN": "无尽奔跑，躲避障碍物并收集硬币！速度逐渐增加！",
+      "es": "¡Corre sin fin, esquiva obstáculos y colecta monedas! ¡La velocidad aumenta gradualmente!",
+      "pt": "Corra sem parar, desvie de obstáculos e colete moedas! A velocidade aumenta gradualmente!"
+    },
+    "category": "action",
+    "releaseDate": "2025-10-05"
+  },
+  {
+    "name": {
+      "ko": "좀비 서바이벌",
+      "en": "Zombie Survival",
+      "zh-CN": "僵尸生存",
+      "es": "Supervivencia Zombie",
+      "pt": "Sobrevivência Zumbi"
+    },
+    "url": "zombie_survival.html",
+    "icon": "🧟",
+    "description": {
+      "ko": "좀비들을 피해 최대한 오래 생존하세요! 생존 시간을 기록하세요!",
+      "en": "Survive as long as possible while avoiding zombies! Record your survival time!",
+      "zh-CN": "躲避僵尸尽可能长时间生存！记录您的生存时间！",
+      "es": "¡Sobrevive el mayor tiempo posible mientras evitas zombies! ¡Registra tu tiempo de supervivencia!",
+      "pt": "Sobreviva o máximo possível enquanto evita zumbis! Registre seu tempo de sobrevivência!"
+    },
+    "category": "action",
+    "releaseDate": "2025-08-20"
+  },
+  {
+    "name": {
+      "ko": "스페이스 인베이더",
+      "en": "Space Invaders",
+      "zh-CN": "太空侵略者",
+      "es": "Invasores Espaciales",
+      "pt": "Invasores Espaciais"
+    },
+    "url": "space_invaders.html",
+    "icon": "👾",
+    "description": {
+      "ko": "클래식 슈팅 게임! 외계인을 격추하고 지구를 지키세요!",
+      "en": "Classic shooting game! Shoot down aliens and defend Earth!",
+      "zh-CN": "经典射击游戏！击落外星人并保卫地球！",
+      "es": "¡Juego de tiro clásico! ¡Dispara a los alienígenas y defiende la Tierra!",
+      "pt": "Jogo de tiro clássico! Abata alienígenas e defenda a Terra!"
+    },
+    "category": "action",
+    "releaseDate": "2025-08-15"
+  },
+  {
+    "name": {
+      "ko": "파이터 배틀",
+      "en": "Fighter Battle",
+      "zh-CN": "战士对决",
+      "es": "Batalla de Luchadores",
+      "pt": "Batalha de Lutadores"
+    },
+    "url": "fighter_battle.html",
+    "icon": "⚔️",
+    "description": {
+      "ko": "2인 동시 대전 격투 게임! WASD vs 방향키로 실시간 공격과 방어를 펼치세요!",
+      "en": "2-player fighting game! WASD vs Arrow keys for real-time attacks and defense!",
+      "zh-CN": "双人格斗游戏！WASD对方向键进行实时攻击和防御！",
+      "es": "¡Juego de lucha para 2 jugadores! ¡WASD vs teclas de dirección para ataques y defensa en tiempo real!",
+      "pt": "Jogo de luta para 2 jogadores! WASD vs teclas de seta para ataques e defesa em tempo real!"
+    },
+    "category": "action",
+    "releaseDate": "2025-10-07"
+  },
+  {
+    "name": {
+      "ko": "베이스볼 슬러거",
+      "en": "Baseball Slugger",
+      "zh-CN": "棒球击球手",
+      "es": "Bateador de Béisbol",
+      "pt": "Rebatedor de Beisebol"
+    },
+    "url": "baseball_slugger.html",
+    "icon": "⚾",
+    "description": {
+      "ko": "타자 시점에서 날아오는 공을 타이밍에 맞춰 타격! 홈런을 노려보세요!",
+      "en": "Hit the ball with perfect timing from batter's perspective! Aim for home runs!",
+      "zh-CN": "从击球手的视角以完美的时机击球！瞄准本垒打！",
+      "es": "¡Golpea la pelota con el tiempo perfecto desde la perspectiva del bateador! ¡Apunta a jonrones!",
+      "pt": "Acerte a bola com tempo perfeito da perspectiva do rebatedor! Mire nas corridas em casa!"
+    },
+    "category": "action",
+    "releaseDate": "2025-10-08"
+  },
+  {
+    "name": {
+      "ko": "테트리스 매니아",
+      "en": "Tetris Mania",
+      "zh-CN": "俄罗斯方块狂热",
+      "es": "Tetris Manía",
+      "pt": "Tetris Mania"
+    },
+    "url": "tetris.html",
+    "icon": "🎮",
+    "description": {
+      "ko": "클래식 테트리스에 화려한 파티클 효과 추가! 라인 클리어할 때마다 폭발하는 파티클로 스트레스 해소!",
+      "en": "Classic Tetris with spectacular particle effects! Explosive particles with every line clear for stress relief!",
+      "zh-CN": "经典俄罗斯方块加上壮观的粒子效果！每次消除行时爆炸的粒子可缓解压力！",
+      "es": "¡Tetris clásico con efectos de partículas espectaculares! ¡Partículas explosivas con cada línea despejada para aliviar el estrés!",
+      "pt": "Tetris clássico com efeitos de partículas espetaculares! Partículas explosivas a cada linha limpa para alívio do estresse!"
+    },
+    "category": "puzzle",
+    "releaseDate": "2025-08-10"
+  },
+  {
+    "name": {
+      "ko": "2048 익스플로전",
+      "en": "2048 Explosion",
+      "zh-CN": "2048爆炸",
+      "es": "2048 Explosión",
+      "pt": "2048 Explosão"
+    },
+    "url": "2048_explosion.html",
+    "icon": "🔢",
+    "description": {
+      "ko": "숫자를 합쳐 2048을 만드세요! 합칠 때마다 화려한 폭발 효과!",
+      "en": "Merge numbers to create 2048! Spectacular explosion effects with every merge!",
+      "zh-CN": "合并数字以创建2048！每次合并都有壮观的爆炸效果！",
+      "es": "¡Fusiona números para crear 2048! ¡Efectos de explosión espectaculares con cada fusión!",
+      "pt": "Mescle números para criar 2048! Efeitos de explosão espetaculares a cada fusão!"
+    },
+    "category": "puzzle",
+    "releaseDate": "2025-08-12"
+  },
+  {
+    "name": {
+      "ko": "매치 3 매니아",
+      "en": "Match 3 Mania",
+      "zh-CN": "三消狂热",
+      "es": "Match 3 Manía",
+      "pt": "Match 3 Mania"
+    },
+    "url": "match3_mania.html",
+    "icon": "💎",
+    "description": {
+      "ko": "같은 색 보석을 3개 이상 맞추세요! 캐스케이드 효과와 특수 보석으로 높은 점수!",
+      "en": "Match 3 or more gems of the same color! Cascade effects and special gems for high scores!",
+      "zh-CN": "匹配3个或更多相同颜色的宝石！级联效果和特殊宝石获得高分！",
+      "es": "¡Combina 3 o más gemas del mismo color! ¡Efectos en cascada y gemas especiales para puntajes altos!",
+      "pt": "Combine 3 ou mais gemas da mesma cor! Efeitos em cascata e gemas especiais para pontuações altas!"
+    },
+    "category": "puzzle",
+    "releaseDate": "2025-08-18"
+  },
+  {
+    "name": {
+      "ko": "아이스 브레이커",
+      "en": "Ice Breaker",
+      "zh-CN": "破冰者",
+      "es": "Rompehielos",
+      "pt": "Quebra-Gelo"
+    },
+    "url": "ice_breaker.html",
+    "icon": "🧊",
+    "description": {
+      "ko": "같은 색 블록을 터치해서 깨뜨리세요! 연쇄 효과로 큰 점수를 노려보세요!",
+      "en": "Tap same-colored blocks to break them! Aim for big scores with chain reactions!",
+      "zh-CN": "点击相同颜色的方块将其打破！通过连锁反应争取高分！",
+      "es": "¡Toca bloques del mismo color para romperlos! ¡Apunta a grandes puntajes con reacciones en cadena!",
+      "pt": "Toque em blocos da mesma cor para quebrá-los! Busque grandes pontuações com reações em cadeia!"
+    },
+    "category": "puzzle",
+    "releaseDate": "2025-08-25"
+  },
+  {
+    "name": {
+      "ko": "컬러 플로우",
+      "en": "Color Flow",
+      "zh-CN": "颜色流动",
+      "es": "Flujo de Color",
+      "pt": "Fluxo de Cor"
+    },
+    "url": "color_flow.html",
+    "icon": "🎨",
+    "description": {
+      "ko": "파이프를 연결해서 같은 색끼리 이어주세요! 복잡한 퍼즐을 풀어보세요!",
+      "en": "Connect pipes to link matching colors! Solve complex puzzles!",
+      "zh-CN": "连接管道以链接匹配的颜色！解决复杂的谜题！",
+      "es": "¡Conecta tuberías para enlazar colores coincidentes! ¡Resuelve rompecabezas complejos!",
+      "pt": "Conecte tubos para vincular cores correspondentes! Resolva quebra-cabeças complexos!"
+    },
+    "category": "puzzle",
+    "releaseDate": "2025-09-01"
+  },
+  {
+    "name": {
+      "ko": "미로 탈출",
+      "en": "Maze Escape",
+      "zh-CN": "迷宫逃脱",
+      "es": "Escape del Laberinto",
+      "pt": "Fuga do Labirinto"
+    },
+    "url": "maze_escape.html",
+    "icon": "🧩",
+    "description": {
+      "ko": "미로를 탐험하고 출구를 찾으세요! 화살표 키로 이동!",
+      "en": "Explore the maze and find the exit! Move with arrow keys!",
+      "zh-CN": "探索迷宫并找到出口！使用方向键移动！",
+      "es": "¡Explora el laberinto y encuentra la salida! ¡Muévete con las teclas de dirección!",
+      "pt": "Explore o labirinto e encontre a saída! Mova-se com as teclas de seta!"
+    },
+    "category": "puzzle",
+    "releaseDate": "2025-09-05"
+  },
+  {
+    "name": {
+      "ko": "메모리 매치",
+      "en": "Memory Match",
+      "zh-CN": "记忆配对",
+      "es": "Emparejamiento de Memoria",
+      "pt": "Correspondência de Memória"
+    },
+    "url": "memory_match.html",
+    "icon": "🧠",
+    "description": {
+      "ko": "카드를 뒤집어 같은 그림 찾기! 기억력 테스트!",
+      "en": "Flip cards to find matching pairs! Memory test!",
+      "zh-CN": "翻转卡片找到匹配的对！记忆力测试！",
+      "es": "¡Voltea cartas para encontrar pares coincidentes! ¡Prueba de memoria!",
+      "pt": "Vire cartas para encontrar pares correspondentes! Teste de memória!"
+    },
+    "category": "puzzle",
+    "releaseDate": "2025-09-10"
+  },
+  {
+    "name": {
+      "ko": "단어 맞추기",
+      "en": "Word Guess",
+      "zh-CN": "猜词游戏",
+      "es": "Adivina la Palabra",
+      "pt": "Adivinhe a Palavra"
+    },
+    "url": "word_guess.html",
+    "icon": "🔤",
+    "description": {
+      "ko": "숨겨진 단어를 맞추세요! 행맨 스타일 게임!",
+      "en": "Guess the hidden word! Hangman-style game!",
+      "zh-CN": "猜出隐藏的单词！刽子手风格游戏！",
+      "es": "¡Adivina la palabra oculta! ¡Juego estilo ahorcado!",
+      "pt": "Adivinhe a palavra escondida! Jogo estilo forca!"
+    },
+    "category": "puzzle",
+    "releaseDate": "2025-09-12"
+  },
+  {
+    "name": {
+      "ko": "탭 매니아",
+      "en": "Tap Mania",
+      "zh-CN": "点击狂热",
+      "es": "Toque Manía",
+      "pt": "Toque Mania"
+    },
+    "url": "tab_mania.html",
+    "icon": "💥",
+    "description": {
+      "ko": "30초 안에 나타나는 버튼들을 빠르게 탭! 콤보와 특수 버튼으로 높은 점수를 노려보세요!",
+      "en": "Quickly tap appearing buttons within 30 seconds! Aim for high scores with combos and special buttons!",
+      "zh-CN": "在30秒内快速点击出现的按钮！通过连击和特殊按钮争取高分！",
+      "es": "¡Toca rápidamente los botones que aparecen en 30 segundos! ¡Apunta a puntajes altos con combos y botones especiales!",
+      "pt": "Toque rapidamente nos botões que aparecem em 30 segundos! Busque pontuações altas com combos e botões especiais!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-07-15"
+  },
+  {
+    "name": {
+      "ko": "탭탭탭",
+      "en": "Tap Tap Tap",
+      "zh-CN": "点点点",
+      "es": "Toque Toque Toque",
+      "pt": "Toque Toque Toque"
+    },
+    "url": "tabtabtab.html",
+    "icon": "👆",
+    "description": {
+      "ko": "화면을 빠르게 탭해서 점수를 얻으세요!",
+      "en": "Rapidly tap the screen to score points!",
+      "zh-CN": "快速点击屏幕以获得分数！",
+      "es": "¡Toca rápidamente la pantalla para obtener puntos!",
+      "pt": "Toque rapidamente na tela para marcar pontos!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-07-20"
+  },
+  {
+    "name": {
+      "ko": "타겟 슈터",
+      "en": "Target Shooter",
+      "zh-CN": "目标射击",
+      "es": "Tirador de Objetivos",
+      "pt": "Atirador de Alvos"
+    },
+    "url": "target_shooter.html",
+    "icon": "🎯",
+    "description": {
+      "ko": "나타나는 타겟을 빠르게 터치! 정확도와 속도를 겨루는 반사신경 게임!",
+      "en": "Quickly touch appearing targets! Reflex game testing accuracy and speed!",
+      "zh-CN": "快速触摸出现的目标！测试准确性和速度的反射游戏！",
+      "es": "¡Toca rápidamente los objetivos que aparecen! ¡Juego de reflejos que prueba precisión y velocidad!",
+      "pt": "Toque rapidamente nos alvos que aparecem! Jogo de reflexo testando precisão e velocidade!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-07-25"
+  },
+  {
+    "name": {
+      "ko": "다트 게임",
+      "en": "Dart Game",
+      "zh-CN": "飞镖游戏",
+      "es": "Juego de Dardos",
+      "pt": "Jogo de Dardos"
+    },
+    "url": "dart_game.html",
+    "icon": "🎯",
+    "description": {
+      "ko": "터치/드래그로 다트를 조준하고 발사! 멀리 있는 과녁을 맞춰 고득점을 노려보세요!",
+      "en": "Aim and throw darts with touch/drag! Hit the distant target for high scores!",
+      "zh-CN": "通过触摸/拖动瞄准并投掷飞镖！击中远处的靶子获得高分！",
+      "es": "¡Apunta y lanza dardos con toque/arrastre! ¡Golpea el objetivo distante para puntajes altos!",
+      "pt": "Mire e lance dardos com toque/arrastar! Acerte o alvo distante para pontuações altas!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-10-10"
+  },
+  {
+    "name": {
+      "ko": "스핀 마스터",
+      "en": "Spin Master",
+      "zh-CN": "旋转大师",
+      "es": "Maestro del Giro",
+      "pt": "Mestre do Giro"
+    },
+    "url": "spin_master.html",
+    "icon": "🌀",
+    "description": {
+      "ko": "회전하는 원판에 핀을 꽂으세요! 타이밍을 맞춰 완벽한 샷을 노려보세요!",
+      "en": "Insert pins into the spinning wheel! Time your shots perfectly!",
+      "zh-CN": "将别针插入旋转的轮子！完美把握时机！",
+      "es": "¡Inserta pines en la rueda giratoria! ¡Cronometra tus disparos perfectamente!",
+      "pt": "Insira pinos na roda giratória! Acerte o tempo dos seus disparos perfeitamente!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-08-01"
+  },
+  {
+    "name": {
+      "ko": "후프 매니아",
+      "en": "Hoop Mania",
+      "zh-CN": "篮筐狂热",
+      "es": "Aro Manía",
+      "pt": "Aro Mania"
+    },
+    "url": "hoop_mania.html",
+    "icon": "🏀",
+    "description": {
+      "ko": "농구공을 스와이프해서 골대에 넣으세요! 연속 성공으로 점수 배율 증가!",
+      "en": "Swipe to shoot basketballs into the hoop! Score multiplier increases with consecutive shots!",
+      "zh-CN": "滑动将篮球投入篮筐！连续成功得分倍数增加！",
+      "es": "¡Desliza para lanzar baloncesto en el aro! ¡El multiplicador de puntuación aumenta con tiros consecutivos!",
+      "pt": "Deslize para arremessar bolas de basquete na cesta! Multiplicador de pontuação aumenta com arremessos consecutivos!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-08-05"
+  },
+  {
+    "name": {
+      "ko": "라이트닝 리액션",
+      "en": "Lightning Reaction",
+      "zh-CN": "闪电反应",
+      "es": "Reacción Relámpago",
+      "pt": "Reação Relâmpago"
+    },
+    "url": "lightning_reaction.html",
+    "icon": "⚡",
+    "description": {
+      "ko": "화면이 변하는 순간 터치! 반응속도를 극한까지 테스트하는 게임!",
+      "en": "Touch the moment the screen changes! Test your reaction speed to the limit!",
+      "zh-CN": "在屏幕变化的瞬间触摸！将反应速度测试到极限！",
+      "es": "¡Toca en el momento en que cambia la pantalla! ¡Prueba tu velocidad de reacción al límite!",
+      "pt": "Toque no momento em que a tela muda! Teste sua velocidade de reação ao limite!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-08-08"
+  },
+  {
+    "name": {
+      "ko": "두더지 잡기",
+      "en": "Whack-A-Mole",
+      "zh-CN": "打地鼠",
+      "es": "Golpea al Topo",
+      "pt": "Bata na Toupeira"
+    },
+    "url": "whack_mole.html",
+    "icon": "🔨",
+    "description": {
+      "ko": "나타나는 두더지를 빠르게 터치! 클래식 아케이드 게임!",
+      "en": "Quickly tap appearing moles! Classic arcade game!",
+      "zh-CN": "快速点击出现的地鼠！经典街机游戏！",
+      "es": "¡Toca rápidamente los topos que aparecen! ¡Juego arcade clásico!",
+      "pt": "Toque rapidamente nas toupeiras que aparecem! Jogo arcade clássico!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-07-10"
+  },
+  {
+    "name": {
+      "ko": "브레이크아웃",
+      "en": "Breakout",
+      "zh-CN": "打砖块",
+      "es": "Breakout",
+      "pt": "Breakout"
+    },
+    "url": "breakout.html",
+    "icon": "🧱",
+    "description": {
+      "ko": "공을 튕겨 벽돌을 깨트리세요! 클래식 벽돌깨기!",
+      "en": "Bounce the ball to break bricks! Classic brick breaker!",
+      "zh-CN": "弹球打破砖块！经典打砖块游戏！",
+      "es": "¡Rebota la pelota para romper ladrillos! ¡Rompedor de ladrillos clásico!",
+      "pt": "Rebata a bola para quebrar tijolos! Quebrador de tijolos clássico!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-07-05"
+  },
+  {
+    "name": {
+      "ko": "퐁",
+      "en": "Pong",
+      "zh-CN": "乒乓球",
+      "es": "Pong",
+      "pt": "Pong"
+    },
+    "url": "pong.html",
+    "icon": "🏓",
+    "description": {
+      "ko": "AI와 탁구 대결! 역사적인 게임의 재현!",
+      "en": "Table tennis battle vs AI! Recreation of the historic game!",
+      "zh-CN": "与AI对战乒乓球！历史游戏的重现！",
+      "es": "¡Batalla de tenis de mesa contra IA! ¡Recreación del juego histórico!",
+      "pt": "Batalha de tênis de mesa contra IA! Recriação do jogo histórico!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-07-01"
+  },
+  {
+    "name": {
+      "ko": "풍선 터뜨리기",
+      "en": "Balloon Pop",
+      "zh-CN": "气球爆破",
+      "es": "Estalla Globos",
+      "pt": "Estoura Balão"
+    },
+    "url": "balloon_pop.html",
+    "icon": "🎈",
+    "description": {
+      "ko": "올라가는 풍선을 터치해서 터뜨리세요! 시간 안에 최대한 많이!",
+      "en": "Touch and pop rising balloons! Pop as many as possible within the time!",
+      "zh-CN": "触摸并弹出上升的气球！在时间内尽可能多地弹出！",
+      "es": "¡Toca y revienta globos que suben! ¡Revienta tantos como sea posible dentro del tiempo!",
+      "pt": "Toque e estoure balões subindo! Estoure o máximo possível dentro do tempo!"
+    },
+    "category": "arcade",
+    "releaseDate": "2025-08-10"
+  },
+  {
+    "name": {
+      "ko": "피아노 타일즈",
+      "en": "Piano Tiles",
+      "zh-CN": "钢琴块",
+      "es": "Baldosas de Piano",
+      "pt": "Blocos de Piano"
+    },
+    "url": "piano_tiles.html",
+    "icon": "🎹",
+    "description": {
+      "ko": "떨어지는 타일을 리듬에 맞춰 터치! 완벽한 타이밍으로 곡을 완성하세요!",
+      "en": "Tap falling tiles to the rhythm! Complete the song with perfect timing!",
+      "zh-CN": "按节奏点击下落的瓷砖！以完美的时机完成歌曲！",
+      "es": "¡Toca las baldosas que caen al ritmo! ¡Completa la canción con el tiempo perfecto!",
+      "pt": "Toque os blocos que caem no ritmo! Complete a música com tempo perfeito!"
+    },
+    "category": "rhythm",
+    "releaseDate": "2025-06-15"
+  },
+  {
+    "name": {
+      "ko": "드럼 비트",
+      "en": "Drum Beat",
+      "zh-CN": "鼓点",
+      "es": "Ritmo de Tambor",
+      "pt": "Batida de Tambor"
+    },
+    "url": "drum_beat.html",
+    "icon": "🥁",
+    "description": {
+      "ko": "3개의 퍼커션 패드를 터치해서 리듬을 만드세요! 화려한 비트 효과!",
+      "en": "Touch 3 percussion pads to create rhythms! Spectacular beat effects!",
+      "zh-CN": "触摸3个打击垫创建节奏！壮观的节拍效果！",
+      "es": "¡Toca 3 pads de percusión para crear ritmos! ¡Efectos de ritmo espectaculares!",
+      "pt": "Toque em 3 pads de percussão para criar ritmos! Efeitos de batida espetaculares!"
+    },
+    "category": "rhythm",
+    "releaseDate": "2025-06-20"
+  },
+  {
+    "name": {
+      "ko": "기타 히어로",
+      "en": "Guitar Hero",
+      "zh-CN": "吉他英雄",
+      "es": "Héroe de la Guitarra",
+      "pt": "Herói da Guitarra"
+    },
+    "url": "guitar_hero.html",
+    "icon": "🎸",
+    "description": {
+      "ko": "화면에 나타나는 노트를 정확하게 터치! 록스타가 되어보세요!",
+      "en": "Accurately tap notes appearing on screen! Become a rock star!",
+      "zh-CN": "准确点击屏幕上出现的音符！成为摇滚明星！",
+      "es": "¡Toca con precisión las notas que aparecen en la pantalla! ¡Conviértete en una estrella de rock!",
+      "pt": "Toque com precisão as notas que aparecem na tela! Torne-se uma estrela do rock!"
+    },
+    "category": "rhythm",
+    "releaseDate": "2025-06-25"
+  },
+  {
+    "name": {
+      "ko": "댄스 레볼루션",
+      "en": "Dance Revolution",
+      "zh-CN": "舞蹈革命",
+      "es": "Revolución de Baile",
+      "pt": "Revolução da Dança"
+    },
+    "url": "dance_revolution.html",
+    "icon": "💃",
+    "description": {
+      "ko": "화살표 방향으로 스와이프! 리듬에 맞춰 댄스 무브를 완성하세요!",
+      "en": "Swipe in arrow directions! Complete dance moves to the rhythm!",
+      "zh-CN": "按箭头方向滑动！按节奏完成舞蹈动作！",
+      "es": "¡Desliza en direcciones de flechas! ¡Completa movimientos de baile al ritmo!",
+      "pt": "Deslize nas direções das setas! Complete movimentos de dança no ritmo!"
+    },
+    "category": "rhythm",
+    "releaseDate": "2025-07-01"
+  },
+  {
+    "name": {
+      "ko": "비트 드롭",
+      "en": "Beat Drop",
+      "zh-CN": "节拍下降",
+      "es": "Caída de Ritmo",
+      "pt": "Queda de Batida"
+    },
+    "url": "beat_drop.html",
+    "icon": "🎤",
+    "description": {
+      "ko": "떨어지는 비트를 맞춰 터치! EDM 음악과 함께하는 화려한 리듬 게임!",
+      "en": "Tap falling beats on time! Spectacular rhythm game with EDM music!",
+      "zh-CN": "按时点击下落的节拍！带有EDM音乐的壮观节奏游戏！",
+      "es": "¡Toca los ritmos que caen a tiempo! ¡Juego de ritmo espectacular con música EDM!",
+      "pt": "Toque as batidas que caem no tempo! Jogo de ritmo espetacular com música EDM!"
+    },
+    "category": "rhythm",
+    "releaseDate": "2025-07-05"
+  },
+  {
+    "name": {
+      "ko": "스네이크 클래식",
+      "en": "Snake Classic",
+      "zh-CN": "贪吃蛇经典",
+      "es": "Serpiente Clásica",
+      "pt": "Cobra Clássica"
+    },
+    "url": "snake_classic.html",
+    "icon": "🐍",
+    "description": {
+      "ko": "먹이를 먹고 길어지는 뱀을 조종하세요! 클래식 게임의 현대적 재해석!",
+      "en": "Control a growing snake as it eats! Modern reinterpretation of the classic!",
+      "zh-CN": "控制吃东西时不断增长的蛇！经典游戏的现代诠释！",
+      "es": "¡Controla una serpiente que crece mientras come! ¡Reinterpretación moderna del clásico!",
+      "pt": "Controle uma cobra que cresce enquanto come! Reinterpretação moderna do clássico!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-06-10"
+  },
+  {
+    "name": {
+      "ko": "플래피 드래곤",
+      "en": "Flappy Dragon",
+      "zh-CN": "扑腾龙",
+      "es": "Dragón Aleteante",
+      "pt": "Dragão Batedor"
+    },
+    "url": "flappy_dragon.html",
+    "icon": "🐉",
+    "description": {
+      "ko": "장애물을 피해 날아가세요! 간단하지만 중독성 강한 게임!",
+      "en": "Fly while avoiding obstacles! Simple yet highly addictive game!",
+      "zh-CN": "躲避障碍物飞行！简单却极易上瘾的游戏！",
+      "es": "¡Vuela mientras evitas obstáculos! ¡Juego simple pero altamente adictivo!",
+      "pt": "Voe enquanto evita obstáculos! Jogo simples, mas altamente viciante!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-06-05"
+  },
+  {
+    "name": {
+      "ko": "버블 팝",
+      "en": "Bubble Pop",
+      "zh-CN": "泡泡爆破",
+      "es": "Estalla Burbujas",
+      "pt": "Estoura Bolha"
+    },
+    "url": "bubble_pop.html",
+    "icon": "🎈",
+    "description": {
+      "ko": "터치해서 풍선을 터뜨리세요! 시원한 터지는 소리와 함께 스트레스 해소!",
+      "en": "Tap to pop bubbles! Stress relief with satisfying popping sounds!",
+      "zh-CN": "点击弹出气泡！令人满意的爆破声缓解压力！",
+      "es": "¡Toca para reventar burbujas! ¡Alivio del estrés con sonidos de estallido satisfactorios!",
+      "pt": "Toque para estourar bolhas! Alívio do estresse com sons de estouro satisfatórios!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-06-01"
+  },
+  {
+    "name": {
+      "ko": "럭키 다이스",
+      "en": "Lucky Dice",
+      "zh-CN": "幸运骰子",
+      "es": "Dados de la Suerte",
+      "pt": "Dados da Sorte"
+    },
+    "url": "lucky_dice.html",
+    "icon": "🎲",
+    "description": {
+      "ko": "주사위를 굴려 행운을 시험하세요! 다양한 미니게임으로 보상 획득!",
+      "en": "Roll the dice and test your luck! Earn rewards through various mini-games!",
+      "zh-CN": "掷骰子测试你的运气！通过各种小游戏赚取奖励！",
+      "es": "¡Lanza los dados y prueba tu suerte! ¡Gana recompensas a través de varios minijuegos!",
+      "pt": "Role os dados e teste sua sorte! Ganhe recompensas através de vários minijogos!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-05-28"
+  },
+  {
+    "name": {
+      "ko": "캔디 크러쉬",
+      "en": "Candy Crush",
+      "zh-CN": "糖果粉碎",
+      "es": "Candy Crush",
+      "pt": "Candy Crush"
+    },
+    "url": "candy_crush.html",
+    "icon": "🍬",
+    "description": {
+      "ko": "달콤한 사탕을 매치하세요! 3개 이상 매치로 연쇄 폭발!",
+      "en": "Match sweet candies! Chain explosions with 3 or more matches!",
+      "zh-CN": "匹配甜蜜的糖果！3个或更多匹配的连锁爆炸！",
+      "es": "¡Combina dulces! ¡Explosiones en cadena con 3 o más coincidencias!",
+      "pt": "Combine doces! Explosões em cadeia com 3 ou mais correspondências!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-05-25"
+  },
+  {
+    "name": {
+      "ko": "박스 오픈",
+      "en": "Box Open",
+      "zh-CN": "开箱",
+      "es": "Abrir Caja",
+      "pt": "Abrir Caixa"
+    },
+    "url": "box_open.html",
+    "icon": "🎁",
+    "description": {
+      "ko": "상자를 열어 보상을 획득하세요! 레전더리를 찾아라!",
+      "en": "Open boxes to earn rewards! Find the legendary items!",
+      "zh-CN": "打开盒子赚取奖励！找到传奇物品！",
+      "es": "¡Abre cajas para ganar recompensas! ¡Encuentra los objetos legendarios!",
+      "pt": "Abra caixas para ganhar recompensas! Encontre os itens lendários!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-05-20"
+  },
+  {
+    "name": {
+      "ko": "점프 마스터",
+      "en": "Jump Master",
+      "zh-CN": "跳跃大师",
+      "es": "Maestro del Salto",
+      "pt": "Mestre do Salto"
+    },
+    "url": "jump_master.html",
+    "icon": "🦘",
+    "description": {
+      "ko": "플랫폼을 점프하며 최대한 멀리 가세요!",
+      "en": "Jump across platforms and go as far as possible!",
+      "zh-CN": "跳过平台，尽可能走得更远！",
+      "es": "¡Salta a través de plataformas y ve lo más lejos posible!",
+      "pt": "Pule por plataformas e vá o mais longe possível!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-05-15"
+  },
+  {
+    "name": {
+      "ko": "스피드 레이싱",
+      "en": "Speed Racing",
+      "zh-CN": "极速赛车",
+      "es": "Carreras de Velocidad",
+      "pt": "Corrida de Velocidade"
+    },
+    "url": "speed_racing.html",
+    "icon": "🏎️",
+    "description": {
+      "ko": "도로에서 장애물을 피하며 최대한 멀리 달리세요!",
+      "en": "Dodge obstacles on the road and drive as far as possible!",
+      "zh-CN": "在路上躲避障碍物并尽可能开得更远！",
+      "es": "¡Esquiva obstáculos en la carretera y conduce lo más lejos posible!",
+      "pt": "Desvie de obstáculos na estrada e dirija o mais longe possível!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-05-10"
+  },
+  {
+    "name": {
+      "ko": "두들 점프",
+      "en": "Doodle Jump",
+      "zh-CN": "涂鸦跳跃",
+      "es": "Salto Garabato",
+      "pt": "Salto Rabisco"
+    },
+    "url": "doodle_jump.html",
+    "icon": "🦘",
+    "description": {
+      "ko": "플랫폼을 점프하며 최대한 높이 올라가세요!",
+      "en": "Jump across platforms and climb as high as possible!",
+      "zh-CN": "跳过平台并尽可能爬得更高！",
+      "es": "¡Salta a través de plataformas y sube lo más alto posible!",
+      "pt": "Pule por plataformas e suba o mais alto possível!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-05-05"
+  },
+  {
+    "name": {
+      "ko": "클리커 히어로",
+      "en": "Clicker Hero",
+      "zh-CN": "点击英雄",
+      "es": "Héroe de Clics",
+      "pt": "Herói Clicador"
+    },
+    "url": "clicker_hero.html",
+    "icon": "🎯",
+    "description": {
+      "ko": "클릭해서 점수를 모으고 업그레이드하세요!",
+      "en": "Click to collect points and upgrade!",
+      "zh-CN": "点击收集分数并升级！",
+      "es": "¡Haz clic para recolectar puntos y mejorar!",
+      "pt": "Clique para coletar pontos e melhorar!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-05-01"
+  },
+  {
+    "name": {
+      "ko": "숫자 퀴즈",
+      "en": "Number Quiz",
+      "zh-CN": "数字测验",
+      "es": "Cuestionario de Números",
+      "pt": "Quiz de Números"
+    },
+    "url": "number_quiz.html",
+    "icon": "🧮",
+    "description": {
+      "ko": "수학 문제를 빠르게 풀어보세요! 10문제 도전!",
+      "en": "Solve math problems quickly! Challenge 10 questions!",
+      "zh-CN": "快速解决数学问题！挑战10道题！",
+      "es": "¡Resuelve problemas matemáticos rápidamente! ¡Desafía 10 preguntas!",
+      "pt": "Resolva problemas matemáticos rapidamente! Desafie 10 questões!"
+    },
+    "category": "casual",
+    "releaseDate": "2025-04-28"
+  },
+  {
+    "name": {
+      "ko": "타워 디펜스",
+      "en": "Tower Defense",
+      "zh-CN": "塔防",
+      "es": "Defensa de Torres",
+      "pt": "Defesa de Torre"
+    },
+    "url": "tower_defense.html",
+    "icon": "🗼",
+    "description": {
+      "ko": "타워를 배치하고 적의 공격을 막으세요! 업그레이드와 전략이 핵심!",
+      "en": "Place towers and stop enemy attacks! Upgrades and strategy are key!",
+      "zh-CN": "放置塔并阻止敌人的攻击！升级和策略是关键！",
+      "es": "¡Coloca torres y detén los ataques enemigos! ¡Las mejoras y la estrategia son clave!",
+      "pt": "Coloque torres e pare os ataques inimigos! Melhorias e estratégia são fundamentais!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-04-25"
+  },
+  {
+    "name": {
+      "ko": "체스 마스터",
+      "en": "Chess Master",
+      "zh-CN": "国际象棋大师",
+      "es": "Maestro de Ajedrez",
+      "pt": "Mestre de Xadrez"
+    },
+    "url": "chess_master.html",
+    "icon": "♟️",
+    "description": {
+      "ko": "클래식 체스 게임! 전략적 사고로 상대 킹을 잡으세요!",
+      "en": "Classic chess game! Capture the opponent's king with strategic thinking!",
+      "zh-CN": "经典国际象棋游戏！用战略思维捕获对手的国王！",
+      "es": "¡Juego de ajedrez clásico! ¡Captura al rey del oponente con pensamiento estratégico!",
+      "pt": "Jogo de xadrez clássico! Capture o rei do oponente com pensamento estratégico!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-04-20"
+  },
+  {
+    "name": {
+      "ko": "카드 배틀",
+      "en": "Card Battle",
+      "zh-CN": "卡牌战斗",
+      "es": "Batalla de Cartas",
+      "pt": "Batalha de Cartas"
+    },
+    "url": "card_battle.html",
+    "icon": "🃏",
+    "description": {
+      "ko": "카드를 선택해 전투하세요! 공격, 방어, 힐 카드로 전략적 플레이!",
+      "en": "Select cards to battle! Strategic play with attack, defense, and heal cards!",
+      "zh-CN": "选择卡牌进行战斗！使用攻击、防御和治疗卡进行战略游戏！",
+      "es": "¡Selecciona cartas para batallar! ¡Juego estratégico con cartas de ataque, defensa y curación!",
+      "pt": "Selecione cartas para batalhar! Jogo estratégico com cartas de ataque, defesa e cura!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-04-15"
+  },
+  {
+    "name": {
+      "ko": "킹덤 빌더",
+      "en": "Kingdom Builder",
+      "zh-CN": "王国建设者",
+      "es": "Constructor de Reinos",
+      "pt": "Construtor de Reino"
+    },
+    "url": "kingdom_builder.html",
+    "icon": "🏰",
+    "description": {
+      "ko": "자원을 모아 왕국을 건설하세요! 건물을 지어 왕국을 발전시키세요!",
+      "en": "Gather resources to build your kingdom! Construct buildings to develop your realm!",
+      "zh-CN": "收集资源建立你的王国！建造建筑物发展你的领地！",
+      "es": "¡Reúne recursos para construir tu reino! ¡Construye edificios para desarrollar tu reino!",
+      "pt": "Reúna recursos para construir seu reino! Construa edifícios para desenvolver seu reino!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-04-10"
+  },
+  {
+    "name": {
+      "ko": "배틀 택틱스",
+      "en": "Battle Tactics",
+      "zh-CN": "战斗战术",
+      "es": "Tácticas de Batalla",
+      "pt": "Táticas de Batalha"
+    },
+    "url": "battle_tactics.html",
+    "icon": "⚔️",
+    "description": {
+      "ko": "턴제 전투에서 전략을 펼치세요! 4가지 유닛으로 전투!",
+      "en": "Deploy strategy in turn-based combat! Battle with 4 unit types!",
+      "zh-CN": "在回合制战斗中部署策略！使用4种单位类型战斗！",
+      "es": "¡Despliega estrategia en combate por turnos! ¡Batalla con 4 tipos de unidades!",
+      "pt": "Implante estratégia em combate baseado em turnos! Batalhe com 4 tipos de unidades!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-04-05"
+  },
+  {
+    "name": {
+      "ko": "브레인 퍼즐",
+      "en": "Brain Puzzle",
+      "zh-CN": "脑力拼图",
+      "es": "Rompecabezas Cerebral",
+      "pt": "Quebra-Cabeça Cerebral"
+    },
+    "url": "brain_puzzle.html",
+    "icon": "🧩",
+    "description": {
+      "ko": "논리와 전략이 필요한 두뇌 게임! IQ 테스트 퍼즐 모음!",
+      "en": "Brain game requiring logic and strategy! Collection of IQ test puzzles!",
+      "zh-CN": "需要逻辑和策略的脑力游戏！智商测试拼图合集！",
+      "es": "¡Juego cerebral que requiere lógica y estrategia! ¡Colección de rompecabezas de prueba de IQ!",
+      "pt": "Jogo cerebral que requer lógica e estratégia! Coleção de quebra-cabeças de teste de QI!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-04-01"
+  },
+  {
+    "name": {
+      "ko": "오목 게임",
+      "en": "Omok",
+      "zh-CN": "五子棋",
+      "es": "Omok",
+      "pt": "Omok"
+    },
+    "url": "omok.html",
+    "icon": "⚫",
+    "description": {
+      "ko": "15x15 바둑판에서 5개를 먼저 만들어 승리! 2인 대전과 AI 대전 모드!",
+      "en": "Win by making 5 in a row on a 15x15 board! 2-player and AI battle modes!",
+      "zh-CN": "在15x15棋盘上先连成5个获胜！双人对战和AI对战模式！",
+      "es": "¡Gana haciendo 5 en fila en un tablero 15x15! ¡Modos de batalla para 2 jugadores y contra IA!",
+      "pt": "Vença fazendo 5 em linha em um tabuleiro 15x15! Modos de batalha para 2 jogadores e contra IA!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-03-28"
+  },
+  {
+    "name": {
+      "ko": "윷놀이",
+      "en": "Yut Nori",
+      "zh-CN": "柶戏",
+      "es": "Yut Nori",
+      "pt": "Yut Nori"
+    },
+    "url": "yut_nori.html",
+    "icon": "🎲",
+    "description": {
+      "ko": "전통 보드 게임 윷놀이! 윷을 던져 말을 이동시키고 먼저 4개를 골인시키면 승리!",
+      "en": "Traditional board game Yut Nori! Throw sticks to move pieces, first to finish 4 pieces wins!",
+      "zh-CN": "传统棋盘游戏柶戏！投掷棍子移动棋子，先完成4个棋子获胜！",
+      "es": "¡Juego de mesa tradicional Yut Nori! ¡Lanza palos para mover piezas, el primero en terminar 4 piezas gana!",
+      "pt": "Jogo de tabuleiro tradicional Yut Nori! Jogue bastões para mover peças, o primeiro a terminar 4 peças vence!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-03-25"
+  },
+  {
+    "name": {
+      "ko": "온라인 고스톱",
+      "en": "GoStop Online",
+      "zh-CN": "在线花牌",
+      "es": "GoStop en Línea",
+      "pt": "GoStop Online"
+    },
+    "url": "gostop_online.html",
+    "icon": "🎴",
+    "description": {
+      "ko": "친구와 실시간 대전! 쪽/따닥/쓰리고/흔들기 완벽 구현! Firebase 멀티플레이어!",
+      "en": "Real-time play with friends! Full implementation of all rules! Firebase multiplayer!",
+      "zh-CN": "与朋友实时对战！完整实现所有规则！Firebase多人游戏！",
+      "es": "¡Juego en tiempo real con amigos! ¡Implementación completa de todas las reglas! ¡Multijugador Firebase!",
+      "pt": "Jogo em tempo real com amigos! Implementação completa de todas as regras! Multijogador Firebase!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-09-18"
+  },
+  {
+    "name": {
+      "ko": "온라인 에어하키",
+      "en": "Air Hockey Online",
+      "zh-CN": "在线空气曲棍球",
+      "es": "Air Hockey en Línea",
+      "pt": "Air Hockey Online"
+    },
+    "url": "airhockey_online.html",
+    "icon": "🏒",
+    "description": {
+      "ko": "친구와 실시간 에어하키 대전! 4자리 코드로 간편 입장. 모바일 최적화 완벽 지원!",
+      "en": "Real-time air hockey battle with friends! Easy entry with 4-digit code. Fully mobile optimized!",
+      "zh-CN": "与朋友实时空气曲棍球对战！使用4位数代码轻松进入。完全移动优化！",
+      "es": "¡Batalla de air hockey en tiempo real con amigos! Entrada fácil con código de 4 dígitos. ¡Totalmente optimizado para móvil!",
+      "pt": "Batalha de air hockey em tempo real com amigos! Entrada fácil com código de 4 dígitos. Totalmente otimizado para celular!"
+    },
+    "category": "strategy",
+    "releaseDate": "2025-09-30"
+  },
+  {
+    "name": {
+      "ko": "3D 파쿠르 러너",
+      "en": "3D Parkour Runner",
+      "zh-CN": "3D跑酷者",
+      "es": "Corredor Parkour 3D",
+      "pt": "Corredor Parkour 3D"
+    },
+    "url": "parkour_3d.html",
+    "icon": "🏃",
+    "description": {
+      "ko": "1인칭 시점에서 플랫폼을 뛰어넘으세요! 3D 공간을 달리며 점프하는 파쿠르 게임!",
+      "en": "Jump across platforms in first-person view! Parkour game running and jumping in 3D space!",
+      "zh-CN": "以第一人称视角跳过平台！在3D空间中奔跑和跳跃的跑酷游戏！",
+      "es": "¡Salta a través de plataformas en vista de primera persona! ¡Juego de parkour corriendo y saltando en espacio 3D!",
+      "pt": "Pule por plataformas em visão de primeira pessoa! Jogo de parkour correndo e pulando no espaço 3D!"
+    },
+    "category": "action",
+    "releaseDate": "2025-10-09"
+  },
+  {
+    "name": {
+      "ko": "Tofu Girl",
+      "en": "Tofu Girl",
+      "zh-CN": "豆腐女孩",
+      "es": "Chica Tofu",
+      "pt": "Garota Tofu"
+    },
+    "url": "tofu_girl.html",
+    "icon": "🐰",
+    "description": {
+      "ko": "귀여운 토끼 캐릭터가 두부 플랫폼을 점프하며 올라가요! 코인을 모으고 높이 올라가세요!",
+      "en": "Cute bunny character jumps up tofu platforms! Collect coins and climb higher!",
+      "zh-CN": "可爱的兔子角色跳上豆腐平台！收集硬币并爬得更高！",
+      "es": "¡Lindo personaje de conejo salta por plataformas de tofu! ¡Recolecta monedas y sube más alto!",
+      "pt": "Personagem fofo de coelho pula por plataformas de tofu! Colete moedas e suba mais alto!"
+    },
+    "category": "action",
+    "releaseDate": "2025-10-09"
   }
 ]
