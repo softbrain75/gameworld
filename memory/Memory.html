@@ -299,6 +299,44 @@
             transform: translateY(0);
         }
 
+        /* Submit Button */
+        .submit-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .submit-btn {
+            background: var(--success);
+            color: white;
+            padding: 14px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
+            min-width: 200px;
+        }
+
+        .submit-btn:hover {
+            background: #42961b;
+            box-shadow: 0 6px 16px rgba(82, 196, 26, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: var(--outline);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
         /* Playing Screen */
         .game-header {
             margin-bottom: 24px;
@@ -686,6 +724,7 @@
                 gap: 8px;
             }
 
+            .submit-btn,
             .retry-btn,
             .wrong-retry-btn,
             .menu-btn {
@@ -918,6 +957,10 @@
                 </div>
 
                 <div class="test-display" id="test-display"></div>
+
+                <div class="submit-button-container">
+                    <button class="submit-btn" id="submit-btn">제출하기</button>
+                </div>
             </div>
 
             <!-- Game Over Screen -->
@@ -1210,6 +1253,12 @@
                 startGame(false);
             });
 
+            // Submit button
+            document.getElementById('submit-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                submitGame();
+            });
+
             // Game over buttons
             document.querySelector('.retry-btn').addEventListener('click', (e) => {
                 e.preventDefault();
@@ -1390,6 +1439,73 @@
 
             updateUI();
             showScreen('playing-screen');
+        }
+
+        function submitGame() {
+            // 제출하기 버튼 클릭 시 모든 입력값 검증
+            const inputs = document.querySelectorAll('.word-input');
+            const endTime = Date.now();
+            const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
+
+            let allCorrect = true;
+            let totalCorrect = 0;
+            let totalQuestions = inputs.length;
+
+            // 모든 입력값 검증
+            inputs.forEach((input, index) => {
+                const correctAnswer = lyrics[blanks[index]];
+                const userAnswer = input.value.trim();
+
+                if (userAnswer === correctAnswer) {
+                    totalCorrect++;
+                } else {
+                    allCorrect = false;
+                }
+            });
+
+            // 점수 계산 (100점 만점)
+            const finalScore = Math.round((totalCorrect / totalQuestions) * 100);
+
+            // 게임오버 화면 업데이트
+            document.getElementById('final-score').textContent = `${finalScore}점`;
+            document.getElementById('stats-correct').textContent = totalCorrect;
+            document.getElementById('stats-total').textContent = totalQuestions;
+            document.getElementById('stats-accuracy').textContent = `${Math.round((totalCorrect / totalQuestions) * 100)}%`;
+            document.getElementById('stats-difficulty').textContent = difficultySettings[difficulty] ? Object.keys(difficultySettings).find(key => difficultySettings[key] === difficultySettings[difficulty]) : difficulty;
+
+            // 난이도 레이블 표시
+            const difficultyLabels = {
+                easy: '쉬움',
+                medium: '보통',
+                hard: '어려움'
+            };
+            document.getElementById('stats-difficulty').textContent = difficultyLabels[difficulty] || difficulty;
+
+            // 시간 표시
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            document.getElementById('stats-time').textContent = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
+
+            // 틀린 문제가 있으면 "틀린 것만 다시" 버튼 표시
+            const wrongRetryBtn = document.getElementById('wrong-retry-btn');
+            if (!allCorrect) {
+                wrongRetryBtn.style.display = 'inline-block';
+                // 틀린 문제들 기록
+                wrongAnswers = [];
+                inputs.forEach((input, index) => {
+                    const correctAnswer = lyrics[blanks[index]];
+                    const userAnswer = input.value.trim();
+                    if (userAnswer !== correctAnswer) {
+                        wrongAnswers.push(blanks[index]);
+                    }
+                });
+            } else {
+                wrongRetryBtn.style.display = 'none';
+            }
+
+            // 게임오버 화면 표시
+            gameState = 'gameover';
+            showScreen('gameover-screen');
         }
 
         function updateUI() {
