@@ -248,14 +248,6 @@
             color: var(--text-primary);
         }
 
-        .editor-mode {
-            font-size: 12px;
-            color: var(--text-secondary);
-            padding: 4px 8px;
-            background: var(--surface-dim);
-            border-radius: 4px;
-        }
-
         .panel-title {
             font-size: 16px;
             font-weight: 600;
@@ -629,7 +621,6 @@
                                 transition: border-color 0.2s;
                             " />
                         </div>
-                        <div class="editor-mode" id="mode-indicator">새로 만들기</div>
                     </div>
 
                     <div class="hint">
@@ -678,7 +669,6 @@
         const fileNameInput = document.getElementById('file-name-input');
         const saveBtn = document.getElementById('save-btn');
         const fileList = document.getElementById('file-list');
-        const modeIndicator = document.getElementById('mode-indicator');
 
         // Viewport height fix
         function setVh() {
@@ -704,13 +694,11 @@
                 editor.value = '';
                 fileNameInput.value = '';
                 fileNameInput.disabled = false;
-                modeIndicator.textContent = '새로 만들기';
                 updatePreview();
             } else if (mode === 'edit' && fileName) {
                 currentEditFile = fileName;
                 fileNameInput.value = fileName;
                 fileNameInput.disabled = true;
-                modeIndicator.textContent = '수정하기';
             }
 
             // Focus editor
