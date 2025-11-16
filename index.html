@@ -1487,6 +1487,7 @@
     <div class="tabs-container">
         <div class="tabs">
             <div class="tab active" onclick="showCategory('all')">🌟 전체</div>
+            <div class="tab" onclick="showCategory('learning')">📚 학습</div>
             <div class="tab" onclick="showCategory('action')">⚡ 액션</div>
             <div class="tab" onclick="showCategory('puzzle')">🧩 퍼즐</div>
             <div class="tab" onclick="showCategory('arcade')">🕹️ 아케이드</div>
@@ -1604,6 +1605,23 @@
                 <a href="tofu_girl.html" class="game-card">
                     <h3><span class="game-icon">🐰</span> Tofu Girl</h3>
                     <p>귀여운 토끼 캐릭터가 두부 플랫폼을 점프하며 올라가요! 코인을 모으고 높이 올라가세요!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Learning Games -->
+        <div id="learning" class="category-section">
+            <div class="category-title">📚 학습 게임</div>
+            <div class="game-grid">
+                <a href="Memory.html" class="game-card">
+                    <h3><span class="game-icon">🇰🇷</span> 애국가 기억하기</h3>
+                    <p>애국가 가사를 완성하는 스터디 게임! 무작위 모드와 Bold 퀴즈 모드로 재미있게 암기하세요. 100점 만점 시스템!</p>
+                    <span class="badge new">NEW</span>
+                </a>
+                <a href="markdown_editor.html" class="game-card">
+                    <h3><span class="game-icon">✏️</span> Markdown Bold 에디터</h3>
+                    <p>Ctrl+B로 Bold 마크다운을 쉽게 작성! 학습 자료를 만들고 파일로 저장하세요. Material Design 3 적용!</p>
                     <span class="badge new">NEW</span>
                 </a>
             </div>
@@ -3035,7 +3053,7 @@
         // 게임 카드 업데이트
         async function updateGameCards() {
             // 각 카테고리별 게임 카드 업데이트
-            const categories = ['action', 'puzzle', 'arcade', 'rhythm', 'casual', 'strategy'];
+            const categories = ['learning', 'action', 'puzzle', 'arcade', 'rhythm', 'casual', 'strategy'];
 
             categories.forEach(category => {
                 const section = document.getElementById(category);
