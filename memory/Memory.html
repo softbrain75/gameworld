@@ -1339,10 +1339,16 @@
                                 nextInput.focus();
                                 nextInput.click();
 
-                                // 스크롤
-                                requestAnimationFrame(() => {
-                                    nextInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                });
+                                // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
+                                setTimeout(() => {
+                                    nextInput.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start',
+                                        inline: 'nearest'
+                                    });
+                                    // 추가 여백을 위해 조금 더 위로 스크롤
+                                    window.scrollBy(0, -100);
+                                }, 300);
                             }
                         }
                     } else {
@@ -1388,23 +1394,22 @@
                         // 다음 order의 입력필드 찾기
                         const nextInput = document.querySelector(`.word-input[data-order="${nextOrder}"]`);
 
-                        if (nextInput) {
+                        if (nextInput && !nextInput.disabled) {
                             console.log(`다음 입력필드로 이동:`, nextInput.dataset.order);
-                            // iOS Safari/Chrome에서 키보드를 올리기 위한 방법
-                            // 1. 필드가 disabled가 아닌지 확인
-                            if (nextInput.hasAttribute('disabled')) {
-                                nextInput.removeAttribute('disabled');
-                            }
-
-                            // 2. 명시적으로 클릭하고 포커스
-                            nextInput.click();
+                            // 즉시 포커스
                             nextInput.focus();
+                            nextInput.click();
 
-                            // 3. 스크롤 확인
-                            nextInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                            // 4. 값을 설정했다가 해제하면서 커서 표시
-                            nextInput.setSelectionRange(0, 0);
+                            // 키보드가 올라온 후 스크롤 (키보드 높이를 고려)
+                            setTimeout(() => {
+                                nextInput.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                    inline: 'nearest'
+                                });
+                                // 추가 여백을 위해 조금 더 위로 스크롤
+                                window.scrollBy(0, -100);
+                            }, 300);
                         } else {
                             console.log(`더 이상 입력필드가 없습니다`);
                         }
