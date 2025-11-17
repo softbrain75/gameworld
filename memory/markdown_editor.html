@@ -804,6 +804,7 @@
             }
 
             try {
+                // 1. localStorage에 저장 (기존 방식)
                 localStorage.setItem(`markdown_${fileName}`, content);
 
                 let fileList = JSON.parse(localStorage.getItem('markdown_files') || '[]');
@@ -814,6 +815,49 @@
                         description: '사용자 생성 파일'
                     });
                     localStorage.setItem('markdown_files', JSON.stringify(fileList));
+                }
+
+                // 2. Supabase에 저장
+                // Supabase가 로드되었는지 확인
+                if (typeof supabase !== 'undefined') {
+                    // 현재 사용자 확인
+                    const { data: { user } } = await supabase.auth.getUser();
+
+                    if (user) {
+                        // 로그인 사용자: Supabase에 저장
+                        const filePath = `${user.id}/${fileName}.md`;
+
+                        // Storage에 파일 업로드
+                        const { error: uploadError } = await supabase
+                            .storage
+                            .from('study_materials')
+                            .upload(filePath, content, {
+                                contentType: 'text/markdown; charset=utf-8',
+                                upsert: true
+                            });
+
+                        if (uploadError) {
+                            console.warn('Storage 저장 실패:', uploadError);
+                        } else {
+                            // DB에 메타데이터 저장
+                            const { error: dbError } = await supabase
+                                .from('study_materials')
+                                .upsert({
+                                    user_id: user.id,
+                                    title: fileName,
+                                    file_path: filePath,
+                                    updated_at: new Date().toISOString()
+                                });
+
+                            if (dbError) {
+                                console.warn('DB 저장 실패:', dbError);
+                            } else {
+                                console.log('✅ Supabase에 저장됨:', fileName);
+                            }
+                        }
+                    } else {
+                        console.log('로그인하지 않은 사용자 - localStorage에만 저장됨');
+                    }
                 }
 
                 const originalText = saveBtn.textContent;
