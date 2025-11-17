@@ -57,7 +57,7 @@ async function signUp(username, email, password) {
 
             // 비밀번호 재설정 이메일 발송
             const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/reset-password.html?reactivate=true`,
+                redirectTo: 'https://gamenara.co.kr/reset-password.html?reactivate=true',
             });
 
             if (resetError) {
@@ -208,7 +208,7 @@ async function loadUserProfile() {
 async function resetPassword(email) {
     try {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password.html`,
+            redirectTo: 'https://gamenara.co.kr/reset-password.html',
         });
 
         if (error) throw error;
