@@ -58,8 +58,16 @@
         }
 
         .title {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
             margin-bottom: 32px;
+            width: 100%;
+        }
+
+        .title-content {
+            text-align: center;
         }
 
         .title h1 {
@@ -74,6 +82,125 @@
             font-size: 14px;
             font-weight: 500;
             color: var(--text-secondary);
+        }
+
+        /* Hamburger Menu Button */
+        .hamburger-btn {
+            position: absolute;
+            right: 0;
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 24px;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+        }
+
+        .hamburger-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .hamburger-btn:active {
+            background: rgba(103, 80, 164, 0.2);
+        }
+
+        /* Side Menu */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100vh;
+            background: var(--surface);
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            flex-direction: column;
+            padding-top: 16px;
+        }
+
+        .side-menu.open {
+            right: 0;
+        }
+
+        .menu-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 24px;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+
+        .menu-close-btn:hover {
+            background: var(--surface-dim);
+        }
+
+        .menu-items {
+            list-style: none;
+            padding: 60px 0 0 0;
+        }
+
+        .menu-item {
+            border-bottom: 1px solid var(--outline-variant);
+        }
+
+        .menu-item a {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 24px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .menu-item a:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .menu-item a .material-icons {
+            font-size: 24px;
+        }
+
+        /* Menu Overlay */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0);
+            z-index: 999;
+            transition: background 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .menu-overlay.active {
+            background: rgba(0, 0, 0, 0.4);
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .menu-screen, .playing-screen, .gameover-screen {
@@ -965,8 +1092,13 @@
 <body>
     <div class="container">
             <div class="title">
-                <h1>Memories</h1>
-                <p>Information을 얼마나 기억하고 있을까요?</p>
+                <div class="title-content">
+                    <h1>Memories</h1>
+                    <p>Information을 얼마나 기억하고 있을까요?</p>
+                </div>
+                <button class="hamburger-btn" id="hamburger-btn">
+                    <span class="material-icons">menu</span>
+                </button>
             </div>
 
             <!-- Menu Screen -->
@@ -1910,6 +2042,74 @@
 
         // Start the game
         init();
+
+        // Hamburger Menu Logic
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const sideMenu = document.querySelector('.side-menu');
+        const menuOverlay = document.querySelector('.menu-overlay');
+        const menuCloseBtn = document.querySelector('.menu-close-btn');
+
+        function toggleMenu() {
+            sideMenu.classList.toggle('open');
+            menuOverlay.classList.toggle('active');
+        }
+
+        function closeMenu() {
+            sideMenu.classList.remove('open');
+            menuOverlay.classList.remove('active');
+        }
+
+        hamburgerBtn.addEventListener('click', toggleMenu);
+        menuCloseBtn.addEventListener('click', closeMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+
+        // Menu item click handlers
+        document.querySelectorAll('.menu-item a').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const action = e.currentTarget.dataset.action;
+                closeMenu();
+
+                // Handle menu actions
+                if (action === 'data') {
+                    // Handle 데이터 action
+                    console.log('데이터 clicked');
+                } else if (action === 'my-data') {
+                    // Handle 마이데이터 action
+                    console.log('마이데이터 clicked');
+                } else if (action === 'edit') {
+                    // Handle 편집 action
+                    window.location.href = 'markdown_editor.html';
+                }
+            });
+        });
     </script>
+
+    <!-- Side Menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <div class="side-menu" id="side-menu">
+        <button class="menu-close-btn">
+            <span class="material-icons">close</span>
+        </button>
+        <ul class="menu-items">
+            <li class="menu-item">
+                <a data-action="data">
+                    <span class="material-icons">storage</span>
+                    <span>데이터</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a data-action="my-data">
+                    <span class="material-icons">person</span>
+                    <span>마이데이터</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a data-action="edit">
+                    <span class="material-icons">edit</span>
+                    <span>편집</span>
+                </a>
+            </li>
+        </ul>
+    </div>
 </body>
 </html>
