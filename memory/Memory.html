@@ -2057,12 +2057,16 @@
         }
 
         function updateUI() {
+            console.log('🎮 updateUI 호출됨');
+            console.log('originalMarkdown:', originalMarkdown ? originalMarkdown.substring(0, 100) + '...' : 'NULL');
+            console.log('lyrics 길이:', lyrics.length);
+
             // Update test display
             const display = document.getElementById('test-display');
             display.innerHTML = '';
 
             if (!originalMarkdown) {
-                console.error('원본 마크다운이 없습니다');
+                console.error('❌ 원본 마크다운이 없습니다');
                 return;
             }
 
@@ -2071,6 +2075,7 @@
 
             // 원본 마크다운을 줄별로 처리
             const lines = originalMarkdown.split('\n');
+            console.log('📄 총 줄 수:', lines.length);
 
             lines.forEach(line => {
                 // 제목과 빈 줄 건너뛰기
@@ -2177,9 +2182,12 @@
 
                 // 줄 추가
                 if (lineDiv.children.length > 0) {
+                    console.log('➕ 줄 추가됨, 단어 수:', lineDiv.children.length);
                     display.appendChild(lineDiv);
                 }
             });
+
+            console.log('✅ updateUI 완료, 생성된 줄 수:', display.children.length);
 
             // 입력박스 이벤트 리스너 설정
             setupWordInputListeners();
