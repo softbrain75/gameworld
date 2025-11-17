@@ -2118,6 +2118,10 @@
                                     inputEl.setAttribute('autocapitalize', 'off');
                                     inputEl.spellcheck = 'false';
 
+                                    // 단어 길이에 따라 입력 필드 너비 조정
+                                    const wordLength = word.length;
+                                    inputEl.style.width = `${Math.max(2, wordLength) * 1.2}em`;
+
                                     blankOrder++;
 
                                     container.appendChild(inputEl);
@@ -2158,6 +2162,10 @@
                                             inputEl.setAttribute('autocorrect', 'off');
                                             inputEl.setAttribute('autocapitalize', 'off');
                                             inputEl.spellcheck = 'false';
+
+                                            // 단어 길이에 따라 입력 필드 너비 조정
+                                            const wordLength = word.length;
+                                            inputEl.style.width = `${Math.max(2, wordLength) * 1.2}em`;
 
                                             blankOrder++;
 
@@ -2278,6 +2286,10 @@
                                 inputEl.setAttribute('autocapitalize', 'off');
                                 inputEl.spellcheck = 'false';
 
+                                // 단어 길이에 따라 입력 필드 너비 조정
+                                const wordLength = word.length;
+                                inputEl.style.width = `${Math.max(2, wordLength) * 1.2}em`;
+
                                 blankOrder++;
 
                                 container.appendChild(inputEl);
@@ -2320,6 +2332,10 @@
                                         inputEl.setAttribute('autocorrect', 'off');
                                         inputEl.setAttribute('autocapitalize', 'off');
                                         inputEl.spellcheck = 'false';
+
+                                        // 단어 길이에 따라 입력 필드 너비 조정
+                                        const wordLength = word.length;
+                                        inputEl.style.width = `${Math.max(2, wordLength) * 1.2}em`;
 
                                         blankOrder++;
 
