@@ -736,11 +736,53 @@
         // Editor functions
         editor.addEventListener('input', updatePreview);
         editor.addEventListener('keydown', handleKeydown);
+        editor.addEventListener('paste', handlePaste);
 
         function handleKeydown(e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
                 e.preventDefault();
                 makeBold();
+            }
+        }
+
+        function handlePaste(e) {
+            const clipboardData = e.clipboardData || window.clipboardData;
+            const pastedText = clipboardData.getData('text');
+
+            // 탭으로 구분된 텍스트인지 확인 (엑셀 데이터)
+            if (pastedText.includes('\t')) {
+                e.preventDefault();
+
+                // 엑셀 데이터를 Markdown 표로 변환
+                const lines = pastedText.trim().split('\n');
+                if (lines.length > 0) {
+                    let markdownTable = '';
+
+                    lines.forEach((line, index) => {
+                        const cells = line.split('\t');
+                        markdownTable += '| ' + cells.join(' | ') + ' |\n';
+
+                        // 첫 번째 줄 다음에 구분선 추가
+                        if (index === 0) {
+                            const separator = cells.map(() => '------').join(' | ');
+                            markdownTable += '| ' + separator + ' |\n';
+                        }
+                    });
+
+                    // 현재 커서 위치에 표 삽입
+                    const start = editor.selectionStart;
+                    const end = editor.selectionEnd;
+                    const text = editor.value;
+
+                    editor.value = text.substring(0, start) + '\n' + markdownTable + '\n' + text.substring(end);
+
+                    // 커서를 표 끝으로 이동
+                    const newCursorPos = start + markdownTable.length + 2;
+                    editor.selectionStart = newCursorPos;
+                    editor.selectionEnd = newCursorPos;
+
+                    updatePreview();
+                }
             }
         }
 
