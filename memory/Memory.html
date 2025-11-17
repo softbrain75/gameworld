@@ -1506,6 +1506,9 @@
                 // 제목과 빈 줄 제외
                 if (line.startsWith('#') || line.trim() === '') return;
 
+                // 표 구분선 제외 (|---|---|)
+                if (line.trim().match(/^\|[\s\-:]+\|/)) return;
+
                 // **bold** 패턴 찾기
                 let remaining = line;
                 while (remaining.length > 0) {
@@ -1522,7 +1525,7 @@
                         remaining = remaining.substring(boldMatch[0].length);
                     } else {
                         // bold가 아닌 부분 찾기
-                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                        const nonBoldMatch = remaining.match(/^([^*|]+?)(?=\*\*|$)/);
                         if (nonBoldMatch && nonBoldMatch[1].trim()) {
                             const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
                             words.forEach(word => {
@@ -2056,6 +2059,137 @@
             showScreen('gameover-screen');
         }
 
+        // 표 렌더링 함수
+        function renderTable(tableLines, startWordIndex, startBlankOrder) {
+            let wordIndex = startWordIndex;
+            let blankOrder = startBlankOrder;
+
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.marginBottom = '16px';
+            table.style.border = '1px solid var(--outline-variant)';
+
+            tableLines.forEach((line, lineIdx) => {
+                // 표 구분선 건너뛰기 (|---|---|)
+                if (line.trim().match(/^\|[\s\-:]+\|/)) return;
+
+                const row = document.createElement('tr');
+                const cells = line.split('|').filter(c => c.trim());
+
+                cells.forEach((cell, cellIdx) => {
+                    const td = document.createElement(lineIdx === 0 ? 'th' : 'td');
+                    td.style.border = '1px solid var(--outline-variant)';
+                    td.style.padding = '8px';
+                    td.style.textAlign = 'left';
+
+                    if (lineIdx === 0) {
+                        td.style.backgroundColor = 'var(--surface-dim)';
+                        td.style.fontWeight = 'bold';
+                    }
+
+                    // 셀 내용 파싱 (**bold** 포함)
+                    let remaining = cell.trim();
+                    while (remaining.length > 0) {
+                        const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+
+                        if (boldMatch) {
+                            const word = boldMatch[1].trim();
+                            if (word && wordIndex < lyrics.length) {
+                                const wordEl = document.createElement('span');
+                                wordEl.style.display = 'inline-block';
+                                wordEl.style.margin = '0 4px';
+
+                                if (blanks.includes(wordIndex)) {
+                                    const container = document.createElement('span');
+                                    container.className = 'word-blank-container';
+
+                                    const inputEl = document.createElement('input');
+                                    inputEl.type = 'text';
+                                    inputEl.className = 'word-input';
+                                    inputEl.dataset.index = wordIndex;
+                                    inputEl.dataset.order = blankOrder;
+                                    inputEl.placeholder = '';
+                                    inputEl.autocomplete = 'off';
+                                    inputEl.setAttribute('autocomplete', 'off');
+                                    inputEl.setAttribute('autocorrect', 'off');
+                                    inputEl.setAttribute('autocapitalize', 'off');
+                                    inputEl.spellcheck = 'false';
+
+                                    blankOrder++;
+
+                                    container.appendChild(inputEl);
+                                    wordEl.appendChild(container);
+                                } else {
+                                    const wordSpan = document.createElement('span');
+                                    wordSpan.className = 'word-visible';
+                                    wordSpan.textContent = word;
+                                    wordEl.appendChild(wordSpan);
+                                }
+
+                                td.appendChild(wordEl);
+                                wordIndex++;
+                            }
+                            remaining = remaining.substring(boldMatch[0].length);
+                        } else {
+                            const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                            if (nonBoldMatch && nonBoldMatch[1].trim()) {
+                                const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
+                                words.forEach(word => {
+                                    if (wordIndex < lyrics.length) {
+                                        const wordEl = document.createElement('span');
+                                        wordEl.style.display = 'inline-block';
+                                        wordEl.style.margin = '0 4px';
+
+                                        if (blanks.includes(wordIndex)) {
+                                            const container = document.createElement('span');
+                                            container.className = 'word-blank-container';
+
+                                            const inputEl = document.createElement('input');
+                                            inputEl.type = 'text';
+                                            inputEl.className = 'word-input';
+                                            inputEl.dataset.index = wordIndex;
+                                            inputEl.dataset.order = blankOrder;
+                                            inputEl.placeholder = '';
+                                            inputEl.autocomplete = 'off';
+                                            inputEl.setAttribute('autocomplete', 'off');
+                                            inputEl.setAttribute('autocorrect', 'off');
+                                            inputEl.setAttribute('autocapitalize', 'off');
+                                            inputEl.spellcheck = 'false';
+
+                                            blankOrder++;
+
+                                            container.appendChild(inputEl);
+                                            wordEl.appendChild(container);
+                                        } else {
+                                            const wordSpan = document.createElement('span');
+                                            wordSpan.className = 'word-visible';
+                                            wordSpan.textContent = word;
+                                            wordEl.appendChild(wordSpan);
+                                        }
+
+                                        td.appendChild(wordEl);
+                                        wordIndex++;
+                                    }
+                                });
+                            }
+                            remaining = remaining.substring(nonBoldMatch ? nonBoldMatch[0].length : 1);
+                        }
+                    }
+
+                    row.appendChild(td);
+                });
+
+                table.appendChild(row);
+            });
+
+            return {
+                element: table,
+                wordIndex: wordIndex,
+                blankOrder: blankOrder
+            };
+        }
+
         function updateUI() {
             console.log('🎮 updateUI 호출됨');
             console.log('originalMarkdown:', originalMarkdown ? originalMarkdown.substring(0, 100) + '...' : 'NULL');
@@ -2077,13 +2211,34 @@
             const lines = originalMarkdown.split('\n');
             console.log('📄 총 줄 수:', lines.length);
 
-            lines.forEach(line => {
+            let i = 0;
+            while (i < lines.length) {
+                const line = lines[i];
+
                 // 제목과 빈 줄 건너뛰기
                 if (line.startsWith('#') || line.trim() === '') {
-                    return;
+                    i++;
+                    continue;
                 }
 
-                // 줄 컨테이너 생성
+                // 표 감지 (|로 시작하는 줄)
+                if (line.trim().startsWith('|')) {
+                    // 표 시작
+                    const tableLines = [];
+                    while (i < lines.length && lines[i].trim().startsWith('|')) {
+                        tableLines.push(lines[i]);
+                        i++;
+                    }
+
+                    // 표 렌더링
+                    const result = renderTable(tableLines, wordIndex, blankOrder);
+                    display.appendChild(result.element);
+                    wordIndex = result.wordIndex;
+                    blankOrder = result.blankOrder;
+                    continue;
+                }
+
+                // 일반 줄 처리
                 const lineDiv = document.createElement('div');
                 lineDiv.style.marginBottom = '8px';
                 lineDiv.style.lineHeight = '2';
@@ -2189,7 +2344,9 @@
                     console.log('➕ 줄 추가됨, 단어 수:', lineDiv.children.length);
                     display.appendChild(lineDiv);
                 }
-            });
+
+                i++;
+            }
 
             console.log('✅ updateUI 완료, 생성된 줄 수:', display.children.length);
 
