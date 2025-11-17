@@ -1873,19 +1873,20 @@
             // 게임오버 화면 업데이트
             document.getElementById('final-score').textContent = `${finalScore}점`;
 
+            // 틀린 문제들 기록 (항상 초기화)
+            wrongAnswers = [];
+            inputs.forEach((input, index) => {
+                const correctAnswer = lyrics[blanks[index]];
+                const userAnswer = input.value.trim();
+                if (userAnswer !== correctAnswer) {
+                    wrongAnswers.push(blanks[index]);
+                }
+            });
+
             // 틀린 문제가 있으면 "틀린 것만 다시" 버튼 표시
             const wrongRetryBtn = document.getElementById('wrong-retry-btn');
-            if (!allCorrect) {
+            if (!allCorrect && wrongAnswers.length > 0) {
                 wrongRetryBtn.style.display = 'inline-block';
-                // 틀린 문제들 기록
-                wrongAnswers = [];
-                inputs.forEach((input, index) => {
-                    const correctAnswer = lyrics[blanks[index]];
-                    const userAnswer = input.value.trim();
-                    if (userAnswer !== correctAnswer) {
-                        wrongAnswers.push(blanks[index]);
-                    }
-                });
             } else {
                 wrongRetryBtn.style.display = 'none';
             }
