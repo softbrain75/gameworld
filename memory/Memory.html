@@ -90,6 +90,57 @@
             letter-spacing: 0.2px;
         }
 
+        /* Points Display */
+        .points-display {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(103, 80, 164, 0.15);
+            padding: 4px 8px;
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .points-icon {
+            font-size: 16px;
+        }
+
+        .points-info {
+            display: none;
+        }
+
+        .points-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .points-label {
+            display: none;
+        }
+
+        @media (min-width: 480px) {
+            .points-info {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .points-value {
+                font-size: 14px;
+                line-height: 1.2;
+            }
+
+            .points-label {
+                display: block;
+                font-size: 10px;
+                opacity: 0.87;
+                line-height: 1;
+            }
+        }
+
         /* Hamburger Menu Button */
         .hamburger-btn {
             width: 48px;
@@ -1098,9 +1149,18 @@
             <div class="title">
                 <div class="title-header">
                     <h1>Memories</h1>
-                    <button class="hamburger-btn" id="hamburger-btn">
-                        <span class="material-icons">menu</span>
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="points-display" id="pointsDisplay">
+                            <span class="points-icon">🏆</span>
+                            <span class="points-value" id="pointsValue">0</span>
+                            <div class="points-info">
+                                <div class="points-label">포인트</div>
+                            </div>
+                        </div>
+                        <button class="hamburger-btn" id="hamburger-btn">
+                            <span class="material-icons">menu</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -2077,6 +2137,40 @@
             </li>
         </ul>
     </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabaseClient.js"></script>
+
+    <!-- Points Display Script -->
+    <script>
+        // Points system integration
+        function updatePointsDisplay() {
+            // Supabase의 getCurrentPoints() 사용 (로그인/비로그인 모두 처리)
+            const pointsValue = getCurrentPoints();
+            const pointsElement = document.getElementById('pointsValue');
+            if (pointsElement) {
+                // Add comma formatting for large numbers
+                pointsElement.textContent = pointsValue.toLocaleString();
+            }
+        }
+
+        // Listen for points earned events from games
+        window.addEventListener('pointsEarned', (event) => {
+            console.log('Points earned:', event.detail);
+            updatePointsDisplay();
+        });
+
+        // Update points display on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updatePointsDisplay();
+        });
+
+        // Update points when auth state changes
+        window.addEventListener('authStateChanged', () => {
+            updatePointsDisplay();
+        });
+    </script>
 
     <!-- Hamburger Menu Script -->
     <script>
