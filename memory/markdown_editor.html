@@ -829,7 +829,9 @@
 
                     if (user) {
                         // 로그인 사용자: Supabase에 저장
-                        const filePath = `${user.id}/${fileName}.md`;
+                        // UUID에서 하이픈 제거 (Storage 경로에 사용 불가)
+                        const userId = user.id.replace(/-/g, '');
+                        const filePath = `${userId}/${fileName}.md`;
 
                         // Storage에 파일 업로드
                         const { error: uploadError } = await supabase
