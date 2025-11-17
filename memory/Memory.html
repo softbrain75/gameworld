@@ -1525,9 +1525,11 @@
                         remaining = remaining.substring(boldMatch[0].length);
                     } else {
                         // bold가 아닌 부분 찾기
-                        const nonBoldMatch = remaining.match(/^([^*|]+?)(?=\*\*|$)/);
+                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
                         if (nonBoldMatch && nonBoldMatch[1].trim()) {
-                            const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
+                            // |는 표의 구분자이므로 제거
+                            const text = nonBoldMatch[1].replace(/\|/g, ' ');
+                            const words = text.split(/[\s]+/).filter(w => w.length > 0);
                             words.forEach(word => {
                                 fullText += word + ' ';
                                 wordIndex++;
