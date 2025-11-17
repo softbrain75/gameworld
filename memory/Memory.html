@@ -107,6 +107,13 @@
             font-size: 16px;
         }
 
+        .points-storage-icon {
+            font-size: 14px;
+            margin-left: 4px;
+            opacity: 0.7;
+            cursor: help;
+        }
+
         .points-info {
             display: none;
         }
@@ -1153,6 +1160,7 @@
                         <div class="points-display" id="pointsDisplay">
                             <span class="points-icon">🏆</span>
                             <span class="points-value" id="pointsValue">0</span>
+                            <span class="points-storage-icon" id="pointsStorageIcon" title="로컬 저장">💾</span>
                             <div class="points-info">
                                 <div class="points-label">포인트</div>
                             </div>
@@ -2185,9 +2193,31 @@
             // Supabase의 getCurrentPoints() 사용 (로그인/비로그인 모두 처리)
             const pointsValue = getCurrentPoints();
             const pointsElement = document.getElementById('pointsValue');
+            const storageIconElement = document.getElementById('pointsStorageIcon');
+
             if (pointsElement) {
                 // Add comma formatting for large numbers
                 pointsElement.textContent = pointsValue.toLocaleString();
+            }
+
+            // 로그인 상태에 따라 저장 위치 아이콘 및 툴팁 변경
+            if (storageIconElement) {
+                if (window.currentUser && window.currentProfile) {
+                    // 로그인 상태: Supabase에 저장
+                    storageIconElement.textContent = '☁️';
+                    storageIconElement.title = 'Supabase에 저장됨 (계정: ' + (window.currentProfile.username || '사용자') + ')';
+                    storageIconElement.style.cursor = 'help';
+                } else {
+                    // 비로그인 상태: localStorage에 저장
+                    storageIconElement.textContent = '💾';
+                    storageIconElement.title = '로컬에 저장됨 (로그인하면 Supabase에 저장됩니다)';
+                    storageIconElement.style.cursor = 'pointer';
+                    storageIconElement.onclick = () => {
+                        if (confirm('포인트를 Supabase에 저장하려면 로그인이 필요합니다.\n\n홈 페이지로 이동하여 로그인하시겠습니까?')) {
+                            window.location.href = '../index.html';
+                        }
+                    };
+                }
             }
         }
 
@@ -2204,6 +2234,17 @@
 
         // Update points when auth state changes
         window.addEventListener('authStateChanged', () => {
+            updatePointsDisplay();
+        });
+
+        // Update points when user signs in or out
+        window.addEventListener('userSignedIn', () => {
+            console.log('User signed in - updating points display');
+            updatePointsDisplay();
+        });
+
+        window.addEventListener('userSignedOut', () => {
+            console.log('User signed out - updating points display');
             updatePointsDisplay();
         });
     </script>
