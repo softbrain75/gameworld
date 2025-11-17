@@ -59,21 +59,21 @@
 
         .title {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            position: relative;
             margin-bottom: 32px;
             width: 100%;
         }
 
-        .title-content {
-            text-align: center;
+        .title-header {
             display: flex;
-            flex-direction: column;
-            gap: 16px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
         }
 
-        .title h1 {
+        .title-header h1 {
             font-size: 32px;
             font-weight: 700;
             letter-spacing: -0.5px;
@@ -81,19 +81,18 @@
             color: var(--text-primary);
         }
 
-        .title p {
+        .subtitle {
+            text-align: center;
             font-size: 13px;
             font-weight: 400;
             color: var(--text-secondary);
-            margin: 0;
+            margin: 0 0 32px 0;
             line-height: 1.5;
             letter-spacing: 0.2px;
         }
 
         /* Hamburger Menu Button */
         .hamburger-btn {
-            position: absolute;
-            right: 0;
             width: 48px;
             height: 48px;
             border: none;
@@ -106,6 +105,7 @@
             font-size: 24px;
             transition: all 0.2s ease;
             border-radius: 12px;
+            flex-shrink: 0;
         }
 
         .hamburger-btn:hover {
@@ -1098,14 +1098,15 @@
 <body>
     <div class="container">
             <div class="title">
-                <div class="title-content">
+                <div class="title-header">
                     <h1>Memories</h1>
-                    <p>Information을 얼마나 기억하고 있을까요?</p>
+                    <button class="hamburger-btn" id="hamburger-btn">
+                        <span class="material-icons">menu</span>
+                    </button>
                 </div>
-                <button class="hamburger-btn" id="hamburger-btn">
-                    <span class="material-icons">menu</span>
-                </button>
             </div>
+
+            <p class="subtitle">Information을 얼마나 기억하고 있을까요?</p>
 
             <!-- Menu Screen -->
             <div class="menu-screen active">
