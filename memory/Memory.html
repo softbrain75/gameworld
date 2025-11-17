@@ -1932,6 +1932,24 @@
             // 게임오버 화면 업데이트
             document.getElementById('final-score').textContent = `${finalScore}점`;
 
+            // 포인트 적립 (점수 * 10)
+            const pointsToAdd = finalScore * 10;
+            if (typeof addGamePoints === 'function') {
+                addGamePoints(pointsToAdd, 'memory_study').then(result => {
+                    if (result.success) {
+                        console.log('✅ 포인트 적립 성공:', pointsToAdd, '점');
+                        // 포인트 표시 업데이트
+                        updatePointsDisplay();
+                        // 포인트 획득 이벤트 발생
+                        window.dispatchEvent(new CustomEvent('pointsEarned', {
+                            detail: { points: pointsToAdd, gameId: 'memory_study' }
+                        }));
+                    } else {
+                        console.warn('⚠️ 포인트 적립 실패:', result.error);
+                    }
+                });
+            }
+
             // 틀린 문제들 기록 (항상 초기화)
             wrongAnswers = [];
             inputs.forEach((input, index) => {
@@ -2034,6 +2052,24 @@
                 document.getElementById('stats-difficulty').textContent = 'Bold 퀴즈 모드';
             } else {
                 document.getElementById('stats-difficulty').textContent = difficultyLabels[difficulty];
+            }
+
+            // 포인트 적립 (점수 * 10)
+            const pointsToAdd = score * 10;
+            if (typeof addGamePoints === 'function') {
+                addGamePoints(pointsToAdd, 'memory_study').then(result => {
+                    if (result.success) {
+                        console.log('✅ 포인트 적립 성공:', pointsToAdd, '점');
+                        // 포인트 표시 업데이트
+                        updatePointsDisplay();
+                        // 포인트 획득 이벤트 발생
+                        window.dispatchEvent(new CustomEvent('pointsEarned', {
+                            detail: { points: pointsToAdd, gameId: 'memory_study' }
+                        }));
+                    } else {
+                        console.warn('⚠️ 포인트 적립 실패:', result.error);
+                    }
+                });
             }
 
             // "틀린 것만 다시" 버튼 표시 여부 결정
