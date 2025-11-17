@@ -55,17 +55,7 @@
             align-items: center;
             justify-content: center;
             padding: 16px;
-        }
-
-        .game-wrapper {
-            background: var(--surface);
-            border-radius: 28px;
-            padding: 32px;
-            max-width: 800px;
-            width: 100%;
-            max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
             -webkit-overflow-scrolling: touch;
         }
 
@@ -953,30 +943,29 @@
 
         /* Responsive Design */
         /* Scrollbar styling */
-        .game-wrapper::-webkit-scrollbar {
+        .container::-webkit-scrollbar {
             width: 8px;
         }
 
-        .game-wrapper::-webkit-scrollbar-track {
+        .container::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .game-wrapper::-webkit-scrollbar-thumb {
+        .container::-webkit-scrollbar-thumb {
             background: var(--outline-variant);
             border-radius: 4px;
         }
 
-        .game-wrapper::-webkit-scrollbar-thumb:hover {
+        .container::-webkit-scrollbar-thumb:hover {
             background: var(--outline);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="game-wrapper">
             <div class="title">
                 <h1>Memories</h1>
-                <p>Information을 얼마나 Remember하고 있을까요?</p>
+                <p>Information을 얼마나 기억하고 있을까요?</p>
             </div>
 
             <!-- Menu Screen -->
@@ -1087,7 +1076,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </div>
 
     <script>
