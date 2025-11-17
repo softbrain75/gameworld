@@ -831,7 +831,10 @@
                         // 로그인 사용자: Supabase에 저장
                         // UUID에서 하이픈 제거 (Storage 경로에 사용 불가)
                         const userId = user.id.replace(/-/g, '');
-                        const filePath = `${userId}/${fileName}.md`;
+                        // Supabase Storage는 한글 파일명 미지원 → UUID 사용
+                        // 원본 제목(fileName)은 DB의 title 컬럼에 저장
+                        const fileId = crypto.randomUUID().replace(/-/g, '');
+                        const filePath = `${userId}/${fileId}.md`;
 
                         // Storage에 파일 업로드
                         const { error: uploadError } = await supabase
