@@ -1276,6 +1276,10 @@
             </div>
     </div>
 
+    <!-- Supabase Client - Must load before main script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabaseClient.js"></script>
+
     <script>
         // Game State
         let gameState = 'menu';
@@ -1325,7 +1329,7 @@
                 let files = [];
 
                 // 1. Supabase에서 사용자 파일 로드
-                console.log('🔍 Supabase 체크:', typeof supabase, supabase);
+                console.log('🔍 Supabase 체크:', typeof supabase);
                 if (typeof supabase !== 'undefined') {
                     console.log('✅ Supabase 사용 가능, 사용자 확인 중...');
                     const { data: { user } } = await supabase.auth.getUser();
@@ -2245,10 +2249,6 @@
             </li>
         </ul>
     </div>
-
-    <!-- Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../js/supabaseClient.js"></script>
 
     <!-- Points Display Script -->
     <script>
