@@ -892,10 +892,32 @@
             }
         });
 
-        async function loadFile(fileName) {
+        async function loadFile(fileName, filePath = null) {
             try {
-                let content = localStorage.getItem(`markdown_${fileName}`);
+                let content = null;
 
+                // 1. Supabase에서 먼저 시도 (filePath가 있으면 Supabase 파일)
+                if (filePath && typeof supabase !== 'undefined') {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        const { data, error } = await supabase
+                            .storage
+                            .from('study_materials')
+                            .download(filePath);
+
+                        if (!error && data) {
+                            content = await data.text();
+                            console.log('✅ Supabase에서 불러옴:', fileName);
+                        }
+                    }
+                }
+
+                // 2. localStorage에서 시도
+                if (!content) {
+                    content = localStorage.getItem(`markdown_${fileName}`);
+                }
+
+                // 3. 기본 파일에서 시도 (data 폴더)
                 if (!content) {
                     try {
                         const response = await fetch(`./data/${encodeURIComponent(fileName)}`);
@@ -943,16 +965,45 @@
             try {
                 let filesList = [];
 
-                const savedFiles = JSON.parse(localStorage.getItem('markdown_files') || '[]');
-                filesList.push(...savedFiles);
+                // 1. Supabase에서 파일 목록 가져오기
+                if (typeof supabase !== 'undefined') {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        const { data: supabaseFiles, error } = await supabase
+                            .from('study_materials')
+                            .select('*')
+                            .eq('user_id', user.id)
+                            .order('updated_at', { ascending: false });
 
+                        if (!error && supabaseFiles) {
+                            filesList.push(...supabaseFiles.map(f => ({
+                                name: f.title,
+                                title: f.title,
+                                description: '내 파일',
+                                file_path: f.file_path,
+                                source: 'supabase'
+                            })));
+                            console.log('✅ Supabase 파일 목록:', supabaseFiles.length);
+                        }
+                    }
+                }
+
+                // 2. localStorage에서 파일 목록 가져오기
+                const savedFiles = JSON.parse(localStorage.getItem('markdown_files') || '[]');
+                for (const file of savedFiles) {
+                    if (!filesList.find(f => f.name === file.name)) {
+                        filesList.push({ ...file, source: 'local' });
+                    }
+                }
+
+                // 3. 기본 파일 목록 가져오기
                 try {
                     const response = await fetch('./data-files.json');
                     if (response.ok) {
                         const defaultFiles = await response.json();
                         for (const file of defaultFiles) {
                             if (!filesList.find(f => f.name === file.name)) {
-                                filesList.push(file);
+                                filesList.push({ ...file, source: 'default' });
                             }
                         }
                     }
@@ -965,19 +1016,22 @@
                     return;
                 }
 
-                fileList.innerHTML = filesList.map(file => `
-                    <div class="file-item" onclick="loadFile('${file.name.replace(/'/g, "\\'")}')">
-                        <div class="file-info">
-                            <div class="file-name">📄 ${escapeHtml(file.title || file.name)}</div>
-                            <div class="file-date">${file.description || ''}</div>
+                fileList.innerHTML = filesList.map(file => {
+                    const filePathParam = file.file_path ? `, '${file.file_path.replace(/'/g, "\\'")}'` : '';
+                    return `
+                        <div class="file-item" onclick="loadFile('${file.name.replace(/'/g, "\\'")}' ${filePathParam})">
+                            <div class="file-info">
+                                <div class="file-name">📄 ${escapeHtml(file.title || file.name)}</div>
+                                <div class="file-date">${file.description || ''}</div>
+                            </div>
+                            <div class="file-actions">
+                                <button class="delete-icon-btn" onclick="event.stopPropagation(); deleteFile('${file.name.replace(/'/g, "\\'")}')" title="삭제">
+                                    <span class="material-icons">delete</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="file-actions">
-                            <button class="delete-icon-btn" onclick="event.stopPropagation(); deleteFile('${file.name.replace(/'/g, "\\'")}')" title="삭제">
-                                <span class="material-icons">delete</span>
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('List error:', error);
                 fileList.innerHTML = '<div class="empty-message">파일 목록을 불러올 수 없습니다.</div>';

@@ -1323,22 +1323,49 @@
             try {
                 let files = [];
 
-                // data-files.json에서 기본 파일 로드
+                // 1. Supabase에서 사용자 파일 로드
+                if (typeof supabase !== 'undefined') {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        const { data: supabaseFiles, error } = await supabase
+                            .from('study_materials')
+                            .select('*')
+                            .eq('user_id', user.id)
+                            .order('updated_at', { ascending: false });
+
+                        if (!error && supabaseFiles) {
+                            files.push(...supabaseFiles.map(f => ({
+                                name: f.title,
+                                title: f.title,
+                                description: '내 파일',
+                                file_path: f.file_path,
+                                source: 'supabase'
+                            })));
+                            console.log('✅ Supabase 파일 목록:', supabaseFiles.length);
+                        }
+                    }
+                }
+
+                // 2. data-files.json에서 기본 파일 로드
                 try {
                     const response = await fetch('./data-files.json');
                     if (response.ok) {
                         const defaultFiles = await response.json();
-                        files.push(...defaultFiles);
+                        for (const file of defaultFiles) {
+                            if (!files.find(f => f.name === file.name)) {
+                                files.push({ ...file, source: 'default' });
+                            }
+                        }
                     }
                 } catch (e) {
                     console.log('Default files not available');
                 }
 
-                // localStorage에서 사용자가 만든 파일 추가
+                // 3. localStorage에서 사용자가 만든 파일 추가
                 const savedFiles = JSON.parse(localStorage.getItem('markdown_files') || '[]');
                 for (const file of savedFiles) {
                     if (!files.find(f => f.name === file.name)) {
-                        files.push(file);
+                        files.push({ ...file, source: 'local' });
                     }
                 }
 
@@ -1362,11 +1389,12 @@
                     const optionEl = document.createElement('div');
                     optionEl.className = 'custom-select-option';
                     optionEl.dataset.value = file.name;
+                    optionEl.dataset.filePath = file.file_path || '';
                     optionEl.textContent = `📄 ${file.title || file.name}`;
 
                     optionEl.addEventListener('click', async (e) => {
                         e.stopPropagation();
-                        await selectCustomOption(file.name, `📄 ${file.title || file.name}`);
+                        await selectCustomOption(file.name, `📄 ${file.title || file.name}`, file.file_path);
                     });
 
                     menuEl.appendChild(optionEl);
@@ -1374,7 +1402,7 @@
 
                 // 첫 번째 파일을 기본값으로 선택
                 if (files.length > 0) {
-                    await selectCustomOption(files[0].name, `📄 ${files[0].title || files[0].name}`);
+                    await selectCustomOption(files[0].name, `📄 ${files[0].title || files[0].name}`, files[0].file_path);
                 }
             } catch (error) {
                 console.error('Data file list load error:', error);
@@ -1385,14 +1413,32 @@
         }
 
         // 선택한 데이터 파일로부터 가사 로드
-        async function loadLyricsFromData(fileName) {
+        async function loadLyricsFromData(fileName, filePath = null) {
             try {
                 let mdText = null;
 
-                // 먼저 localStorage에서 찾기
-                mdText = localStorage.getItem(`markdown_${fileName}`);
+                // 1. Supabase에서 먼저 시도 (filePath가 있으면 Supabase 파일)
+                if (filePath && typeof supabase !== 'undefined') {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        const { data, error } = await supabase
+                            .storage
+                            .from('study_materials')
+                            .download(filePath);
 
-                // localStorage에 없으면 서버 파일에서 로드
+                        if (!error && data) {
+                            mdText = await data.text();
+                            console.log('✅ Supabase에서 불러옴:', fileName);
+                        }
+                    }
+                }
+
+                // 2. localStorage에서 찾기
+                if (!mdText) {
+                    mdText = localStorage.getItem(`markdown_${fileName}`);
+                }
+
+                // 3. 서버 파일에서 로드
                 if (!mdText) {
                     try {
                         const response = await fetch(`./data/${encodeURIComponent(fileName)}`);
@@ -1543,8 +1589,9 @@
             customSelectOpen = false;
         }
 
-        async function selectCustomOption(fileName, fileTitle) {
+        async function selectCustomOption(fileName, fileTitle, filePath = null) {
             selectedFile = fileName;
+            selectedFilePath = filePath; // Store file path for loading
 
             // Update UI
             const valueEl = document.querySelector('.custom-select-value');
@@ -1563,7 +1610,7 @@
             closeCustomSelect();
 
             // Load data
-            await loadLyricsFromData(fileName);
+            await loadLyricsFromData(fileName, filePath);
         }
 
         function setupEventListeners() {
