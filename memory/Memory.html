@@ -1287,6 +1287,7 @@
         let gameMode = 'random'; // 'random' or 'bold'
         let lyrics = [];
         let boldWords = []; // bold 처리된 단어들
+        let originalMarkdown = ''; // 원본 마크다운 텍스트 (줄바꿈 유지)
         let blanks = [];
         let wrongAnswers = []; // 틀린 단어 인덱스들
         let currentBlankIndex = -1;
@@ -1493,6 +1494,9 @@
 
         // 마크다운 텍스트를 파싱하여 lyrics 배열과 boldWords 배열에 저장
         function parseLyrics(mdText) {
+            // 원본 마크다운 텍스트 저장 (줄바꿈 유지)
+            originalMarkdown = mdText;
+
             const lines = mdText.split('\n');
             let fullText = '';
             boldWords = [];
@@ -2178,31 +2182,93 @@
 
             displayEl.innerHTML = '';
 
-            if (lyrics.length === 0) {
+            if (!originalMarkdown || lyrics.length === 0) {
                 displayEl.textContent = '원본 문서를 불러올 수 없습니다.';
                 return;
             }
 
-            lyrics.forEach((word, index) => {
-                const wordSpan = document.createElement('span');
-                wordSpan.className = 'word-item';
-                wordSpan.textContent = word;
+            // 원본 마크다운을 줄별로 처리
+            const lines = originalMarkdown.split('\n');
+            let wordIndex = 0;
 
-                // blanks에 포함된 단어인지 확인
-                if (blanks.includes(index)) {
-                    // 틀린 단어인지 확인
-                    if (wrongAnswers.includes(index)) {
-                        wordSpan.classList.add('wrong');
+            lines.forEach(line => {
+                // 제목과 빈 줄 처리
+                if (line.startsWith('#')) {
+                    const lineDiv = document.createElement('div');
+                    lineDiv.style.fontWeight = 'bold';
+                    lineDiv.style.marginBottom = '10px';
+                    lineDiv.textContent = line.replace(/^#+\s*/, '');
+                    displayEl.appendChild(lineDiv);
+                    return;
+                }
+
+                if (line.trim() === '') {
+                    displayEl.appendChild(document.createElement('br'));
+                    return;
+                }
+
+                // 일반 줄 처리
+                const lineDiv = document.createElement('div');
+                lineDiv.style.marginBottom = '5px';
+
+                let remaining = line;
+                while (remaining.length > 0) {
+                    const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+
+                    if (boldMatch) {
+                        // Bold 단어
+                        const word = boldMatch[1].trim();
+                        if (word && wordIndex < lyrics.length) {
+                            const wordSpan = document.createElement('span');
+                            wordSpan.className = 'word-item';
+                            wordSpan.textContent = word;
+
+                            if (blanks.includes(wordIndex)) {
+                                if (wrongAnswers.includes(wordIndex)) {
+                                    wordSpan.classList.add('wrong');
+                                } else {
+                                    wordSpan.classList.add('correct');
+                                }
+                            }
+
+                            lineDiv.appendChild(wordSpan);
+                            lineDiv.appendChild(document.createTextNode(' '));
+                            wordIndex++;
+                        }
+                        remaining = remaining.substring(boldMatch[0].length);
                     } else {
-                        wordSpan.classList.add('correct');
+                        // 일반 단어
+                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                        if (nonBoldMatch && nonBoldMatch[1].trim()) {
+                            const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
+                            words.forEach(word => {
+                                if (wordIndex < lyrics.length) {
+                                    const wordSpan = document.createElement('span');
+                                    wordSpan.className = 'word-item';
+                                    wordSpan.textContent = word;
+
+                                    if (blanks.includes(wordIndex)) {
+                                        if (wrongAnswers.includes(wordIndex)) {
+                                            wordSpan.classList.add('wrong');
+                                        } else {
+                                            wordSpan.classList.add('correct');
+                                        }
+                                    }
+
+                                    lineDiv.appendChild(wordSpan);
+                                    lineDiv.appendChild(document.createTextNode(' '));
+                                    wordIndex++;
+                                }
+                            });
+                        }
+                        remaining = remaining.substring(nonBoldMatch ? nonBoldMatch[0].length : 1);
                     }
                 }
 
-                displayEl.appendChild(wordSpan);
-                displayEl.appendChild(document.createTextNode(' '));
+                displayEl.appendChild(lineDiv);
             });
 
-            console.log('원본 문서 표시 완료');
+            console.log('원본 문서 표시 완료 (줄바꿈 유지)');
         }
 
         function goToMenu() {
