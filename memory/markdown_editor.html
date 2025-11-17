@@ -597,7 +597,7 @@
     <div class="container">
         <div class="header">
             <div class="header-top">
-                <h1>📚 학습 데이터 관리</h1>
+                <h1>Data 관리</h1>
                 <button class="hamburger-btn" id="hamburger-btn">
                     <span class="material-icons">menu</span>
                 </button>
@@ -609,8 +609,7 @@
             <section id="list-section" class="active">
                 <div class="file-manager">
                     <div class="file-manager-header">
-                        <div class="file-manager-title">
-                            <span>💾</span>
+                        <div class="file-manager-title">                            
                             파일 목록
                         </div>
                         <button class="create-btn" onclick="switchMode('create')">
@@ -976,7 +975,7 @@
                         console.log('데이터 clicked');
                     } else if (action === 'my-data') {
                         // Handle 마이데이터 action
-                        console.log('마이데이터 clicked');
+                        window.location.href = 'markdown_editor.html';
                     } else if (action === 'game') {
                         // Handle 게임 action
                         window.location.href = 'Memory.html';
