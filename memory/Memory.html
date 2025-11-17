@@ -2042,46 +2042,6 @@
 
         // Start the game
         init();
-
-        // Hamburger Menu Logic
-        const hamburgerBtn = document.getElementById('hamburger-btn');
-        const sideMenu = document.querySelector('.side-menu');
-        const menuOverlay = document.querySelector('.menu-overlay');
-        const menuCloseBtn = document.querySelector('.menu-close-btn');
-
-        function toggleMenu() {
-            sideMenu.classList.toggle('open');
-            menuOverlay.classList.toggle('active');
-        }
-
-        function closeMenu() {
-            sideMenu.classList.remove('open');
-            menuOverlay.classList.remove('active');
-        }
-
-        hamburgerBtn.addEventListener('click', toggleMenu);
-        menuCloseBtn.addEventListener('click', closeMenu);
-        menuOverlay.addEventListener('click', closeMenu);
-
-        // Menu item click handlers
-        document.querySelectorAll('.menu-item a').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const action = e.currentTarget.dataset.action;
-                closeMenu();
-
-                // Handle menu actions
-                if (action === 'data') {
-                    // Handle 데이터 action
-                    console.log('데이터 clicked');
-                } else if (action === 'my-data') {
-                    // Handle 마이데이터 action
-                    console.log('마이데이터 clicked');
-                } else if (action === 'edit') {
-                    // Handle 편집 action
-                    window.location.href = 'markdown_editor.html';
-                }
-            });
-        });
     </script>
 
     <!-- Side Menu -->
@@ -2111,5 +2071,56 @@
             </li>
         </ul>
     </div>
+
+    <!-- Hamburger Menu Script -->
+    <script>
+        // Hamburger Menu Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sideMenu = document.getElementById('side-menu');
+            const menuOverlay = document.getElementById('menu-overlay');
+            const menuCloseBtn = document.querySelector('.menu-close-btn');
+
+            if (!hamburgerBtn || !sideMenu || !menuOverlay || !menuCloseBtn) {
+                console.error('Menu elements not found');
+                return;
+            }
+
+            function toggleMenu() {
+                sideMenu.classList.toggle('open');
+                menuOverlay.classList.toggle('active');
+            }
+
+            function closeMenu() {
+                sideMenu.classList.remove('open');
+                menuOverlay.classList.remove('active');
+            }
+
+            hamburgerBtn.addEventListener('click', toggleMenu);
+            menuCloseBtn.addEventListener('click', closeMenu);
+            menuOverlay.addEventListener('click', closeMenu);
+
+            // Menu item click handlers
+            document.querySelectorAll('.menu-item a').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const action = e.currentTarget.dataset.action;
+                    closeMenu();
+
+                    // Handle menu actions
+                    if (action === 'data') {
+                        // Handle 데이터 action
+                        console.log('데이터 clicked');
+                    } else if (action === 'my-data') {
+                        // Handle 마이데이터 action
+                        console.log('마이데이터 clicked');
+                    } else if (action === 'edit') {
+                        // Handle 편집 action
+                        window.location.href = 'markdown_editor.html';
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
