@@ -951,10 +951,6 @@
             min-width: 140px;
         }
 
-        .menu-btn {
-            min-width: 100px;
-        }
-
         /* Responsive Design */
         /* Scrollbar styling */
         .game-wrapper::-webkit-scrollbar {
@@ -1082,7 +1078,6 @@
                     <div class="button-group">
                         <button class="retry-btn btn-base btn-primary">다시 하기</button>
                         <button class="wrong-retry-btn btn-base btn-secondary" id="wrong-retry-btn" style="display: none;">틀린 것만 다시</button>
-                        <button class="menu-btn btn-base btn-tertiary">메뉴로</button>
                     </div>
 
                     <!-- 원본 문서 표시 -->
@@ -1500,10 +1495,6 @@
             document.getElementById('wrong-retry-btn').addEventListener('click', (e) => {
                 e.preventDefault();
                 startGame(true); // 틀린 것만 다시
-            });
-            document.querySelector('.menu-btn').addEventListener('click', (e) => {
-                e.preventDefault();
-                goToMenu();
             });
         }
 
