@@ -2087,6 +2087,10 @@
                 const lineDiv = document.createElement('div');
                 lineDiv.style.marginBottom = '8px';
                 lineDiv.style.lineHeight = '2';
+                lineDiv.style.width = '100%'; // flex 부모 안에서 전체 너비 차지
+                lineDiv.style.display = 'flex';
+                lineDiv.style.flexWrap = 'wrap';
+                lineDiv.style.alignItems = 'center';
 
                 let remaining = line;
                 while (remaining.length > 0) {
