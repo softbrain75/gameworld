@@ -1416,26 +1416,39 @@
         async function loadLyricsFromData(fileName, filePath = null) {
             try {
                 let mdText = null;
+                console.log('📂 파일 불러오기 시도:', fileName, 'filePath:', filePath);
 
                 // 1. Supabase에서 먼저 시도 (filePath가 있으면 Supabase 파일)
                 if (filePath && typeof supabase !== 'undefined') {
+                    console.log('🔍 Supabase에서 불러오기 시도...');
                     const { data: { user } } = await supabase.auth.getUser();
+                    console.log('👤 사용자:', user ? user.id : '로그인 안됨');
+
                     if (user) {
                         const { data, error } = await supabase
                             .storage
                             .from('study_materials')
                             .download(filePath);
 
+                        if (error) {
+                            console.error('❌ Supabase Storage 오류:', error);
+                        }
+
                         if (!error && data) {
                             mdText = await data.text();
                             console.log('✅ Supabase에서 불러옴:', fileName);
                         }
                     }
+                } else {
+                    console.log('⏭️ Supabase 건너뜀 - filePath:', filePath, 'supabase:', typeof supabase);
                 }
 
                 // 2. localStorage에서 찾기
                 if (!mdText) {
                     mdText = localStorage.getItem(`markdown_${fileName}`);
+                    if (mdText) {
+                        console.log('✅ localStorage에서 불러옴:', fileName);
+                    }
                 }
 
                 // 3. 서버 파일에서 로드
@@ -1444,13 +1457,15 @@
                         const response = await fetch(`./data/${encodeURIComponent(fileName)}`);
                         if (response.ok) {
                             mdText = await response.text();
+                            console.log('✅ 서버 파일에서 불러옴:', fileName);
                         }
                     } catch (e) {
-                        console.log('Server file not found');
+                        console.log('⏭️ 서버 파일 없음');
                     }
                 }
 
                 if (!mdText) {
+                    console.error('❌ 파일을 찾을 수 없음:', fileName);
                     alert('파일을 불러올 수 없습니다');
                     return false;
                 }
