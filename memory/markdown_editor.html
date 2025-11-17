@@ -942,12 +942,42 @@
             }
         }
 
-        async function deleteFile(fileName) {
+        async function deleteFile(fileName, filePath = null) {
             if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
                 return;
             }
 
             try {
+                // 1. Supabase에서 삭제 (filePath가 있으면 Supabase 파일)
+                if (filePath && typeof supabase !== 'undefined') {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        // Storage에서 파일 삭제
+                        const { error: storageError } = await supabase
+                            .storage
+                            .from('study_materials')
+                            .remove([filePath]);
+
+                        if (storageError) {
+                            console.warn('Storage 삭제 실패:', storageError);
+                        }
+
+                        // DB에서 메타데이터 삭제
+                        const { error: dbError } = await supabase
+                            .from('study_materials')
+                            .delete()
+                            .eq('user_id', user.id)
+                            .eq('title', fileName);
+
+                        if (dbError) {
+                            console.warn('DB 삭제 실패:', dbError);
+                        } else {
+                            console.log('✅ Supabase에서 삭제됨:', fileName);
+                        }
+                    }
+                }
+
+                // 2. localStorage에서도 삭제
                 localStorage.removeItem(`markdown_${fileName}`);
 
                 let fileList = JSON.parse(localStorage.getItem('markdown_files') || '[]');
@@ -1018,6 +1048,7 @@
 
                 fileList.innerHTML = filesList.map(file => {
                     const filePathParam = file.file_path ? `, '${file.file_path.replace(/'/g, "\\'")}'` : '';
+                    const deleteFilePathParam = file.file_path ? `, '${file.file_path.replace(/'/g, "\\'")}'` : '';
                     return `
                         <div class="file-item" onclick="loadFile('${file.name.replace(/'/g, "\\'")}' ${filePathParam})">
                             <div class="file-info">
@@ -1025,7 +1056,7 @@
                                 <div class="file-date">${file.description || ''}</div>
                             </div>
                             <div class="file-actions">
-                                <button class="delete-icon-btn" onclick="event.stopPropagation(); deleteFile('${file.name.replace(/'/g, "\\'")}')" title="삭제">
+                                <button class="delete-icon-btn" onclick="event.stopPropagation(); deleteFile('${file.name.replace(/'/g, "\\'")}'${deleteFilePathParam})" title="삭제">
                                     <span class="material-icons">delete</span>
                                 </button>
                             </div>
