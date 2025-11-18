@@ -1899,7 +1899,7 @@
         let isRenamingFile = false;
 
         // Detect filename change and handle file rename logic
-        fileNameInput.addEventListener('change', async (e) => {
+        fileNameInput.addEventListener('input', async (e) => {
             const newFileName = fileNameInput.value.trim();
             const editorFileId = document.getElementById('editor-file-id').textContent;
 
@@ -2487,7 +2487,7 @@
             const savedMode = localStorage.getItem('memory_game_mode') || 'random';
 
             // Load Supabase files into "마이 파일" section
-            async function loadMyFiles() {
+            window.loadMyFiles = async function() {
                 const myFilesContainer = document.getElementById('my-files');
                 const localFilesContainer = document.getElementById('local-files');
                 try {
@@ -2596,7 +2596,7 @@
                     console.error('마이 파일 로드 실패:', error);
                     myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일 로드 실패</div>';
                 }
-            }
+            };
 
             // Load local files from localStorage
             function loadLocalFiles() {
