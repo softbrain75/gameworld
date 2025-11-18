@@ -2996,10 +2996,25 @@
             boldWords = [];
             let wordIndex = 0;
 
-            lines.forEach(line => {
-                if (line.startsWith('#') || line.trim() === '') return;
-                if (line.trim().match(/^\|[\s\-:]+\|/)) return;
+            let i = 0;
+            while (i < lines.length) {
+                const line = lines[i];
 
+                // 제목과 빈 줄 건너뛰기
+                if (line.startsWith('#') || line.trim() === '') {
+                    i++;
+                    continue;
+                }
+
+                // 표 전체 건너뛰기 (|로 시작하는 모든 줄)
+                if (line.trim().startsWith('|')) {
+                    while (i < lines.length && lines[i].trim().startsWith('|')) {
+                        i++;
+                    }
+                    continue;
+                }
+
+                // 일반 줄 처리
                 let remaining = line;
                 while (remaining.length > 0) {
                     const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
@@ -3014,7 +3029,7 @@
                     } else {
                         const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
                         if (nonBoldMatch && nonBoldMatch[1].trim()) {
-                            const text = nonBoldMatch[1].replace(/\|/g, ' ');
+                            const text = nonBoldMatch[1];
                             const words = text.split(/[\s]+/).filter(w => w.length > 0);
                             words.forEach(word => {
                                 fullText += word + ' ';
@@ -3024,11 +3039,14 @@
                         remaining = remaining.substring(nonBoldMatch ? nonBoldMatch[0].length : 1);
                     }
                 }
-            });
+
+                i++;
+            }
 
             lyrics = fullText.split(/[\s\n]+/).filter(word => word.length > 0);
             console.log('TTV 인덱스:', boldWords);
             console.log('전체 단어 수:', lyrics.length);
+            console.log('originalMarkdown:', originalMarkdown ? originalMarkdown.substring(0, 100) + '...' : 'NULL');
             return true;
         }
 
