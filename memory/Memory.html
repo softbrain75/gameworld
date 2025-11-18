@@ -3676,7 +3676,6 @@
             document.getElementById('total-blanks').textContent = totalBlanks;
             document.getElementById('score').textContent = score;
             const progress = totalBlanks > 0 ? (correctCount / totalBlanks) * 100 : 0;
-            document.getElementById('progress-percent').textContent = Math.round(progress);
             document.getElementById('progress-fill').style.width = progress + '%';
         }
 
