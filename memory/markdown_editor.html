@@ -2131,6 +2131,8 @@
                                 console.warn('파일 업데이트 실패:', updateError);
                             } else {
                                 console.log('✅ Supabase 파일 업데이트됨:', fileName);
+                                // 마이 파일 목록 다시 로드
+                                await loadMyFiles();
                             }
                         }
                     } else {
@@ -2151,6 +2153,8 @@
                             console.warn('DB 저장 실패:', dbError);
                         } else {
                             console.log('✅ Supabase에 저장됨:', fileName);
+                            // 마이 파일 목록 다시 로드
+                            await loadMyFiles();
                         }
                     }
                 }
