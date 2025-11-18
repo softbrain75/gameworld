@@ -3260,8 +3260,66 @@
             const testDisplay = document.getElementById('test-display');
             testDisplay.innerHTML = '';
 
+            console.log('🎮 updateUI 호출됨');
+            console.log('originalMarkdown:', originalMarkdown ? originalMarkdown.substring(0, 100) + '...' : 'NULL');
+            console.log('lyrics 길이:', lyrics.length);
+
             if (!originalMarkdown) {
-                console.error('❌ 원본 마크다운이 없습니다');
+                console.warn('⚠️ 원본 마크다운이 없습니다. lyrics로 폴백합니다.');
+                // 폴백: lyrics 배열로만 표시
+                const lineDiv = document.createElement('div');
+                lineDiv.style.marginBottom = '8px';
+                lineDiv.style.lineHeight = '2';
+                lineDiv.style.width = '100%';
+                lineDiv.style.display = 'flex';
+                lineDiv.style.flexWrap = 'wrap';
+                lineDiv.style.alignItems = 'center';
+
+                let blankOrder = 0;
+                lyrics.forEach((word, index) => {
+                    const wordEl = document.createElement('span');
+                    wordEl.className = 'lyric-word';
+                    wordEl.style.display = 'inline-block';
+                    wordEl.style.margin = '0 4px';
+
+                    if (blanks.includes(index)) {
+                        const container = document.createElement('span');
+                        container.className = 'word-blank-container';
+
+                        const inputEl = document.createElement('input');
+                        inputEl.type = 'text';
+                        inputEl.className = 'word-input';
+                        inputEl.dataset.index = index;
+                        inputEl.dataset.order = blankOrder;
+                        inputEl.placeholder = '';
+                        inputEl.autocomplete = 'off';
+                        inputEl.setAttribute('autocomplete', 'off');
+                        inputEl.setAttribute('autocorrect', 'off');
+                        inputEl.setAttribute('autocapitalize', 'off');
+                        inputEl.spellcheck = 'false';
+
+                        const wordLength = word.length;
+                        const isNumeric = /^\d+$/.test(word);
+                        const multiplier = isNumeric ? 0.8 : 1.2;
+                        inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+
+                        blankOrder++;
+
+                        container.appendChild(inputEl);
+                        wordEl.appendChild(container);
+                    } else {
+                        const wordSpan = document.createElement('span');
+                        wordSpan.className = 'word-visible';
+                        wordSpan.textContent = word;
+                        wordEl.appendChild(wordSpan);
+                    }
+
+                    lineDiv.appendChild(wordEl);
+                });
+
+                testDisplay.appendChild(lineDiv);
+                updateScore();
+                setupWordInputListeners();
                 return;
             }
 
