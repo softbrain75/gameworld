@@ -3046,6 +3046,7 @@
 
         // Start game
         function startGame(wrongOnly = false) {
+            console.log('🎮 startGame 호출됨 - wrongOnly:', wrongOnly);
             gameState = 'playing';
             correctCount = 0;
             score = 0;
@@ -3057,6 +3058,7 @@
                 return;
             }
 
+            console.log('📊 blanks 계산 중 - gameMode:', gameMode);
             if (wrongOnly) {
                 // 이전 게임의 blanks에서 correctAnswers에 포함되지 않은 것만 다시
                 // blanks는 이미 이전 게임에서 설정되어 있으므로 필터링만 함
@@ -3102,7 +3104,10 @@
             }
 
             totalBlanks = blanks.length;
+            console.log('✅ blanks 계산 완료 - blanks:', blanks);
+            console.log('updateUI 호출 직전');
             updateUI();
+            console.log('updateUI 호출 직후');
             showGameScreen('playing');
         }
 
