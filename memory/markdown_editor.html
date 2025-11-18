@@ -2990,35 +2990,28 @@
 
         // Parse markdown text
         function parseLyrics(mdText) {
+            // 원본 마크다운 텍스트 저장 (줄바꿈 유지)
             originalMarkdown = mdText;
+
             const lines = mdText.split('\n');
             let fullText = '';
             boldWords = [];
             let wordIndex = 0;
 
-            let i = 0;
-            while (i < lines.length) {
-                const line = lines[i];
+            lines.forEach(line => {
+                // 제목과 빈 줄 제외
+                if (line.startsWith('#') || line.trim() === '') return;
 
-                // 제목과 빈 줄 건너뛰기
-                if (line.startsWith('#') || line.trim() === '') {
-                    i++;
-                    continue;
-                }
+                // 표 구분선 제외 (|---|---|)
+                if (line.trim().match(/^\|[\s\-:]+\|/)) return;
 
-                // 표 전체 건너뛰기 (|로 시작하는 모든 줄)
-                if (line.trim().startsWith('|')) {
-                    while (i < lines.length && lines[i].trim().startsWith('|')) {
-                        i++;
-                    }
-                    continue;
-                }
-
-                // 일반 줄 처리
+                // **bold** 패턴 찾기
                 let remaining = line;
                 while (remaining.length > 0) {
                     const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+
                     if (boldMatch) {
+                        // TTV를 찾음
                         const word = boldMatch[1].trim();
                         if (word) {
                             fullText += word + ' ';
@@ -3027,9 +3020,11 @@
                         }
                         remaining = remaining.substring(boldMatch[0].length);
                     } else {
+                        // bold가 아닌 부분 찾기
                         const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
                         if (nonBoldMatch && nonBoldMatch[1].trim()) {
-                            const text = nonBoldMatch[1];
+                            // |는 표의 구분자이므로 제거
+                            const text = nonBoldMatch[1].replace(/\|/g, ' ');
                             const words = text.split(/[\s]+/).filter(w => w.length > 0);
                             words.forEach(word => {
                                 fullText += word + ' ';
@@ -3039,13 +3034,12 @@
                         remaining = remaining.substring(nonBoldMatch ? nonBoldMatch[0].length : 1);
                     }
                 }
-
-                i++;
-            }
+            });
 
             lyrics = fullText.split(/[\s\n]+/).filter(word => word.length > 0);
             console.log('TTV 인덱스:', boldWords);
             console.log('전체 단어 수:', lyrics.length);
+            console.log('파싱된 가사:', lyrics);
             console.log('originalMarkdown:', originalMarkdown ? originalMarkdown.substring(0, 100) + '...' : 'NULL');
             return true;
         }
