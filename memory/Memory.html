@@ -1343,24 +1343,39 @@
                         return;
                     }
 
-                    const { data, error } = await supabase
+                    // Get file metadata from table
+                    const { data: fileData, error: fileError } = await supabase
                         .from('study_materials')
-                        .select('content')
+                        .select('*')
                         .eq('id', fileId)
                         .single();
 
-                    if (error) {
-                        console.error('파일 로드 오류:', error);
-                        alert('파일을 로드할 수 없습니다: ' + error.message);
+                    if (fileError) {
+                        console.error('파일 메타데이터 로드 오류:', fileError);
+                        alert('파일 정보를 로드할 수 없습니다: ' + fileError.message);
                         return;
                     }
 
-                    if (!data) {
+                    if (!fileData) {
                         alert('파일을 찾을 수 없습니다.');
                         return;
                     }
 
-                    parseLyrics(data.content);
+                    // Download file from Storage
+                    const storagePath = fileData.file_path || `${user.id}/${fileName}.md`;
+                    const { data: storageData, error: storageError } = await supabase
+                        .storage
+                        .from('study_materials')
+                        .download(storagePath);
+
+                    if (storageError) {
+                        console.error('Storage 다운로드 오류:', storageError);
+                        alert('파일을 다운로드할 수 없습니다: ' + storageError.message);
+                        return;
+                    }
+
+                    const content = await storageData.text();
+                    parseLyrics(content);
                     console.log('✅ Supabase 파일 로드 완료:', fileName);
 
                 } else if (fileSource === 'local') {
