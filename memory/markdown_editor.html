@@ -1475,9 +1475,8 @@
             const hamburgerBtn = document.getElementById('hamburger-btn');
             const sideMenu = document.getElementById('side-menu');
             const container = document.querySelector('.container');
-            const menuCloseBtn = document.querySelector('.menu-close-btn');
 
-            if (!hamburgerBtn || !sideMenu || !container || !menuCloseBtn) {
+            if (!hamburgerBtn || !sideMenu || !container) {
                 console.error('Menu elements not found');
                 return;
             }
@@ -1493,7 +1492,6 @@
             }
 
             hamburgerBtn.addEventListener('click', toggleMenu);
-            menuCloseBtn.addEventListener('click', closeMenu);
 
             // Load saved game mode from localStorage
             const savedMode = localStorage.getItem('memory_game_mode') || 'random';
@@ -1690,10 +1688,6 @@
 
     <!-- Side Menu -->
     <div class="side-menu" id="side-menu">
-        <button class="menu-close-btn" id="menu-close-btn">
-            <span class="material-icons">close</span>
-        </button>
-
         <!-- 주요 액션 -->
         <div class="menu-actions">
             <button class="menu-action-btn" id="new-file-btn">
