@@ -1051,7 +1051,7 @@
         const boldBtn = document.getElementById('bold-btn');
         const fileNameInput = document.getElementById('file-name-input');
         const saveBtn = document.getElementById('save-btn');
-        const fileList = document.getElementById('file-list');
+        let fileList = null; // Will be set in DOMContentLoaded
 
         // Viewport height fix
         function setVh() {
@@ -1471,10 +1471,12 @@
         // Initialize
         setVh();
         window.addEventListener('resize', setVh);
-        updateFileList();
 
         // Hamburger Menu Logic
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize fileList element
+            fileList = document.getElementById('file-list');
+
             const hamburgerBtn = document.getElementById('hamburger-btn');
             const sideMenu = document.getElementById('side-menu');
             const container = document.querySelector('.container');
@@ -1684,6 +1686,7 @@
             });
 
             // Initialize menu data
+            updateFileList();
             loadMyFiles();
             loadLocalFiles();
         });
