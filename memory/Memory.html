@@ -1457,46 +1457,10 @@
                     }
                 }
 
-                const customSelect = document.getElementById('data-select');
-                const menuEl = customSelect.querySelector('.custom-select-menu');
-                const dataInfo = document.getElementById('data-info');
-
-                // 기존 메뉴 아이템 제거
-                menuEl.innerHTML = '';
-
-                if (files.length === 0) {
-                    dataInfo.style.display = 'block';
-                    dataInfo.textContent = '선택된 파일이 없습니다. markdown_editor.html에서 파일을 만들어주세요.';
-                    return;
-                }
-
-                dataInfo.style.display = 'none';
-
-                // 파일 목록을 메뉴 아이템으로 추가
-                files.forEach((file, index) => {
-                    const optionEl = document.createElement('div');
-                    optionEl.className = 'custom-select-option';
-                    optionEl.dataset.value = file.name;
-                    optionEl.dataset.filePath = file.file_path || '';
-                    optionEl.textContent = `📄 ${file.title || file.name}`;
-
-                    optionEl.addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        await selectCustomOption(file.name, `📄 ${file.title || file.name}`, file.file_path);
-                    });
-
-                    menuEl.appendChild(optionEl);
-                });
-
-                // 첫 번째 파일을 기본값으로 선택
-                if (files.length > 0) {
-                    await selectCustomOption(files[0].name, `📄 ${files[0].title || files[0].name}`, files[0].file_path);
-                }
+                // 메뉴 화면이 제거되어 파일 목록 표시 불필요
+                console.log('📂 파일 목록:', files.length, '개');
             } catch (error) {
                 console.error('Data file list load error:', error);
-                const dataInfo = document.getElementById('data-info');
-                dataInfo.style.display = 'block';
-                dataInfo.textContent = '파일 목록을 불러올 수 없습니다.';
             }
         }
 
