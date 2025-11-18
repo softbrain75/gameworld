@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -37,6 +38,7 @@
             background: linear-gradient(135deg, #f8f5ff 0%, #faf7ff 100%);
             font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             color: var(--text-primary);
+            overflow-x: hidden; /* 좌우 스크롤 방지 */
         }
 
         .container {
@@ -44,45 +46,30 @@
             height: calc(var(--vh, 1vh) * 100);
             display: flex;
             flex-direction: column;
-            padding: 16px;
+            padding: 6px 16px 16px 16px;
             overflow-y: auto;
+            overflow-x: hidden; /* 좌우 스크롤 방지 */
             -webkit-overflow-scrolling: touch;
+            box-sizing: border-box; /* padding 포함한 너비 계산 */
         }
 
-        .header {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .header-top {
+        /* Menu Toggle Area */
+        .menu-toggle-area {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 8px;
+            justify-content: flex-start; /* 항상 왼쪽 고정 */
+            padding: 6px 8px; /* 좌우 패딩 고정 */
+            margin-bottom: 0px;
         }
 
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 0;
-            color: var(--text-primary);
-        }
-
-        .header p {
-            font-size: 13px;
-            font-weight: 400;
-            color: var(--text-secondary);
-            margin: 0;
-            text-align: center;
+        .side-menu.open .menu-toggle-area {
+            padding: 6px 8px; /* 동일한 패딩 유지 */
         }
 
         /* Hamburger Menu Button */
         .hamburger-btn {
-            width: 48px;
-            height: 48px;
+            width: 35px;
+            height: 40px;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -92,10 +79,24 @@
             color: var(--text-primary);
             font-size: 24px;
             transition: all 0.2s ease;
-            border-radius: 12px;
+            border-radius: 8px;
             flex-shrink: 0;
         }
 
+        .hamburger-btn .material-icons {
+            font-size: 22px;
+            width: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .side-menu.open .hamburger-btn {
+            padding-left: 8px; /* 열렸을 때는 왼쪽 정렬 */
+            padding-right: 8px;
+        }
+
+        /* 햄버거 버튼은 항상 왼쪽에 고정 */
         .hamburger-btn:hover {
             background: var(--primary-light);
         }
@@ -109,46 +110,128 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 260px;
+            width: 52px; /* 닫혔을 때 아이콘만 보이는 너비 */
             height: 100vh;
             background: var(--surface);
             border-right: 1px solid var(--outline-variant);
             z-index: 1000;
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             display: flex;
             flex-direction: column;
-            padding-top: 16px;
+            padding-top: 0px;
+            overflow: hidden;
         }
 
         .side-menu.open {
-            transform: translateX(0);
+            width: 260px; /* 열렸을 때 전체 너비 */
         }
 
-        /* Container shifts when menu is open */
+        /* Container shifts when menu is open/closed */
         .container {
-            transition: margin-left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            margin-left: 52px; /* 기본적으로 아이콘 바 너비만큼 */
+            width: calc(100% - 52px);
+            transition: margin-left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .container.menu-open {
             margin-left: 260px;
+            width: calc(100% - 260px);
+        }
+
+        .menu-close-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: none; /* 기본적으로 숨김 */
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 24px;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin-left: auto; /* 우측으로 밀기 */
+        }
+
+        .side-menu.open .menu-close-btn {
+            display: flex; /* 열렸을 때만 우측에 보임 */
+        }
+
+        .menu-close-btn:hover {
+            background: var(--surface-dim);
+        }
+
+        /* 사이드바 닫혔을 때 텍스트 숨김 */
+        .side-menu span:not(.material-icons) {
+            opacity: 0;
+            white-space: nowrap;
+            transition: opacity 0.2s ease;
+        }
+
+        .side-menu.open span:not(.material-icons) {
+            opacity: 1;
+        }
+
+        /* 아이콘 좌측 정렬 */
+        .menu-action-btn,
+        .menu-file-item,
+        .menu-bottom-item {
+            justify-content: flex-start; /* 좌측 정렬로 변경 */
+            transition: justify-content 0.3s ease;
+        }
+
+        .side-menu.open .menu-action-btn,
+        .side-menu.open .menu-file-item,
+        .side-menu.open .menu-bottom-item {
+            justify-content: flex-start;
         }
 
         /* Menu Actions */
         .menu-actions {
-            padding: 60px 12px 16px 12px;
+            padding: 4px 8px 16px 8px; /* 좌우 패딩 고정 */
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            border-bottom: 1px solid var(--outline-variant);
+            gap: 0;
+            border-bottom: none; /* 닫혔을 때 border 제거 */
             margin-bottom: 8px;
+            transition: border-bottom 0.3s ease;
+            flex-shrink: 0; /* 스크롤되지 않도록 고정 */
+        }
+
+        /* 스크롤 가능한 영역 */
+        .menu-sections-wrapper {
+            flex: 1;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            min-height: 0;
+        }
+
+        /* 스크롤바 스타일 */
+        .menu-sections-wrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .menu-sections-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .menu-sections-wrapper::-webkit-scrollbar-thumb {
+            background: var(--outline-variant);
+            border-radius: 3px;
+        }
+
+        .side-menu.open .menu-actions {
+            padding: 4px 8px 16px 8px; /* 동일한 패딩 유지 */
+            border-bottom: 1px solid var(--outline-variant); /* 열렸을 때 border 추가 */
         }
 
         .menu-action-btn {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 12px;
+            padding: 10px 8px; /* 좌우 패딩 고정 */
             background: transparent;
             border: none;
             border-radius: 8px;
@@ -158,6 +241,12 @@
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: left;
+            width: 100%;
+            height: 36px;
+        }
+
+        .side-menu.open .menu-action-btn {
+            padding: 10px 8px; /* 패딩 동일하게 유지 */
         }
 
         .menu-action-btn:hover {
@@ -165,19 +254,30 @@
         }
 
         .menu-action-btn .material-icons {
-            font-size: 20px;
+            font-size: 18px;
+            width: 18px; /* 아이콘 너비 고정 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* 아이콘 크기 고정 */
         }
 
         /* Menu Section */
         .menu-section {
+            display: none; /* 닫혔을 때 완전히 숨김 */
             padding: 8px 12px;
             border-bottom: 1px solid var(--outline-variant);
             margin-bottom: 8px;
         }
 
+        .side-menu.open .menu-section {
+            display: block; /* 열렸을 때만 보임 */
+        }
+
         .menu-section-header {
             display: flex;
             align-items: center;
+            justify-content: center; /* 닫혔을 때 중앙 */
             gap: 8px;
             padding: 8px 12px;
             font-size: 12px;
@@ -185,6 +285,11 @@
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            transition: justify-content 0.3s ease;
+        }
+
+        .side-menu.open .menu-section-header {
+            justify-content: flex-start; /* 열렸을 때 왼쪽 정렬 */
         }
 
         .menu-section-header .material-icons {
@@ -212,6 +317,7 @@
             transition: all 0.2s ease;
             text-align: left;
             position: relative;
+            height: 36px;
         }
 
         .menu-file-item:hover {
@@ -228,6 +334,12 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            opacity: 0; /* 닫혔을 때 숨김 */
+            transition: opacity 0.2s ease;
+        }
+
+        .side-menu.open .menu-file-item .file-name {
+            opacity: 1; /* 열렸을 때 보임 */
         }
 
         .menu-file-item .file-actions {
@@ -237,8 +349,8 @@
             transition: opacity 0.2s ease;
         }
 
-        .menu-file-item:hover .file-actions {
-            opacity: 1;
+        .side-menu.open .menu-file-item:hover .file-actions {
+            opacity: 1; /* 사이드바 열렸을 때만 hover 시 보임 */
         }
 
         .file-action-btn {
@@ -266,16 +378,22 @@
 
         /* Menu Bottom */
         .menu-bottom {
-            margin-top: auto;
-            padding: 8px 12px 16px 12px;
-            border-top: 1px solid var(--outline-variant);
+            padding: 8px 8px 16px 8px; /* 좌우 패딩 고정 */
+            border-top: none; /* 닫혔을 때 border 제거 */
+            transition: border-top 0.3s ease;
+            flex-shrink: 0; /* 스크롤되지 않도록 고정 */
+        }
+
+        .side-menu.open .menu-bottom {
+            padding: 8px 8px 16px 8px; /* 동일한 패딩 유지 */
+            border-top: 1px solid var(--outline-variant); /* 열렸을 때 border 추가 */
         }
 
         .menu-bottom-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 12px;
+            padding: 10px 8px; /* 좌우 패딩 고정 */
             background: transparent;
             border: none;
             border-radius: 8px;
@@ -288,12 +406,21 @@
             width: 100%;
         }
 
+        .side-menu.open .menu-bottom-item {
+            padding: 10px 8px; /* 패딩 동일하게 유지 */
+        }
+
         .menu-bottom-item:hover {
             background: var(--surface-dim);
         }
 
         .menu-bottom-item .material-icons {
-            font-size: 20px;
+            font-size: 18px;
+            width: 18px; /* 아이콘 너비 고정 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* 아이콘 크기 고정 */
         }
 
         /* Settings Modal */
@@ -461,8 +588,9 @@
         .content-area {
             flex: 1;
             display: flex;
-            gap: 16px;
+            gap: 4px;
             min-height: 0;
+            overflow-x: hidden; /* 좌우 스크롤 방지 */
         }
 
         /* List Mode */
@@ -470,6 +598,7 @@
             display: none;
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden; /* 좌우 스크롤 방지 */
         }
 
         #list-section.active {
@@ -612,6 +741,7 @@
             flex: 1;
             flex-direction: column;
             min-height: 0;
+            overflow-x: hidden; /* 좌우 스크롤 방지 */
         }
 
         #editor-section.active {
@@ -619,14 +749,14 @@
         }
 
         .editor-container {
-            background: var(--surface);
-            border-radius: 24px;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
-            padding: 20px;
+            width: 100%;
+            margin: 0;
+            padding: 0px;
             display: flex;
             flex-direction: column;
             flex: 1;
             min-height: 0;
+            box-sizing: border-box; /* padding 포함한 너비 계산 */
         }
 
         .editor-header {
@@ -640,6 +770,17 @@
             font-size: 16px;
             font-weight: 600;
             color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .editor-title-id {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            word-break: break-all;
         }
 
         .panel-title {
@@ -785,7 +926,7 @@
 
         .btn-back {
             padding: 10px 12px;
-            background: var(--outline);
+            background: var(--error);
             color: white;
             border: none;
             border-radius: 8px;
@@ -803,7 +944,7 @@
         }
 
         .btn-back:hover {
-            background: #655f6b;
+            background: #d81b1f;
         }
 
         .btn-save {
@@ -850,7 +991,627 @@
             background: var(--outline);
         }
 
+        /* Loading Spinner */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
         /* Responsive */
+
+        /* ========================================
+           GAME SECTION STYLES (from Memory.html)
+           ======================================== */
+
+        #game-section {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden; /* 좌우 스크롤 방지 */
+        }
+
+        #game-section.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-container {
+            width: 100%;
+            margin: 0;
+            padding: 0px;
+            box-sizing: border-box; /* padding 포함한 너비 계산 */
+        }
+
+        .title {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0;
+            width: 100%;
+        }
+
+        .title-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .title-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin: 0 0 24px 0;
+            padding: 8px 0;
+            line-height: 1.5;
+            letter-spacing: 0.2px;
+        }
+
+        /* Points Display */
+        .points-display {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(103, 80, 164, 0.15);
+            padding: 4px 8px;
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .points-icon {
+            font-size: 16px;
+        }
+
+        .points-info {
+            display: none;
+        }
+
+        .points-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .points-label {
+            display: none;
+        }
+
+        @media (min-width: 480px) {
+            .points-info {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .points-value {
+                font-size: 14px;
+                line-height: 1.2;
+            }
+
+            .points-label {
+                display: block;
+                font-size: 10px;
+                opacity: 0.87;
+                line-height: 1;
+            }
+        }
+
+        .playing-screen, .gameover-screen {
+            display: none;
+            width: 100%;
+        }
+
+        .playing-screen.active, .gameover-screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Playing Screen */
+        .game-header {
+            margin-bottom: 24px;
+        }
+
+        .game-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .info-card {
+            background: var(--surface-dim);
+            padding: 10px 12px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--outline-variant);
+        }
+
+        .info-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--outline-variant);
+            border-radius: 2px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, #7d5260 100%);
+            transition: width 0.3s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .test-display {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            line-height: 2;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            box-sizing: border-box; /* padding 포함한 너비 계산 */
+            overflow-x: hidden; /* 좌우 스크롤 방지 */
+            word-wrap: break-word; /* 긴 단어 줄바꿈 */
+        }
+
+        .test-word {
+            position: relative;
+        }
+
+        .blank-input {
+            display: inline-block;
+            border: none;
+            border-bottom: 2px solid var(--outline-variant);
+            background: transparent;
+            padding: 2px 8px;
+            font-size: 16px;
+            font-family: 'Noto Sans KR', sans-serif;
+            color: var(--text-primary);
+            min-width: 60px;
+            transition: border-color 0.2s, background-color 0.2s;
+            margin: 0 2px;
+        }
+
+        .blank-input:focus {
+            outline: none;
+            border-bottom: 2px solid var(--primary);
+            background: rgba(103, 80, 164, 0.05);
+        }
+
+        .blank-input.correct {
+            border-bottom: 2px solid var(--success);
+            background: rgba(82, 196, 26, 0.1);
+            color: var(--success);
+        }
+
+        .blank-input.wrong {
+            border-bottom: 2px solid var(--error);
+            background: rgba(245, 34, 45, 0.1);
+            color: var(--error);
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .answer-display {
+            display: inline-block;
+            color: var(--success);
+            font-weight: 600;
+            margin-left: 4px;
+            font-size: 14px;
+        }
+
+        /* Submit Button */
+        .submit-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .submit-btn {
+            background: var(--success);
+            color: white;
+            padding: 14px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
+            min-width: 200px;
+        }
+
+        .submit-btn:hover {
+            background: #42961b;
+            box-shadow: 0 6px 16px rgba(82, 196, 26, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: var(--outline);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Game Over Screen */
+        .gameover-content {
+            text-align: center;
+            width: 100%;
+            margin: 0;
+        }
+
+        .final-score {
+            font-size: 64px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 32px;
+            text-shadow: 0 4px 12px rgba(103, 80, 164, 0.2);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 6px 16px rgba(103, 80, 164, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #7d5260;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #6b3f52;
+            box-shadow: 0 6px 16px rgba(125, 82, 96, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-tertiary {
+            background: var(--outline);
+            color: white;
+        }
+
+        .btn-tertiary:hover {
+            background: #655f6b;
+            box-shadow: 0 6px 16px rgba(121, 116, 126, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .original-text-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 32px;
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .original-text-content {
+            line-height: 2;
+            font-size: 16px;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .original-text-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .original-text-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .original-text-content::-webkit-scrollbar-thumb {
+            background: var(--outline-variant);
+            border-radius: 4px;
+        }
+
+        .original-text-content::-webkit-scrollbar-thumb:hover {
+            background: var(--outline);
+        }
+
+        /* Word item styles for original text display */
+        .word-item {
+            display: inline;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .word-item.correct {
+            color: #52c41a;
+            font-weight: 600;
+        }
+
+        .word-item.wrong {
+            color: #f5222d;
+            font-weight: 600;
+        }
+
+        /* Auth Modal Styles */
+        .auth-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2500;
+        }
+
+        .auth-modal-overlay.active {
+            display: flex;
+        }
+
+        .auth-modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 32px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.24);
+        }
+
+        .auth-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .auth-modal-header h2 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .auth-modal-header .search-close-btn {
+            margin: -12px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .auth-modal-header .search-close-btn:hover {
+            background: var(--surface-dim);
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .auth-tab {
+            padding: 12px 0;
+            cursor: pointer;
+            color: #757575;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s ease;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .auth-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #212121;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(103, 80, 164, 0.1);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            margin-top: 16px;
+        }
+
+        .auth-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .error-message {
+            color: #f5222d;
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            color: #52c41a;
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
     </style>
 
     <!-- Supabase -->
@@ -858,26 +1619,18 @@
     <script src="../js/supabaseClient.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="header-top">
-                <button class="hamburger-btn" id="hamburger-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="7" height="18" rx="1"></rect>
-                        <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                        <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                    </svg>
-                </button>
-                <h1>Data 관리</h1>
-            </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="loading-text">파일을 불러오는 중...</div>
         </div>
+    </div>
 
+    <div class="container">
         <div class="content-area">
             <!-- Welcome Screen -->
             <section id="list-section" class="active">
-                <!-- File List Container -->
-                <div id="file-list" style="flex: 1; overflow-y: auto;"></div>
-
                 <div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
                     <div style="text-align: center; margin-bottom: 48px;">
                         <h1 style="font-size: 36px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">
@@ -962,12 +1715,89 @@
                 </div>
             </section>
 
+            <!-- Game Section -->
+            <section id="game-section">
+                <div class="game-container">
+                    <div class="title">
+                        <div class="title-header">
+                            <h1 id="game-title">Memories</h1>
+                            <div class="points-display" id="pointsDisplay">
+                                <span class="points-icon">🏆</span>
+                                <span class="points-value" id="pointsValue">0</span>
+                                <div class="points-info">
+                                    <div class="points-label">포인트</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="subtitle">Information을 얼마나 기억하고 있을까요?</p>
+
+                    <!-- Playing Screen -->
+                    <div class="playing-screen active">
+                        <div class="game-header">
+                            <div class="game-info">
+                                <div class="info-card">
+                                    <div class="info-label">맞은 개수</div>
+                                    <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
+                                </div>
+                                <div class="info-card">
+                                    <div class="info-label">점수</div>
+                                    <div class="info-value" id="score">0</div>
+                                </div>
+                                <div class="info-card">
+                                    <div class="info-label">진행도</div>
+                                    <div class="info-value"><span id="progress-percent">0</span>%</div>
+                                </div>
+                            </div>
+
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="hint" id="hint-display" style="display: none;">
+                            <span class="hint-icon">💡</span>
+                            <span id="hint-text"></span>
+                        </div>
+
+                        <div class="test-display" id="test-display"></div>
+
+                        <div class="submit-button-container">
+                            <button class="submit-btn" id="submit-btn">제출</button>
+                        </div>
+                    </div>
+
+                    <!-- Game Over Screen -->
+                    <div class="gameover-screen">
+                        <div class="gameover-content">
+                            <div class="final-score" id="final-score">0점</div>
+
+                            <div class="button-group">
+                                <button class="retry-btn btn-base btn-primary">다시 하기</button>
+                                <button class="wrong-retry-btn btn-base btn-secondary" id="wrong-retry-btn" style="display: none;">틀린 것만 다시</button>
+                                <button class="menu-back-btn btn-base btn-tertiary" onclick="switchMode('list')">메뉴로</button>
+                            </div>
+
+                            <!-- 정오표 표시 -->
+                            <div class="original-text-section">
+                                <div class="section-title">📝 정오표</div>
+                                <div class="original-text-content" id="original-text-display"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Create/Edit Mode -->
             <section id="editor-section">
                 <div class="editor-container">
                     <div class="editor-header">
                         <div style="width: 100%;">
-                            <div class="editor-title">✏️ 파일 편집</div>
+                            <div class="editor-title">
+                                <span>✏️ 파일 편집</span>
+                                <span class="editor-title-id" id="editor-file-id"></span>
+                            </div>
                             <input type="text" id="file-name-input" placeholder="파일 이름 입력..." style="
                                 margin-top: 8px;
                                 padding: 12px 16px;
@@ -1007,7 +1837,7 @@
                     </div>
 
                     <div class="editor-actions">
-                        <button class="btn-back" onclick="switchMode('list')">목록으로</button>
+                        <button class="btn-back" id="delete-btn">삭제</button>
                         <button class="btn-save" id="save-btn">저장</button>
                     </div>
                 </div>
@@ -1028,7 +1858,8 @@
         const boldBtn = document.getElementById('bold-btn');
         const fileNameInput = document.getElementById('file-name-input');
         const saveBtn = document.getElementById('save-btn');
-        let fileList = null; // Will be set in DOMContentLoaded
+        const deleteBtn = document.getElementById('delete-btn');
+        const fileList = document.getElementById('file-list');
 
         // Viewport height fix
         function setVh() {
@@ -1045,24 +1876,32 @@
 
             // Hide/show sections
             document.getElementById('list-section').classList.toggle('active', mode === 'list');
-            document.getElementById('editor-section').classList.toggle('active', mode !== 'list');
+            document.getElementById('editor-section').classList.toggle('active', mode === 'create' || mode === 'edit');
+            document.getElementById('game-section').classList.toggle('active', mode === 'game');
 
-            if (mode === 'list') {
-                updateFileList();
+            // Update game title
+            const gameTitle = document.getElementById('game-title');
+            if (mode === 'game' && fileName) {
+                gameTitle.textContent = fileName;
+            } else if (mode === 'list') {
+                gameTitle.textContent = 'Memories';
+                // List mode - file lists are loaded from side menu
             } else if (mode === 'create') {
                 currentEditFile = null;
                 editor.value = '';
                 fileNameInput.value = '';
                 fileNameInput.disabled = false;
+                // create 모드에서는 id 표시 안함
+                document.getElementById('editor-file-id').textContent = '';
                 updatePreview();
             } else if (mode === 'edit' && fileName) {
                 currentEditFile = fileName;
                 fileNameInput.value = fileName;
-                fileNameInput.disabled = true;
+                fileNameInput.disabled = false;
             }
 
             // Focus editor
-            if (mode !== 'list') {
+            if (mode === 'create' || mode === 'edit') {
                 editor.focus();
             }
         }
@@ -1184,64 +2023,113 @@
             }
 
             try {
-                // 1. localStorage에 저장 (기존 방식)
-                localStorage.setItem(`markdown_${fileName}`, content);
-
-                let fileList = JSON.parse(localStorage.getItem('markdown_files') || '[]');
-                if (!fileList.find(f => f.name === fileName)) {
-                    fileList.push({
-                        name: fileName,
-                        title: fileName,
-                        description: '사용자 생성 파일'
-                    });
-                    localStorage.setItem('markdown_files', JSON.stringify(fileList));
+                // Supabase가 로드되었는지 확인하고 현재 사용자 확인
+                let user = null;
+                if (typeof supabase !== 'undefined') {
+                    const { data: { user: currentUser } } = await supabase.auth.getUser();
+                    user = currentUser;
                 }
 
-                // 2. Supabase에 저장
-                // Supabase가 로드되었는지 확인
-                if (typeof supabase !== 'undefined') {
-                    // 현재 사용자 확인
-                    const { data: { user } } = await supabase.auth.getUser();
+                // 로그인하지 않은 경우: 로컬 저장소에 저장
+                if (!user) {
+                    // local_md_files 배열에 저장
+                    let localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
 
-                    if (user) {
-                        // 로그인 사용자: Supabase에 저장
-                        // UUID에서 하이픈 제거 (Storage 경로에 사용 불가)
-                        const userId = user.id.replace(/-/g, '');
-                        // Supabase Storage는 한글 파일명 미지원 → UUID 사용
-                        // 원본 제목(fileName)은 DB의 title 컬럼에 저장
-                        const fileId = crypto.randomUUID().replace(/-/g, '');
-                        const filePath = `${userId}/${fileId}.md`;
-
-                        // Storage에 파일 업로드
-                        const { error: uploadError } = await supabase
-                            .storage
-                            .from('study_materials')
-                            .upload(filePath, content, {
-                                contentType: 'text/markdown; charset=utf-8',
-                                upsert: true
-                            });
-
-                        if (uploadError) {
-                            console.warn('Storage 저장 실패:', uploadError);
-                        } else {
-                            // DB에 메타데이터 저장
-                            const { error: dbError } = await supabase
-                                .from('study_materials')
-                                .upsert({
-                                    user_id: user.id,
-                                    title: fileName,
-                                    file_path: filePath,
-                                    updated_at: new Date().toISOString()
-                                });
-
-                            if (dbError) {
-                                console.warn('DB 저장 실패:', dbError);
-                            } else {
-                                console.log('✅ Supabase에 저장됨:', fileName);
-                            }
-                        }
+                    // 같은 이름의 파일이 있으면 업데이트, 없으면 추가
+                    const existingIndex = localFiles.findIndex(f => f.name === fileName);
+                    if (existingIndex > -1) {
+                        localFiles[existingIndex].content = content;
                     } else {
-                        console.log('로그인하지 않은 사용자 - localStorage에만 저장됨');
+                        localFiles.push({
+                            name: fileName,
+                            content: content,
+                            created_at: new Date().toISOString()
+                        });
+                    }
+
+                    localStorage.setItem('local_md_files', JSON.stringify(localFiles));
+                    console.log('✅ 로컬 파일에 저장됨:', fileName);
+
+                    // 로컬 파일 컨테이너 직접 업데이트
+                    const localFilesContainer = document.getElementById('local-files');
+                    if (localFilesContainer) {
+                        localFilesContainer.innerHTML = localFiles.map((file, index) => `
+                            <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
+                                    <span class="material-icons">description</span>
+                                    <span class="file-name">${escapeHtml(file.name)}</span>
+                                </div>
+                                <div class="file-actions" style="opacity: 1;">
+                                    <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
+                                        <span class="material-icons">settings</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+
+                    const originalText = saveBtn.textContent;
+                    saveBtn.textContent = '✓ 저장됨';
+                    saveBtn.style.background = 'var(--success)';
+                    setTimeout(() => {
+                        saveBtn.textContent = originalText;
+                        saveBtn.style.background = '';
+                    }, 2000);
+
+                    switchMode('list');
+                    return;
+                }
+
+                // 로그인한 경우: Supabase에 저장
+                // UUID에서 하이픈 제거 (Storage 경로에 사용 불가)
+                const userId = user.id.replace(/-/g, '');
+
+                // edit 모드인 경우: 기존 파일 업데이트
+                if (currentMode === 'edit' && currentEditFile) {
+                    // 기존 파일 ID를 찾아서 업데이트
+                    const { data: existingFile } = await supabase
+                        .from('study_materials')
+                        .select('id')
+                        .eq('title', currentEditFile)
+                        .eq('user_id', user.id)
+                        .single();
+
+                    if (existingFile) {
+                        // 기존 파일 업데이트
+                        const { error: updateError } = await supabase
+                            .from('study_materials')
+                            .update({
+                                content: content,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', existingFile.id);
+
+                        if (updateError) {
+                            console.warn('파일 업데이트 실패:', updateError);
+                        } else {
+                            console.log('✅ Supabase 파일 업데이트됨:', fileName);
+                        }
+                    }
+                } else {
+                    // create 모드: 새 파일 생성
+                    const fileId = crypto.randomUUID();
+
+                    // DB에 직접 저장 (study_materials 테이블)
+                    const { error: dbError } = await supabase
+                        .from('study_materials')
+                        .insert({
+                            id: fileId,
+                            user_id: user.id,
+                            title: fileName,
+                            content: content,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        });
+
+                    if (dbError) {
+                        console.warn('DB 저장 실패:', dbError);
+                    } else {
+                        console.log('✅ Supabase에 저장됨:', fileName);
                     }
                 }
 
@@ -1262,11 +2150,97 @@
         }
 
         saveBtn.addEventListener('click', saveFile);
+        deleteBtn.addEventListener('click', deleteFile);
         fileNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 saveFile();
             }
         });
+
+        async function deleteFile() {
+            const fileName = fileNameInput.value.trim();
+
+            if (!fileName) {
+                alert('파일 이름이 없습니다');
+                return;
+            }
+
+            if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
+                return;
+            }
+
+            try {
+                // Supabase가 로드되었는지 확인하고 현재 사용자 확인
+                let user = null;
+                if (typeof supabase !== 'undefined') {
+                    const { data: { user: currentUser } } = await supabase.auth.getUser();
+                    user = currentUser;
+                }
+
+                // 로컬 파일 확인: editor-file-id가 비어있으면 로컬 파일
+                const fileId = document.getElementById('editor-file-id').textContent;
+                const isLocalFile = !fileId;
+
+                // 로컬 파일인 경우: 로컬 저장소에서 삭제
+                if (isLocalFile) {
+                    let localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                    const deleteIndex = localFiles.findIndex(f => f.name === fileName);
+
+                    if (deleteIndex > -1) {
+                        localFiles.splice(deleteIndex, 1);
+                        localStorage.setItem('local_md_files', JSON.stringify(localFiles));
+                        console.log('✅ 로컬 파일 삭제됨:', fileName);
+
+                        // 로컬 파일 컨테이너 직접 업데이트
+                        const localFilesContainer = document.getElementById('local-files');
+                        if (localFilesContainer) {
+                            localFilesContainer.innerHTML = localFiles.map((file, index) => `
+                                <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
+                                        <span class="material-icons">description</span>
+                                        <span class="file-name">${escapeHtml(file.name)}</span>
+                                    </div>
+                                    <div class="file-actions" style="opacity: 1;">
+                                        <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
+                                            <span class="material-icons">settings</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+
+                        alert('파일이 삭제되었습니다');
+                        switchMode('list');
+                        return;
+                    }
+                }
+
+                // Supabase 파일인 경우: Supabase에서 삭제
+                if (currentMode === 'edit' && currentEditFile && fileId) {
+                    // 파일 삭제
+                    const { error: deleteError } = await supabase
+                        .from('study_materials')
+                        .delete()
+                        .eq('id', fileId);
+
+                    if (deleteError) {
+                        console.error('파일 삭제 오류:', deleteError);
+                        alert('파일 삭제 중 오류가 발생했습니다');
+                    } else {
+                        console.log('✅ Supabase 파일 삭제됨:', fileName);
+                        alert('파일이 삭제되었습니다');
+                        // 로컬 캐시도 삭제
+                        const cacheKey = `file_cache_${fileId}`;
+                        localStorage.removeItem(cacheKey);
+                        // 페이지 새로고침으로 파일 목록 업데이트
+                        location.reload();
+                    }
+                }
+            } catch (error) {
+                console.error('삭제 오류:', error);
+                alert('파일 삭제 중 오류가 발생했습니다');
+            }
+        }
 
         async function loadFile(fileName, filePath = null) {
             try {
@@ -1318,142 +2292,12 @@
             }
         }
 
-        async function deleteFile(fileName, filePath = null) {
-            if (!confirm(`"${fileName}" 파일을 삭제하시겠습니까?`)) {
-                return;
-            }
-
-            try {
-                // 1. Supabase에서 삭제 (filePath가 있으면 Supabase 파일)
-                if (filePath && typeof supabase !== 'undefined') {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (user) {
-                        // Storage에서 파일 삭제
-                        const { error: storageError } = await supabase
-                            .storage
-                            .from('study_materials')
-                            .remove([filePath]);
-
-                        if (storageError) {
-                            console.warn('Storage 삭제 실패:', storageError);
-                        }
-
-                        // DB에서 메타데이터 삭제
-                        const { error: dbError } = await supabase
-                            .from('study_materials')
-                            .delete()
-                            .eq('user_id', user.id)
-                            .eq('title', fileName);
-
-                        if (dbError) {
-                            console.warn('DB 삭제 실패:', dbError);
-                        } else {
-                            console.log('✅ Supabase에서 삭제됨:', fileName);
-                        }
-                    }
-                }
-
-                // 2. localStorage에서도 삭제
-                localStorage.removeItem(`markdown_${fileName}`);
-
-                let fileList = JSON.parse(localStorage.getItem('markdown_files') || '[]');
-                fileList = fileList.filter(f => f.name !== fileName);
-                localStorage.setItem('markdown_files', JSON.stringify(fileList));
-
-                updateFileList();
-            } catch (error) {
-                console.error('Delete error:', error);
-                alert('파일 삭제 중 오류가 발생했습니다');
-            }
-        }
-
-        async function updateFileList() {
-            try {
-                let filesList = [];
-
-                // 1. Supabase에서 파일 목록 가져오기
-                if (typeof supabase !== 'undefined') {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (user) {
-                        const { data: supabaseFiles, error } = await supabase
-                            .from('study_materials')
-                            .select('*')
-                            .eq('user_id', user.id)
-                            .order('updated_at', { ascending: false });
-
-                        if (!error && supabaseFiles) {
-                            filesList.push(...supabaseFiles.map(f => ({
-                                name: f.title,
-                                title: f.title,
-                                description: '내 파일',
-                                file_path: f.file_path,
-                                source: 'supabase'
-                            })));
-                            console.log('✅ Supabase 파일 목록:', supabaseFiles.length);
-                        }
-                    }
-                }
-
-                // 2. localStorage에서 파일 목록 가져오기
-                const savedFiles = JSON.parse(localStorage.getItem('markdown_files') || '[]');
-                for (const file of savedFiles) {
-                    if (!filesList.find(f => f.name === file.name)) {
-                        filesList.push({ ...file, source: 'local' });
-                    }
-                }
-
-                // 3. 기본 파일 목록 가져오기
-                try {
-                    const response = await fetch('./data-files.json');
-                    if (response.ok) {
-                        const defaultFiles = await response.json();
-                        for (const file of defaultFiles) {
-                            if (!filesList.find(f => f.name === file.name)) {
-                                filesList.push({ ...file, source: 'default' });
-                            }
-                        }
-                    }
-                } catch (e) {
-                    console.log('Default files not available');
-                }
-
-                if (filesList.length === 0) {
-                    fileList.innerHTML = '<div class="empty-message">저장된 파일이 없습니다.</div>';
-                    return;
-                }
-
-                fileList.innerHTML = filesList.map(file => {
-                    const filePathParam = file.file_path ? `, '${file.file_path.replace(/'/g, "\\'")}'` : '';
-                    const deleteFilePathParam = file.file_path ? `, '${file.file_path.replace(/'/g, "\\'")}'` : '';
-                    return `
-                        <div class="file-item" onclick="loadFile('${file.name.replace(/'/g, "\\'")}' ${filePathParam})">
-                            <div class="file-info">
-                                <div class="file-name">📄 ${escapeHtml(file.title || file.name)}</div>
-                                <div class="file-date">${file.description || ''}</div>
-                            </div>
-                            <div class="file-actions">
-                                <button class="delete-icon-btn" onclick="event.stopPropagation(); deleteFile('${file.name.replace(/'/g, "\\'")}'${deleteFilePathParam})" title="삭제">
-                                    <span class="material-icons">delete</span>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error('List error:', error);
-                fileList.innerHTML = '<div class="empty-message">파일 목록을 불러올 수 없습니다.</div>';
-            }
-        }
-
         // Initialize
         setVh();
         window.addEventListener('resize', setVh);
 
         // Hamburger Menu Logic
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize fileList element
-            fileList = document.getElementById('file-list');
-
             const hamburgerBtn = document.getElementById('hamburger-btn');
             const sideMenu = document.getElementById('side-menu');
             const container = document.querySelector('.container');
@@ -1466,11 +2310,23 @@
             function toggleMenu() {
                 sideMenu.classList.toggle('open');
                 container.classList.toggle('menu-open');
+                // 사이드바 상태 저장
+                const isOpen = sideMenu.classList.contains('open');
+                localStorage.setItem('sideMenuOpen', isOpen);
             }
 
             function closeMenu() {
                 sideMenu.classList.remove('open');
                 container.classList.remove('menu-open');
+                // 사이드바 상태 저장
+                localStorage.setItem('sideMenuOpen', false);
+            }
+
+            // 페이지 로드 시 사이드바 상태 복원
+            const savedMenuState = localStorage.getItem('sideMenuOpen');
+            if (savedMenuState === 'true') {
+                sideMenu.classList.add('open');
+                container.classList.add('menu-open');
             }
 
             hamburgerBtn.addEventListener('click', toggleMenu);
@@ -1481,14 +2337,68 @@
             // Load Supabase files into "마이 파일" section
             async function loadMyFiles() {
                 const myFilesContainer = document.getElementById('my-files');
+                const localFilesContainer = document.getElementById('local-files');
                 try {
                     const { data: { user } } = await supabase.auth.getUser();
 
+                    // 로그인하지 않은 경우: 로컬 저장된 파일 표시
                     if (!user) {
-                        myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">로그인이 필요합니다</div>';
+                        // 1. Supabase 캐시된 파일 (마이 파일 섹션)
+                        const cachedFiles = [];
+                        const allKeys = Object.keys(localStorage);
+
+                        // supabase_file_* 로컬 캐시 찾기
+                        for (const key of allKeys) {
+                            if (key.startsWith('supabase_file_')) {
+                                const fileId = key.replace('supabase_file_', '');
+                                const metadata = localStorage.getItem(`supabase_file_meta_${fileId}`);
+                                if (metadata) {
+                                    cachedFiles.push({
+                                        id: fileId,
+                                        title: JSON.parse(metadata).title,
+                                        cached: true
+                                    });
+                                }
+                            }
+                        }
+
+                        if (cachedFiles.length === 0) {
+                            myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">로그인이 필요합니다</div>';
+                        } else {
+                            // 로컬 캐시된 파일 표시
+                            myFilesContainer.innerHTML = cachedFiles.map(file => `
+                                <div class="menu-file-item" style="width: 100%; justify-content: space-between; opacity: 0.7;">
+                                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                                        <span class="material-icons">description</span>
+                                        <span class="file-name">${escapeHtml(file.title)} (캐시)</span>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+
+                        // 2. localStorage에 저장된 파일 (로컬 파일 섹션)
+                        const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                        if (savedFiles.length > 0) {
+                            localFilesContainer.innerHTML = savedFiles.map((file, index) => `
+                                <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
+                                        <span class="material-icons">description</span>
+                                        <span class="file-name">${escapeHtml(file.name)}</span>
+                                    </div>
+                                    <div class="file-actions" style="opacity: 1;">
+                                        <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
+                                            <span class="material-icons">settings</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('');
+                        } else {
+                            localFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">저장된 파일이 없습니다</div>';
+                        }
                         return;
                     }
 
+                    // 로그인한 경우: Supabase에서 파일 목록 조회
                     const { data, error } = await supabase
                         .from('study_materials')
                         .select('*')
@@ -1501,6 +2411,19 @@
                         myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일이 없습니다</div>';
                         return;
                     }
+
+                    // Supabase 파일을 로컬 캐시에 저장
+                    data.forEach(file => {
+                        const cacheKey = `supabase_file_${file.id}`;
+                        const metaKey = `supabase_file_meta_${file.id}`;
+                        // 메타데이터만 저장 (실제 파일 내용은 playGame에서 저장)
+                        localStorage.setItem(metaKey, JSON.stringify({
+                            id: file.id,
+                            title: file.title,
+                            file_path: file.file_path,
+                            updated_at: file.updated_at
+                        }));
+                    });
 
                     myFilesContainer.innerHTML = data.map(file => `
                         <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
@@ -1515,6 +2438,8 @@
                             </div>
                         </div>
                     `).join('');
+
+                    console.log('✅ 마이 파일 로드 완료:', data.length + '개');
                 } catch (error) {
                     console.error('마이 파일 로드 실패:', error);
                     myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일 로드 실패</div>';
@@ -1543,7 +2468,8 @@
                                 <span class="file-name">${escapeHtml(file.name)}</span>
                             </div>
                             <div class="file-actions" style="opacity: 1;">
-                                <button class="file-action-btn" onclick="event.stopPropagation(); removeLocalFile(${index})" title="제거">
+                                <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
+                                    <span class="material-icons">settings</span>
                                 </button>
                             </div>
                         </div>
@@ -1559,26 +2485,187 @@
             }
 
             // Play game with Supabase file
-            window.playGame = function(fileId, fileName) {
-                localStorage.setItem('selected_file_id', fileId);
-                localStorage.setItem('selected_file_name', fileName);
-                localStorage.setItem('selected_file_source', 'supabase');
-                window.location.href = 'Memory.html?autostart=true';
+            window.playGame = async function(fileId, fileName) {
+                try {
+                    // Get game mode from settings
+                    const savedMode = localStorage.getItem('memory_game_mode') || 'random';
+                    gameMode = savedMode;
+
+                    // 1. 로컬 캐시에서 먼저 확인
+                    const cacheKey = `file_cache_${fileId}`;
+                    const cachedContent = localStorage.getItem(cacheKey);
+
+                    if (cachedContent) {
+                        console.log('✅ 로컬 캐시에서 파일 로드:', fileName);
+                        parseLyrics(cachedContent);
+
+                        // 게임 화면으로 전환 및 게임 시작
+                        switchMode('game', fileName);
+                        if (lyrics.length > 0) {
+                            correctAnswers = []; // Reset correct answers
+                            startGame(false);
+                        }
+                        return;
+                    }
+
+                    // 2. 캐시가 없으면 Supabase에서 가져오기 (로딩 표시)
+                    const loadingOverlay = document.getElementById('loadingOverlay');
+                    loadingOverlay.classList.add('active');
+                    // Get file metadata
+                    const { data: fileData, error: fileError } = await supabase
+                        .from('study_materials')
+                        .select('*')
+                        .eq('id', fileId)
+                        .single();
+
+                    if (fileError) {
+                        console.error('파일 메타데이터 로드 오류:', fileError);
+                        alert('파일 정보를 로드할 수 없습니다.');
+                        loadingOverlay.classList.remove('active');
+                        return;
+                    }
+
+                    // Get current user
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        alert('로그인이 필요합니다.');
+                        loadingOverlay.classList.remove('active');
+                        return;
+                    }
+
+                    // Download file from Storage
+                    const storagePath = fileData.file_path || `${user.id}/${fileName}.md`;
+                    const { data: storageData, error: storageError } = await supabase
+                        .storage
+                        .from('study_materials')
+                        .download(storagePath);
+
+                    if (storageError) {
+                        console.error('Storage 다운로드 오류:', storageError);
+                        alert('파일을 다운로드할 수 없습니다.');
+                        loadingOverlay.classList.remove('active');
+                        return;
+                    }
+
+                    const content = await storageData.text();
+
+                    // 3. 로컬 캐시에 저장 (파일 내용 + 메타데이터)
+                    localStorage.setItem(cacheKey, content);
+                    localStorage.setItem(`supabase_file_meta_${fileId}`, JSON.stringify({
+                        id: fileId,
+                        title: fileName,
+                        file_path: fileData.file_path,
+                        updated_at: fileData.updated_at,
+                        cached_at: new Date().toISOString()
+                    }));
+                    console.log('💾 파일을 로컬 캐시에 저장:', fileName);
+
+                    parseLyrics(content);
+                    console.log('✅ Supabase 파일 로드 완료:', fileName);
+
+                    // 로딩 숨기기
+                    loadingOverlay.classList.remove('active');
+
+                    // Switch to game mode and start game
+                    switchMode('game', fileName);
+                    if (lyrics.length > 0) {
+                        correctAnswers = []; // Reset correct answers
+                        startGame(false);
+                    }
+                } catch (error) {
+                    console.error('게임 시작 오류:', error);
+                    alert('파일을 로드하는 중 오류가 발생했습니다.');
+                    const loadingOverlay = document.getElementById('loadingOverlay');
+                    loadingOverlay.classList.remove('active');
+                }
             };
 
             // Edit file
-            window.editFile = function(fileId) {
-                window.location.href = `markdown_editor.html?file=${fileId}`;
+            window.editFile = async function(fileId) {
+                try {
+                    // Supabase에서 파일 메타데이터 로드
+                    const { data: fileData, error: fileError } = await supabase
+                        .from('study_materials')
+                        .select('*')
+                        .eq('id', fileId)
+                        .single();
+
+                    if (fileError) throw fileError;
+                    if (!fileData) {
+                        alert('파일을 찾을 수 없습니다.');
+                        return;
+                    }
+
+                    // Storage에서 파일 내용 다운로드
+                    const { data: storageData, error: storageError } = await supabase
+                        .storage
+                        .from('study_materials')
+                        .download(fileData.file_path);
+
+                    if (storageError) {
+                        console.error('파일 다운로드 오류:', storageError);
+                        alert('파일을 다운로드할 수 없습니다.');
+                        return;
+                    }
+
+                    // Blob을 텍스트로 변환
+                    const content = await storageData.text();
+
+                    // editor에 내용 로드하고 edit 모드로 전환
+                    editor.value = content;
+                    updatePreview();
+                    // fileId 표시
+                    document.getElementById('editor-file-id').textContent = fileId;
+                    switchMode('edit', fileData.title);
+                } catch (error) {
+                    console.error('파일 로드 오류:', error);
+                    alert('파일을 로드하는 중 오류가 발생했습니다.');
+                }
+            };
+
+            // Edit local file
+            window.editLocalFile = function(index) {
+                try {
+                    const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                    if (savedFiles[index]) {
+                        const fileData = savedFiles[index];
+                        // editor에 내용 로드하고 edit 모드로 전환
+                        editor.value = fileData.content;
+                        updatePreview();
+                        // 로컬 파일은 id 없음
+                        document.getElementById('editor-file-id').textContent = '';
+                        switchMode('edit', fileData.name);
+                    }
+                } catch (error) {
+                    console.error('파일 로드 오류:', error);
+                    alert('파일을 로드하는 중 오류가 발생했습니다.');
+                }
             };
 
             // Play game with local file
             window.playLocalGame = function(index, fileName) {
-                const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
-                if (savedFiles[index]) {
-                    localStorage.setItem('selected_local_file', JSON.stringify(savedFiles[index]));
-                    localStorage.setItem('selected_file_name', fileName);
-                    localStorage.setItem('selected_file_source', 'local');
-                    window.location.href = 'Memory.html?autostart=true';
+                try {
+                    const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                    if (savedFiles[index]) {
+                        // Get game mode from settings
+                        const savedMode = localStorage.getItem('memory_game_mode') || 'random';
+                        gameMode = savedMode;
+
+                        // Load file content
+                        const fileData = savedFiles[index];
+                        parseLyrics(fileData.content);
+                        console.log('✅ 로컬 파일 로드 완료:', fileData.name);
+
+                        // Switch to game mode and start game
+                        switchMode('game', fileData.name);
+                        if (lyrics.length > 0) {
+                            correctAnswers = []; // Reset correct answers
+                            startGame(false);
+                        }
+                    }
+                } catch (error) {
+                    console.error('게임 시작 오류:', error);
+                    alert('파일을 로드하는 중 오류가 발생했습니다.');
                 }
             };
 
@@ -1613,8 +2700,7 @@
             });
 
             // New file button
-            document.getElementById('new-file-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
+            document.getElementById('new-file-btn').addEventListener('click', () => {
                 switchMode('create');
             });
 
@@ -1653,23 +2739,632 @@
                 }
             });
 
-            // Logout button
-            document.getElementById('logout-btn').addEventListener('click', async () => {
-                if (confirm('로그아웃 하시겠습니까?')) {
-                    await supabase.auth.signOut();
-                    window.location.href = '../index.html';
+            // Auth Modal Functions
+            function openAuthModal() {
+                document.getElementById('authModalOverlay').classList.add('active');
+            }
+
+            window.closeAuthModal = function() {
+                document.getElementById('authModalOverlay').classList.remove('active');
+            }
+
+            window.switchAuthTab = function(tab, event) {
+                // 탭 활성화
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                event.target.classList.add('active');
+
+                // 폼 활성화
+                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+                document.getElementById(tab + 'Form').classList.add('active');
+
+                // 에러/성공 메시지 초기화
+                document.querySelectorAll('.error-message, .success-message').forEach(msg => {
+                    msg.classList.remove('show');
+                    msg.textContent = '';
+                });
+            }
+
+            window.handleLogin = async function(event) {
+                event.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+                const errorEl = document.getElementById('loginError');
+
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: username,
+                        password: password
+                    });
+
+                    if (error) throw error;
+
+                    closeAuthModal();
+                    updateAuthButton();
+                    loadMyFiles();
+                } catch (error) {
+                    errorEl.textContent = error.message || '로그인에 실패했습니다.';
+                    errorEl.classList.add('show');
+                }
+            }
+
+            window.handleSignup = async function(event) {
+                event.preventDefault();
+                const username = document.getElementById('signupUsername').value;
+                const email = document.getElementById('signupEmail').value;
+                const password = document.getElementById('signupPassword').value;
+                const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+                const errorEl = document.getElementById('signupError');
+                const successEl = document.getElementById('signupSuccess');
+
+                errorEl.classList.remove('show');
+                successEl.classList.remove('show');
+
+                if (password !== passwordConfirm) {
+                    errorEl.textContent = '비밀번호가 일치하지 않습니다.';
+                    errorEl.classList.add('show');
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabase.auth.signUp({
+                        email: email,
+                        password: password,
+                        options: {
+                            data: {
+                                username: username
+                            }
+                        }
+                    });
+
+                    if (error) throw error;
+
+                    successEl.textContent = '회원가입이 완료되었습니다. 이메일을 확인해주세요.';
+                    successEl.classList.add('show');
+
+                    setTimeout(() => {
+                        document.getElementById('signupForm').reset();
+                        closeAuthModal();
+                    }, 2000);
+                } catch (error) {
+                    errorEl.textContent = error.message || '회원가입에 실패했습니다.';
+                    errorEl.classList.add('show');
+                }
+            }
+
+            window.handlePasswordReset = async function(event) {
+                event.preventDefault();
+                const email = document.getElementById('resetEmail').value;
+                const errorEl = document.getElementById('resetError');
+                const successEl = document.getElementById('resetSuccess');
+
+                errorEl.classList.remove('show');
+                successEl.classList.remove('show');
+
+                try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+                    if (error) throw error;
+
+                    successEl.textContent = '비밀번호 재설정 이메일을 발송했습니다.';
+                    successEl.classList.add('show');
+
+                    setTimeout(() => {
+                        document.getElementById('resetForm').reset();
+                        closeAuthModal();
+                    }, 2000);
+                } catch (error) {
+                    errorEl.textContent = error.message || '이메일 발송에 실패했습니다.';
+                    errorEl.classList.add('show');
+                }
+            }
+
+            // Auth button (Login/Logout)
+            async function updateAuthButton() {
+                const authBtn = document.getElementById('logout-btn');
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (user) {
+                    // 로그인 상태: 로그아웃 버튼
+                    authBtn.innerHTML = `
+                        <span class="material-icons">logout</span>
+                        <span>로그아웃</span>
+                    `;
+                    authBtn.onclick = async () => {
+                        if (confirm('로그아웃 하시겠습니까?')) {
+                            await supabase.auth.signOut();
+                            updateAuthButton(); // 버튼 상태 업데이트
+                            loadMyFiles(); // 파일 목록 새로고침
+                        }
+                    };
+                } else {
+                    // 로그아웃 상태: 로그인 버튼
+                    authBtn.innerHTML = `
+                        <span class="material-icons">login</span>
+                        <span>로그인</span>
+                    `;
+                    authBtn.onclick = () => {
+                        // markdown_editor.html로 돌아올 리다이렉트 URL 추가
+                        window.location.href = `../index.html?redirect=memory/markdown_editor.html`;
+                    };
+                }
+            }
+
+            // 초기 버튼 상태 설정 및 로그인 상태 모니터링
+            updateAuthButton();
+
+            // Auth Modal 오버레이 클릭 시 닫기
+            document.getElementById('authModalOverlay').addEventListener('click', (e) => {
+                if (e.target.id === 'authModalOverlay') {
+                    closeAuthModal();
                 }
             });
 
+            // Supabase 인증 상태 변경 감지
+            if (typeof supabase !== 'undefined') {
+                supabase.auth.onAuthStateChange((event, session) => {
+                    console.log('Auth state changed:', event);
+                    updateAuthButton();
+                    loadMyFiles(); // 로그인/로그아웃 시 파일 목록 새로고침
+                });
+            }
+
             // Initialize menu data
-            updateFileList();
             loadMyFiles();
             loadLocalFiles();
+            loadHighFrequencyWords();
         });
+
+        // ========================================
+        // GAME LOGIC (from Memory.html)
+        // ========================================
+
+        // Game State
+        let gameState = 'menu';
+        let difficulty = 'medium';
+        let gameMode = 'random'; // 'random' or 'bold'
+        let lyrics = [];
+        let boldWords = [];
+        let originalMarkdown = '';
+        let blanks = [];
+        let correctAnswers = [];
+        let currentBlankIndex = -1;
+        let correctCount = 0;
+        let score = 0;
+        let totalBlanks = 0;
+        let hintCount = 3;
+        let startTime = 0;
+        let highFrequencyWords = new Set();
+
+        // Difficulty settings
+        const difficultySettings = {
+            easy: { percentage: 0.3, hints: 5 },
+            medium: { percentage: 0.5, hints: 3 },
+            hard: { percentage: 0.7, hints: 1 }
+        };
+
+        // Load high frequency words
+        async function loadHighFrequencyWords() {
+            try {
+                const response = await fetch('data/high_frequency_words.md');
+                const text = await response.text();
+                const lines = text.split('\n');
+                lines.forEach(line => {
+                    if (line.trim().startsWith('#') || line.trim() === '') return;
+                    const words = line.split(',').map(w => w.trim()).filter(w => w.length > 0);
+                    words.forEach(word => highFrequencyWords.add(word));
+                });
+                console.log(`✅ 고빈도 단어 ${highFrequencyWords.size}개 로드 완료`);
+            } catch (error) {
+                console.error('❌ 고빈도 단어 리스트 로드 실패:', error);
+            }
+        }
+
+        // Parse markdown text
+        function parseLyrics(mdText) {
+            originalMarkdown = mdText;
+            const lines = mdText.split('\n');
+            let fullText = '';
+            boldWords = [];
+            let wordIndex = 0;
+
+            lines.forEach(line => {
+                if (line.startsWith('#') || line.trim() === '') return;
+                if (line.trim().match(/^\|[\s\-:]+\|/)) return;
+
+                let remaining = line;
+                while (remaining.length > 0) {
+                    const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+                    if (boldMatch) {
+                        const word = boldMatch[1].trim();
+                        if (word) {
+                            fullText += word + ' ';
+                            boldWords.push(wordIndex);
+                            wordIndex++;
+                        }
+                        remaining = remaining.substring(boldMatch[0].length);
+                    } else {
+                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                        if (nonBoldMatch && nonBoldMatch[1].trim()) {
+                            const text = nonBoldMatch[1].replace(/\|/g, ' ');
+                            const words = text.split(/[\s]+/).filter(w => w.length > 0);
+                            words.forEach(word => {
+                                fullText += word + ' ';
+                                wordIndex++;
+                            });
+                        }
+                        remaining = remaining.substring(nonBoldMatch ? nonBoldMatch[0].length : 1);
+                    }
+                }
+            });
+
+            lyrics = fullText.split(/[\s\n]+/).filter(word => word.length > 0);
+            console.log('TTV 인덱스:', boldWords);
+            console.log('전체 단어 수:', lyrics.length);
+            return true;
+        }
+
+        // Start game
+        function startGame(wrongOnly = false) {
+            gameState = 'playing';
+            correctCount = 0;
+            score = 0;
+            startTime = Date.now();
+            currentBlankIndex = -1;
+
+            if (!lyrics || lyrics.length === 0) {
+                alert('가사 데이터가 로드되지 않았습니다.');
+                return;
+            }
+
+            if (wrongOnly) {
+                // 이전 게임의 blanks에서 correctAnswers에 포함되지 않은 것만 다시
+                // blanks는 이미 이전 게임에서 설정되어 있으므로 필터링만 함
+                console.log('wrongOnly 실행 전 - blanks:', blanks);
+                console.log('wrongOnly 실행 전 - correctAnswers:', correctAnswers);
+                blanks = blanks.filter(b => !correctAnswers.includes(b)).sort((a, b) => a - b);
+                console.log('wrongOnly 실행 후 - blanks:', blanks);
+                hintCount = 3;
+            } else if (gameMode === 'bold') {
+                blanks = boldWords.slice().sort((a, b) => a - b);
+                hintCount = 3;
+            } else {
+                blanks = [];
+                hintCount = difficultySettings[difficulty].hints;
+                const blankPercentage = difficultySettings[difficulty].percentage;
+                const numBlanks = Math.ceil(lyrics.length * blankPercentage);
+
+                const lowFreqIndices = [];
+                const highFreqIndices = [];
+
+                lyrics.forEach((word, index) => {
+                    if (highFrequencyWords.has(word)) {
+                        highFreqIndices.push(index);
+                    } else {
+                        lowFreqIndices.push(index);
+                    }
+                });
+
+                const indices = new Set();
+                const shuffledLowFreq = lowFreqIndices.sort(() => Math.random() - 0.5);
+                for (let i = 0; i < Math.min(numBlanks, shuffledLowFreq.length); i++) {
+                    indices.add(shuffledLowFreq[i]);
+                }
+
+                if (indices.size < numBlanks) {
+                    const shuffledHighFreq = highFreqIndices.sort(() => Math.random() - 0.5);
+                    for (let i = 0; i < shuffledHighFreq.length && indices.size < numBlanks; i++) {
+                        indices.add(shuffledHighFreq[i]);
+                    }
+                }
+
+                blanks = Array.from(indices).sort((a, b) => a - b);
+            }
+
+            totalBlanks = blanks.length;
+            updateUI();
+            showGameScreen('playing');
+        }
+
+        // Update UI
+        function updateUI() {
+            const testDisplay = document.getElementById('test-display');
+            let html = '';
+            let blankOrder = 0;
+
+            lyrics.forEach((word, index) => {
+                if (blanks.includes(index)) {
+                    // 단어 길이에 따라 입력 필드 너비 동적 조정
+                    const wordLength = word.length;
+                    const inputWidth = `${Math.max(2, wordLength) * 1.2}em`;
+                    html += `<span class="test-word">
+                        <input type="text"
+                               class="blank-input word-input"
+                               data-index="${index}"
+                               data-blank-index="${index}"
+                               data-order="${blankOrder}"
+                               autocomplete="off"
+                               autocorrect="off"
+                               autocapitalize="off"
+                               spellcheck="false"
+                               style="width: ${inputWidth};">
+                    </span> `;
+                    blankOrder++;
+                } else {
+                    html += `<span class="test-word">${word}</span> `;
+                }
+            });
+
+            testDisplay.innerHTML = html;
+            updateScore();
+            setupWordInputListeners();
+        }
+
+        // Setup input listeners
+        function setupWordInputListeners() {
+            document.querySelectorAll('.word-input').forEach((input, index) => {
+                const blankIndex = parseInt(input.dataset.index);
+
+                input.addEventListener('input', (e) => {
+                    const userInput = e.target.value.trim();
+                    const correctWord = lyrics[blankIndex];
+
+                    if (userInput === '') {
+                        input.classList.remove('correct');
+                        input.classList.add('wrong');
+                        // 틀린 것은 correctAnswers에서 제거
+                        const correctIndex = correctAnswers.indexOf(blankIndex);
+                        if (correctIndex > -1) {
+                            correctAnswers.splice(correctIndex, 1);
+                        }
+                    } else if (userInput === correctWord) {
+                        input.classList.remove('wrong');
+                        input.classList.add('correct');
+                        input.disabled = true;
+
+                        // correctAnswers에 추가 (정확히 입력한 경우)
+                        if (!correctAnswers.includes(blankIndex)) {
+                            correctAnswers.push(blankIndex);
+                        }
+
+                        correctCount++;
+                        if (totalBlanks > 0) {
+                            score = Math.round((correctCount / totalBlanks) * 100);
+                        }
+                        updateScore();
+
+                        if (correctCount === blanks.length) {
+                            setTimeout(() => endGame(), 500);
+                        } else {
+                            const currentOrder = parseInt(input.dataset.order);
+                            const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
+                            if (nextInput && !nextInput.disabled) {
+                                setTimeout(() => nextInput.focus(), 100);
+                            }
+                        }
+                    } else {
+                        input.classList.remove('correct');
+                        input.classList.add('wrong');
+                        // 틀린 것은 correctAnswers에서 제거
+                        const correctIndex = correctAnswers.indexOf(blankIndex);
+                        if (correctIndex > -1) {
+                            correctAnswers.splice(correctIndex, 1);
+                        }
+                    }
+                });
+
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const currentOrder = parseInt(input.dataset.order);
+                        const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
+                        if (nextInput && !nextInput.disabled) {
+                            nextInput.focus();
+                        }
+                    }
+                });
+            });
+        }
+
+        // Update score display
+        function updateScore() {
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('total-blanks').textContent = totalBlanks;
+            document.getElementById('score').textContent = score;
+            const progress = totalBlanks > 0 ? (correctCount / totalBlanks) * 100 : 0;
+            document.getElementById('progress-percent').textContent = Math.round(progress);
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        // Submit game
+        function submitGame() {
+            const inputs = document.querySelectorAll('.word-input');
+            let totalCorrect = 0;
+
+            // 제출 시 correctAnswers 초기화 (정확히 입력한 것들을 기록)
+            correctAnswers = [];
+
+            inputs.forEach((input, index) => {
+                const blankIndex = blanks[index];
+                const correctAnswer = lyrics[blankIndex];
+                const userAnswer = input.value.trim();
+                if (userAnswer === correctAnswer) {
+                    totalCorrect++;
+                    input.classList.add('correct');
+                    input.classList.remove('wrong');
+                    // 정확히 입력한 것만 correctAnswers에 추가
+                    correctAnswers.push(blankIndex);
+                } else {
+                    input.classList.add('wrong');
+                    input.classList.remove('correct');
+                    const answerSpan = document.createElement('span');
+                    answerSpan.className = 'answer-display';
+                    answerSpan.textContent = `(정답: ${correctAnswer})`;
+                    input.parentElement.appendChild(answerSpan);
+                }
+            });
+
+            const finalScore = Math.round((totalCorrect / inputs.length) * 100);
+            endGame(finalScore);
+        }
+
+        // End game
+        function endGame(finalScore = score) {
+            gameState = 'gameover';
+            document.getElementById('final-score').textContent = `${finalScore}점`;
+
+            // 입력하지 않은 빈칸들은 correctAnswers에서 제거 (미입력=오답)
+            blanks.forEach(blankIndex => {
+                const input = document.querySelector(`.word-input[data-blank-index="${blankIndex}"]`);
+                if (input && input.value.trim() === '') {
+                    // 미입력이므로 correctAnswers에서 제거
+                    const correctIndex = correctAnswers.indexOf(blankIndex);
+                    if (correctIndex > -1) {
+                        correctAnswers.splice(correctIndex, 1);
+                    }
+                }
+            });
+
+            // Show/hide wrong retry button (correctAnswers에 포함되지 않은 것이 있으면 표시)
+            const incorrectCount = blanks.filter(b => !correctAnswers.includes(b)).length;
+            if (incorrectCount > 0) {
+                document.getElementById('wrong-retry-btn').style.display = 'inline-block';
+            } else {
+                document.getElementById('wrong-retry-btn').style.display = 'none';
+            }
+
+            // Display original text with highlights
+            displayOriginalText();
+
+            showGameScreen('gameover');
+        }
+
+        // 정오표 표시 (정확히 입력한 것만 초록색, 나머지는 붉은색)
+        function displayOriginalText() {
+            const displayEl = document.getElementById('original-text-display');
+            displayEl.innerHTML = '';
+
+            lyrics.forEach((word, index) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'word-item';
+                wordSpan.textContent = word;
+
+                // blanks에 포함된 단어인지 확인
+                if (blanks.includes(index)) {
+                    // correctAnswers에 포함되면 정확히 입력한 것 (초록색)
+                    if (correctAnswers.includes(index)) {
+                        wordSpan.classList.add('correct');
+                    } else {
+                        // correctAnswers에 포함되지 않으면 틀렸거나 입력 안 함 (붉은색)
+                        wordSpan.classList.add('wrong');
+                    }
+                }
+
+                displayEl.appendChild(wordSpan);
+                displayEl.appendChild(document.createTextNode(' '));
+            });
+        }
+
+        // Show game screen
+        function showGameScreen(screenType) {
+            const playingScreen = document.querySelector('#game-section .playing-screen');
+            const gameoverScreen = document.querySelector('#game-section .gameover-screen');
+
+            if (screenType === 'playing') {
+                playingScreen.classList.add('active');
+                gameoverScreen.classList.remove('active');
+            } else if (screenType === 'gameover') {
+                playingScreen.classList.remove('active');
+                gameoverScreen.classList.add('active');
+            }
+        }
+
+        // Game button event listeners
+        document.getElementById('submit-btn').addEventListener('click', submitGame);
+        document.querySelector('#game-section .retry-btn').addEventListener('click', () => {
+            correctAnswers = [];
+            startGame(false);
+        });
+        document.querySelector('#game-section .wrong-retry-btn').addEventListener('click', () => {
+            console.log('틀린 것만 다시 클릭');
+            console.log('현재 blanks:', blanks);
+            console.log('현재 correctAnswers:', correctAnswers);
+            startGame(true);
+        });
+
     </script>
+
+    <!-- Auth Modal Overlay -->
+    <div id="authModalOverlay" class="auth-modal-overlay">
+        <div class="auth-modal-content">
+            <div class="auth-modal-header">
+                <button class="search-close-btn" onclick="closeAuthModal()"><span class="material-icons">close</span></button>
+                <h2 id="authModalTitle">회원정보</h2>
+            </div>
+
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login', event)">로그인</div>
+                <div class="auth-tab" onclick="switchAuthTab('signup', event)">회원가입</div>
+                <div class="auth-tab" onclick="switchAuthTab('reset', event)">비밀번호 찾기</div>
+            </div>
+
+            <!-- 로그인 폼 -->
+            <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>아이디</label>
+                    <input type="text" id="loginUsername" required placeholder="영문, 숫자, _ 사용 (3-20자)">
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="loginPassword" required placeholder="비밀번호를 입력하세요">
+                </div>
+                <button type="submit" class="auth-btn" id="loginSubmitBtn">로그인</button>
+                <div class="error-message" id="loginError"></div>
+            </form>
+
+            <!-- 회원가입 폼 -->
+            <form id="signupForm" class="auth-form" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label>아이디</label>
+                    <input type="text" id="signupUsername" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" placeholder="영문, 숫자, _ 사용 (3-20자)">
+                </div>
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="signupEmail" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="signupPassword" required minlength="6" placeholder="6자 이상 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label>비밀번호 확인</label>
+                    <input type="password" id="signupPasswordConfirm" required placeholder="비밀번호를 다시 입력하세요">
+                </div>
+                <button type="submit" class="auth-btn" id="signupSubmitBtn">회원가입</button>
+                <div class="error-message" id="signupError"></div>
+                <div class="success-message" id="signupSuccess"></div>
+            </form>
+
+            <!-- 비밀번호 찾기 폼 -->
+            <form id="resetForm" class="auth-form" onsubmit="handlePasswordReset(event)">
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="resetEmail" required placeholder="가입한 이메일을 입력하세요">
+                </div>
+                <button type="submit" class="auth-btn" id="resetSubmitBtn">재설정 이메일 발송</button>
+                <div class="error-message" id="resetError"></div>
+                <div class="success-message" id="resetSuccess"></div>
+            </form>
+        </div>
+    </div>
 
     <!-- Side Menu -->
     <div class="side-menu" id="side-menu">
+        <!-- 햄버거 버튼 -->
+        <div class="menu-toggle-area">
+            <button class="hamburger-btn" id="hamburger-btn">
+                <span class="material-icons">menu</span>
+            </button>
+        </div>
+
         <!-- 주요 액션 -->
         <div class="menu-actions">
             <button class="menu-action-btn" id="new-file-btn">
@@ -1682,6 +3377,8 @@
             </button>
         </div>
 
+        <!-- 스크롤 가능한 섹션 -->
+        <div class="menu-sections-wrapper">
         <!-- 로컬 파일 섹션 -->
         <div class="menu-section">
             <div class="menu-section-header">
@@ -1708,6 +3405,8 @@
                 <!-- 동적으로 Supabase 파일 추가됨 -->
             </div>
         </div>
+        </div>
+        <!-- 스크롤 가능한 섹션 닫기 -->
 
         <!-- 하단 메뉴 -->
         <div class="menu-bottom">
@@ -1727,7 +3426,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>게임 설정</h3>
-                <button class="modal-close-btn"></button>
+                <button class="modal-close-btn">
+                    <span class="material-icons">close</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="setting-group">
