@@ -3135,10 +3135,11 @@
                     const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
 
                     if (boldMatch) {
-                        // TTV를 찾음
-                        const word = boldMatch[1].trim();
-                        if (word) {
-                            fullText += word + ' ';
+                        // TTV를 찾음 (공백을 하나의 단위로 유지)
+                        const boldContent = boldMatch[1].trim();
+                        if (boldContent) {
+                            // bold 내용 전체를 하나의 단어로 처리
+                            fullText += boldContent + ' ';
                             boldWords.push(wordIndex);
                             wordIndex++;
                         }
