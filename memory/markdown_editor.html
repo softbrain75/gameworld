@@ -2122,6 +2122,7 @@
                             const { error: updateError } = await supabase
                                 .from('study_materials')
                                 .update({
+                                    title: fileName,
                                     file_path: filePath,
                                     updated_at: new Date().toISOString()
                                 })
