@@ -1894,6 +1894,74 @@
         const deleteBtn = document.getElementById('delete-btn');
         const fileList = document.getElementById('file-list');
 
+        // Track previous filename for change detection
+        let previousFileName = '';
+        let isRenamingFile = false;
+
+        // Detect filename change and handle file rename logic
+        fileNameInput.addEventListener('change', async (e) => {
+            const newFileName = fileNameInput.value.trim();
+            const editorFileId = document.getElementById('editor-file-id').textContent;
+
+            // Only process if in edit mode and filename actually changed
+            if (currentMode !== 'edit' || !editorFileId || newFileName === previousFileName) {
+                return;
+            }
+
+            console.log(`📝 파일명 변경 감지: "${previousFileName}" → "${newFileName}"`);
+
+            try {
+                // Check if user is logged in
+                let user = null;
+                if (typeof supabase !== 'undefined') {
+                    const { data: { user: currentUser } } = await supabase.auth.getUser();
+                    user = currentUser;
+                }
+
+                if (user) {
+                    // Cloud file: Delete old file and create new one
+                    isRenamingFile = true;
+
+                    // 1. Get existing file info
+                    const { data: existingFile } = await supabase
+                        .from('study_materials')
+                        .select('file_path')
+                        .eq('id', editorFileId)
+                        .single();
+
+                    if (existingFile && existingFile.file_path) {
+                        // 2. Delete old file from Storage
+                        await supabase
+                            .storage
+                            .from('study_materials')
+                            .remove([existingFile.file_path]);
+                        console.log('🗑️ 이전 파일 삭제:', existingFile.file_path);
+
+                        // 3. Delete old DB record
+                        await supabase
+                            .from('study_materials')
+                            .delete()
+                            .eq('id', editorFileId);
+                        console.log('🗑️ 이전 DB 레코드 삭제');
+
+                        // Clear the file ID to force new file creation
+                        document.getElementById('editor-file-id').textContent = '';
+
+                        // Update previousFileName
+                        previousFileName = newFileName;
+                        isRenamingFile = false;
+                        console.log('✅ 파일명 변경 완료 - 다음 저장 시 새 파일로 생성됩니다');
+                    }
+                } else {
+                    // Local file: Just update previousFileName
+                    previousFileName = newFileName;
+                }
+            } catch (error) {
+                console.error('파일명 변경 중 오류:', error);
+                isRenamingFile = false;
+            }
+        });
+
         // Viewport height fix
         function setVh() {
             const vh = window.innerHeight * 0.01;
@@ -2678,6 +2746,8 @@
                     updatePreview();
                     // fileId 표시
                     document.getElementById('editor-file-id').textContent = fileId;
+                    // Track original filename for change detection
+                    previousFileName = fileData.title;
                     switchMode('edit', fileData.title);
                 } catch (error) {
                     console.error('파일 로드 오류:', error);
@@ -2696,6 +2766,8 @@
                         updatePreview();
                         // 로컬 파일은 id 없음
                         document.getElementById('editor-file-id').textContent = '';
+                        // Track original filename for change detection
+                        previousFileName = fileData.name;
                         switchMode('edit', fileData.name);
                     }
                 } catch (error) {
