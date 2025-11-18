@@ -3772,25 +3772,170 @@
             const displayEl = document.getElementById('original-text-display');
             displayEl.innerHTML = '';
 
-            lyrics.forEach((word, index) => {
-                const wordSpan = document.createElement('span');
-                wordSpan.className = 'word-item';
-                wordSpan.textContent = word;
+            // 원본 마크다운이 있으면 파싱해서 표 포함해서 렌더링
+            if (originalMarkdown) {
+                let blankOrder = 0;
+                let wordIndex = 0;
 
-                // blanks에 포함된 단어인지 확인
-                if (blanks.includes(index)) {
-                    // correctAnswers에 포함되면 정확히 입력한 것 (초록색)
-                    if (correctAnswers.includes(index)) {
-                        wordSpan.classList.add('correct');
-                    } else {
-                        // correctAnswers에 포함되지 않으면 틀렸거나 입력 안 함 (붉은색)
-                        wordSpan.classList.add('wrong');
+                // 원본 마크다운을 줄별로 처리
+                const lines = originalMarkdown.split('\n');
+
+                let i = 0;
+                while (i < lines.length) {
+                    const line = lines[i];
+
+                    // 제목과 빈 줄 건너뛰기
+                    if (line.startsWith('#') || line.trim() === '') {
+                        i++;
+                        continue;
                     }
-                }
 
-                displayEl.appendChild(wordSpan);
-                displayEl.appendChild(document.createTextNode(' '));
-            });
+                    // 표 감지 (|로 시작하는 줄)
+                    if (line.trim().startsWith('|')) {
+                        // 표 시작
+                        const tableLines = [];
+                        while (i < lines.length && lines[i].trim().startsWith('|')) {
+                            tableLines.push(lines[i]);
+                            i++;
+                        }
+
+                        // 표 렌더링
+                        const result = renderTable(tableLines, wordIndex, blankOrder);
+
+                        // 표의 각 셀에서 blank 단어들에 색상 적용
+                        const cells = result.element.querySelectorAll('td');
+                        cells.forEach(cell => {
+                            const inputs = cell.querySelectorAll('.word-input');
+                            inputs.forEach(input => {
+                                const idx = parseInt(input.dataset.index);
+                                if (blanks.includes(idx)) {
+                                    if (correctAnswers.includes(idx)) {
+                                        input.style.color = 'var(--correct-color, #10b981)';
+                                        input.style.borderBottomColor = 'var(--correct-color, #10b981)';
+                                    } else {
+                                        input.style.color = 'var(--wrong-color, #ef4444)';
+                                        input.style.borderBottomColor = 'var(--wrong-color, #ef4444)';
+                                    }
+                                }
+                            });
+
+                            // 텍스트 노드도 색상 적용
+                            const spans = cell.querySelectorAll('span');
+                            spans.forEach(span => {
+                                const text = span.textContent;
+                                const foundIndex = lyrics.findIndex((word, idx) =>
+                                    word === text && idx >= wordIndex - 10
+                                );
+                                if (foundIndex !== -1 && blanks.includes(foundIndex)) {
+                                    if (correctAnswers.includes(foundIndex)) {
+                                        span.style.color = 'var(--correct-color, #10b981)';
+                                    } else {
+                                        span.style.color = 'var(--wrong-color, #ef4444)';
+                                    }
+                                }
+                            });
+                        });
+
+                        displayEl.appendChild(result.element);
+                        wordIndex = result.wordIndex;
+                        blankOrder = result.blankOrder;
+                        continue;
+                    }
+
+                    // 일반 줄 처리
+                    const lineDiv = document.createElement('div');
+                    lineDiv.style.marginBottom = '8px';
+                    lineDiv.style.lineHeight = '2';
+                    lineDiv.style.width = '100%';
+                    lineDiv.style.display = 'flex';
+                    lineDiv.style.flexWrap = 'wrap';
+                    lineDiv.style.alignItems = 'center';
+
+                    let remaining = line;
+                    while (remaining.length > 0) {
+                        const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+
+                        if (boldMatch) {
+                            // Bold 단어
+                            const word = boldMatch[1].trim();
+                            if (word && wordIndex < lyrics.length) {
+                                const wordSpan = document.createElement('span');
+                                wordSpan.textContent = word;
+
+                                // blanks에 포함된 단어인지 확인
+                                if (blanks.includes(wordIndex)) {
+                                    // correctAnswers에 포함되면 정확히 입력한 것 (초록색)
+                                    if (correctAnswers.includes(wordIndex)) {
+                                        wordSpan.style.color = 'var(--correct-color, #10b981)';
+                                        wordSpan.style.fontWeight = 'bold';
+                                    } else {
+                                        // correctAnswers에 포함되지 않으면 틀렸거나 입력 안 함 (붉은색)
+                                        wordSpan.style.color = 'var(--wrong-color, #ef4444)';
+                                        wordSpan.style.fontWeight = 'bold';
+                                    }
+                                } else {
+                                    wordSpan.style.fontWeight = 'bold';
+                                }
+
+                                lineDiv.appendChild(wordSpan);
+                                wordIndex++;
+                            }
+                            remaining = remaining.substring(boldMatch[0].length);
+                        } else {
+                            // 일반 단어
+                            const wordMatch = remaining.match(/^([^\s*]+|\*(?!\*)|[^\w*])/);
+                            if (wordMatch) {
+                                const word = wordMatch[1];
+                                if (/\S/.test(word)) {
+                                    const wordSpan = document.createElement('span');
+                                    wordSpan.textContent = word;
+
+                                    // blanks에 포함된 단어인지 확인
+                                    if (blanks.includes(wordIndex)) {
+                                        if (correctAnswers.includes(wordIndex)) {
+                                            wordSpan.style.color = 'var(--correct-color, #10b981)';
+                                        } else {
+                                            wordSpan.style.color = 'var(--wrong-color, #ef4444)';
+                                        }
+                                    }
+
+                                    lineDiv.appendChild(wordSpan);
+                                    wordIndex++;
+                                } else {
+                                    lineDiv.appendChild(document.createTextNode(word));
+                                }
+                                remaining = remaining.substring(word.length);
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+
+                    displayEl.appendChild(lineDiv);
+                    i++;
+                }
+            } else {
+                // 원본 마크다운이 없으면 lyrics 배열로만 표시
+                lyrics.forEach((word, index) => {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.className = 'word-item';
+                    wordSpan.textContent = word;
+
+                    // blanks에 포함된 단어인지 확인
+                    if (blanks.includes(index)) {
+                        // correctAnswers에 포함되면 정확히 입력한 것 (초록색)
+                        if (correctAnswers.includes(index)) {
+                            wordSpan.classList.add('correct');
+                        } else {
+                            // correctAnswers에 포함되지 않으면 틀렸거나 입력 안 함 (붉은색)
+                            wordSpan.classList.add('wrong');
+                        }
+                    }
+
+                    displayEl.appendChild(wordSpan);
+                    displayEl.appendChild(document.createTextNode(' '));
+                });
+            }
         }
 
         // Show game screen
