@@ -3094,36 +3094,312 @@
             showGameScreen('playing');
         }
 
+        // Render table with proper formatting
+        function renderTable(tableLines, startWordIndex, startBlankOrder) {
+            let wordIndex = startWordIndex;
+            let blankOrder = startBlankOrder;
+
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.marginBottom = '16px';
+            table.style.border = '1px solid var(--outline-variant)';
+
+            tableLines.forEach((line, lineIdx) => {
+                // 표 구분선 건너뛰기 (|---|---|)
+                if (line.trim().match(/^\|[\s\-:]+\|/)) return;
+
+                const row = document.createElement('tr');
+                const cells = line.split('|').filter(c => c.trim());
+
+                cells.forEach((cell, cellIdx) => {
+                    const td = document.createElement(lineIdx === 0 ? 'th' : 'td');
+                    td.style.border = '1px solid var(--outline-variant)';
+                    td.style.padding = '8px';
+                    td.style.textAlign = 'left';
+
+                    if (lineIdx === 0) {
+                        td.style.backgroundColor = 'var(--surface-dim)';
+                        td.style.fontWeight = 'bold';
+                    }
+
+                    // 셀 내용 파싱 (**bold** 포함)
+                    let remaining = cell.trim();
+                    while (remaining.length > 0) {
+                        const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+
+                        if (boldMatch) {
+                            const word = boldMatch[1].trim();
+                            if (word && wordIndex < lyrics.length) {
+                                const wordEl = document.createElement('span');
+                                wordEl.style.display = 'inline-block';
+                                wordEl.style.margin = '0 4px';
+
+                                if (blanks.includes(wordIndex)) {
+                                    const container = document.createElement('span');
+                                    container.className = 'word-blank-container';
+
+                                    const inputEl = document.createElement('input');
+                                    inputEl.type = 'text';
+                                    inputEl.className = 'word-input';
+                                    inputEl.dataset.index = wordIndex;
+                                    inputEl.dataset.order = blankOrder;
+                                    inputEl.placeholder = '';
+                                    inputEl.autocomplete = 'off';
+                                    inputEl.setAttribute('autocomplete', 'off');
+                                    inputEl.setAttribute('autocorrect', 'off');
+                                    inputEl.setAttribute('autocapitalize', 'off');
+                                    inputEl.spellcheck = 'false';
+
+                                    // 단어 길이에 따라 입력 필드 너비 조정
+                                    const wordLength = word.length;
+                                    const isNumeric = /^\d+$/.test(word);
+                                    const multiplier = isNumeric ? 0.8 : 1.2;
+                                    inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+
+                                    blankOrder++;
+
+                                    container.appendChild(inputEl);
+                                    wordEl.appendChild(container);
+                                } else {
+                                    const wordSpan = document.createElement('span');
+                                    wordSpan.className = 'word-visible';
+                                    wordSpan.textContent = word;
+                                    wordEl.appendChild(wordSpan);
+                                }
+
+                                td.appendChild(wordEl);
+                                wordIndex++;
+                            }
+                            remaining = remaining.substring(boldMatch[0].length);
+                        } else {
+                            const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                            if (nonBoldMatch && nonBoldMatch[1].trim()) {
+                                const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
+                                words.forEach(word => {
+                                    if (wordIndex < lyrics.length) {
+                                        const wordEl = document.createElement('span');
+                                        wordEl.style.display = 'inline-block';
+                                        wordEl.style.margin = '0 4px';
+
+                                        if (blanks.includes(wordIndex)) {
+                                            const container = document.createElement('span');
+                                            container.className = 'word-blank-container';
+
+                                            const inputEl = document.createElement('input');
+                                            inputEl.type = 'text';
+                                            inputEl.className = 'word-input';
+                                            inputEl.dataset.index = wordIndex;
+                                            inputEl.dataset.order = blankOrder;
+                                            inputEl.placeholder = '';
+                                            inputEl.autocomplete = 'off';
+                                            inputEl.setAttribute('autocomplete', 'off');
+                                            inputEl.setAttribute('autocorrect', 'off');
+                                            inputEl.setAttribute('autocapitalize', 'off');
+                                            inputEl.spellcheck = 'false';
+
+                                            // 단어 길이에 따라 입력 필드 너비 조정
+                                            const wordLength = word.length;
+                                            const isNumeric = /^\d+$/.test(word);
+                                            const multiplier = isNumeric ? 0.8 : 1.2;
+                                            inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+
+                                            blankOrder++;
+
+                                            container.appendChild(inputEl);
+                                            wordEl.appendChild(container);
+                                        } else {
+                                            const wordSpan = document.createElement('span');
+                                            wordSpan.className = 'word-visible';
+                                            wordSpan.textContent = word;
+                                            wordEl.appendChild(wordSpan);
+                                        }
+
+                                        td.appendChild(wordEl);
+                                        wordIndex++;
+                                    }
+                                });
+                            }
+                            remaining = remaining.substring(nonBoldMatch ? nonBoldMatch[0].length : 1);
+                        }
+                    }
+
+                    row.appendChild(td);
+                });
+
+                table.appendChild(row);
+            });
+
+            return {
+                element: table,
+                wordIndex: wordIndex,
+                blankOrder: blankOrder
+            };
+        }
+
         // Update UI
         function updateUI() {
             const testDisplay = document.getElementById('test-display');
-            let html = '';
+            testDisplay.innerHTML = '';
+
+            if (!originalMarkdown) {
+                console.error('❌ 원본 마크다운이 없습니다');
+                return;
+            }
+
             let blankOrder = 0;
+            let wordIndex = 0;
 
-            lyrics.forEach((word, index) => {
-                if (blanks.includes(index)) {
-                    // 단어 길이에 따라 입력 필드 너비 동적 조정
-                    const wordLength = word.length;
-                    const inputWidth = `${Math.max(2, wordLength) * 1.2}em`;
-                    html += `<span class="test-word">
-                        <input type="text"
-                               class="blank-input word-input"
-                               data-index="${index}"
-                               data-blank-index="${index}"
-                               data-order="${blankOrder}"
-                               autocomplete="off"
-                               autocorrect="off"
-                               autocapitalize="off"
-                               spellcheck="false"
-                               style="width: ${inputWidth};">
-                    </span> `;
-                    blankOrder++;
-                } else {
-                    html += `<span class="test-word">${word}</span> `;
+            // 원본 마크다운을 줄별로 처리
+            const lines = originalMarkdown.split('\n');
+
+            let i = 0;
+            while (i < lines.length) {
+                const line = lines[i];
+
+                // 제목과 빈 줄 건너뛰기
+                if (line.startsWith('#') || line.trim() === '') {
+                    i++;
+                    continue;
                 }
-            });
 
-            testDisplay.innerHTML = html;
+                // 표 감지 (|로 시작하는 줄)
+                if (line.trim().startsWith('|')) {
+                    // 표 시작
+                    const tableLines = [];
+                    while (i < lines.length && lines[i].trim().startsWith('|')) {
+                        tableLines.push(lines[i]);
+                        i++;
+                    }
+
+                    // 표 렌더링
+                    const result = renderTable(tableLines, wordIndex, blankOrder);
+                    testDisplay.appendChild(result.element);
+                    wordIndex = result.wordIndex;
+                    blankOrder = result.blankOrder;
+                    continue;
+                }
+
+                // 일반 줄 처리
+                const lineDiv = document.createElement('div');
+                lineDiv.style.marginBottom = '8px';
+                lineDiv.style.lineHeight = '2';
+                lineDiv.style.width = '100%';
+                lineDiv.style.display = 'flex';
+                lineDiv.style.flexWrap = 'wrap';
+                lineDiv.style.alignItems = 'center';
+
+                let remaining = line;
+                while (remaining.length > 0) {
+                    const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+
+                    if (boldMatch) {
+                        // Bold 단어
+                        const word = boldMatch[1].trim();
+                        if (word && wordIndex < lyrics.length) {
+                            const wordEl = document.createElement('span');
+                            wordEl.className = 'lyric-word';
+                            wordEl.style.display = 'inline-block';
+                            wordEl.style.margin = '0 4px';
+
+                            if (blanks.includes(wordIndex)) {
+                                const container = document.createElement('span');
+                                container.className = 'word-blank-container';
+
+                                const inputEl = document.createElement('input');
+                                inputEl.type = 'text';
+                                inputEl.className = 'word-input';
+                                inputEl.dataset.index = wordIndex;
+                                inputEl.dataset.order = blankOrder;
+                                inputEl.placeholder = '';
+                                inputEl.autocomplete = 'off';
+                                inputEl.setAttribute('autocomplete', 'off');
+                                inputEl.setAttribute('autocorrect', 'off');
+                                inputEl.setAttribute('autocapitalize', 'off');
+                                inputEl.spellcheck = 'false';
+
+                                // 단어 길이에 따라 입력 필드 너비 조정
+                                const wordLength = word.length;
+                                const isNumeric = /^\d+$/.test(word);
+                                const multiplier = isNumeric ? 0.8 : 1.2;
+                                inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+
+                                blankOrder++;
+
+                                container.appendChild(inputEl);
+                                wordEl.appendChild(container);
+                            } else {
+                                const wordSpan = document.createElement('span');
+                                wordSpan.className = 'word-visible';
+                                wordSpan.textContent = word;
+                                wordEl.appendChild(wordSpan);
+                            }
+
+                            lineDiv.appendChild(wordEl);
+                            wordIndex++;
+                        }
+                        remaining = remaining.substring(boldMatch[0].length);
+                    } else {
+                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                        if (nonBoldMatch && nonBoldMatch[1].trim()) {
+                            const text = nonBoldMatch[1];
+                            const words = text.split(/[\s]+/).filter(w => w.length > 0);
+                            words.forEach(word => {
+                                if (wordIndex < lyrics.length) {
+                                    const wordEl = document.createElement('span');
+                                    wordEl.className = 'lyric-word';
+                                    wordEl.style.display = 'inline-block';
+                                    wordEl.style.margin = '0 4px';
+
+                                    if (blanks.includes(wordIndex)) {
+                                        const container = document.createElement('span');
+                                        container.className = 'word-blank-container';
+
+                                        const inputEl = document.createElement('input');
+                                        inputEl.type = 'text';
+                                        inputEl.className = 'word-input';
+                                        inputEl.dataset.index = wordIndex;
+                                        inputEl.dataset.order = blankOrder;
+                                        inputEl.placeholder = '';
+                                        inputEl.autocomplete = 'off';
+                                        inputEl.setAttribute('autocomplete', 'off');
+                                        inputEl.setAttribute('autocorrect', 'off');
+                                        inputEl.setAttribute('autocapitalize', 'off');
+                                        inputEl.spellcheck = 'false';
+
+                                        // 단어 길이에 따라 입력 필드 너비 조정
+                                        const wordLength = word.length;
+                                        const isNumeric = /^\d+$/.test(word);
+                                        const multiplier = isNumeric ? 0.8 : 1.2;
+                                        inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+
+                                        blankOrder++;
+
+                                        container.appendChild(inputEl);
+                                        wordEl.appendChild(container);
+                                    } else {
+                                        const wordSpan = document.createElement('span');
+                                        wordSpan.className = 'word-visible';
+                                        wordSpan.textContent = word;
+                                        wordEl.appendChild(wordSpan);
+                                    }
+
+                                    lineDiv.appendChild(wordEl);
+                                    wordIndex++;
+                                }
+                            });
+                        }
+                        remaining = remaining.substring(nonBoldMatch ? nonBoldMatch[0].length : 1);
+                    }
+                }
+
+                if (lineDiv.children.length > 0) {
+                    testDisplay.appendChild(lineDiv);
+                }
+
+                i++;
+            }
+
             updateScore();
             setupWordInputListeners();
         }
