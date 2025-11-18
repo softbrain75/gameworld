@@ -3375,9 +3375,60 @@
         // Update UI
 
 
+        function measureTextWidth(text) {
+            initMeasureCanvas();
+            return measureContext.measureText(text).width;
+        }
+
+        // 패딩을 고려한 입력 필드 너비 계산
+        // padding: 2px 8px (좌우 8px씩 = 16px), margin: 0 2px
+
+        function calculateInputWidth(text) {
+            const textWidth = measureTextWidth(text);
+            const paddingWidth = 16; // 좌우 8px씩
+            const totalWidth = textWidth + paddingWidth;
+            return totalWidth + 'px';
+        }
+
+        // 입력 필드 너비 설정 함수
+
+        
+            const inputs = document.querySelectorAll('.word-input');
+            let totalCorrect = 0;
+
+            // 제출 시 correctAnswers 초기화 (정확히 입력한 것들을 기록)
+            correctAnswers = [];
+
+            inputs.forEach((input, index) => {
+                const blankIndex = blanks[index];
+                const correctAnswer = lyrics[blankIndex];
+                const userAnswer = input.value.trim();
+                if (userAnswer === correctAnswer) {
+                    totalCorrect++;
+                    input.classList.add('correct');
+                    input.classList.remove('wrong');
+                    // 정확히 입력한 것만 correctAnswers에 추가
+                    correctAnswers.push(blankIndex);
+                } else {
+                    input.classList.add('wrong');
+                    input.classList.remove('correct');
+                    const answerSpan = document.createElement('span');
+                    answerSpan.className = 'answer-display';
+                    answerSpan.textContent = `(정답: ${correctAnswer})`;
+                    input.parentElement.appendChild(answerSpan);
+                }
+            });
+
+            const finalScore = Math.round((totalCorrect / inputs.length) * 100);
+            endGame(finalScore);
+        }
+
+        // End game
+
         function setInputWidth(inputEl, text) {
             inputEl.style.width = calculateInputWidth(text || inputEl.value);
         }
+
 
         function updateUI() {
             console.log('🎮 updateUI 호출됨 - 시작');
@@ -3696,54 +3747,6 @@
             }
         }
 
-        function measureTextWidth(text) {
-            initMeasureCanvas();
-            return measureContext.measureText(text).width;
-        }
-
-        // 패딩을 고려한 입력 필드 너비 계산
-        // padding: 2px 8px (좌우 8px씩 = 16px), margin: 0 2px
-        function calculateInputWidth(text) {
-            const textWidth = measureTextWidth(text);
-            const paddingWidth = 16; // 좌우 8px씩
-            const totalWidth = textWidth + paddingWidth;
-            return totalWidth + 'px';
-        }
-
-        // 입력 필드 너비 설정 함수
-
-        
-            const inputs = document.querySelectorAll('.word-input');
-            let totalCorrect = 0;
-
-            // 제출 시 correctAnswers 초기화 (정확히 입력한 것들을 기록)
-            correctAnswers = [];
-
-            inputs.forEach((input, index) => {
-                const blankIndex = blanks[index];
-                const correctAnswer = lyrics[blankIndex];
-                const userAnswer = input.value.trim();
-                if (userAnswer === correctAnswer) {
-                    totalCorrect++;
-                    input.classList.add('correct');
-                    input.classList.remove('wrong');
-                    // 정확히 입력한 것만 correctAnswers에 추가
-                    correctAnswers.push(blankIndex);
-                } else {
-                    input.classList.add('wrong');
-                    input.classList.remove('correct');
-                    const answerSpan = document.createElement('span');
-                    answerSpan.className = 'answer-display';
-                    answerSpan.textContent = `(정답: ${correctAnswer})`;
-                    input.parentElement.appendChild(answerSpan);
-                }
-            });
-
-            const finalScore = Math.round((totalCorrect / inputs.length) * 100);
-            endGame(finalScore);
-        }
-
-        // End game
         function endGame(finalScore = score) {
             gameState = 'gameover';
             document.getElementById('final-score').textContent = `${finalScore}점`;
