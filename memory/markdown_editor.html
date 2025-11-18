@@ -146,35 +146,326 @@
             background: var(--surface-dim);
         }
 
-        .menu-items {
-            list-style: none;
-            padding: 60px 0 0 0;
-        }
-
-        .menu-item {
+        /* Menu Actions */
+        .menu-actions {
+            padding: 60px 12px 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
             border-bottom: 1px solid var(--outline-variant);
+            margin-bottom: 8px;
         }
 
-        .menu-item a {
+        .menu-action-btn {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px 24px;
+            gap: 12px;
+            padding: 10px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
             color: var(--text-primary);
-            text-decoration: none;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 500;
-            transition: all 0.2s ease;
             cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
         }
 
-        .menu-item a:hover {
+        .menu-action-btn:hover {
+            background: var(--surface-dim);
+        }
+
+        .menu-action-btn .material-icons {
+            font-size: 20px;
+        }
+
+        /* Menu Section */
+        .menu-section {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--outline-variant);
+            margin-bottom: 8px;
+        }
+
+        .menu-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-section-header .material-icons {
+            font-size: 18px;
+        }
+
+        .menu-file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 4px;
+        }
+
+        .menu-file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            position: relative;
+        }
+
+        .menu-file-item:hover {
+            background: var(--surface-dim);
+        }
+
+        .menu-file-item .material-icons {
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+
+        .menu-file-item .file-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .menu-file-item .file-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .menu-file-item:hover .file-actions {
+            opacity: 1;
+        }
+
+        .file-action-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .file-action-btn:hover {
             background: var(--primary-light);
             color: var(--primary);
         }
 
-        .menu-item a .material-icons {
-            font-size: 24px;
+        .file-action-btn .material-icons {
+            font-size: 18px;
+        }
+
+        /* Menu Bottom */
+        .menu-bottom {
+            margin-top: auto;
+            padding: 8px 12px 16px 12px;
+            border-top: 1px solid var(--outline-variant);
+        }
+
+        .menu-bottom-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+        }
+
+        .menu-bottom-item:hover {
+            background: var(--surface-dim);
+        }
+
+        .menu-bottom-item .material-icons {
+            font-size: 20px;
+        }
+
+        /* Settings Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--outline-variant);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--surface-dim);
+        }
+
+        .modal-body {
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            border: 2px solid var(--outline-variant);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .radio-option:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .radio-option input[type="radio"] {
+            margin-top: 2px;
+            accent-color: var(--primary);
+        }
+
+        .radio-option input[type="radio"]:checked ~ * {
+            color: var(--primary);
+        }
+
+        .radio-option span {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .radio-description {
+            margin: 4px 0 0 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--outline-variant);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-btn-cancel {
+            background: transparent;
+            color: var(--text-primary);
+        }
+
+        .modal-btn-cancel:hover {
+            background: var(--surface-dim);
+        }
+
+        .modal-btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: var(--primary-dark);
         }
 
         /* Menu Overlay */
@@ -1168,29 +1459,93 @@
     <!-- Side Menu -->
     <div class="menu-overlay" id="menu-overlay"></div>
     <div class="side-menu" id="side-menu">
-        <button class="menu-close-btn">
+        <button class="menu-close-btn" id="menu-close-btn">
             <span class="material-icons">close</span>
         </button>
-        <ul class="menu-items">
-            <li class="menu-item">
-                <a data-action="data">
-                    <span class="material-icons">storage</span>
-                    <span>데이터</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a data-action="my-data">
-                    <span class="material-icons">person</span>
-                    <span>마이데이터</span>
-                </a>
-            </li>
-            <li class="menu-item">
-                <a data-action="game">
-                    <span class="material-icons">games</span>
-                    <span>게임</span>
-                </a>
-            </li>
-        </ul>
+
+        <!-- 주요 액션 -->
+        <div class="menu-actions">
+            <button class="menu-action-btn" id="new-file-btn">
+                <span class="material-icons">add</span>
+                <span>새 파일</span>
+            </button>
+            <button class="menu-action-btn" id="search-file-btn">
+                <span class="material-icons">search</span>
+                <span>파일 검색</span>
+            </button>
+        </div>
+
+        <!-- 로컬 파일 섹션 -->
+        <div class="menu-section">
+            <div class="menu-section-header">
+                <span class="material-icons">storage</span>
+                <span>로컬 파일</span>
+            </div>
+            <div class="menu-file-list" id="local-files">
+                <input type="file" id="local-file-input" accept=".md" style="display: none;" multiple>
+                <button class="menu-file-item" id="add-local-file">
+                    <span class="material-icons">add_circle_outline</span>
+                    <span>파일 추가</span>
+                </button>
+                <!-- 동적으로 로컬 파일 추가됨 -->
+            </div>
+        </div>
+
+        <!-- 마이 파일 섹션 (Supabase) -->
+        <div class="menu-section">
+            <div class="menu-section-header">
+                <span class="material-icons">cloud</span>
+                <span>마이 파일</span>
+            </div>
+            <div class="menu-file-list" id="my-files">
+                <!-- 동적으로 Supabase 파일 추가됨 -->
+            </div>
+        </div>
+
+        <!-- 하단 메뉴 -->
+        <div class="menu-bottom">
+            <button class="menu-bottom-item" id="settings-btn">
+                <span class="material-icons">settings</span>
+                <span>설정</span>
+            </button>
+            <button class="menu-bottom-item" id="logout-btn">
+                <span class="material-icons">logout</span>
+                <span>로그아웃</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 설정 모달 -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>게임 설정</h3>
+                <button class="modal-close-btn">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label class="setting-label">게임 모드</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="game-mode" value="random" checked>
+                            <span>무작위 모드</span>
+                            <p class="radio-description">저빈도 단어 중심으로 출제</p>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="game-mode" value="bold">
+                            <span>TTV 모드</span>
+                            <p class="radio-description">굵게 표시된 단어만 출제</p>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel">취소</button>
+                <button class="modal-btn modal-btn-primary" id="save-settings-btn">저장</button>
+            </div>
+        </div>
     </div>
 </body>
 </html>
