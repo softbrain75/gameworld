@@ -1200,22 +1200,12 @@
                         </div>
                     </div>
 
-                    <div class="difficulty-selection" id="difficulty-section">
-                        <div class="section-title">난이도 선택</div>
-                        <div class="difficulty-buttons">
-                            <button class="difficulty-btn selected" data-difficulty="easy">쉬움</button>
-                            <button class="difficulty-btn" data-difficulty="medium">보통</button>
-                            <button class="difficulty-btn" data-difficulty="hard">어려움</button>
-                        </div>
-                    </div>
-
                     <button class="start-btn">시작</button>
 
                     <div class="instructions">
                         <h3>방법</h3>
                         <ol>
                             <li>Mode를 선택합니다.</li>
-                            <li>난이도를 선택합니다.</li>
                             <li>가려진 Voca를 입력하여 완성하세요.</li>
                         </ol>
                     </div>
@@ -1283,7 +1273,7 @@
     <script>
         // Game State
         let gameState = 'menu';
-        let difficulty = 'easy';
+        let difficulty = 'medium'; // 고정 난이도 (중간)
         let gameMode = 'random'; // 'random' or 'bold'
         let lyrics = [];
         let boldWords = []; // bold 처리된 단어들
@@ -1759,23 +1749,6 @@
                     document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
                     e.target.classList.add('selected');
                     gameMode = e.target.dataset.mode;
-
-                    // Bold 모드면 난이도 섹션 숨기기
-                    const difficultySection = document.getElementById('difficulty-section');
-                    if (gameMode === 'bold') {
-                        difficultySection.style.display = 'none';
-                    } else {
-                        difficultySection.style.display = 'block';
-                    }
-                });
-            });
-
-            // Difficulty buttons
-            document.querySelectorAll('.difficulty-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('selected'));
-                    e.target.classList.add('selected');
-                    difficulty = e.target.dataset.difficulty;
                 });
             });
 
