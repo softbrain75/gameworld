@@ -108,20 +108,30 @@
         .side-menu {
             position: fixed;
             top: 0;
-            left: -320px;
-            width: 320px;
+            left: 0;
+            width: 260px;
             height: 100vh;
             background: var(--surface);
-            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+            border-right: 1px solid var(--outline-variant);
             z-index: 1000;
-            transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             display: flex;
             flex-direction: column;
             padding-top: 16px;
         }
 
         .side-menu.open {
-            left: 0;
+            transform: translateX(0);
+        }
+
+        /* Container shifts when menu is open */
+        .container {
+            transition: margin-left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .container.menu-open {
+            margin-left: 260px;
         }
 
         .menu-close-btn {
@@ -468,25 +478,6 @@
             background: var(--primary-dark);
         }
 
-        /* Menu Overlay */
-        .menu-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0);
-            z-index: 999;
-            transition: background 0.3s ease;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .menu-overlay.active {
-            background: rgba(0, 0, 0, 0.4);
-            opacity: 1;
-            pointer-events: auto;
-        }
 
         /* Mode-based layout */
         .content-area {
@@ -1482,27 +1473,26 @@
         document.addEventListener('DOMContentLoaded', function() {
             const hamburgerBtn = document.getElementById('hamburger-btn');
             const sideMenu = document.getElementById('side-menu');
-            const menuOverlay = document.getElementById('menu-overlay');
+            const container = document.querySelector('.container');
             const menuCloseBtn = document.querySelector('.menu-close-btn');
 
-            if (!hamburgerBtn || !sideMenu || !menuOverlay || !menuCloseBtn) {
+            if (!hamburgerBtn || !sideMenu || !container || !menuCloseBtn) {
                 console.error('Menu elements not found');
                 return;
             }
 
             function toggleMenu() {
                 sideMenu.classList.toggle('open');
-                menuOverlay.classList.toggle('active');
+                container.classList.toggle('menu-open');
             }
 
             function closeMenu() {
                 sideMenu.classList.remove('open');
-                menuOverlay.classList.remove('active');
+                container.classList.remove('menu-open');
             }
 
             hamburgerBtn.addEventListener('click', toggleMenu);
             menuCloseBtn.addEventListener('click', closeMenu);
-            menuOverlay.addEventListener('click', closeMenu);
 
             // Load saved game mode from localStorage
             const savedMode = localStorage.getItem('memory_game_mode') || 'random';
@@ -1699,7 +1689,6 @@
     </script>
 
     <!-- Side Menu -->
-    <div class="menu-overlay" id="menu-overlay"></div>
     <div class="side-menu" id="side-menu">
         <button class="menu-close-btn" id="menu-close-btn">
             <span class="material-icons">close</span>
