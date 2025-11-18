@@ -900,21 +900,88 @@
         </div>
 
         <div class="content-area">
-            <!-- List Mode -->
+            <!-- Welcome Screen -->
             <section id="list-section" class="active">
-                <div class="file-manager">
-                    <div class="file-manager-header">
-                        <div class="file-manager-title">                            
-                            파일 목록
-                        </div>
-                        <button class="create-btn" onclick="switchMode('create')">
-                            <span class="material-icons" style="display: inline; margin-right: 4px; font-size: 16px;">add</span>
-                            새 파일
-                        </button>
+                <div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+                    <div style="text-align: center; margin-bottom: 48px;">
+                        <h1 style="font-size: 36px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">
+                            Memories에 오신 것을 환영합니다
+                        </h1>
+                        <p style="font-size: 18px; color: var(--text-secondary); line-height: 1.6;">
+                            마크다운으로 학습 자료를 만들고, 게임으로 복습하세요
+                        </p>
                     </div>
 
-                    <div class="file-list" id="file-list">
-                        <div class="empty-message">저장된 파일이 없습니다.</div>
+                    <div style="display: grid; gap: 24px; margin-bottom: 48px;">
+                        <!-- Step 1 -->
+                        <div style="background: var(--surface); border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <div style="display: flex; align-items: flex-start; gap: 16px;">
+                                <div style="width: 48px; height: 48px; background: var(--primary-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span style="font-size: 24px; font-weight: 700; color: var(--primary);">1</span>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
+                                        학습 자료 만들기
+                                    </h3>
+                                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+                                        좌측 메뉴에서 <strong>"새 파일"</strong>을 클릭하거나, 로컬 MD 파일을 추가하세요.
+                                        <strong>**단어**</strong> 형식으로 중요한 단어를 표시하면 게임에서 빈칸 문제로 출제됩니다.
+                                    </p>
+                                    <button onclick="document.getElementById('new-file-btn').click()"
+                                            style="padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                                        새 파일 만들기
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div style="background: var(--surface); border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <div style="display: flex; align-items: flex-start; gap: 16px;">
+                                <div style="width: 48px; height: 48px; background: var(--primary-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span style="font-size: 24px; font-weight: 700; color: var(--primary);">2</span>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
+                                        게임 모드 선택
+                                    </h3>
+                                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+                                        좌측 메뉴의 <strong>"설정"</strong>에서 게임 모드를 선택하세요.
+                                        <br>• <strong>무작위 모드</strong>: 잘 안 쓰이는 어려운 단어 중심 출제
+                                        <br>• <strong>TTV 모드</strong>: **굵게 표시**한 단어만 출제
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div style="background: var(--surface); border-radius: 16px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <div style="display: flex; align-items: flex-start; gap: 16px;">
+                                <div style="width: 48px; height: 48px; background: var(--primary-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <span style="font-size: 24px; font-weight: 700; color: var(--primary);">3</span>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
+                                        게임 시작
+                                    </h3>
+                                    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;">
+                                        좌측 메뉴에서 파일을 클릭하면 바로 게임이 시작됩니다.
+                                        <br>• <strong>마이 파일</strong>: Supabase 클라우드에 저장된 파일
+                                        <br>• <strong>로컬 파일</strong>: 디바이스에서 불러온 파일
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--primary-light); border-radius: 16px; padding: 24px; text-align: center;">
+                        <p style="font-size: 14px; color: var(--primary); font-weight: 600; margin-bottom: 12px;">
+                            💡 Tip: 표 형식도 지원됩니다!
+                        </p>
+                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                            엑셀에서 표를 복사해서 붙여넣으면 자동으로 마크다운 표로 변환됩니다.
+                            <br>표 안의 <strong>**굵은 글씨**</strong>도 빈칸 문제로 출제됩니다.
+                        </p>
                     </div>
                 </div>
             </section>
