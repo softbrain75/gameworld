@@ -1268,6 +1268,39 @@
             animation: shake 0.3s;
         }
 
+        .word-input {
+            display: inline-block;
+            border: none;
+            border-bottom: 2px solid var(--outline-variant);
+            background: transparent;
+            padding: 2px 8px;
+            font-size: 16px;
+            font-family: 'Noto Sans KR', sans-serif;
+            color: var(--text-primary);
+            min-width: 60px;
+            transition: border-color 0.2s, background-color 0.2s;
+            margin: 0 2px;
+        }
+
+        .word-input:focus {
+            outline: none;
+            border-bottom: 2px solid var(--primary);
+            background: rgba(103, 80, 164, 0.05);
+        }
+
+        .word-input.correct {
+            border-bottom: 2px solid var(--success);
+            background: rgba(82, 196, 26, 0.1);
+            color: var(--success);
+        }
+
+        .word-input.wrong {
+            border-bottom: 2px solid var(--error);
+            background: rgba(245, 34, 45, 0.1);
+            color: var(--error);
+            animation: shake 0.3s;
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-4px); }
