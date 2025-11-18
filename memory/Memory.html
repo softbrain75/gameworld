@@ -1331,7 +1331,7 @@
             color: white;
             border: none;
             cursor: pointer;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             font-size: 16px;
@@ -1340,6 +1340,10 @@
             transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
             z-index: 1000;
             white-space: nowrap;
+        }
+
+        .submit-btn.active {
+            display: flex;
         }
 
         .submit-btn:hover {
@@ -3229,6 +3233,12 @@
             updateUI();
             console.log('updateUI 호출 직후');
             showGameScreen('playing');
+
+            // Show submit button when game starts
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.classList.add('active');
+            }
         }
 
         // Render table with proper formatting
@@ -3769,6 +3779,12 @@
 
             // Display original text with highlights
             displayOriginalText();
+
+            // Hide submit button when game ends
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.classList.remove('active');
+            }
 
             showGameScreen('gameover');
         }
