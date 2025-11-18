@@ -150,6 +150,7 @@
             font-size: 24px;
             transition: all 0.2s ease;
             border-radius: 8px;
+            z-index: 10;
         }
 
         .menu-close-btn:hover {
@@ -1633,7 +1634,8 @@
             });
 
             // New file button
-            document.getElementById('new-file-btn').addEventListener('click', () => {
+            document.getElementById('new-file-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
                 switchMode('create');
             });
 
