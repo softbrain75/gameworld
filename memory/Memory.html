@@ -259,12 +259,12 @@
             pointer-events: auto;
         }
 
-        .menu-screen, .playing-screen, .gameover-screen {
+        .playing-screen, .gameover-screen {
             display: none;
             width: 100%;
         }
 
-        .menu-screen.active, .playing-screen.active, .gameover-screen.active {
+        .playing-screen.active, .gameover-screen.active {
             display: block;
             animation: fadeIn 0.3s ease-out;
         }
@@ -1167,51 +1167,6 @@
             <p class="subtitle">Information을 얼마나 기억하고 있을까요?</p>
 
             <!-- Menu Screen -->
-            <div class="menu-screen active">
-                <div class="menu-content">
-                    <div class="data-selection" id="data-section">
-                        <div class="section-title-container">
-                            <div class="section-title">Data 선택</div>
-                            <button class="edit-button" id="edit-data-button" title="데이터 편집">
-                                <span class="material-icons">edit</span>
-                            </button>
-                        </div>
-                        <div class="data-selector">
-                            <div class="data-select-wrapper">
-                                <div id="data-select" class="custom-select" tabindex="0">
-                                    <div class="custom-select-trigger">
-                                        <span class="custom-select-value"></span>
-                                        <span class="data-select-icon material-icons">expand_more</span>
-                                    </div>
-                                    <div class="custom-select-menu"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="data-info" id="data-info" style="margin-top: 8px; padding: 12px; background: var(--surface-dim); border-radius: 8px; font-size: 13px; color: var(--text-secondary); display: none;">
-                            선택된 파일이 없습니다. markdown_editor.html에서 파일을 만들어주세요.
-                        </div>
-                    </div>
-
-                    <div class="mode-selection">
-                        <div class="section-title">Mode 선택</div>
-                        <div class="mode-buttons">
-                            <button class="mode-btn selected" data-mode="random">무작위 모드</button>
-                            <button class="mode-btn" data-mode="bold"> TTV 모드</button>
-                        </div>
-                    </div>
-
-                    <button class="start-btn">시작</button>
-
-                    <div class="instructions">
-                        <h3>방법</h3>
-                        <ol>
-                            <li>Mode를 선택합니다.</li>
-                            <li>가려진 Voca를 입력하여 완성하세요.</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-
             <!-- Playing Screen -->
             <div class="playing-screen">
                 <div class="game-header">
@@ -1771,87 +1726,7 @@
         }
 
         function setupEventListeners() {
-            // Edit button
-            const editButton = document.getElementById('edit-data-button');
-            editButton.addEventListener('click', () => {
-                // markdown_editor.html로 이동
-                window.location.href = './markdown_editor.html';
-            });
-
-            // Custom dropdown trigger
-            const customSelect = document.getElementById('data-select');
-            const trigger = customSelect.querySelector('.custom-select-trigger');
-
-            trigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleCustomSelect();
-            });
-
-            // Close on outside click
-            document.addEventListener('click', (e) => {
-                if (customSelectOpen && !customSelect.contains(e.target)) {
-                    closeCustomSelect();
-                }
-            });
-
-            // Keyboard navigation
-            customSelect.addEventListener('keydown', (e) => {
-                const options = Array.from(customSelect.querySelectorAll('.custom-select-option'));
-
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    if (!customSelectOpen) {
-                        toggleCustomSelect();
-                    } else {
-                        // Select first option if none selected
-                        const selected = options.find(opt => opt.classList.contains('selected'));
-                        if (selected) {
-                            selected.click();
-                        } else if (options.length > 0) {
-                            options[0].click();
-                        }
-                    }
-                } else if (e.key === 'Escape') {
-                    e.preventDefault();
-                    closeCustomSelect();
-                } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (!customSelectOpen) {
-                        toggleCustomSelect();
-                    } else {
-                        const currentIndex = options.findIndex(opt => opt.classList.contains('selected'));
-                        const nextIndex = currentIndex < options.length - 1 ? currentIndex + 1 : 0;
-                        if (options[nextIndex]) {
-                            options[nextIndex].click();
-                        }
-                    }
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    if (!customSelectOpen) {
-                        toggleCustomSelect();
-                    } else {
-                        const currentIndex = options.findIndex(opt => opt.classList.contains('selected'));
-                        const prevIndex = currentIndex > 0 ? currentIndex - 1 : options.length - 1;
-                        if (options[prevIndex]) {
-                            options[prevIndex].click();
-                        }
-                    }
-                }
-            });
-
-            // Mode buttons
-            document.querySelectorAll('.mode-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
-                    e.target.classList.add('selected');
-                    gameMode = e.target.dataset.mode;
-                });
-            });
-
-            document.querySelector('.start-btn').addEventListener('click', (e) => {
-                e.preventDefault();
-                startGame(false);
-            });
+            // 메뉴 화면 제거로 인해 이벤트 리스너 불필요
 
             // Submit button
             document.getElementById('submit-btn').addEventListener('click', (e) => {
@@ -2684,13 +2559,12 @@
         }
 
         function goToMenu() {
-            gameState = 'menu';
-            wrongAnswers = []; // 틀린 것 초기화
-            showScreen('menu-screen');
+            // 메뉴 화면이 없으므로 markdown_editor로 돌아가기
+            window.location.href = 'markdown_editor.html';
         }
 
         function showScreen(screenName) {
-            document.querySelectorAll('.menu-screen, .playing-screen, .gameover-screen').forEach(screen => {
+            document.querySelectorAll('.playing-screen, .gameover-screen').forEach(screen => {
                 screen.classList.remove('active');
             });
             document.querySelector('.' + screenName).classList.add('active');
