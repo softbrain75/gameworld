@@ -2737,7 +2737,9 @@
 
                     if (storageError) {
                         console.error('파일 다운로드 오류:', storageError);
-                        alert('파일을 다운로드할 수 없습니다.');
+                        console.error('파일 경로:', fileData.file_path);
+                        console.error('파일 ID:', fileId);
+                        alert('파일을 다운로드할 수 없습니다. 파일이 삭제되었거나 경로가 잘못되었을 수 있습니다.');
                         return;
                     }
 
@@ -3289,8 +3291,7 @@
                                     // 단어 길이에 따라 입력 필드 너비 조정
                                     const wordLength = word.length;
                                     const isNumeric = /^\d+$/.test(word);
-                                    const multiplier = isNumeric ? 0.8 : 1.2;
-                                    inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+                                    setInputWidth(inputEl, word);
 
                                     blankOrder++;
 
@@ -3336,8 +3337,7 @@
                                             // 단어 길이에 따라 입력 필드 너비 조정
                                             const wordLength = word.length;
                                             const isNumeric = /^\d+$/.test(word);
-                                            const multiplier = isNumeric ? 0.8 : 1.2;
-                                            inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+                                            setInputWidth(inputEl, word);
 
                                             blankOrder++;
 
@@ -3425,8 +3425,7 @@
 
                         const wordLength = word.length;
                         const isNumeric = /^\d+$/.test(word);
-                        const multiplier = isNumeric ? 0.8 : 1.2;
-                        inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+                        setInputWidth(inputEl, word);
 
                         blankOrder++;
 
@@ -3522,8 +3521,7 @@
                                 // 단어 길이에 따라 입력 필드 너비 조정
                                 const wordLength = word.length;
                                 const isNumeric = /^\d+$/.test(word);
-                                const multiplier = isNumeric ? 0.8 : 1.2;
-                                inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+                                setInputWidth(inputEl, word);
 
                                 blankOrder++;
 
@@ -3571,8 +3569,7 @@
                                         // 단어 길이에 따라 입력 필드 너비 조정
                                         const wordLength = word.length;
                                         const isNumeric = /^\d+$/.test(word);
-                                        const multiplier = isNumeric ? 0.8 : 1.2;
-                                        inputEl.style.width = `${Math.max(2, wordLength) * multiplier}em`;
+                                        setInputWidth(inputEl, word);
 
                                         blankOrder++;
 
@@ -3681,6 +3678,38 @@
 
         // Submit game
         function submitGame() {
+                // Canvas를 사용한 글자 너비 측정 함수
+        let measureCanvas = null;
+        let measureContext = null;
+
+        function initMeasureCanvas() {
+            if (!measureCanvas) {
+                measureCanvas = document.createElement('canvas');
+                measureContext = measureCanvas.getContext('2d');
+                measureContext.font = '16px Noto Sans KR, sans-serif';
+            }
+        }
+
+        function measureTextWidth(text) {
+            initMeasureCanvas();
+            return measureContext.measureText(text).width;
+        }
+
+        // 패딩을 고려한 입력 필드 너비 계산
+        // padding: 2px 8px (좌우 8px씩 = 16px), margin: 0 2px
+        function calculateInputWidth(text) {
+            const textWidth = measureTextWidth(text);
+            const paddingWidth = 16; // 좌우 8px씩
+            const totalWidth = textWidth + paddingWidth;
+            return totalWidth + 'px';
+        }
+
+        // 입력 필드 너비 설정 함수
+        function setInputWidth(inputEl, text) {
+            inputEl.style.width = calculateInputWidth(text || inputEl.value);
+        }
+
+        
             const inputs = document.querySelectorAll('.word-input');
             let totalCorrect = 0;
 
