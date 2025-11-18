@@ -3373,6 +3373,12 @@
         }
 
         // Update UI
+
+
+        function setInputWidth(inputEl, text) {
+            inputEl.style.width = calculateInputWidth(text || inputEl.value);
+        }
+
         function updateUI() {
             console.log('🎮 updateUI 호출됨 - 시작');
             const testDisplay = document.getElementById('test-display');
@@ -3705,9 +3711,6 @@
         }
 
         // 입력 필드 너비 설정 함수
-        function setInputWidth(inputEl, text) {
-            inputEl.style.width = calculateInputWidth(text || inputEl.value);
-        }
 
         
             const inputs = document.querySelectorAll('.word-input');
