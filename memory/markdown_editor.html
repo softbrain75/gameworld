@@ -1433,26 +1433,197 @@
             menuCloseBtn.addEventListener('click', closeMenu);
             menuOverlay.addEventListener('click', closeMenu);
 
-            // Menu item click handlers
-            document.querySelectorAll('.menu-item a').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const action = e.currentTarget.dataset.action;
-                    closeMenu();
+            // Load saved game mode from localStorage
+            const savedMode = localStorage.getItem('memory_game_mode') || 'random';
 
-                    // Handle menu actions
-                    if (action === 'data') {
-                        // Handle 데이터 action
-                        console.log('데이터 clicked');
-                    } else if (action === 'my-data') {
-                        // Handle 마이데이터 action
-                        window.location.href = 'markdown_editor.html';
-                    } else if (action === 'game') {
-                        // Handle 게임 action
-                        window.location.href = 'Memory.html';
+            // Load Supabase files into "마이 파일" section
+            async function loadMyFiles() {
+                const myFilesContainer = document.getElementById('my-files');
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+
+                    if (!user) {
+                        myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">로그인이 필요합니다</div>';
+                        return;
                     }
+
+                    const { data, error } = await supabase
+                        .from('study_materials')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    if (!data || data.length === 0) {
+                        myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일이 없습니다</div>';
+                        return;
+                    }
+
+                    myFilesContainer.innerHTML = data.map(file => `
+                        <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                                <span class="material-icons">description</span>
+                                <span class="file-name">${escapeHtml(file.title)}</span>
+                            </div>
+                            <div class="file-actions" style="opacity: 1;">
+                                <button class="file-action-btn" onclick="event.stopPropagation(); editFile('${file.id}')" title="편집">
+                                    <span class="material-icons">settings</span>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } catch (error) {
+                    console.error('마이 파일 로드 실패:', error);
+                    myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일 로드 실패</div>';
+                }
+            }
+
+            // Load local files from localStorage
+            function loadLocalFiles() {
+                const localFilesContainer = document.getElementById('local-files');
+                const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+
+                const addButton = `
+                    <button class="menu-file-item" id="add-local-file" style="width: 100%;">
+                        <span class="material-icons">add_circle_outline</span>
+                        <span>파일 추가</span>
+                    </button>
+                `;
+
+                if (savedFiles.length === 0) {
+                    localFilesContainer.innerHTML = addButton;
+                } else {
+                    const fileItems = savedFiles.map((file, index) => `
+                        <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
+                                <span class="material-icons">description</span>
+                                <span class="file-name">${escapeHtml(file.name)}</span>
+                            </div>
+                            <div class="file-actions" style="opacity: 1;">
+                                <button class="file-action-btn" onclick="event.stopPropagation(); removeLocalFile(${index})" title="제거">
+                                    <span class="material-icons">close</span>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    localFilesContainer.innerHTML = addButton + fileItems;
+                }
+
+                // Re-attach add button listener
+                document.getElementById('add-local-file').addEventListener('click', () => {
+                    document.getElementById('local-file-input').click();
+                });
+            }
+
+            // Play game with Supabase file
+            window.playGame = function(fileId, fileName) {
+                localStorage.setItem('selected_file_id', fileId);
+                localStorage.setItem('selected_file_name', fileName);
+                localStorage.setItem('selected_file_source', 'supabase');
+                window.location.href = 'Memory.html?autostart=true';
+            };
+
+            // Edit file
+            window.editFile = function(fileId) {
+                window.location.href = `markdown_editor.html?file=${fileId}`;
+            };
+
+            // Play game with local file
+            window.playLocalGame = function(index, fileName) {
+                const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                if (savedFiles[index]) {
+                    localStorage.setItem('selected_local_file', JSON.stringify(savedFiles[index]));
+                    localStorage.setItem('selected_file_name', fileName);
+                    localStorage.setItem('selected_file_source', 'local');
+                    window.location.href = 'Memory.html?autostart=true';
+                }
+            };
+
+            // Remove local file
+            window.removeLocalFile = function(index) {
+                const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                savedFiles.splice(index, 1);
+                localStorage.setItem('local_md_files', JSON.stringify(savedFiles));
+                loadLocalFiles();
+            };
+
+            // Local file input handler
+            document.getElementById('local-file-input').addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        savedFiles.push({
+                            name: file.name,
+                            content: event.target.result,
+                            addedAt: new Date().toISOString()
+                        });
+                        localStorage.setItem('local_md_files', JSON.stringify(savedFiles));
+                        loadLocalFiles();
+                    };
+                    reader.readAsText(file);
+                });
+
+                e.target.value = ''; // Reset input
+            });
+
+            // New file button
+            document.getElementById('new-file-btn').addEventListener('click', () => {
+                closeMenu();
+                switchMode('create');
+            });
+
+            // Search file button (placeholder)
+            document.getElementById('search-file-btn').addEventListener('click', () => {
+                closeMenu();
+                alert('파일 검색 기능은 곧 추가됩니다!');
+            });
+
+            // Settings button
+            document.getElementById('settings-btn').addEventListener('click', () => {
+                document.getElementById('settings-modal').classList.add('active');
+                // Load current mode
+                const currentMode = localStorage.getItem('memory_game_mode') || 'random';
+                document.querySelector(`input[name="game-mode"][value="${currentMode}"]`).checked = true;
+            });
+
+            // Save settings
+            document.getElementById('save-settings-btn').addEventListener('click', () => {
+                const selectedMode = document.querySelector('input[name="game-mode"]:checked').value;
+                localStorage.setItem('memory_game_mode', selectedMode);
+                document.getElementById('settings-modal').classList.remove('active');
+                alert('설정이 저장되었습니다!');
+            });
+
+            // Close settings modal
+            document.querySelectorAll('.modal-close-btn, .modal-btn-cancel').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('settings-modal').classList.remove('active');
                 });
             });
+
+            // Close modal on overlay click
+            document.getElementById('settings-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'settings-modal') {
+                    e.target.classList.remove('active');
+                }
+            });
+
+            // Logout button
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                if (confirm('로그아웃 하시겠습니까?')) {
+                    await supabase.auth.signOut();
+                    window.location.href = '../index.html';
+                }
+            });
+
+            // Initialize menu data
+            loadMyFiles();
+            loadLocalFiles();
         });
     </script>
 
