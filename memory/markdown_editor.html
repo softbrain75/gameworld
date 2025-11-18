@@ -2673,8 +2673,10 @@
 
             // Play game with local file
             window.playLocalGame = function(index, fileName) {
+                console.log('🎮 playLocalGame 호출됨 - index:', index, 'fileName:', fileName);
                 try {
                     const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                    console.log('로컬 파일 목록:', savedFiles);
                     if (savedFiles[index]) {
                         // Get game mode from settings
                         const savedMode = localStorage.getItem('memory_game_mode') || 'random';
@@ -2682,15 +2684,23 @@
 
                         // Load file content
                         const fileData = savedFiles[index];
+                        console.log('파일 데이터:', fileData);
                         parseLyrics(fileData.content);
                         console.log('✅ 로컬 파일 로드 완료:', fileData.name);
+                        console.log('parseLyrics 후 - lyrics.length:', lyrics.length);
 
                         // Switch to game mode and start game
                         switchMode('game', fileData.name);
+                        console.log('switchMode 후 - lyrics.length:', lyrics.length);
                         if (lyrics.length > 0) {
+                            console.log('startGame 호출 조건 만족 - lyrics.length > 0');
                             correctAnswers = []; // Reset correct answers
                             startGame(false);
+                        } else {
+                            console.warn('⚠️ startGame 호출 안 함 - lyrics.length:', lyrics.length);
                         }
+                    } else {
+                        console.error('❌ 파일을 찾을 수 없음 - index:', index);
                     }
                 } catch (error) {
                     console.error('게임 시작 오류:', error);
