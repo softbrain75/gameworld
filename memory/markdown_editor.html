@@ -2080,56 +2080,78 @@
                     return;
                 }
 
-                // 로그인한 경우: Supabase에 저장
-                // UUID에서 하이픈 제거 (Storage 경로에 사용 불가)
+                // 로그인한 경우: Supabase Storage에 파일 업로드 후 DB 업데이트
                 const userId = user.id.replace(/-/g, '');
+                const fileId = crypto.randomUUID();
+                const filePath = `${userId}/${fileId}.md`;
 
-                // edit 모드인 경우: 기존 파일 업데이트
-                if (currentMode === 'edit' && currentEditFile) {
-                    // 기존 파일 ID를 찾아서 업데이트
-                    const { data: existingFile } = await supabase
-                        .from('study_materials')
-                        .select('id')
-                        .eq('title', currentEditFile)
-                        .eq('user_id', user.id)
-                        .single();
+                // Supabase Storage에 파일 업로드
+                const { error: uploadError } = await supabase
+                    .storage
+                    .from('study_materials')
+                    .upload(filePath, new Blob([content], { type: 'text/plain' }), {
+                        upsert: true  // 파일이 이미 있으면 덮어쓰기
+                    });
 
-                    if (existingFile) {
-                        // 기존 파일 업데이트
-                        const { error: updateError } = await supabase
-                            .from('study_materials')
-                            .update({
-                                content: content,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('id', existingFile.id);
-
-                        if (updateError) {
-                            console.warn('파일 업데이트 실패:', updateError);
-                        } else {
-                            console.log('✅ Supabase 파일 업데이트됨:', fileName);
-                        }
-                    }
+                if (uploadError) {
+                    console.warn('파일 업로드 실패:', uploadError);
+                    alert('파일 저장 중 오류가 발생했습니다');
                 } else {
-                    // create 모드: 새 파일 생성
-                    const fileId = crypto.randomUUID();
+                    console.log('✅ Storage에 파일 업로드됨:', filePath);
 
-                    // DB에 직접 저장 (study_materials 테이블)
-                    const { error: dbError } = await supabase
-                        .from('study_materials')
-                        .insert({
-                            id: fileId,
-                            user_id: user.id,
-                            title: fileName,
-                            content: content,
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString()
-                        });
+                    // edit 모드인 경우: 기존 파일 업데이트
+                    if (currentMode === 'edit' && currentEditFile) {
+                        // 기존 파일 ID를 찾아서 업데이트
+                        const { data: existingFile } = await supabase
+                            .from('study_materials')
+                            .select('id, file_path')
+                            .eq('title', currentEditFile)
+                            .eq('user_id', user.id)
+                            .single();
 
-                    if (dbError) {
-                        console.warn('DB 저장 실패:', dbError);
+                        if (existingFile) {
+                            // 기존 파일이 있으면 이전 파일 삭제
+                            if (existingFile.file_path) {
+                                await supabase
+                                    .storage
+                                    .from('study_materials')
+                                    .remove([existingFile.file_path]);
+                            }
+
+                            // DB 업데이트
+                            const { error: updateError } = await supabase
+                                .from('study_materials')
+                                .update({
+                                    file_path: filePath,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', existingFile.id);
+
+                            if (updateError) {
+                                console.warn('파일 업데이트 실패:', updateError);
+                            } else {
+                                console.log('✅ Supabase 파일 업데이트됨:', fileName);
+                            }
+                        }
                     } else {
-                        console.log('✅ Supabase에 저장됨:', fileName);
+                        // create 모드: 새 파일 생성
+                        // DB에 저장 (study_materials 테이블)
+                        const { error: dbError } = await supabase
+                            .from('study_materials')
+                            .insert({
+                                id: fileId,
+                                user_id: user.id,
+                                title: fileName,
+                                file_path: filePath,
+                                created_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString()
+                            });
+
+                        if (dbError) {
+                            console.warn('DB 저장 실패:', dbError);
+                        } else {
+                            console.log('✅ Supabase에 저장됨:', fileName);
+                        }
                     }
                 }
 
