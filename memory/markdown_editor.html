@@ -2224,12 +2224,12 @@
                             // DB 업데이트 (id로 직접 업데이트)
                             const { error: updateError } = await supabase
                                 .from('study_materials')
-                                .eq('id', existingFileId)
                                 .update({
                                     title: fileName,
                                     file_path: filePath,
                                     updated_at: new Date().toISOString()
-                                });
+                                })
+                                .eq('id', existingFileId);
 
                             if (updateError) {
                                 console.warn('파일 업데이트 실패:', updateError);
