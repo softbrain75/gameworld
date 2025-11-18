@@ -1325,9 +1325,8 @@
             position: fixed;
             bottom: 24px;
             right: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
+            padding: 14px 28px;
+            border-radius: 50px;
             background: var(--success);
             color: white;
             border: none;
@@ -1335,11 +1334,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 16px;
             font-weight: 700;
             box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
             transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
             z-index: 1000;
+            white-space: nowrap;
         }
 
         .submit-btn:hover {
@@ -1820,7 +1820,7 @@
             </section>
 
             <!-- FAB Submit Button -->
-            <button class="submit-btn" id="submit-btn">✓</button>
+            <button class="submit-btn" id="submit-btn">제출</button>
 
             <!-- Create/Edit Mode -->
             <section id="editor-section">
