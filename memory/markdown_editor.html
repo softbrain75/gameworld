@@ -108,20 +108,20 @@
         .side-menu {
             position: fixed;
             top: 0;
-            right: -320px;
+            left: -320px;
             width: 320px;
             height: 100vh;
             background: var(--surface);
-            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
             z-index: 1000;
-            transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             display: flex;
             flex-direction: column;
             padding-top: 16px;
         }
 
         .side-menu.open {
-            right: 0;
+            left: 0;
         }
 
         .menu-close-btn {
