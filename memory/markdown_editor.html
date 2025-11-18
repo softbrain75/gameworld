@@ -3251,7 +3251,15 @@
 
         // Update UI
         function updateUI() {
+            console.log('🎮 updateUI 호출됨 - 시작');
             const testDisplay = document.getElementById('test-display');
+            console.log('testDisplay 요소:', testDisplay);
+
+            if (!testDisplay) {
+                console.error('❌ test-display 요소를 찾을 수 없습니다!');
+                return;
+            }
+
             testDisplay.innerHTML = '';
 
             console.log('🎮 updateUI 호출됨');
