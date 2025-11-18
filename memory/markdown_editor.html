@@ -2200,12 +2200,13 @@
                 } else {
                     console.log('✅ Storage에 파일 업로드됨:', filePath);
 
-                    // edit 모드인 경우: 기존 파일 업데이트
+                    // edit 모드인 경우: 기존 파일 업데이트 또는 파일명 변경 후 새 파일 생성
                     if (currentMode === 'edit') {
                         // editor-file-id에서 파일 ID 가져오기
                         const existingFileId = document.getElementById('editor-file-id').textContent;
 
                         if (existingFileId) {
+                            // 기존 파일이 있는 경우: 업데이트
                             // 기존 파일 정보 조회 (이전 file_path 가져오기)
                             const { data: existingFile } = await supabase
                                 .from('study_materials')
@@ -2235,6 +2236,27 @@
                                 console.warn('파일 업데이트 실패:', updateError);
                             } else {
                                 console.log('✅ Supabase 파일 업데이트됨:', fileName);
+                                // 마이 파일 목록 다시 로드
+                                await loadMyFiles();
+                            }
+                        } else {
+                            // editor-file-id가 없는 경우: 파일명 변경 후 새 파일로 생성
+                            console.log('📝 파일명 변경 후 새 파일 생성:', fileName);
+                            const { error: dbError } = await supabase
+                                .from('study_materials')
+                                .insert({
+                                    id: fileId,
+                                    user_id: user.id,
+                                    title: fileName,
+                                    file_path: filePath,
+                                    created_at: new Date().toISOString(),
+                                    updated_at: new Date().toISOString()
+                                });
+
+                            if (dbError) {
+                                console.warn('새 파일 생성 실패:', dbError);
+                            } else {
+                                console.log('✅ 새 파일이 생성됨:', fileName);
                                 // 마이 파일 목록 다시 로드
                                 await loadMyFiles();
                             }
