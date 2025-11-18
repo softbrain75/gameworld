@@ -1494,6 +1494,16 @@
             hamburgerBtn.addEventListener('click', toggleMenu);
             menuCloseBtn.addEventListener('click', closeMenu);
 
+            // Close menu when clicking on content area
+            const contentArea = document.querySelector('.content-area');
+            if (contentArea) {
+                contentArea.addEventListener('click', () => {
+                    if (sideMenu.classList.contains('open')) {
+                        closeMenu();
+                    }
+                });
+            }
+
             // Load saved game mode from localStorage
             const savedMode = localStorage.getItem('memory_game_mode') || 'random';
 
