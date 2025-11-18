@@ -1310,6 +1310,82 @@
             await loadHighFrequencyWords();
             await loadDataFileList();
             setupEventListeners();
+
+            // Check for autostart parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autostart') === 'true') {
+                await handleAutoStart();
+            }
+        }
+
+        // Auto-start game from menu selection
+        async function handleAutoStart() {
+            try {
+                const fileSource = localStorage.getItem('selected_file_source');
+                const savedMode = localStorage.getItem('memory_game_mode') || 'random';
+
+                // Set game mode from settings
+                gameMode = savedMode;
+
+                if (fileSource === 'supabase') {
+                    // Load from Supabase
+                    const fileId = localStorage.getItem('selected_file_id');
+                    const fileName = localStorage.getItem('selected_file_name');
+
+                    if (!fileId) {
+                        alert('파일 정보를 찾을 수 없습니다.');
+                        return;
+                    }
+
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        alert('로그인이 필요합니다.');
+                        return;
+                    }
+
+                    const { data, error } = await supabase
+                        .from('study_materials')
+                        .select('content')
+                        .eq('id', fileId)
+                        .eq('user_id', user.id)
+                        .single();
+
+                    if (error || !data) {
+                        alert('파일을 로드할 수 없습니다.');
+                        return;
+                    }
+
+                    parseLyrics(data.content);
+                    console.log('✅ Supabase 파일 로드 완료:', fileName);
+
+                } else if (fileSource === 'local') {
+                    // Load from localStorage
+                    const localFile = localStorage.getItem('selected_local_file');
+
+                    if (!localFile) {
+                        alert('파일 정보를 찾을 수 없습니다.');
+                        return;
+                    }
+
+                    const fileData = JSON.parse(localFile);
+                    parseLyrics(fileData.content);
+                    console.log('✅ 로컬 파일 로드 완료:', fileData.name);
+                }
+
+                // Clear localStorage flags
+                localStorage.removeItem('selected_file_source');
+                localStorage.removeItem('selected_file_id');
+                localStorage.removeItem('selected_file_name');
+                localStorage.removeItem('selected_local_file');
+
+                // Start game immediately
+                if (lyrics.length > 0) {
+                    startGame(false);
+                }
+            } catch (error) {
+                console.error('자동 시작 오류:', error);
+                alert('파일을 로드하는 중 오류가 발생했습니다.');
+            }
         }
 
         // 고빈도 단어 리스트 로드
