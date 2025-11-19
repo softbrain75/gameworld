@@ -1,40 +1,20 @@
 [
   {
     "name": {
-      "ko": "애국가 기억하기",
-      "en": "Remember National Anthem",
-      "zh-CN": "记住国歌",
-      "es": "Recordar Himno Nacional",
-      "pt": "Lembrar Hino Nacional"
+      "ko": "Memories",
+      "en": "Memories",
+      "zh-CN": "Memories",
+      "es": "Memories",
+      "pt": "Memories"
     },
     "url": "memory/Memory.html",
-    "icon": "🇰🇷",
+    "icon": "📝",
     "description": {
-      "ko": "애국가 가사를 완성하는 스터디 게임! 무작위 모드와 Bold 퀴즈 모드로 재미있게 암기하세요.",
-      "en": "Study game to complete the national anthem lyrics! Learn by playing in random mode and bold quiz mode.",
-      "zh-CN": "完成国歌歌词的学习游戏！使用随机模式和粗体测验模式轻松记忆。",
-      "es": "¡Juego de estudio para completar la letra del himno nacional! Memoriza fácilmente jugando en modo aleatorio y modo de prueba en negrita.",
-      "pt": "Jogo de estudo para completar a letra do hino nacional! Aprenda facilmente jogando no modo aleatório e modo de quiz em negrito."
-    },
-    "category": "learning",
-    "releaseDate": "2025-11-16"
-  },
-  {
-    "name": {
-      "ko": "Markdown Bold 에디터",
-      "en": "Markdown Bold Editor",
-      "zh-CN": "Markdown 加粗编辑器",
-      "es": "Editor Markdown Negrita",
-      "pt": "Editor Markdown Negrita"
-    },
-    "url": "memory/markdown_editor.html",
-    "icon": "✏️",
-    "description": {
-      "ko": "Ctrl+B로 Bold 마크다운을 쉽게 작성! 학습 자료를 만들고 저장하세요.",
-      "en": "Easily write bold markdown with Ctrl+B! Create and save your study materials.",
-      "zh-CN": "使用Ctrl+B轻松编写粗体Markdown！创建并保存您的学习材料。",
-      "es": "¡Escribe fácilmente markdown en negrita con Ctrl+B! ¡Crea y guarda tus materiales de estudio!",
-      "pt": "Escreva facilmente markdown em negrita com Ctrl+B! Crie e salve seus materiais de estudo."
+      "ko": "마크다운으로 학습 자료를 작성하고 공유하세요! TTV 모드로 중요한 단어만 집중 학습하고, 공유 링크로 친구들과 함께 테스트합니다.",
+      "en": "Create and share study materials with markdown! Focus on learning important words in TTV mode, and test with friends using shareable links.",
+      "zh-CN": "使用Markdown创建和共享学习材料！在TTV模式下专注学习重要单词，通过可共享链接与朋友一起测试。",
+      "es": "¡Crea y comparte materiales de estudio con markdown! Enfócate en aprender palabras importantes en modo TTV y prueba con amigos usando enlaces compartibles.",
+      "pt": "Crie e compartilhe materiais de estudo com markdown! Concentre-se em aprender palavras importantes no modo TTV e teste com amigos usando links compartilháveis."
     },
     "category": "learning",
     "releaseDate": "2025-11-16"
