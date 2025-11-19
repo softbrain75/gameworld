@@ -3413,6 +3413,7 @@
 
         // Hint tracking: { inputElementId: { revealedCount: 0 } }
         let hintProgress = {};
+        let lastSelectedInput = null; // 마지막으로 선택된 입력필드 추적
 
         // Difficulty settings
         const difficultySettings = {
@@ -4050,6 +4051,16 @@
                     }
                 });
             });
+
+            // 모든 입력필드에 focus 이벤트 리스너 추가
+            // (마지막 선택된 입력필드 추적 - Hint 버튼 클릭 시 사용)
+            const allInputs = document.querySelectorAll('.word-input');
+            allInputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    lastSelectedInput = this; // 선택된 입력필드 저장
+                    console.log('📝 입력필드 선택됨:', this.dataset.index);
+                });
+            });
         }
 
         // Update score display
@@ -4338,18 +4349,11 @@
 
         // Hint function - reveal characters one by one
         function showHint() {
-            // 현재 선택된 input 찾기
-            const inputs = document.querySelectorAll('.word-input');
-            let selectedInput = null;
+            // 마지막으로 선택된 입력필드 사용 (Hint 버튼 클릭 시 포커스 손실 대응)
+            const selectedInput = lastSelectedInput || document.activeElement;
 
-            for (let input of inputs) {
-                if (document.activeElement === input) {
-                    selectedInput = input;
-                    break;
-                }
-            }
-
-            if (!selectedInput) {
+            // 선택된 입력필드가 word-input인지 확인
+            if (!selectedInput || !selectedInput.classList.contains('word-input')) {
                 alert('먼저 정답을 입력할 필드를 선택해주세요');
                 return;
             }
@@ -4405,6 +4409,11 @@
             // 포인트 화면 업데이트
             const formattedPoints = (typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0).toLocaleString('ko-KR');
             document.getElementById('game-points').textContent = formattedPoints;
+
+            // 힌트 사용 후 입력필드로 포커스 복원
+            if (selectedInput) {
+                selectedInput.focus();
+            }
 
             console.log('💡 힌트 표시:', revealedWord, '(', nextRevealed, '/', correctWord.length, ')');
         }
