@@ -3241,6 +3241,8 @@
             });
 
             // Supabase 인증 상태 변경 감지
+            // onAuthStateChange는 페이지 로드 시 자동으로 호출되므로,
+            // 여기서만 loadMyFiles()를 호출하면 초기 로드와 상태 변경 시 한 번에 처리됨
             if (typeof supabase !== 'undefined') {
                 supabase.auth.onAuthStateChange((event, session) => {
                     console.log('Auth state changed:', event);
@@ -3250,7 +3252,6 @@
             }
 
             // Initialize menu data
-            loadMyFiles();
             loadLocalFiles();
             loadHighFrequencyWords();
         });
