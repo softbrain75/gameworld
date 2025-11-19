@@ -2915,15 +2915,13 @@
                         return;
                     }
 
-                    // 상위 10개 공개 파일 표시 (조회수 포함)
+                    // 상위 10개 공개 파일 표시 (조회수 포함, 한 줄에 표시)
                     publicFilesContainer.innerHTML = data.map((file, index) => `
-                        <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                        <div class="menu-file-item" style="width: 100%; justify-content: flex-start;">
                             <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
                                 <span class="material-icons" style="font-size: 18px; color: var(--primary);">${index + 1}</span>
-                                <div style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
-                                    <span class="file-name">${escapeHtml(file.title)}</span>
-                                    <span style="font-size: 11px; color: var(--text-secondary);">👁️ ${file.view_count || 0}</span>
-                                </div>
+                                <span class="file-name">${escapeHtml(file.title)}</span>
+                                <span style="margin-left: auto; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">👁️ ${file.view_count || 0}</span>
                             </div>
                         </div>
                     `).join('');
