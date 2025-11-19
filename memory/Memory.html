@@ -2732,16 +2732,15 @@
                         return;
                     }
 
-                    // Get current user
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (!user) {
-                        alert('로그인이 필요합니다.');
+                    // Download file from Storage
+                    // 공유 파일의 경우 file_path를 직접 사용
+                    const storagePath = fileData.file_path;
+
+                    if (!storagePath) {
+                        alert('파일 경로가 없습니다.');
                         loadingOverlay.classList.remove('active');
                         return;
                     }
-
-                    // Download file from Storage
-                    const storagePath = fileData.file_path || `${user.id}/${fileName}.md`;
                     const { data: storageData, error: storageError } = await supabase
                         .storage
                         .from('study_materials')
