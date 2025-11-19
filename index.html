@@ -4070,6 +4070,8 @@
             // 리다이렉트 파라미터 확인 (Memory.html에서 로그인하러 온 경우)
             const params = new URLSearchParams(window.location.search);
             const redirectUrl = params.get('redirect');
+            const tabParam = params.get('tab');
+
             if (redirectUrl) {
                 // 리다이렉트 URL을 전역 변수에 저장
                 redirectUrlAfterLogin = redirectUrl;
@@ -4077,6 +4079,13 @@
                 if (!currentUser) {
                     // 로그인이 필요한 경우 모달 자동 열기
                     openLoginModal();
+
+                    // tab 파라미터가 있으면 해당 탭으로 전환
+                    if (tabParam === 'signup') {
+                        switchAuthTab('signup', null);
+                    } else if (tabParam === 'reset') {
+                        switchAuthTab('reset', null);
+                    }
                 }
                 // URL에서 리다이렉트 파라미터 제거 (뒤로가기 시 반복 방지)
                 window.history.replaceState({}, document.title, window.location.pathname);
