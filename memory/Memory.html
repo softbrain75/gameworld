@@ -2203,6 +2203,11 @@
                 } else {
                     console.log('✅ Storage에 파일 업로드됨:', filePath);
 
+                    // 로컬 캐시에 저장 (Supabase와 동기화)
+                    const cacheKey = `file_cache_${fileId}`;
+                    localStorage.setItem(cacheKey, content);
+                    console.log('💾 localStorage 캐시에 저장됨:', cacheKey);
+
                     // DB 저장/업데이트
                     if (currentMode === 'edit' && existingFileId) {
                         const isFileNameChanged = fileName !== previousFileName;
