@@ -1924,6 +1924,16 @@
                         </div>
                     </div>
 
+                    <div style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; background: var(--surface-dim); border-radius: 8px; margin-bottom: 12px;">
+                        <input type="checkbox" id="file-public-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label for="file-public-checkbox" style="cursor: pointer; font-size: 14px; color: var(--text-primary); flex: 1; margin: 0;">
+                            공개 설정
+                        </label>
+                        <span style="font-size: 12px; color: var(--text-secondary);">
+                            체크하면 다른 사용자도 이 파일을 볼 수 있습니다
+                        </span>
+                    </div>
+
                     <div class="editor-actions">
                         <button class="btn-back" id="delete-btn">삭제</button>
                         <button class="btn-save" id="save-btn">저장</button>
@@ -1939,6 +1949,7 @@
         let currentEditFile = null;
         let currentGameFileId = null; // 게임 중인 파일의 Supabase ID
         let currentGameFileName = null; // 게임 중인 파일의 이름
+        let currentEditFileData = null; // 편집 중인 파일의 전체 데이터 (공개 여부 등)
         let files = [];
 
         // DOM Elements
@@ -2015,11 +2026,17 @@
                 // List mode - file lists are loaded from side menu
             } else if (mode === 'create') {
                 currentEditFile = null;
+                currentEditFileData = null;
                 editor.value = '';
                 fileNameInput.value = '';
                 fileNameInput.disabled = false;
                 // create 모드에서는 id 표시 안함
                 document.getElementById('editor-file-id').textContent = '';
+                // 공개 여부 체크박스 리셋
+                const publicCheckbox = document.getElementById('file-public-checkbox');
+                if (publicCheckbox) {
+                    publicCheckbox.checked = false;
+                }
                 updatePreview();
             } else if (mode === 'edit' && fileName) {
                 currentEditFile = fileName;
@@ -2313,11 +2330,15 @@
                                 await loadMyFiles();
                             }
                         } else {
-                            // 기존 파일 업데이트
+                            // 기존 파일 업데이트 (공개 여부 포함)
+                            const publicCheckbox = document.getElementById('file-public-checkbox');
+                            const isPublic = publicCheckbox ? publicCheckbox.checked : false;
+
                             const { error: updateError } = await supabase
                                 .from('study_materials')
                                 .update({
                                     title: fileName,
+                                    is_public: isPublic,
                                     updated_at: new Date().toISOString()
                                 })
                                 .eq('id', existingFileId);
@@ -2325,9 +2346,11 @@
                             if (updateError) {
                                 console.warn('파일 정보 업데이트 실패:', updateError);
                             } else {
-                                console.log('✅ 파일 수정 완료:', fileName);
+                                console.log('✅ 파일 수정 완료:', fileName, '(공개:', isPublic + ')');
                                 previousFileName = fileName;
                                 await loadMyFiles();
+                                // 공개 파일 목록도 업데이트
+                                loadPublicFiles();
                             }
                         }
                     } else {
@@ -2452,8 +2475,10 @@
                         // 로컬 캐시도 삭제
                         const cacheKey = `file_cache_${fileId}`;
                         localStorage.removeItem(cacheKey);
-                        // 페이지 새로고침으로 파일 목록 업데이트
-                        location.reload();
+                        // 파일 목록 업데이트 (새로고침 대신 함수 호출)
+                        await loadMyFiles();
+                        loadPublicFiles();
+                        switchMode('list');
                     }
                 }
             } catch (error) {
@@ -2615,6 +2640,9 @@
                         } else {
                             localFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">저장된 파일이 없습니다</div>';
                         }
+
+                        // 로그인하지 않은 경우 공개 파일도 로드
+                        loadPublicFiles();
                         return;
                     }
 
@@ -2629,40 +2657,78 @@
 
                     if (!data || data.length === 0) {
                         myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일이 없습니다</div>';
+                    } else {
+                        // Supabase 파일을 로컬 캐시에 저장
+                        data.forEach(file => {
+                            const cacheKey = `supabase_file_${file.id}`;
+                            const metaKey = `supabase_file_meta_${file.id}`;
+                            // 메타데이터만 저장 (실제 파일 내용은 playGame에서 저장)
+                            localStorage.setItem(metaKey, JSON.stringify({
+                                id: file.id,
+                                title: file.title,
+                                file_path: file.file_path,
+                                updated_at: file.updated_at
+                            }));
+                        });
+
+                        myFilesContainer.innerHTML = data.map(file => `
+                            <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                                    <span class="material-icons">description</span>
+                                    <span class="file-name">${escapeHtml(file.title)}</span>
+                                </div>
+                                <div class="file-actions" style="opacity: 1;">
+                                    <button class="file-action-btn" onclick="event.stopPropagation(); editFile('${file.id}')" title="편집">
+                                        <span class="material-icons">settings</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        console.log('✅ 마이 파일 로드 완료:', data.length + '개');
+                    }
+
+                    // 공개 파일도 로드
+                    loadPublicFiles();
+                } catch (error) {
+                    console.error('마이 파일 로드 실패:', error);
+                    myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일 로드 실패</div>';
+                }
+            };
+
+            // Load public files (is_public = true)
+            window.loadPublicFiles = async function() {
+                const publicFilesContainer = document.getElementById('public-files');
+                if (!publicFilesContainer) return;
+
+                try {
+                    const { data, error } = await supabase
+                        .from('study_materials')
+                        .select('*')
+                        .eq('is_public', true)
+                        .order('updated_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    if (!data || data.length === 0) {
+                        publicFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">공개된 파일이 없습니다</div>';
                         return;
                     }
 
-                    // Supabase 파일을 로컬 캐시에 저장
-                    data.forEach(file => {
-                        const cacheKey = `supabase_file_${file.id}`;
-                        const metaKey = `supabase_file_meta_${file.id}`;
-                        // 메타데이터만 저장 (실제 파일 내용은 playGame에서 저장)
-                        localStorage.setItem(metaKey, JSON.stringify({
-                            id: file.id,
-                            title: file.title,
-                            file_path: file.file_path,
-                            updated_at: file.updated_at
-                        }));
-                    });
-
-                    myFilesContainer.innerHTML = data.map(file => `
-                        <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                    // 공개 파일 표시 (설정 버튼 없음)
+                    publicFilesContainer.innerHTML = data.map(file => `
+                        <div class="menu-file-item" style="width: 100%; justify-content: flex-start;">
                             <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
                                 <span class="material-icons">description</span>
                                 <span class="file-name">${escapeHtml(file.title)}</span>
                             </div>
-                            <div class="file-actions" style="opacity: 1;">
-                                <button class="file-action-btn" onclick="event.stopPropagation(); editFile('${file.id}')" title="편집">
-                                    <span class="material-icons">settings</span>
-                                </button>
-                            </div>
                         </div>
                     `).join('');
 
-                    console.log('✅ 마이 파일 로드 완료:', data.length + '개');
+                    console.log('✅ 공개 파일 로드 완료:', data.length + '개');
                 } catch (error) {
-                    console.error('마이 파일 로드 실패:', error);
-                    myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일 로드 실패</div>';
+                    console.error('공개 파일 로드 실패:', error);
+                    publicFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일 로드 실패</div>';
                 }
             };
 
@@ -2821,6 +2887,9 @@
                         return;
                     }
 
+                    // 현재 편집 파일 데이터 저장 (공개 여부 포함)
+                    currentEditFileData = fileData;
+
                     // Storage에서 파일 내용 다운로드
                     const { data: storageData, error: storageError } = await supabase
                         .storage
@@ -2845,6 +2914,13 @@
                     document.getElementById('editor-file-id').textContent = fileId;
                     // Track original filename for change detection
                     previousFileName = fileData.title;
+
+                    // 공개 여부 체크박스 업데이트
+                    const publicCheckbox = document.getElementById('file-public-checkbox');
+                    if (publicCheckbox) {
+                        publicCheckbox.checked = fileData.is_public || false;
+                    }
+
                     switchMode('edit', fileData.title);
                 } catch (error) {
                     console.error('파일 로드 오류:', error);
@@ -4334,6 +4410,17 @@
             </div>
             <div class="menu-file-list" id="my-files">
                 <!-- 동적으로 Supabase 파일 추가됨 -->
+            </div>
+        </div>
+
+        <!-- 공개 파일 섹션 -->
+        <div class="menu-section">
+            <div class="menu-section-header">
+                <span class="material-icons">public</span>
+                <span>공개 파일</span>
+            </div>
+            <div class="menu-file-list" id="public-files">
+                <!-- 동적으로 공개 파일 추가됨 -->
             </div>
         </div>
         </div>
