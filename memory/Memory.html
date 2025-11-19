@@ -1391,7 +1391,7 @@
         .confetti {
             position: fixed;
             pointer-events: none;
-            animation: confetti-burst 1.5s ease-out forwards;
+            animation: confetti-burst 5s ease-out forwards;
         }
 
         /* 포인트 플로팅 애니메이션 */
@@ -1412,7 +1412,7 @@
             font-size: 24px;
             color: var(--success);
             pointer-events: none;
-            animation: points-float 1.5s ease-out forwards;
+            animation: points-float 5s ease-out forwards;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             z-index: 10000;
         }
@@ -4209,7 +4209,7 @@
                     document.body.appendChild(confetti);
 
                     // 애니메이션 후 제거
-                    setTimeout(() => confetti.remove(), 1500);
+                    setTimeout(() => confetti.remove(), 5000);
                 }, i * 30);
             }
 
@@ -4223,7 +4223,7 @@
             document.body.appendChild(pointsPopup);
 
             // 애니메이션 후 제거
-            setTimeout(() => pointsPopup.remove(), 1500);
+            setTimeout(() => pointsPopup.remove(), 5000);
         }
 
         // End game
