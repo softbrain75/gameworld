@@ -4328,21 +4328,24 @@
             const incorrectCount = blanks.filter(b => !correctAnswers.includes(b)).length;
             let bonusPoints = 0;
 
-            // 총 포인트 가져오기
-            let totalPoints = 0;
-            if (typeof getCurrentPoints === 'function') {
-                totalPoints = getCurrentPoints();
-            } else {
-                totalPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
+            // 총 포인트 업데이트 함수
+            function updateTotalPointsDisplay() {
+                let totalPoints = 0;
+                if (typeof getCurrentPoints === 'function') {
+                    totalPoints = getCurrentPoints();
+                } else {
+                    totalPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
+                }
+                document.getElementById('total-points-value').textContent = totalPoints.toLocaleString('ko-KR');
+                console.log('📊 총 포인트 표시:', totalPoints);
             }
-
-            // 총 포인트 표시
-            document.getElementById('total-points-value').textContent = totalPoints.toLocaleString('ko-KR');
 
             if (incorrectCount > 0) {
                 document.getElementById('wrong-retry-btn').style.display = 'inline-block';
                 // 부분 정답일 때는 포인트 표시 안 함
                 document.getElementById('final-points').style.display = 'none';
+                // 부분 정답일 때도 총 포인트 표시
+                updateTotalPointsDisplay();
             } else {
                 document.getElementById('wrong-retry-btn').style.display = 'none';
 
@@ -4362,25 +4365,19 @@
                     // 로그인 사용자: Supabase에서 포인트 추가
                     addPoints(bonusPoints);
                     console.log('✅ 보너스 포인트 추가 (Supabase):', bonusPoints);
+                    // Supabase 비동기 작업 완료 후 업데이트
+                    setTimeout(() => {
+                        updateTotalPointsDisplay();
+                    }, 300); // Supabase 업데이트 완료를 기다림
                 } else if (!window.currentUser) {
                     // 비로그인 사용자: localStorage에서 추가
                     const currentPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
                     const newPoints = currentPoints + bonusPoints;
                     localStorage.setItem('guest_total_points', newPoints.toString());
                     console.log('✅ 보너스 포인트 추가 (게스트):', bonusPoints);
+                    // localStorage는 동기 작업이므로 즉시 업데이트
+                    updateTotalPointsDisplay();
                 }
-
-                // 포인트 추가 후 총 포인트 업데이트
-                setTimeout(() => {
-                    let updatedTotalPoints = 0;
-                    if (typeof getCurrentPoints === 'function') {
-                        updatedTotalPoints = getCurrentPoints();
-                    } else {
-                        updatedTotalPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
-                    }
-                    document.getElementById('total-points-value').textContent = updatedTotalPoints.toLocaleString('ko-KR');
-                    console.log('📊 업데이트된 총 포인트:', updatedTotalPoints);
-                }, 100); // Supabase 업데이트 완료를 기다림
             }
 
             // Display original text with highlights
