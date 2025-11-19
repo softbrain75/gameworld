@@ -4398,26 +4398,57 @@
 
             const dataIndex = selectedInput.dataset.index;
             const correctWord = lyrics[dataIndex];
+            const userInput = selectedInput.value.trim();
 
             // 힌트 진행상황 초기화
             if (!hintProgress[dataIndex]) {
                 hintProgress[dataIndex] = { revealedCount: 0 };
             }
 
-            const revealed = hintProgress[dataIndex].revealedCount;
-
-            // 모든 글자를 다 보여줬으면 중단
-            if (revealed >= correctWord.length) {
-                alert('이미 모든 글자를 보여주었습니다');
-                return;
+            // 사용자 입력에서 첫 번째 틀린 위치 찾기
+            let firstWrongPosition = userInput.length; // 기본값: 사용자가 입력한 길이
+            for (let i = 0; i < Math.min(userInput.length, correctWord.length); i++) {
+                if (userInput[i] !== correctWord[i]) {
+                    firstWrongPosition = i;
+                    break;
+                }
             }
 
-            // 다음 글자 공개
-            hintProgress[dataIndex].revealedCount++;
-            const nextRevealed = hintProgress[dataIndex].revealedCount;
+            // 현재 공개된 글자 수
+            const currentRevealed = hintProgress[dataIndex].revealedCount;
+
+            // 공개할 글자 수 결정
+            let nextRevealed;
+            if (currentRevealed < firstWrongPosition) {
+                // 아직 맞는 부분을 다 공개하지 않았으면 맞는 부분까지 공개
+                nextRevealed = firstWrongPosition + 1;
+            } else if (currentRevealed === correctWord.length) {
+                // 모든 글자를 다 보여줬으면 중단
+                alert('이미 모든 글자를 보여주었습니다');
+                return;
+            } else {
+                // 그 다음 글자 공개
+                nextRevealed = currentRevealed + 1;
+            }
+
+            // 최대값 제한
+            if (nextRevealed > correctWord.length) {
+                nextRevealed = correctWord.length;
+            }
+
+            hintProgress[dataIndex].revealedCount = nextRevealed;
 
             // 부분 공개된 단어만 표시 (뒤의 빈칸은 "_"로 표시 안함)
             const revealedWord = correctWord.substring(0, nextRevealed);
+
+            console.log('💡 힌트 정보:', {
+                userInput: userInput,
+                correctWord: correctWord,
+                firstWrongPosition: firstWrongPosition,
+                currentRevealed: currentRevealed,
+                nextRevealed: nextRevealed,
+                revealedWord: revealedWord
+            });
 
             selectedInput.value = revealedWord;
             selectedInput.placeholder = revealedWord;
