@@ -4369,6 +4369,18 @@
                     localStorage.setItem('guest_total_points', newPoints.toString());
                     console.log('✅ 보너스 포인트 추가 (게스트):', bonusPoints);
                 }
+
+                // 포인트 추가 후 총 포인트 업데이트
+                setTimeout(() => {
+                    let updatedTotalPoints = 0;
+                    if (typeof getCurrentPoints === 'function') {
+                        updatedTotalPoints = getCurrentPoints();
+                    } else {
+                        updatedTotalPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
+                    }
+                    document.getElementById('total-points-value').textContent = updatedTotalPoints.toLocaleString('ko-KR');
+                    console.log('📊 업데이트된 총 포인트:', updatedTotalPoints);
+                }, 100); // Supabase 업데이트 완료를 기다림
             }
 
             // Display original text with highlights
