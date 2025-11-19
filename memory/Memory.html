@@ -4612,10 +4612,9 @@
                     lineDiv.style.marginBottom = '8px';
                     lineDiv.style.lineHeight = '2';
                     lineDiv.style.width = '100%';
-                    lineDiv.style.display = 'flex';
-                    lineDiv.style.flexWrap = 'wrap';
-                    lineDiv.style.alignItems = 'center';
+                    lineDiv.style.display = 'block';
                     lineDiv.style.wordSpacing = '0.3em';
+                    lineDiv.style.textAlign = 'left';
 
                     let remaining = line;
                     while (remaining.length > 0) {
@@ -4627,6 +4626,7 @@
                             if (word && wordIndex < lyrics.length) {
                                 const wordSpan = document.createElement('span');
                                 wordSpan.textContent = word;
+                                wordSpan.style.display = 'inline';
 
                                 // blanks에 포함된 단어인지 확인
                                 if (blanks.includes(wordIndex)) {
@@ -4655,6 +4655,7 @@
                                 if (/\S/.test(word)) {
                                     const wordSpan = document.createElement('span');
                                     wordSpan.textContent = word;
+                                    wordSpan.style.display = 'inline';
 
                                     // blanks에 포함된 단어인지 확인
                                     if (blanks.includes(wordIndex)) {
