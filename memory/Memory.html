@@ -1559,6 +1559,31 @@
             text-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
         }
 
+        .total-points-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: rgba(82, 196, 26, 0.1);
+            border-radius: 12px;
+            border: 2px solid var(--success);
+        }
+
+        .total-points-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .total-points-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--success);
+            text-shadow: 0 2px 6px rgba(82, 196, 26, 0.3);
+        }
+
         .button-group {
             display: flex;
             flex-direction: row;
@@ -1990,6 +2015,11 @@
                             <div class="final-score-container">
                                 <div class="final-score" id="final-score">0점</div>
                                 <div class="final-points" id="final-points">+0 포인트</div>
+                            </div>
+
+                            <div class="total-points-container">
+                                <span class="total-points-label">총 포인트:</span>
+                                <span class="total-points-value" id="total-points-value">0</span>
                             </div>
 
                             <div class="button-group">
@@ -4297,6 +4327,17 @@
             // Show/hide wrong retry button (correctAnswers에 포함되지 않은 것이 있으면 표시)
             const incorrectCount = blanks.filter(b => !correctAnswers.includes(b)).length;
             let bonusPoints = 0;
+
+            // 총 포인트 가져오기
+            let totalPoints = 0;
+            if (typeof getCurrentPoints === 'function') {
+                totalPoints = getCurrentPoints();
+            } else {
+                totalPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
+            }
+
+            // 총 포인트 표시
+            document.getElementById('total-points-value').textContent = totalPoints.toLocaleString('ko-KR');
 
             if (incorrectCount > 0) {
                 document.getElementById('wrong-retry-btn').style.display = 'inline-block';
