@@ -1995,7 +1995,7 @@
                         <div class="title-header">
                             <h1 id="game-title">Memories</h1>
                             <div class="title-buttons">
-                                <button class="share-btn" id="import-btn" title="파일 가져오기" style="display: none;">
+                                <button class="share-btn" id="import-btn" title="파일 가져오기">
                                     <span class="material-icons">download</span>
                                 </button>
                                 <button class="share-btn" id="share-btn" title="파일 공유">
@@ -4678,12 +4678,17 @@
                 playingScreen.classList.add('active');
                 gameoverScreen.classList.remove('active');
                 gameControls.classList.add('active'); // Hint와 Submit 버튼 표시
-                importBtn.style.display = 'none'; // 게임 중에는 가져오기 버튼 숨김
+                // 로그인 사용자이고 파일이 있으면 가져오기 버튼 표시
+                if (window.currentUser && currentGameFileId) {
+                    importBtn.style.display = 'flex';
+                } else {
+                    importBtn.style.display = 'none';
+                }
             } else if (screenType === 'gameover') {
                 playingScreen.classList.remove('active');
                 gameoverScreen.classList.add('active');
                 gameControls.classList.remove('active'); // Hint와 Submit 버튼 숨김
-                // 게임 오버 시 로그인 사용자만 가져오기 버튼 표시
+                // 게임 오버 시에도 로그인 사용자만 가져오기 버튼 표시
                 if (window.currentUser && currentGameFileId) {
                     importBtn.style.display = 'flex';
                 } else {
