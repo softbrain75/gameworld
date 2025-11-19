@@ -1926,6 +1926,12 @@
             document.getElementById('editor-section').classList.toggle('active', mode === 'create' || mode === 'edit');
             document.getElementById('game-section').classList.toggle('active', mode === 'game');
 
+            // Submit button - only show during game playing
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.classList.toggle('active', mode === 'game');
+            }
+
             // Update game title
             const gameTitle = document.getElementById('game-title');
             if (mode === 'game' && fileName) {
