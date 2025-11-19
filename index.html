@@ -1619,7 +1619,7 @@
                     <p>애국가 가사를 완성하는 스터디 게임! 무작위 모드와 Bold 퀴즈 모드로 재미있게 암기하세요. 100점 만점 시스템!</p>
                     <span class="badge new">NEW</span>
                 </a>
-                <a href="memory/markdown_editor.html" class="game-card">
+                <a href="memory/Memory.html" class="game-card">
                     <h3><span class="game-icon">✏️</span> Markdown Bold 에디터</h3>
                     <p>Ctrl+B로 Bold 마크다운을 쉽게 작성! 학습 자료를 만들고 파일로 저장하세요. Material Design 3 적용!</p>
                     <span class="badge new">NEW</span>
@@ -3649,6 +3649,9 @@
         // 인증 관련 UI 함수
         // ============================================
 
+        // 리다이렉트 URL 저장 변수
+        let redirectUrlAfterLogin = null;
+
         // 로그인 모달 열기
         function openLoginModal() {
             document.getElementById('authModal').classList.add('active');
@@ -3714,6 +3717,14 @@
                 closeAuthModal();
                 updateUIAfterLogin();
                 updatePointsDisplay();
+
+                // 저장된 리다이렉트 URL 확인
+                if (redirectUrlAfterLogin) {
+                    // 300ms 지연 후 리다이렉트 (UI 업데이트 완료 대기)
+                    setTimeout(() => {
+                        window.location.href = redirectUrlAfterLogin;
+                    }, 300);
+                }
             } else {
                 errorDiv.textContent = result.error || '로그인에 실패했습니다.';
                 errorDiv.classList.add('active');
@@ -4060,6 +4071,21 @@
 
             // 세션 로드 후 포인트 표시 업데이트
             updatePointsDisplay();
+
+            // 리다이렉트 파라미터 확인 (Memory.html에서 로그인하러 온 경우)
+            const params = new URLSearchParams(window.location.search);
+            const redirectUrl = params.get('redirect');
+            if (redirectUrl) {
+                // 리다이렉트 URL을 전역 변수에 저장
+                redirectUrlAfterLogin = redirectUrl;
+
+                if (!currentUser) {
+                    // 로그인이 필요한 경우 모달 자동 열기
+                    openLoginModal();
+                }
+                // URL에서 리다이렉트 파라미터 제거 (뒤로가기 시 반복 방지)
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         });
 
         // Supabase 인증 상태 변경 리스너
