@@ -4408,9 +4408,29 @@
             const formattedPoints = (typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0).toLocaleString('ko-KR');
             document.getElementById('game-points').textContent = formattedPoints;
 
-            // 힌트 사용 후 입력필드로 포커스 복원
-            if (selectedInput) {
-                selectedInput.focus();
+            // 모든 글자를 다 공개했을 경우: 정답으로 표시 후 다음 필드로 이동
+            if (nextRevealed === correctWord.length) {
+                console.log('🎯 정답 완성! 다음 필드로 이동');
+
+                selectedInput.classList.add('correct'); // 정답 표시
+                selectedInput.classList.remove('wrong');
+                selectedInput.disabled = true; // 입력 불가능하게 설정
+
+                // 다음 필드로 이동
+                const currentOrder = parseInt(selectedInput.dataset.order);
+                const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
+                if (nextInput && !nextInput.disabled) {
+                    nextInput.focus();
+                    lastSelectedInput = nextInput; // 마지막 선택된 필드 업데이트
+                    console.log('➡️ 다음 필드로 이동:', currentOrder + 1);
+                } else if (!nextInput) {
+                    console.log('✅ 마지막 필드 완성!');
+                }
+            } else {
+                // 힌트 사용 후 입력필드로 포커스 복원
+                if (selectedInput) {
+                    selectedInput.focus();
+                }
             }
 
             console.log('💡 힌트 표시:', revealedWord, '(', nextRevealed, '/', correctWord.length, ')');
