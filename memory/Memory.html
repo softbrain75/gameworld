@@ -3234,10 +3234,10 @@
                 const slider = document.getElementById('difficulty-slider');
 
                 // Load the difficulty for the selected mode
-                // Default: Random 100%, TTV 50%
+                // Default: Random 100%, TTV 100%
                 const difficulty = selectedMode === 'random'
                     ? parseInt(localStorage.getItem('memory_random_difficulty') || '100')
-                    : parseInt(localStorage.getItem('memory_bold_difficulty') || '50');
+                    : parseInt(localStorage.getItem('memory_bold_difficulty') || '100');
 
                 slider.value = difficulty;
                 updateDifficultyDisplay();
@@ -3268,7 +3268,7 @@
             // Settings button
             document.getElementById('settings-btn').addEventListener('click', () => {
                 document.getElementById('settings-modal').classList.add('active');
-                // Load current settings (Default: TTV mode with 50% difficulty)
+                // Load current settings (Default: TTV mode with 100% difficulty)
                 const currentMode = localStorage.getItem('memory_game_mode') || 'bold';
                 document.querySelector(`input[name="game-mode"][value="${currentMode}"]`).checked = true;
 
