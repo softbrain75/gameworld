@@ -545,6 +545,55 @@
             color: var(--text-secondary);
         }
 
+        .difficulty-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+        }
+
+        .difficulty-btn {
+            flex: 1;
+            padding: 16px 12px;
+            border: 2px solid var(--outline-variant);
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: 'Noto Sans KR';
+        }
+
+        .difficulty-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .difficulty-btn.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .difficulty-label {
+            font-size: 18px;
+            font-weight: 700;
+            color: inherit;
+        }
+
+        .difficulty-desc {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .difficulty-btn.selected .difficulty-desc {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
         .modal-footer {
             padding: 16px 24px;
             border-top: 1px solid var(--outline-variant);
@@ -2874,15 +2923,48 @@
             // Settings button
             document.getElementById('settings-btn').addEventListener('click', () => {
                 document.getElementById('settings-modal').classList.add('active');
-                // Load current mode
+                // Load current settings
                 const currentMode = localStorage.getItem('memory_game_mode') || 'random';
+                const currentRandomDifficulty = localStorage.getItem('memory_random_difficulty') || '100';
+                const currentBoldDifficulty = localStorage.getItem('memory_bold_difficulty') || '100';
+
                 document.querySelector(`input[name="game-mode"][value="${currentMode}"]`).checked = true;
+
+                // Set selected difficulty buttons
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+
+                document.querySelector(`.difficulty-btn[data-difficulty="${currentRandomDifficulty}"][data-mode="random"]`).classList.add('selected');
+                document.querySelector(`.difficulty-btn[data-difficulty="${currentBoldDifficulty}"][data-mode="bold"]`).classList.add('selected');
+            });
+
+            // Difficulty button selection
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const mode = btn.dataset.mode;
+                    const difficulty = btn.dataset.difficulty;
+
+                    // Remove selected from other buttons with same mode
+                    document.querySelectorAll(`.difficulty-btn[data-mode="${mode}"]`).forEach(b => {
+                        b.classList.remove('selected');
+                    });
+
+                    // Add selected to clicked button
+                    btn.classList.add('selected');
+                });
             });
 
             // Save settings
             document.getElementById('save-settings-btn').addEventListener('click', () => {
                 const selectedMode = document.querySelector('input[name="game-mode"]:checked').value;
+                const randomDifficulty = document.querySelector('.difficulty-btn.selected[data-mode="random"]').dataset.difficulty;
+                const boldDifficulty = document.querySelector('.difficulty-btn.selected[data-mode="bold"]').dataset.difficulty;
+
                 localStorage.setItem('memory_game_mode', selectedMode);
+                localStorage.setItem('memory_random_difficulty', randomDifficulty);
+                localStorage.setItem('memory_bold_difficulty', boldDifficulty);
+
                 document.getElementById('settings-modal').classList.remove('active');
                 alert('설정이 저장되었습니다!');
             });
@@ -3200,13 +3282,23 @@
                 console.log('wrongOnly 실행 후 - blanks:', blanks);
                 hintCount = 3;
             } else if (gameMode === 'bold') {
-                blanks = boldWords.slice().sort((a, b) => a - b);
+                // TTV 모드: 난이도 설정 적용
+                const boldDifficulty = parseInt(localStorage.getItem('memory_bold_difficulty') || '100');
+                const numBlanks = Math.ceil(boldWords.length * (boldDifficulty / 100));
+
+                // 무작위로 선택
+                const shuffledBoldWords = boldWords.slice().sort(() => Math.random() - 0.5);
+                blanks = shuffledBoldWords.slice(0, numBlanks).sort((a, b) => a - b);
                 hintCount = 3;
+
+                console.log('🎯 TTV 모드:', { boldDifficulty, totalBoldWords: boldWords.length, numBlanks, blanks });
             } else {
+                // 무작위 모드: 난이도 설정 적용
                 blanks = [];
-                hintCount = difficultySettings[difficulty].hints;
-                const blankPercentage = difficultySettings[difficulty].percentage;
+                const randomDifficulty = parseInt(localStorage.getItem('memory_random_difficulty') || '100');
+                const blankPercentage = randomDifficulty / 100;
                 const numBlanks = Math.ceil(lyrics.length * blankPercentage);
+                hintCount = 3;
 
                 const lowFreqIndices = [];
                 const highFreqIndices = [];
@@ -3233,6 +3325,8 @@
                 }
 
                 blanks = Array.from(indices).sort((a, b) => a - b);
+
+                console.log('🎲 무작위 모드:', { randomDifficulty, blankPercentage, numBlanks, blanks });
             }
 
             totalBlanks = blanks.length;
@@ -4149,6 +4243,44 @@
                             <span>TTV 모드</span>
                             <p class="radio-description">굵게 표시된 단어만 출제</p>
                         </label>
+                    </div>
+                </div>
+
+                <!-- Difficulty Settings for Random Mode -->
+                <div class="setting-group">
+                    <label class="setting-label">무작위 모드 난이도</label>
+                    <div class="difficulty-buttons">
+                        <button class="difficulty-btn" data-difficulty="33" data-mode="random">
+                            <span class="difficulty-label">33%</span>
+                            <span class="difficulty-desc">쉬움</span>
+                        </button>
+                        <button class="difficulty-btn" data-difficulty="66" data-mode="random">
+                            <span class="difficulty-label">66%</span>
+                            <span class="difficulty-desc">보통</span>
+                        </button>
+                        <button class="difficulty-btn selected" data-difficulty="100" data-mode="random">
+                            <span class="difficulty-label">100%</span>
+                            <span class="difficulty-desc">어려움</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Difficulty Settings for TTV Mode -->
+                <div class="setting-group">
+                    <label class="setting-label">TTV 모드 난이도</label>
+                    <div class="difficulty-buttons">
+                        <button class="difficulty-btn" data-difficulty="33" data-mode="bold">
+                            <span class="difficulty-label">33%</span>
+                            <span class="difficulty-desc">쉬움</span>
+                        </button>
+                        <button class="difficulty-btn" data-difficulty="66" data-mode="bold">
+                            <span class="difficulty-label">66%</span>
+                            <span class="difficulty-desc">보통</span>
+                        </button>
+                        <button class="difficulty-btn selected" data-difficulty="100" data-mode="bold">
+                            <span class="difficulty-label">100%</span>
+                            <span class="difficulty-desc">어려움</span>
+                        </button>
                     </div>
                 </div>
             </div>
