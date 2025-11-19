@@ -1164,6 +1164,12 @@
             padding-bottom: 8px;
         }
 
+        .title-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
         .subtitle {
             text-align: center;
             font-size: 13px;
@@ -1988,9 +1994,14 @@
                     <div class="title">
                         <div class="title-header">
                             <h1 id="game-title">Memories</h1>
-                            <button class="share-btn" id="share-btn" title="파일 공유">
-                                <span class="material-icons">share</span>
-                            </button>
+                            <div class="title-buttons">
+                                <button class="share-btn" id="import-btn" title="파일 가져오기" style="display: none;">
+                                    <span class="material-icons">download</span>
+                                </button>
+                                <button class="share-btn" id="share-btn" title="파일 공유">
+                                    <span class="material-icons">share</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -3311,6 +3322,88 @@
                 }
             });
 
+            // 가져오기 버튼 이벤트 리스너
+            document.getElementById('import-btn').addEventListener('click', async () => {
+                console.log('📥 가져오기 버튼 클릭됨');
+                console.log('currentGameFileId:', currentGameFileId);
+                console.log('currentGameFileName:', currentGameFileName);
+
+                if (!currentGameFileId) {
+                    alert('가져올 파일이 없습니다.');
+                    return;
+                }
+
+                if (!window.currentUser) {
+                    alert('로그인이 필요합니다. 먼저 로그인해주세요.');
+                    return;
+                }
+
+                try {
+                    // 원본 파일 데이터 조회
+                    const { data: originalFile, error: fileError } = await supabase
+                        .from('study_materials')
+                        .select('*')
+                        .eq('id', currentGameFileId)
+                        .single();
+
+                    if (fileError || !originalFile) {
+                        throw new Error('파일 정보를 찾을 수 없습니다.');
+                    }
+
+                    // Storage에서 파일 내용 다운로드
+                    const { data: storageData, error: storageError } = await supabase
+                        .storage
+                        .from('study_materials')
+                        .download(originalFile.file_path);
+
+                    if (storageError) {
+                        throw new Error('파일 내용을 다운로드할 수 없습니다.');
+                    }
+
+                    const content = await storageData.text();
+
+                    // 새 파일 이름 생성 (원본 파일명에 "_복사본" 추가)
+                    const newFileName = `${originalFile.title}_복사본`;
+                    const timestamp = new Date().getTime();
+                    const newFilePath = `${window.currentUser.id}/${timestamp}_${newFileName}.md`;
+
+                    // 1. Storage에 파일 업로드
+                    const { error: uploadError } = await supabase
+                        .storage
+                        .from('study_materials')
+                        .upload(newFilePath, new Blob([content], { type: 'text/markdown' }));
+
+                    if (uploadError) {
+                        throw new Error('파일 업로드에 실패했습니다.');
+                    }
+
+                    // 2. Database에 메타데이터 저장
+                    const { error: dbError } = await supabase
+                        .from('study_materials')
+                        .insert([{
+                            user_id: window.currentUser.id,
+                            title: newFileName,
+                            file_path: newFilePath,
+                            is_public: false,
+                            is_shared: false,
+                            created_at: new Date().toISOString()
+                        }]);
+
+                    if (dbError) {
+                        throw new Error('파일 정보 저장에 실패했습니다.');
+                    }
+
+                    alert(`✅ 파일을 가져왔습니다!\n파일명: ${newFileName}`);
+                    console.log('📁 파일 가져오기 완료:', newFileName);
+
+                    // "마이 파일" 목록 새로고침
+                    loadMyFiles();
+                } catch (error) {
+                    console.error('가져오기 오류:', error);
+                    alert('파일 가져오기에 실패했습니다: ' + error.message);
+                }
+            });
+
             // Save settings
             document.getElementById('save-settings-btn').addEventListener('click', () => {
                 const selectedMode = document.querySelector('input[name="game-mode"]:checked').value;
@@ -4579,15 +4672,23 @@
             const playingScreen = document.querySelector('#game-section .playing-screen');
             const gameoverScreen = document.querySelector('#game-section .gameover-screen');
             const gameControls = document.getElementById('game-controls');
+            const importBtn = document.getElementById('import-btn');
 
             if (screenType === 'playing') {
                 playingScreen.classList.add('active');
                 gameoverScreen.classList.remove('active');
                 gameControls.classList.add('active'); // Hint와 Submit 버튼 표시
+                importBtn.style.display = 'none'; // 게임 중에는 가져오기 버튼 숨김
             } else if (screenType === 'gameover') {
                 playingScreen.classList.remove('active');
                 gameoverScreen.classList.add('active');
                 gameControls.classList.remove('active'); // Hint와 Submit 버튼 숨김
+                // 게임 오버 시 로그인 사용자만 가져오기 버튼 표시
+                if (window.currentUser && currentGameFileId) {
+                    importBtn.style.display = 'flex';
+                } else {
+                    importBtn.style.display = 'none';
+                }
             }
         }
 
