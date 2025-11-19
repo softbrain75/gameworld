@@ -1839,6 +1839,10 @@
                                     <div class="info-label">점수</div>
                                     <div class="info-value" id="score">0</div>
                                 </div>
+                                <div class="info-card">
+                                    <div class="info-label">포인트</div>
+                                    <div class="info-value" id="game-points">0</div>
+                                </div>
                             </div>
 
                             <div class="progress-bar">
@@ -3441,6 +3445,9 @@
             startTime = Date.now();
             currentBlankIndex = -1;
 
+            // 게임 시작 시 포인트 초기화
+            document.getElementById('game-points').textContent = '0';
+
             if (!lyrics || lyrics.length === 0) {
                 alert('가사 데이터가 로드되지 않았습니다.');
                 return;
@@ -3990,6 +3997,11 @@
             document.getElementById('correct-count').textContent = correctCount;
             document.getElementById('total-blanks').textContent = totalBlanks;
             document.getElementById('score').textContent = score;
+
+            // 포인트 계산 및 표시 (점수와 동일)
+            const gamePoints = Math.floor(score);
+            document.getElementById('game-points').textContent = gamePoints;
+
             const progress = totalBlanks > 0 ? (correctCount / totalBlanks) * 100 : 0;
             document.getElementById('progress-fill').style.width = progress + '%';
         }
