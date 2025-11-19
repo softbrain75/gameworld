@@ -3364,10 +3364,11 @@
 
                     // 새 파일 이름 생성 (원본 파일명에 "_복사본" 추가)
                     const newFileName = `${originalFile.title}_복사본`;
-                    const timestamp = new Date().getTime();
-                    // 파일명에서 특수문자 제거 및 경로 단순화
-                    const safeFileName = newFileName.replace(/[\/\\:*?"<>|]/g, '_');
-                    const newFilePath = `${timestamp}_${safeFileName}.md`;
+
+                    // Storage 경로 생성 (saveFile과 동일한 패턴: userID/UUID.md)
+                    const newFileId = crypto.randomUUID();
+                    const userId = window.currentUser.id.replace(/-/g, '');
+                    const newFilePath = `${userId}/${newFileId}.md`;
 
                     // 1. Storage에 파일 업로드
                     const { error: uploadError } = await supabase
@@ -3383,6 +3384,7 @@
                     const { error: dbError } = await supabase
                         .from('study_materials')
                         .insert([{
+                            id: newFileId,
                             user_id: window.currentUser.id,
                             title: newFileName,
                             file_path: newFilePath,
