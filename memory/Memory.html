@@ -41,7 +41,7 @@
 
         .container {
             width: 100%;
-            height: calc(var(--vh, 1vh) * 100);
+            height: 100dvh; /* 동적 viewport 높이 (iOS Safari 대응) */
             display: flex;
             flex-direction: column;
             padding: 6px 16px 16px 16px;
@@ -109,7 +109,7 @@
             top: 0;
             left: 0;
             width: 52px; /* 닫혔을 때 아이콘만 보이는 너비 */
-            height: 100vh;
+            height: 100dvh; /* 동적 viewport 높이 (iOS Safari 대응) */
             background: var(--surface);
             border-right: 1px solid var(--outline-variant);
             z-index: 1000;
@@ -1969,8 +1969,27 @@
             document.documentElement.style.setProperty('--vh', vh + 'px');
         }
 
+        // iOS 높이 문제 해결: 사이드메뉴와 컨테이너 높이를 동적으로 설정
+        function updateSidebarHeight() {
+            const sideMenu = document.getElementById('side-menu');
+            const container = document.querySelector('.container');
+
+            if (sideMenu) {
+                // 사이드메뉴는 실제 window 높이를 사용 (100vh 대신)
+                sideMenu.style.height = window.innerHeight + 'px';
+            }
+
+            if (container) {
+                // 컨테이너도 동일하게 처리
+                container.style.height = window.innerHeight + 'px';
+            }
+        }
+
         setVh();
+        updateSidebarHeight();
         window.addEventListener('resize', setVh);
+        window.addEventListener('resize', updateSidebarHeight);
+        window.addEventListener('orientationchange', updateSidebarHeight);
 
         // Mode switching
         function switchMode(mode, fileName = null) {
