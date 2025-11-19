@@ -2989,6 +2989,7 @@
                     // 1. 로컬 캐시에서 먼저 확인
                     const cacheKey = `file_cache_${fileId}`;
                     const cachedContent = localStorage.getItem(cacheKey);
+                    let fileDataForViewCount = null;
 
                     if (cachedContent) {
                         console.log('✅ 로컬 캐시에서 파일 로드:', fileName);
@@ -2999,6 +3000,31 @@
                         if (lyrics.length > 0) {
                             correctAnswers = []; // Reset correct answers
                             startGame(false);
+                        }
+
+                        // 캐시된 파일도 조회수 증가 처리 (메타데이터 조회)
+                        try {
+                            const { data: fileMetaData } = await supabase
+                                .from('study_materials')
+                                .select('is_public, view_count')
+                                .eq('id', fileId)
+                                .single();
+
+                            if (fileMetaData && fileMetaData.is_public) {
+                                const currentViews = (fileMetaData.view_count || 0) + 1;
+                                const { error: updateError } = await supabase
+                                    .from('study_materials')
+                                    .update({ view_count: currentViews })
+                                    .eq('id', fileId);
+
+                                if (updateError) {
+                                    console.log('조회수 업데이트 실패:', updateError);
+                                } else {
+                                    console.log('📊 조회수 증가 (캐시):', fileName, `(${currentViews}회)`);
+                                }
+                            }
+                        } catch (err) {
+                            console.log('캐시된 파일 조회수 업데이트 오류:', err);
                         }
                         return;
                     }
@@ -3057,12 +3083,16 @@
                     // 4. 공개 파일인 경우 조회수 증가 (비동기로 처리)
                     if (fileData.is_public) {
                         const currentViews = (fileData.view_count || 0) + 1;
-                        await supabase
+                        const { error: updateError } = await supabase
                             .from('study_materials')
                             .update({ view_count: currentViews })
-                            .eq('id', fileId)
-                            .catch(err => console.log('조회수 업데이트 실패:', err));
-                        console.log('📊 조회수 증가:', fileName, `(${currentViews}회)`);
+                            .eq('id', fileId);
+
+                        if (updateError) {
+                            console.log('조회수 업데이트 실패:', updateError);
+                        } else {
+                            console.log('📊 조회수 증가:', fileName, `(${currentViews}회)`);
+                        }
                     }
 
                     parseLyrics(content);
