@@ -1376,25 +1376,31 @@
             75% { transform: translateX(4px); }
         }
 
-        /* 폭죽 애니메이션 - 종이처럼 떨어지는 효과 */
-        @keyframes confetti-fall {
+        /* 생일 파티 폭죽 애니메이션 */
+        @keyframes birthday-burst {
             0% {
                 opacity: 1;
-                transform: translateY(0) translateX(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+                transform: translateY(0) translateX(0) scale(1) rotateZ(0deg);
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(var(--ty-burst)) translateX(var(--tx-burst)) scale(1) rotateZ(180deg);
             }
             50% {
-                transform: translateY(var(--ty)) translateX(var(--tx)) rotateX(180deg) rotateY(360deg) rotateZ(180deg);
+                opacity: 1;
+                transform: translateY(var(--ty)) translateX(var(--tx)) scale(0.8) rotateZ(360deg);
             }
             100% {
                 opacity: 0;
-                transform: translateY(calc(var(--ty) * 2)) translateX(var(--tx)) rotateX(360deg) rotateY(720deg) rotateZ(360deg);
+                transform: translateY(calc(var(--ty) * 2)) translateX(var(--tx)) scale(0) rotateZ(720deg);
             }
         }
 
         .confetti {
             position: fixed;
             pointer-events: none;
-            animation: confetti-fall 5s ease-in forwards;
+            animation: birthday-burst 5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
         }
 
         /* 포인트 플로팅 애니메이션 */
@@ -4194,23 +4200,43 @@
                     const confetti = document.createElement('div');
                     confetti.className = 'confetti';
 
-                    // 종이처럼 떨어지는 효과: 위로 퍼졌다가 아래로 떨어짐
+                    // 생일 파티 폭죽: 빠르게 터졌다가 천천히 떨어짐
                     const angle = (Math.PI * 2 * i) / 80;
-                    const spreadDistance = 200 + Math.random() * 150; // 옆으로 더 넓게 퍼지는 거리 (80 → 200)
-                    const upDistance = -500 - Math.random() * 200; // 더 높이 올라가는 거리 (음수) (-200 → -500)
-                    const downDistance = 600 + Math.random() * 200; // 아래로 떨어지는 거리 (양수)
+                    const burstDistance = 150 + Math.random() * 100; // 폭발 초기 거리
+                    const spreadDistance = 250 + Math.random() * 200; // 옆으로 퍼지는 거리
+                    const upDistance = -600 - Math.random() * 250; // 더 높이 올라가는 거리 (음수)
+                    const downDistance = 700 + Math.random() * 300; // 아래로 떨어지는 거리 (양수)
 
-                    const tx = Math.cos(angle) * spreadDistance; // 옆으로 퍼지는 거리
+                    const txBurst = Math.cos(angle) * burstDistance; // 초기 폭발 거리
+                    const tyBurst = Math.sin(angle) * burstDistance;
+                    const tx = Math.cos(angle) * spreadDistance; // 최종 옆 거리
                     const ty = downDistance + upDistance; // 최종적으로 아래로 떨어짐
 
+                    confetti.style.setProperty('--tx-burst', txBurst + 'px');
+                    confetti.style.setProperty('--ty-burst', tyBurst + 'px');
                     confetti.style.setProperty('--tx', tx + 'px');
                     confetti.style.setProperty('--ty', ty + 'px');
                     confetti.style.left = centerX + 'px';
                     confetti.style.top = centerY + 'px';
-                    confetti.style.width = '40px';
-                    confetti.style.height = '40px';
+                    // 다양한 모양의 폭죽 (동그라미, 별, 사각형)
+                    const shapeType = i % 3;
+                    const size = 30 + Math.random() * 20;
+
+                    confetti.style.width = size + 'px';
+                    confetti.style.height = size + 'px';
                     confetti.style.backgroundColor = colors[i % colors.length];
-                    confetti.style.borderRadius = '50%';
+
+                    if (shapeType === 0) {
+                        // 동그라미
+                        confetti.style.borderRadius = '50%';
+                    } else if (shapeType === 1) {
+                        // 사각형
+                        confetti.style.borderRadius = '8px';
+                    } else {
+                        // 별 모양 (회전된 사각형)
+                        confetti.style.borderRadius = '50%';
+                        confetti.style.clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
+                    }
 
                     document.body.appendChild(confetti);
 
