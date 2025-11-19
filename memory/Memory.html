@@ -2687,7 +2687,13 @@
 
             // Play game with Supabase file
             window.playGame = async function(fileId, fileName) {
+                console.log('🎮 playGame 호출됨 - fileId:', fileId, 'fileName:', fileName);
                 try {
+                    // 현재 게임 파일 정보 저장 (캐시 로드 전에 설정)
+                    currentGameFileId = fileId;
+                    currentGameFileName = fileName;
+                    console.log('💾 currentGameFileId 설정됨:', currentGameFileId);
+
                     // Get game mode from settings
                     const savedMode = localStorage.getItem('memory_game_mode') || 'random';
                     gameMode = savedMode;
@@ -2766,10 +2772,6 @@
 
                     // 로딩 숨기기
                     loadingOverlay.classList.remove('active');
-
-                    // 현재 게임 파일 정보 저장
-                    currentGameFileId = fileId;
-                    currentGameFileName = fileName;
 
                     // Switch to game mode and start game
                     switchMode('game', fileName);
@@ -2979,6 +2981,10 @@
 
             // Share button click event
             document.getElementById('share-btn').addEventListener('click', async () => {
+                console.log('📤 공유 버튼 클릭됨');
+                console.log('currentGameFileId:', currentGameFileId);
+                console.log('currentGameFileName:', currentGameFileName);
+
                 if (!currentGameFileId) {
                     alert('공유할 파일이 없습니다.');
                     return;
