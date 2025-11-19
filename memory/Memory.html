@@ -1229,7 +1229,7 @@
 
         .game-info {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 12px;
             margin-bottom: 16px;
             width: 100%;
@@ -3447,7 +3447,9 @@
 
             // 게임 시작 시 현재 사용자 포인트 표시 (supabaseClient.js의 getCurrentPoints 사용)
             const currentPoints = typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0;
-            document.getElementById('game-points').textContent = currentPoints;
+            // 천단위 쉼표 추가 포맷팅
+            const formattedPoints = currentPoints.toLocaleString('ko-KR');
+            document.getElementById('game-points').textContent = formattedPoints;
 
             if (!lyrics || lyrics.length === 0) {
                 alert('가사 데이터가 로드되지 않았습니다.');
