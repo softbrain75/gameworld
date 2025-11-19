@@ -3020,6 +3020,15 @@
                         return;
                     }
 
+                    // 파일 권한 디버깅 정보
+                    console.log('📋 파일 메타데이터:', {
+                        id: fileData.id,
+                        title: fileData.title,
+                        is_public: fileData.is_public,
+                        is_shared: fileData.is_shared,
+                        file_path: fileData.file_path
+                    });
+
                     // Download file from Storage
                     // 공유 파일의 경우 file_path를 직접 사용
                     const storagePath = fileData.file_path;
@@ -3035,11 +3044,17 @@
                         .download(storagePath);
 
                     if (storageError) {
-                        console.error('Storage 다운로드 오류:', storageError);
+                        console.error('❌ Storage 다운로드 오류:', {
+                            fileName: fileName,
+                            is_shared: fileData.is_shared,
+                            error: storageError
+                        });
                         alert('파일을 다운로드할 수 없습니다.');
                         loadingOverlay.classList.remove('active');
                         return;
                     }
+
+                    console.log('✅ Storage 다운로드 성공:', fileName);
 
                     const content = await storageData.text();
 
