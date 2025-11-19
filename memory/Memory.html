@@ -1418,6 +1418,42 @@
             transform: none;
         }
 
+        /* Hint Button */
+        .hint-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border-radius: 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(103, 80, 164, 0.3);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .hint-btn:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(103, 80, 164, 0.4);
+            transform: scale(1.05);
+        }
+
+        .hint-btn:active {
+            transform: scale(0.95);
+        }
+
+        .hint-btn:disabled {
+            background: var(--outline);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+            opacity: 0.6;
+        }
+
         /* Game Over Screen */
         .gameover-content {
             text-align: center;
@@ -1877,6 +1913,14 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Hint Button and FAB Submit Button -->
+            <div style="display: flex; gap: 12px; justify-content: flex-end; align-items: center; margin-bottom: 16px;">
+                <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트)">
+                    <span class="material-icons" style="font-size: 20px;">lightbulb</span>
+                    <span style="margin-left: 4px;">Hint</span>
+                </button>
+            </div>
 
             <!-- FAB Submit Button -->
             <button class="submit-btn" id="submit-btn">제출</button>
@@ -3357,6 +3401,9 @@
         let startTime = 0;
         let highFrequencyWords = new Set();
 
+        // Hint tracking: { inputElementId: { revealedCount: 0 } }
+        let hintProgress = {};
+
         // Difficulty settings
         const difficultySettings = {
             easy: { percentage: 0.3, hints: 5 },
@@ -4061,6 +4108,23 @@
                 document.getElementById('wrong-retry-btn').style.display = 'inline-block';
             } else {
                 document.getElementById('wrong-retry-btn').style.display = 'none';
+
+                // 모든 문제를 다 맞은 경우: 보너스 포인트 추가
+                // 보너스 = 맞은 개수 * 100
+                const bonusPoints = correctAnswers.length * 100;
+                console.log('🎉 완벽한 정답! 보너스 포인트:', bonusPoints);
+
+                if (typeof addPoints === 'function' && window.currentUser) {
+                    // 로그인 사용자: Supabase에서 포인트 추가
+                    addPoints(bonusPoints);
+                    console.log('✅ 보너스 포인트 추가 (Supabase):', bonusPoints);
+                } else if (!window.currentUser) {
+                    // 비로그인 사용자: localStorage에서 추가
+                    const currentPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
+                    const newPoints = currentPoints + bonusPoints;
+                    localStorage.setItem('guest_total_points', newPoints.toString());
+                    console.log('✅ 보너스 포인트 추가 (게스트):', bonusPoints);
+                }
             }
 
             // Display original text with highlights
@@ -4258,6 +4322,84 @@
                 playingScreen.classList.remove('active');
                 gameoverScreen.classList.add('active');
             }
+        }
+
+        // Hint button functionality
+        document.getElementById('hint-btn').addEventListener('click', function() {
+            showHint();
+        });
+
+        // Hint function - reveal characters one by one
+        function showHint() {
+            // 현재 선택된 input 찾기
+            const inputs = document.querySelectorAll('.word-input');
+            let selectedInput = null;
+
+            for (let input of inputs) {
+                if (document.activeElement === input) {
+                    selectedInput = input;
+                    break;
+                }
+            }
+
+            if (!selectedInput) {
+                alert('먼저 정답을 입력할 필드를 선택해주세요');
+                return;
+            }
+
+            // 현재 포인트 확인 (100 포인트 필요)
+            const currentPoints = typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0;
+            if (currentPoints < 100) {
+                alert('포인트가 부족합니다 (필요: 100포인트, 현재: ' + currentPoints.toLocaleString('ko-KR') + ')');
+                return;
+            }
+
+            const dataIndex = selectedInput.dataset.index;
+            const correctWord = lyrics[dataIndex];
+
+            // 힌트 진행상황 초기화
+            if (!hintProgress[dataIndex]) {
+                hintProgress[dataIndex] = { revealedCount: 0 };
+            }
+
+            const revealed = hintProgress[dataIndex].revealedCount;
+
+            // 모든 글자를 다 보여줬으면 중단
+            if (revealed >= correctWord.length) {
+                alert('이미 모든 글자를 보여주었습니다');
+                return;
+            }
+
+            // 다음 글자 공개
+            hintProgress[dataIndex].revealedCount++;
+            const nextRevealed = hintProgress[dataIndex].revealedCount;
+
+            // 부분 공개된 단어 생성
+            let revealedWord = correctWord.substring(0, nextRevealed);
+            for (let i = nextRevealed; i < correctWord.length; i++) {
+                revealedWord += '_';
+            }
+
+            selectedInput.value = revealedWord;
+            selectedInput.placeholder = revealedWord;
+
+            // 포인트 차감 (Supabase 사용자)
+            if (typeof addPoints === 'function' && window.currentUser) {
+                addPoints(-100); // 100 포인트 차감
+                console.log('💰 100 포인트 차감됨');
+            } else if (!window.currentUser) {
+                // 비로그인 사용자는 localStorage에서 차감
+                const currentPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
+                const newPoints = Math.max(0, currentPoints - 100);
+                localStorage.setItem('guest_total_points', newPoints.toString());
+                console.log('💰 100 포인트 차감됨 (게스트)');
+            }
+
+            // 포인트 화면 업데이트
+            const formattedPoints = (typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0).toLocaleString('ko-KR');
+            document.getElementById('game-points').textContent = formattedPoints;
+
+            console.log('💡 힌트 표시:', revealedWord, '(', nextRevealed, '/', correctWord.length, ')');
         }
 
         // Game button event listeners
