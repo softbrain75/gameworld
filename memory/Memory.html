@@ -1165,51 +1165,37 @@
         }
 
         /* Points Display */
-        .points-display {
+        .share-btn {
             display: flex;
             align-items: center;
-            gap: 4px;
-            background: rgba(103, 80, 164, 0.15);
-            padding: 4px 8px;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border: 2px solid var(--outline-variant);
             border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 13px;
-            white-space: nowrap;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--primary);
         }
 
-        .points-icon {
-            font-size: 16px;
+        .share-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(102, 51, 153, 0.2);
         }
 
-        .points-info {
-            display: none;
+        .share-btn:active {
+            transform: scale(0.95);
         }
 
-        .points-value {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .points-label {
-            display: none;
+        .share-btn .material-icons {
+            font-size: 24px;
+            color: var(--primary);
         }
 
         @media (min-width: 480px) {
-            .points-info {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .points-value {
-                font-size: 14px;
-                line-height: 1.2;
-            }
-
-            .points-label {
-                display: block;
-                font-size: 10px;
+            .share-btn {
                 opacity: 0.87;
                 line-height: 1;
             }
@@ -1834,13 +1820,9 @@
                     <div class="title">
                         <div class="title-header">
                             <h1 id="game-title">Memories</h1>
-                            <div class="points-display" id="pointsDisplay">
-                                <span class="points-icon">🏆</span>
-                                <span class="points-value" id="pointsValue">0</span>
-                                <div class="points-info">
-                                    <div class="points-label">포인트</div>
-                                </div>
-                            </div>
+                            <button class="share-btn" id="share-btn" title="파일 공유">
+                                <span class="material-icons">share</span>
+                            </button>
                         </div>
                     </div>
 
@@ -1955,6 +1937,8 @@
         // State
         let currentMode = 'list'; // 'list', 'create', 'edit'
         let currentEditFile = null;
+        let currentGameFileId = null; // 게임 중인 파일의 Supabase ID
+        let currentGameFileName = null; // 게임 중인 파일의 이름
         let files = [];
 
         // DOM Elements
@@ -2783,6 +2767,10 @@
                     // 로딩 숨기기
                     loadingOverlay.classList.remove('active');
 
+                    // 현재 게임 파일 정보 저장
+                    currentGameFileId = fileId;
+                    currentGameFileName = fileName;
+
                     // Switch to game mode and start game
                     switchMode('game', fileName);
                     if (lyrics.length > 0) {
@@ -2987,6 +2975,52 @@
 
                 // Update difficulty UI to show current mode's difficulty
                 updateDifficultyUI();
+            });
+
+            // Share button click event
+            document.getElementById('share-btn').addEventListener('click', async () => {
+                if (!currentGameFileId) {
+                    alert('공유할 파일이 없습니다.');
+                    return;
+                }
+
+                try {
+                    // UUID 생성 (앞 8자)
+                    const shareToken = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+                        .replace(/[xy]/g, function(c) {
+                            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        })
+                        .substring(0, 8);
+
+                    // Supabase에 share_token 저장
+                    const { error } = await supabase
+                        .from('study_materials')
+                        .update({
+                            share_token: shareToken,
+                            is_shared: true,
+                            shared_at: new Date().toISOString()
+                        })
+                        .eq('id', currentGameFileId);
+
+                    if (error) {
+                        console.error('공유 설정 오류:', error);
+                        alert('공유 설정에 실패했습니다.');
+                        return;
+                    }
+
+                    // 공유 링크 생성
+                    const shareUrl = `${window.location.origin}${window.location.pathname}?share=${shareToken}`;
+
+                    // 클립보드에 복사
+                    await navigator.clipboard.writeText(shareUrl);
+
+                    alert(`✅ 공유 링크가 복사되었습니다!\n\n${shareUrl}`);
+                    console.log('공유 링크:', shareUrl);
+                } catch (error) {
+                    console.error('공유 오류:', error);
+                    alert('공유 중 오류가 발생했습니다.');
+                }
             });
 
             // Save settings
