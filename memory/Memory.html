@@ -3740,6 +3740,7 @@
             score = 0;
             startTime = Date.now();
             currentBlankIndex = -1;
+            hintProgress = {}; // 힌트 진행상황 초기화
 
             // 게임 시작 시 현재 사용자 포인트 표시 (supabaseClient.js의 getCurrentPoints 사용)
             const currentPoints = typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0;
