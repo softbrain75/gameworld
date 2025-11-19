@@ -4647,8 +4647,8 @@
                             }
                             remaining = remaining.substring(boldMatch[0].length);
                         } else {
-                            // 일반 단어
-                            const wordMatch = remaining.match(/^([^\s*]+|\*(?!\*)|[^\w*])/);
+                            // 일반 단어 (공백 포함)
+                            const wordMatch = remaining.match(/^([^\s*]+|\s+|\*(?!\*)|[^\w*])/);
                             if (wordMatch) {
                                 const word = wordMatch[1];
                                 if (/\S/.test(word)) {
@@ -4667,6 +4667,7 @@
                                     lineDiv.appendChild(wordSpan);
                                     wordIndex++;
                                 } else {
+                                    // 공백은 textNode로 추가 (wordIndex 증가 안 함)
                                     lineDiv.appendChild(document.createTextNode(word));
                                 }
                                 remaining = remaining.substring(word.length);
