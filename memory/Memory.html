@@ -4385,25 +4385,23 @@
             hintProgress[dataIndex].revealedCount++;
             const nextRevealed = hintProgress[dataIndex].revealedCount;
 
-            // 부분 공개된 단어 생성
-            let revealedWord = correctWord.substring(0, nextRevealed);
-            for (let i = nextRevealed; i < correctWord.length; i++) {
-                revealedWord += '_';
-            }
+            // 부분 공개된 단어만 표시 (뒤의 빈칸은 "_"로 표시 안함)
+            const revealedWord = correctWord.substring(0, nextRevealed);
 
             selectedInput.value = revealedWord;
             selectedInput.placeholder = revealedWord;
 
-            // 포인트 차감 (Supabase 사용자)
-            if (typeof addPoints === 'function' && window.currentUser) {
-                addPoints(-100); // 100 포인트 차감
-                console.log('💰 100 포인트 차감됨');
-            } else if (!window.currentUser) {
-                // 비로그인 사용자는 localStorage에서 차감
+            // 포인트 차감
+            if (window.currentUser && typeof addPoints === 'function') {
+                // 로그인 사용자: Supabase에서 포인트 차감
+                addPoints(-100);
+                console.log('💰 100 포인트 차감됨 (Supabase)');
+            } else {
+                // 비로그인 사용자: localStorage에서 차감
                 const currentPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
                 const newPoints = Math.max(0, currentPoints - 100);
                 localStorage.setItem('guest_total_points', newPoints.toString());
-                console.log('💰 100 포인트 차감됨 (게스트)');
+                console.log('💰 100 포인트 차감됨 (localStorage):', newPoints);
             }
 
             // 포인트 화면 업데이트
