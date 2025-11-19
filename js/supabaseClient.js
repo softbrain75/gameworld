@@ -312,8 +312,8 @@ async function addPoints(points) {
 
     try {
         const { data, error } = await supabase.rpc('update_user_points', {
-            user_id: window.currentUser?.id || currentUser.id,
-            points_to_add: points
+            p_points_to_add: points,
+            p_user_id: window.currentUser?.id || currentUser.id
         });
 
         if (error) throw error;
