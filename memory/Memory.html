@@ -3121,7 +3121,7 @@
             originalMarkdown = mdText;
 
             const lines = mdText.split('\n');
-            let fullText = '';
+            lyrics = [];  // 직접 배열에 저장 (fullText 중간 단계 제거)
             boldWords = [];
             let wordIndex = 0;
 
@@ -3138,11 +3138,11 @@
                     const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
 
                     if (boldMatch) {
-                        // TTV를 찾음 (공백을 하나의 단위로 유지)
+                        // TTV를 찾음 (공백을 포함한 전체를 하나의 항목으로 유지)
                         const boldContent = boldMatch[1].trim();
                         if (boldContent) {
-                            // bold 내용 전체를 하나의 단어로 처리
-                            fullText += boldContent + ' ';
+                            // bold 내용 전체를 하나의 단어로 처리 (공백 포함)
+                            lyrics.push(boldContent);
                             boldWords.push(wordIndex);
                             wordIndex++;
                         }
@@ -3155,7 +3155,7 @@
                             const text = nonBoldMatch[1].replace(/\|/g, ' ');
                             const words = text.split(/[\s]+/).filter(w => w.length > 0);
                             words.forEach(word => {
-                                fullText += word + ' ';
+                                lyrics.push(word);
                                 wordIndex++;
                             });
                         }
@@ -3163,8 +3163,6 @@
                     }
                 }
             });
-
-            lyrics = fullText.split(/[\s\n]+/).filter(word => word.length > 0);
             console.log('TTV 인덱스:', boldWords);
             console.log('전체 단어 수:', lyrics.length);
             console.log('파싱된 가사:', lyrics);
