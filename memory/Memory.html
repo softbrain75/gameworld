@@ -4161,6 +4161,40 @@
             startGame(true);
         });
 
+        // Handle shared file access via URL parameter
+        window.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const shareToken = params.get('share');
+
+            if (shareToken) {
+                console.log('🔗 공유 링크로 접속됨 - shareToken:', shareToken);
+
+                try {
+                    // Supabase에서 공유 파일 찾기
+                    const { data: sharedFile, error } = await supabase
+                        .from('study_materials')
+                        .select('*')
+                        .eq('share_token', shareToken)
+                        .eq('is_shared', true)
+                        .single();
+
+                    if (error || !sharedFile) {
+                        console.error('공유 파일을 찾을 수 없습니다:', error);
+                        alert('존재하지 않거나 더 이상 공유되지 않는 파일입니다.');
+                        return;
+                    }
+
+                    console.log('✅ 공유 파일 찾음:', sharedFile.title);
+
+                    // 파일 자동 로드
+                    await window.playGame(sharedFile.id, sharedFile.title);
+                } catch (error) {
+                    console.error('공유 파일 로드 중 오류:', error);
+                    alert('파일을 로드하는 중 오류가 발생했습니다.');
+                }
+            }
+        });
+
     </script>
 
     <!-- Auth Modal Overlay -->
