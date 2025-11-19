@@ -3002,30 +3002,6 @@
                             startGame(false);
                         }
 
-                        // 캐시된 파일도 조회수 증가 처리 (메타데이터 조회)
-                        try {
-                            const { data: fileMetaData } = await supabase
-                                .from('study_materials')
-                                .select('is_public, view_count')
-                                .eq('id', fileId)
-                                .single();
-
-                            if (fileMetaData && fileMetaData.is_public) {
-                                const currentViews = (fileMetaData.view_count || 0) + 1;
-                                const { error: updateError } = await supabase
-                                    .from('study_materials')
-                                    .update({ view_count: currentViews })
-                                    .eq('id', fileId);
-
-                                if (updateError) {
-                                    console.log('조회수 업데이트 실패:', updateError);
-                                } else {
-                                    console.log('📊 조회수 증가 (캐시):', fileName, `(${currentViews}회)`);
-                                }
-                            }
-                        } catch (err) {
-                            console.log('캐시된 파일 조회수 업데이트 오류:', err);
-                        }
                         return;
                     }
 
@@ -3079,21 +3055,6 @@
                         cached_at: new Date().toISOString()
                     }));
                     console.log('💾 파일을 로컬 캐시에 저장:', fileName);
-
-                    // 4. 공개 파일인 경우 조회수 증가 (비동기로 처리)
-                    if (fileData.is_public) {
-                        const currentViews = (fileData.view_count || 0) + 1;
-                        const { error: updateError } = await supabase
-                            .from('study_materials')
-                            .update({ view_count: currentViews })
-                            .eq('id', fileId);
-
-                        if (updateError) {
-                            console.log('조회수 업데이트 실패:', updateError);
-                        } else {
-                            console.log('📊 조회수 증가:', fileName, `(${currentViews}회)`);
-                        }
-                    }
 
                     parseLyrics(content);
                     console.log('✅ Supabase 파일 로드 완료:', fileName);
@@ -4469,7 +4430,7 @@
         }
 
         // End game
-        function endGame(finalScore = score) {
+        async function endGame(finalScore = score) {
             gameState = 'gameover';
             document.getElementById('final-score').textContent = `${finalScore}점`;
 
@@ -4543,6 +4504,32 @@
 
             // Display original text with highlights
             displayOriginalText();
+
+            // 조회수 증가 (게임 완료 시에만, 공개 파일만)
+            if (currentGameFileId && typeof supabase !== 'undefined') {
+                try {
+                    // 파일의 공개 여부 확인
+                    const { data: fileData } = await supabase
+                        .from('study_materials')
+                        .select('is_public, view_count')
+                        .eq('id', currentGameFileId)
+                        .single();
+
+                    if (fileData && fileData.is_public) {
+                        const currentViews = (fileData.view_count || 0) + 1;
+                        const { error: updateError } = await supabase
+                            .from('study_materials')
+                            .update({ view_count: currentViews })
+                            .eq('id', currentGameFileId);
+
+                        if (!updateError) {
+                            console.log('📊 조회수 증가:', currentGameFileName, `(${currentViews}회)`);
+                        }
+                    }
+                } catch (err) {
+                    console.log('조회수 업데이트 오류:', err);
+                }
+            }
 
             showGameScreen('gameover'); // 게임 컨트롤(Hint + Submit) 자동 숨김
         }
