@@ -2532,8 +2532,8 @@
 
             hamburgerBtn.addEventListener('click', toggleMenu);
 
-            // Load saved game mode from localStorage
-            const savedMode = localStorage.getItem('memory_game_mode') || 'random';
+            // Load saved game mode from localStorage (Default: TTV mode)
+            const savedMode = localStorage.getItem('memory_game_mode') || 'bold';
 
             // Load Supabase files into "마이 파일" section
             window.loadMyFiles = async function() {
@@ -2694,8 +2694,8 @@
                     currentGameFileName = fileName;
                     console.log('💾 currentGameFileId 설정됨:', currentGameFileId);
 
-                    // Get game mode from settings
-                    const savedMode = localStorage.getItem('memory_game_mode') || 'random';
+                    // Get game mode from settings (Default: TTV mode)
+                    const savedMode = localStorage.getItem('memory_game_mode') || 'bold';
                     gameMode = savedMode;
 
                     // 1. 로컬 캐시에서 먼저 확인
@@ -2861,8 +2861,8 @@
                     const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
                     console.log('로컬 파일 목록:', savedFiles);
                     if (savedFiles[index]) {
-                        // Get game mode from settings
-                        const savedMode = localStorage.getItem('memory_game_mode') || 'random';
+                        // Get game mode from settings (Default: TTV mode)
+                        const savedMode = localStorage.getItem('memory_game_mode') || 'bold';
                         gameMode = savedMode;
 
                         // Load file content
@@ -2937,9 +2937,10 @@
                 const slider = document.getElementById('difficulty-slider');
 
                 // Load the difficulty for the selected mode
+                // Default: Random 100%, TTV 50%
                 const difficulty = selectedMode === 'random'
                     ? parseInt(localStorage.getItem('memory_random_difficulty') || '100')
-                    : parseInt(localStorage.getItem('memory_bold_difficulty') || '100');
+                    : parseInt(localStorage.getItem('memory_bold_difficulty') || '50');
 
                 slider.value = difficulty;
                 updateDifficultyDisplay();
@@ -2970,8 +2971,8 @@
             // Settings button
             document.getElementById('settings-btn').addEventListener('click', () => {
                 document.getElementById('settings-modal').classList.add('active');
-                // Load current settings
-                const currentMode = localStorage.getItem('memory_game_mode') || 'random';
+                // Load current settings (Default: TTV mode with 50% difficulty)
+                const currentMode = localStorage.getItem('memory_game_mode') || 'bold';
                 document.querySelector(`input[name="game-mode"][value="${currentMode}"]`).checked = true;
 
                 // Update difficulty UI to show current mode's difficulty
