@@ -1536,12 +1536,27 @@
             margin: 0;
         }
 
+        .final-score-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
         .final-score {
             font-size: 64px;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 32px;
             text-shadow: 0 4px 12px rgba(103, 80, 164, 0.2);
+        }
+
+        .final-points {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--success);
+            text-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
         }
 
         .button-group {
@@ -1972,7 +1987,10 @@
                     <!-- Game Over Screen -->
                     <div class="gameover-screen">
                         <div class="gameover-content">
-                            <div class="final-score" id="final-score">0점</div>
+                            <div class="final-score-container">
+                                <div class="final-score" id="final-score">0점</div>
+                                <div class="final-points" id="final-points">+0 포인트</div>
+                            </div>
 
                             <div class="button-group">
                                 <button class="retry-btn btn-base btn-primary" style="width: 50%;">다시 하기</button>
@@ -4278,15 +4296,23 @@
 
             // Show/hide wrong retry button (correctAnswers에 포함되지 않은 것이 있으면 표시)
             const incorrectCount = blanks.filter(b => !correctAnswers.includes(b)).length;
+            let bonusPoints = 0;
+
             if (incorrectCount > 0) {
                 document.getElementById('wrong-retry-btn').style.display = 'inline-block';
+                // 부분 정답일 때는 포인트 표시 안 함
+                document.getElementById('final-points').style.display = 'none';
             } else {
                 document.getElementById('wrong-retry-btn').style.display = 'none';
 
                 // 모든 문제를 다 맞은 경우: 보너스 포인트 추가 + 축하 애니메이션
                 // 보너스 = 맞은 개수 * 100
-                const bonusPoints = correctAnswers.length * 100;
+                bonusPoints = correctAnswers.length * 100;
                 console.log('🎉 완벽한 정답! 보너스 포인트:', bonusPoints);
+
+                // 최종 점수 화면에 포인트 표시
+                document.getElementById('final-points').textContent = `+${bonusPoints.toLocaleString('ko-KR')} 포인트`;
+                document.getElementById('final-points').style.display = 'block';
 
                 // 폭죽 및 포인트 팝업 애니메이션 표시
                 createCelebration(bonusPoints);
