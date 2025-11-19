@@ -545,53 +545,75 @@
             color: var(--text-secondary);
         }
 
-        .difficulty-buttons {
+        .difficulty-header {
             display: flex;
-            gap: 12px;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
         }
 
-        .difficulty-btn {
-            flex: 1;
-            padding: 16px 12px;
-            border: 2px solid var(--outline-variant);
-            border-radius: 12px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        .difficulty-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--surface-light);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .slider-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-family: 'Noto Sans KR';
+            gap: 12px;
         }
 
-        .difficulty-btn:hover {
-            border-color: var(--primary);
-            background: var(--primary-light);
+        .difficulty-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--outline-variant);
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
         }
 
-        .difficulty-btn.selected {
-            border-color: var(--primary);
+        .difficulty-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
             background: var(--primary);
-            color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
         }
 
-        .difficulty-label {
-            font-size: 18px;
-            font-weight: 700;
-            color: inherit;
+        .difficulty-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        .difficulty-desc {
+        .difficulty-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .difficulty-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
             font-size: 12px;
-            font-weight: 500;
             color: var(--text-secondary);
-        }
-
-        .difficulty-btn.selected .difficulty-desc {
-            color: rgba(255, 255, 255, 0.8);
         }
 
         .modal-footer {
@@ -2920,50 +2942,66 @@
                 alert('파일 검색 기능은 곧 추가됩니다!');
             });
 
+            // Update difficulty UI based on selected mode
+            window.updateDifficultyUI = function() {
+                const selectedMode = document.querySelector('input[name="game-mode"]:checked').value;
+                const slider = document.getElementById('difficulty-slider');
+
+                // Load the difficulty for the selected mode
+                const difficulty = selectedMode === 'random'
+                    ? parseInt(localStorage.getItem('memory_random_difficulty') || '100')
+                    : parseInt(localStorage.getItem('memory_bold_difficulty') || '100');
+
+                slider.value = difficulty;
+                updateDifficultyDisplay();
+            };
+
+            // Update difficulty display
+            function updateDifficultyDisplay() {
+                const slider = document.getElementById('difficulty-slider');
+                const difficulty = parseInt(slider.value);
+
+                document.getElementById('difficulty-percent').textContent = difficulty;
+
+                // Show hint text
+                let hint = '';
+                if (difficulty === 33) {
+                    hint = '약 1/3 정도의 단어만 테스트됩니다 (쉬움)';
+                } else if (difficulty === 66) {
+                    hint = '약 2/3 정도의 단어만 테스트됩니다 (보통)';
+                } else {
+                    hint = '모든 단어가 테스트됩니다 (어려움)';
+                }
+                document.getElementById('difficulty-hint').textContent = hint;
+            }
+
+            // Slider change event
+            document.getElementById('difficulty-slider').addEventListener('input', updateDifficultyDisplay);
+
             // Settings button
             document.getElementById('settings-btn').addEventListener('click', () => {
                 document.getElementById('settings-modal').classList.add('active');
                 // Load current settings
                 const currentMode = localStorage.getItem('memory_game_mode') || 'random';
-                const currentRandomDifficulty = localStorage.getItem('memory_random_difficulty') || '100';
-                const currentBoldDifficulty = localStorage.getItem('memory_bold_difficulty') || '100';
-
                 document.querySelector(`input[name="game-mode"][value="${currentMode}"]`).checked = true;
 
-                // Set selected difficulty buttons
-                document.querySelectorAll('.difficulty-btn').forEach(btn => {
-                    btn.classList.remove('selected');
-                });
-
-                document.querySelector(`.difficulty-btn[data-difficulty="${currentRandomDifficulty}"][data-mode="random"]`).classList.add('selected');
-                document.querySelector(`.difficulty-btn[data-difficulty="${currentBoldDifficulty}"][data-mode="bold"]`).classList.add('selected');
-            });
-
-            // Difficulty button selection
-            document.querySelectorAll('.difficulty-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const mode = btn.dataset.mode;
-                    const difficulty = btn.dataset.difficulty;
-
-                    // Remove selected from other buttons with same mode
-                    document.querySelectorAll(`.difficulty-btn[data-mode="${mode}"]`).forEach(b => {
-                        b.classList.remove('selected');
-                    });
-
-                    // Add selected to clicked button
-                    btn.classList.add('selected');
-                });
+                // Update difficulty UI to show current mode's difficulty
+                updateDifficultyUI();
             });
 
             // Save settings
             document.getElementById('save-settings-btn').addEventListener('click', () => {
                 const selectedMode = document.querySelector('input[name="game-mode"]:checked').value;
-                const randomDifficulty = document.querySelector('.difficulty-btn.selected[data-mode="random"]').dataset.difficulty;
-                const boldDifficulty = document.querySelector('.difficulty-btn.selected[data-mode="bold"]').dataset.difficulty;
+                const difficulty = parseInt(document.getElementById('difficulty-slider').value);
 
                 localStorage.setItem('memory_game_mode', selectedMode);
-                localStorage.setItem('memory_random_difficulty', randomDifficulty);
-                localStorage.setItem('memory_bold_difficulty', boldDifficulty);
+
+                // Save difficulty for the selected mode
+                if (selectedMode === 'random') {
+                    localStorage.setItem('memory_random_difficulty', difficulty);
+                } else {
+                    localStorage.setItem('memory_bold_difficulty', difficulty);
+                }
 
                 document.getElementById('settings-modal').classList.remove('active');
                 alert('설정이 저장되었습니다!');
@@ -4234,53 +4272,30 @@
                     <label class="setting-label">게임 모드</label>
                     <div class="radio-group">
                         <label class="radio-option">
-                            <input type="radio" name="game-mode" value="random" checked>
+                            <input type="radio" name="game-mode" value="random" checked onchange="updateDifficultyUI()">
                             <span>무작위 모드</span>
                             <p class="radio-description">저빈도 단어 중심으로 출제</p>
                         </label>
                         <label class="radio-option">
-                            <input type="radio" name="game-mode" value="bold">
+                            <input type="radio" name="game-mode" value="bold" onchange="updateDifficultyUI()">
                             <span>TTV 모드</span>
                             <p class="radio-description">굵게 표시된 단어만 출제</p>
                         </label>
                     </div>
                 </div>
 
-                <!-- Difficulty Settings for Random Mode -->
-                <div class="setting-group">
-                    <label class="setting-label">무작위 모드 난이도</label>
-                    <div class="difficulty-buttons">
-                        <button class="difficulty-btn" data-difficulty="33" data-mode="random">
-                            <span class="difficulty-label">33%</span>
-                            <span class="difficulty-desc">쉬움</span>
-                        </button>
-                        <button class="difficulty-btn" data-difficulty="66" data-mode="random">
-                            <span class="difficulty-label">66%</span>
-                            <span class="difficulty-desc">보통</span>
-                        </button>
-                        <button class="difficulty-btn selected" data-difficulty="100" data-mode="random">
-                            <span class="difficulty-label">100%</span>
-                            <span class="difficulty-desc">어려움</span>
-                        </button>
+                <!-- Difficulty Settings (Slider) -->
+                <div class="setting-group" id="difficulty-setting-group">
+                    <div class="difficulty-header">
+                        <label class="setting-label" id="difficulty-label">난이도: <span id="difficulty-percent">100</span>%</label>
+                        <span class="difficulty-hint" id="difficulty-hint"></span>
                     </div>
-                </div>
-
-                <!-- Difficulty Settings for TTV Mode -->
-                <div class="setting-group">
-                    <label class="setting-label">TTV 모드 난이도</label>
-                    <div class="difficulty-buttons">
-                        <button class="difficulty-btn" data-difficulty="33" data-mode="bold">
-                            <span class="difficulty-label">33%</span>
-                            <span class="difficulty-desc">쉬움</span>
-                        </button>
-                        <button class="difficulty-btn" data-difficulty="66" data-mode="bold">
-                            <span class="difficulty-label">66%</span>
-                            <span class="difficulty-desc">보통</span>
-                        </button>
-                        <button class="difficulty-btn selected" data-difficulty="100" data-mode="bold">
-                            <span class="difficulty-label">100%</span>
-                            <span class="difficulty-desc">어려움</span>
-                        </button>
+                    <div class="slider-container">
+                        <input type="range" id="difficulty-slider" class="difficulty-slider" min="33" max="100" value="100" step="1">
+                        <div class="slider-labels">
+                            <span>쉬움</span>
+                            <span>어려움</span>
+                        </div>
                     </div>
                 </div>
             </div>
