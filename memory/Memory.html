@@ -4625,11 +4625,17 @@
 
                     let remaining = line;
                     while (remaining.length > 0) {
-                        const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+                        const boldMatch = remaining.match(/^(\s*)\*\*([^*]+)\*\*/);
 
                         if (boldMatch) {
+                            // 앞의 공백이 있으면 textNode로 추가
+                            const leadingSpace = boldMatch[1];
+                            if (leadingSpace) {
+                                lineDiv.appendChild(document.createTextNode(leadingSpace));
+                            }
+
                             // Bold 단어
-                            const word = boldMatch[1].trim();
+                            const word = boldMatch[2].trim();
                             if (word && wordIndex < lyrics.length) {
                                 const wordSpan = document.createElement('span');
                                 wordSpan.textContent = word;
