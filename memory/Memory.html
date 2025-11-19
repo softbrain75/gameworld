@@ -1351,8 +1351,23 @@
         .word-input.wrong {
             border-bottom: 2px solid var(--error);
             background: rgba(245, 34, 45, 0.1);
-            color: var(--error);
+            color: var(--text-primary);
             animation: shake 0.3s;
+        }
+
+        /* 글자 단위 색상 표시용 클래스 */
+        .word-input.partial-correct {
+            border-bottom: 2px solid #faad14;
+            background: rgba(250, 173, 20, 0.1);
+        }
+
+        .word-input.partial-correct::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(to right, var(--success), transparent);
         }
 
         @keyframes shake {
@@ -3996,48 +4011,65 @@
                     const userInput = e.target.value.trim();
                     const correctWord = lyrics[blankIndex];
 
-                    if (userInput === '') {
-                        input.classList.remove('correct');
-                        input.classList.add('wrong');
-                        // 틀린 것은 correctAnswers에서 제거
-                        const correctIndex = correctAnswers.indexOf(blankIndex);
-                        if (correctIndex > -1) {
-                            correctAnswers.splice(correctIndex, 1);
-                        }
-                    } else if (userInput === correctWord) {
-                        input.classList.remove('wrong');
-                        input.classList.add('correct');
-                        input.disabled = true;
+                    // 글자 단위 색상 표시 함수
+                    function updateCharacterColors() {
+                        if (userInput === '') {
+                            input.classList.remove('correct', 'partial-correct');
+                            input.classList.add('wrong');
+                            input.style.backgroundImage = 'none';
+                        } else if (userInput === correctWord) {
+                            // 완벽하게 맞은 경우
+                            input.classList.remove('wrong', 'partial-correct');
+                            input.classList.add('correct');
+                            input.style.backgroundImage = 'none';
+                            input.disabled = true;
 
-                        // correctAnswers에 추가 (정확히 입력한 경우)
-                        if (!correctAnswers.includes(blankIndex)) {
-                            correctAnswers.push(blankIndex);
-                        }
+                            // correctAnswers에 추가
+                            if (!correctAnswers.includes(blankIndex)) {
+                                correctAnswers.push(blankIndex);
+                            }
 
-                        correctCount++;
-                        if (totalBlanks > 0) {
-                            score = Math.round((correctCount / totalBlanks) * 100);
-                        }
-                        updateScore();
+                            correctCount++;
+                            if (totalBlanks > 0) {
+                                score = Math.round((correctCount / totalBlanks) * 100);
+                            }
+                            updateScore();
 
-                        if (correctCount === blanks.length) {
-                            setTimeout(() => endGame(), 500);
+                            if (correctCount === blanks.length) {
+                                setTimeout(() => endGame(), 500);
+                            } else {
+                                const currentOrder = parseInt(input.dataset.order);
+                                const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
+                                if (nextInput && !nextInput.disabled) {
+                                    setTimeout(() => nextInput.focus(), 100);
+                                }
+                            }
                         } else {
-                            const currentOrder = parseInt(input.dataset.order);
-                            const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
-                            if (nextInput && !nextInput.disabled) {
-                                setTimeout(() => nextInput.focus(), 100);
+                            // 부분적으로 맞은 경우 - 글자 단위 색상 표시
+                            input.classList.remove('correct');
+                            input.classList.add('partial-correct', 'wrong');
+
+                            // 글자별 정확도 계산
+                            let correctChars = 0;
+                            for (let i = 0; i < userInput.length && i < correctWord.length; i++) {
+                                if (userInput[i] === correctWord[i]) {
+                                    correctChars++;
+                                }
+                            }
+
+                            // 배경 그래디언트로 글자 단위 색상 표시
+                            const percentage = (correctChars / correctWord.length) * 100;
+                            input.style.backgroundImage = `linear-gradient(to right, rgba(82, 196, 26, 0.3) 0%, rgba(82, 196, 26, 0.3) ${percentage}%, rgba(245, 34, 45, 0.1) ${percentage}%, rgba(245, 34, 45, 0.1) 100%)`;
+
+                            // 틀린 것은 correctAnswers에서 제거
+                            const correctIndex = correctAnswers.indexOf(blankIndex);
+                            if (correctIndex > -1) {
+                                correctAnswers.splice(correctIndex, 1);
                             }
                         }
-                    } else {
-                        input.classList.remove('correct');
-                        input.classList.add('wrong');
-                        // 틀린 것은 correctAnswers에서 제거
-                        const correctIndex = correctAnswers.indexOf(blankIndex);
-                        if (correctIndex > -1) {
-                            correctAnswers.splice(correctIndex, 1);
-                        }
                     }
+
+                    updateCharacterColors();
                 });
 
                 input.addEventListener('keypress', (e) => {
@@ -4390,6 +4422,11 @@
             selectedInput.value = revealedWord;
             selectedInput.placeholder = revealedWord;
 
+            // 글자 단위 색상 표시 (배경 그래디언트)
+            const percentage = (nextRevealed / correctWord.length) * 100;
+            selectedInput.style.backgroundImage = `linear-gradient(to right, rgba(82, 196, 26, 0.3) 0%, rgba(82, 196, 26, 0.3) ${percentage}%, rgba(250, 173, 20, 0.1) ${percentage}%, rgba(250, 173, 20, 0.1) 100%)`;
+            selectedInput.classList.add('partial-correct');
+
             // 포인트 차감
             if (window.currentUser && typeof addPoints === 'function') {
                 // 로그인 사용자: Supabase에서 포인트 차감
@@ -4412,7 +4449,8 @@
                 console.log('🎯 정답 완성! 다음 필드로 이동');
 
                 selectedInput.classList.add('correct'); // 정답 표시
-                selectedInput.classList.remove('wrong');
+                selectedInput.classList.remove('wrong', 'partial-correct');
+                selectedInput.style.backgroundImage = 'none'; // 배경 그래디언트 제거
                 selectedInput.disabled = true; // 입력 불가능하게 설정
 
                 // 점수 업데이트 (correctCount 증가)
