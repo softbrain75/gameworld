@@ -2560,6 +2560,7 @@
                                 user_id: user.id,
                                 title: fileName,
                                 file_path: filePath,
+                                view_count: 0,
                                 created_at: new Date().toISOString(),
                                 updated_at: new Date().toISOString()
                             });
@@ -2904,7 +2905,8 @@
                         .from('study_materials')
                         .select('*')
                         .eq('is_public', true)
-                        .order('updated_at', { ascending: false });
+                        .order('view_count', { ascending: false })
+                        .limit(10);
 
                     if (error) throw error;
 
@@ -2913,17 +2915,20 @@
                         return;
                     }
 
-                    // 공개 파일 표시 (설정 버튼 없음)
-                    publicFilesContainer.innerHTML = data.map(file => `
-                        <div class="menu-file-item" style="width: 100%; justify-content: flex-start;">
+                    // 상위 10개 공개 파일 표시 (조회수 포함)
+                    publicFilesContainer.innerHTML = data.map((file, index) => `
+                        <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
-                                <span class="material-icons">description</span>
-                                <span class="file-name">${escapeHtml(file.title)}</span>
+                                <span class="material-icons" style="font-size: 18px; color: var(--primary);">${index + 1}</span>
+                                <div style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
+                                    <span class="file-name">${escapeHtml(file.title)}</span>
+                                    <span style="font-size: 11px; color: var(--text-secondary);">👁️ ${file.view_count || 0}</span>
+                                </div>
                             </div>
                         </div>
                     `).join('');
 
-                    console.log('✅ 공개 파일 로드 완료:', data.length + '개');
+                    console.log('✅ 상위 10개 공개 파일 로드 완료:', data.length + '개');
                 } catch (error) {
                     console.error('공개 파일 로드 실패:', error);
                     publicFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일 로드 실패</div>';
@@ -3048,6 +3053,17 @@
                         cached_at: new Date().toISOString()
                     }));
                     console.log('💾 파일을 로컬 캐시에 저장:', fileName);
+
+                    // 4. 공개 파일인 경우 조회수 증가 (비동기로 처리)
+                    if (fileData.is_public) {
+                        const currentViews = (fileData.view_count || 0) + 1;
+                        await supabase
+                            .from('study_materials')
+                            .update({ view_count: currentViews })
+                            .eq('id', fileId)
+                            .catch(err => console.log('조회수 업데이트 실패:', err));
+                        console.log('📊 조회수 증가:', fileName, `(${currentViews}회)`);
+                    }
 
                     parseLyrics(content);
                     console.log('✅ Supabase 파일 로드 완료:', fileName);
@@ -3388,6 +3404,7 @@
                             user_id: window.currentUser.id,
                             title: newFileName,
                             file_path: newFilePath,
+                            view_count: 0,
                             is_public: false,
                             is_shared: false,
                             created_at: new Date().toISOString()
