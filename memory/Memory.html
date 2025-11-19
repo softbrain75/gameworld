@@ -2905,7 +2905,6 @@
                         .from('study_materials')
                         .select('*')
                         .eq('is_public', true)
-                        .eq('is_shared', true)
                         .order('view_count', { ascending: false })
                         .limit(10);
 
