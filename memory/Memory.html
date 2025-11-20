@@ -6204,6 +6204,14 @@
             showHint();
         });
 
+        // Ctrl+H 단축키 - 힌트 보기
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 'h' || event.key === 'H') {
+                event.preventDefault();
+                showHint();
+            }
+        });
+
         // Hint function - reveal characters one by one
         function showHint() {
             // 마지막으로 선택된 입력필드 사용 (Hint 버튼 클릭 시 포커스 손실 대응)
