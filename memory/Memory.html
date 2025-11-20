@@ -2222,8 +2222,11 @@
                 editor.value = '';
                 fileNameInput.value = '';
                 fileNameInput.disabled = false;
-                // create 모드에서는 id 표시 안함
-                document.getElementById('editor-file-id').textContent = '';
+                // "파일 추가" 버튼으로 들어온 경우는 editor-file-id를 'local'로 유지, 아니면 초기화
+                const fileIdElement = document.getElementById('editor-file-id');
+                if (fileIdElement.textContent !== 'local') {
+                    fileIdElement.textContent = '';
+                }
                 // 공개 여부 체크박스 리셋
                 const publicCheckbox = document.getElementById('file-public-checkbox');
                 if (publicCheckbox) {
