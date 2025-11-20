@@ -3329,6 +3329,9 @@
 
             // New file button
             document.getElementById('new-file-btn').addEventListener('click', () => {
+                // "새 파일" 버튼: Supabase 파일을 생성하는 모드로 전환
+                // editor-file-id를 초기화 (로컬 파일이 아님)
+                document.getElementById('editor-file-id').textContent = '';
                 switchMode('create');
             });
 
