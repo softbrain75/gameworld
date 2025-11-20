@@ -2181,30 +2181,149 @@
             }
         }
 
-        /* Test Results Modal - File Panel Styles */
-        #test-files-panel {
-            width: 280px;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--outline-variant);
-            flex-shrink: 0;
-            transition: width 0.3s ease, margin-left 0.3s ease;
-            background: white;
-        }
-
-        #test-files-panel.collapsed {
-            width: 0;
+        /* Material Design Accordion Styles */
+        .test-accordion-item {
+            border: 1px solid var(--outline-variant);
+            border-radius: 8px;
+            margin-bottom: 8px;
             overflow: hidden;
-            border-right: none;
+            background: white;
+            transition: all 0.2s ease;
         }
 
-        /* Toggle button rotation animation */
-        #toggle-file-list-panel-btn {
+        .test-accordion-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .accordion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            cursor: pointer;
+            background: white;
+            border: none;
+            width: 100%;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .accordion-header:hover {
+            background: var(--surface-dim);
+        }
+
+        .accordion-header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .accordion-header-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+        }
+
+        .accordion-header-icon {
+            color: var(--primary);
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .accordion-expand-icon {
+            color: var(--text-secondary);
+            font-size: 24px;
             transition: transform 0.3s ease;
+            flex-shrink: 0;
         }
 
-        #test-files-panel.collapsed #toggle-file-list-panel-btn {
+        .test-accordion-item.expanded .accordion-expand-icon {
             transform: rotate(180deg);
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: var(--surface-dim);
+            border-top: 1px solid var(--outline-variant);
+        }
+
+        .test-accordion-item.expanded .accordion-body {
+            max-height: 600px;
+        }
+
+        .accordion-body-content {
+            padding: 16px;
+        }
+
+        .accordion-body-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .accordion-result-item {
+            padding: 12px 16px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--outline-variant);
+            transition: all 0.2s ease;
+        }
+
+        .accordion-result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .accordion-result-item.perfect {
+            border-left-color: var(--success);
+            background: rgba(82, 196, 26, 0.04);
+        }
+
+        .accordion-result-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .accordion-result-score {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .accordion-result-score.perfect {
+            color: var(--success);
+        }
+
+        .accordion-result-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .perfect-badge {
+            display: inline-block;
+            background: var(--success);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
         }
 
     </style>
@@ -3337,22 +3456,16 @@
             document.body.style.overflow = '';
         }
 
-        // 파일 목록 토글
-        function toggleFileList() {
-            const panel = document.getElementById('test-files-panel');
-            panel.classList.toggle('collapsed');
-        }
-
         // 테스트 파일 로드 (성적 조회용)
         async function loadTestFilesForResults() {
             try {
-                const filesList = document.getElementById('test-files-list');
-                filesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>';
+                const container = document.getElementById('test-accordion-container');
+                container.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>';
 
                 const { data: { user } } = await supabase.auth.getUser();
 
                 if (!user) {
-                    filesList.innerHTML = '<div style="padding: 12px; color: var(--error); text-align: center;">로그인이 필요합니다</div>';
+                    container.innerHTML = '<div style="padding: 12px; color: var(--error); text-align: center;">로그인이 필요합니다</div>';
                     return;
                 }
 
@@ -3366,46 +3479,64 @@
                 if (error) throw error;
 
                 if (!files || files.length === 0) {
-                    filesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">테스트 파일이 없습니다</div>';
+                    container.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">테스트 파일이 없습니다</div>';
                     return;
                 }
 
-                // 파일 목록 렌더링
-                filesList.innerHTML = files.map(file => `
-                    <div class="test-file-item" data-file-id="${file.id}" style="padding: 12px; cursor: pointer; border-bottom: 1px solid var(--surface-dim); transition: all 0.2s ease;">
-                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(file.title)}</div>
-                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">클릭하여 보기</div>
+                // 아코디언 아이템 렌더링
+                const accordionHTML = files.map(file => `
+                    <div class="test-accordion-item" data-file-id="${file.id}">
+                        <button class="accordion-header">
+                            <div class="accordion-header-content">
+                                <span class="material-icons accordion-header-icon">assessment</span>
+                                <span class="accordion-header-title">${escapeHtml(file.title)}</span>
+                            </div>
+                            <span class="material-icons accordion-expand-icon">expand_more</span>
+                        </button>
+                        <div class="accordion-body">
+                            <div class="accordion-body-content">
+                                <div class="accordion-body-title">응시 현황</div>
+                                <div class="accordion-results" style="display: flex; flex-direction: column; gap: 0;">
+                                    <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `).join('');
 
-                // 파일 아이템 클릭 이벤트
-                document.querySelectorAll('.test-file-item').forEach(item => {
-                    item.addEventListener('click', async () => {
-                        document.querySelectorAll('.test-file-item').forEach(el => {
-                            el.style.background = 'transparent';
-                            el.style.borderLeft = 'none';
-                        });
-                        item.style.background = 'var(--primary-light)';
-                        item.style.borderLeft = '4px solid var(--primary)';
-                        item.style.paddingLeft = '8px';
+                container.innerHTML = accordionHTML;
 
+                // 아코디언 헤더 클릭 이벤트
+                document.querySelectorAll('.accordion-header').forEach(header => {
+                    header.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const item = header.parentElement;
                         const fileId = item.getAttribute('data-file-id');
-                        const fileTitle = item.querySelector('div:first-child').textContent;
+                        const fileTitle = header.querySelector('.accordion-header-title').textContent;
+
+                        // 다른 아이템 닫기
+                        document.querySelectorAll('.test-accordion-item').forEach(el => {
+                            if (el !== item) {
+                                el.classList.remove('expanded');
+                            }
+                        });
+
+                        // 현재 아이템 토글
+                        item.classList.toggle('expanded');
+
+                        // 헤더 제목 업데이트
                         document.getElementById('test-file-title').textContent = fileTitle;
-                        await loadTestResultsData(fileId);
+
+                        // 아이템이 열려있으면 결과 로드
+                        if (item.classList.contains('expanded')) {
+                            await loadAccordionTestResults(fileId, item);
+                        }
                     });
                 });
 
-                // 첫 번째 파일 자동 선택
-                if (files.length > 0) {
-                    const firstItem = filesList.querySelector('.test-file-item');
-                    if (firstItem) {
-                        firstItem.click();
-                    }
-                }
             } catch (error) {
                 console.error('테스트 파일 로드 오류:', error);
-                document.getElementById('test-files-list').innerHTML = '<div style="padding: 12px; color: var(--error); text-align: center;">오류 발생</div>';
+                document.getElementById('test-accordion-container').innerHTML = '<div style="padding: 12px; color: var(--error); text-align: center;">오류 발생</div>';
             }
         }
 
@@ -3479,6 +3610,74 @@
             } catch (error) {
                 console.error('테스트 결과 로드 오류:', error);
                 document.getElementById('test-results-list').innerHTML = '<div style="padding: 24px; color: var(--error); text-align: center;">오류 발생</div>';
+            }
+        }
+
+        // 아코디언 테스트 결과 로드
+        async function loadAccordionTestResults(fileId, accordionItem) {
+            try {
+                const resultsContainer = accordionItem.querySelector('.accordion-results');
+                resultsContainer.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>';
+
+                const { data: results, error } = await supabase
+                    .from('test_results')
+                    .select('*')
+                    .eq('file_id', fileId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!results || results.length === 0) {
+                    resultsContainer.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">응시 기록이 없습니다</div>';
+                    return;
+                }
+
+                // 사람별로 그룹화 및 통계 계산
+                const groupedByName = {};
+                results.forEach(result => {
+                    if (!groupedByName[result.tester_name]) {
+                        groupedByName[result.tester_name] = {
+                            name: result.tester_name,
+                            scores: [],
+                            attempts: 0,
+                            maxScore: 0,
+                            isPerfect: false
+                        };
+                    }
+                    groupedByName[result.tester_name].scores.push(result.score);
+                    groupedByName[result.tester_name].attempts += 1;
+                    if (result.score > groupedByName[result.tester_name].maxScore) {
+                        groupedByName[result.tester_name].maxScore = result.score;
+                    }
+                    if (result.score === 100) {
+                        groupedByName[result.tester_name].isPerfect = true;
+                    }
+                });
+
+                // 최고점수 기준으로 정렬 (내림차순)
+                const sortedUsers = Object.values(groupedByName).sort((a, b) => b.maxScore - a.maxScore);
+
+                // 결과 렌더링
+                const html = sortedUsers.map(user => `
+                    <div class="accordion-result-item ${user.isPerfect ? 'perfect' : ''}">
+                        <div class="accordion-result-name">
+                            ${escapeHtml(user.name)}
+                        </div>
+                        <div class="accordion-result-score ${user.isPerfect ? 'perfect' : ''}">
+                            ${user.maxScore}점
+                        </div>
+                        <div class="accordion-result-meta">
+                            ${user.isPerfect ? '<span class="perfect-badge">만점</span>' : ''}
+                            <span style="white-space: nowrap;">총 ${user.attempts}회</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                resultsContainer.innerHTML = html;
+            } catch (error) {
+                console.error('아코디언 테스트 결과 로드 오류:', error);
+                const resultsContainer = accordionItem.querySelector('.accordion-results');
+                resultsContainer.innerHTML = '<div style="padding: 12px; color: var(--error); text-align: center;">오류 발생</div>';
             }
         }
 
@@ -4362,20 +4561,6 @@
             const testResultsCloseBtn = document.getElementById('test-results-close-btn');
             if (testResultsCloseBtn) {
                 testResultsCloseBtn.addEventListener('click', closeTestResultsModal);
-            }
-
-            // Test Results Modal - Toggle File List Button
-            const toggleFileListBtn = document.getElementById('toggle-file-list-btn');
-            if (toggleFileListBtn) {
-                toggleFileListBtn.addEventListener('click', toggleFileList);
-            }
-
-            // Test Results Modal - Toggle File List Panel Button (inside file panel header)
-            const toggleFileListPanelBtn = document.getElementById('toggle-file-list-panel-btn');
-            if (toggleFileListPanelBtn) {
-                toggleFileListPanelBtn.addEventListener('click', () => {
-                    toggleFileList();
-                });
             }
 
             // Close modal on overlay click
@@ -6266,27 +6451,10 @@
             </div>
         </div>
 
-        <!-- 본문 -->
-        <div style="display: flex; flex: 1; min-height: 0;">
-            <!-- 테스트 파일 목록 (접기/펼치기 가능) -->
-            <div id="test-files-panel">
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--surface-dim);">
-                    <span>테스트 파일</span>
-                    <button id="toggle-file-list-panel-btn" style="background: transparent; border: none; cursor: pointer; padding: 4px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; border-radius: 4px;">
-                        <span class="material-icons" style="font-size: 20px;">chevron_left</span>
-                    </button>
-                </div>
-                <div id="test-files-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px;">
-                    <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
-                </div>
-            </div>
-
-            <!-- 응시 현황 -->
-            <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
-                <div style="padding: 12px 16px; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--surface-dim); flex-shrink: 0;">응시 현황</div>
-                <div id="test-results-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px;">
-                    <div style="color: var(--text-secondary); text-align: center; padding: 24px;">파일을 선택해주세요</div>
-                </div>
+        <!-- 본문 - 아코디언 형태 -->
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+            <div id="test-accordion-container" style="padding: 8px;">
+                <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
             </div>
         </div>
     </div>
