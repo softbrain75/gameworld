@@ -3296,17 +3296,33 @@
             }
         }
 
-        // 시험 파일 성적 조회 모달 열기
+        // 시험 파일 성적 조회 풀팝업 모달 열기
         async function showTestResultsModal() {
             const modal = document.getElementById('test-results-modal');
-            modal.classList.add('active');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
             await loadTestFilesForResults();
         }
 
         // 시험 성적 조회 모달 닫기
         function closeTestResultsModal() {
             const modal = document.getElementById('test-results-modal');
-            modal.classList.remove('active');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // 파일 목록 토글
+        function toggleFileList() {
+            const panel = document.getElementById('test-files-panel');
+            const isHidden = panel.style.display === 'none';
+
+            if (isHidden) {
+                panel.style.display = 'flex';
+                panel.style.width = '280px';
+            } else {
+                panel.style.display = 'none';
+                panel.style.width = '0';
+            }
         }
 
         // 테스트 파일 로드 (성적 조회용)
@@ -3356,6 +3372,8 @@
                         item.style.paddingLeft = '8px';
 
                         const fileId = item.getAttribute('data-file-id');
+                        const fileTitle = item.querySelector('div:first-child').textContent;
+                        document.getElementById('test-file-title').textContent = fileTitle;
                         await loadTestResultsData(fileId);
                     });
                 });
@@ -3392,18 +3410,49 @@
                     return;
                 }
 
+                // 사람별로 그룹화 및 통계 계산
+                const groupedByName = {};
+                results.forEach(result => {
+                    if (!groupedByName[result.tester_name]) {
+                        groupedByName[result.tester_name] = {
+                            name: result.tester_name,
+                            scores: [],
+                            attempts: 0,
+                            maxScore: 0,
+                            isPerfect: false
+                        };
+                    }
+                    groupedByName[result.tester_name].scores.push(result.score);
+                    groupedByName[result.tester_name].attempts += 1;
+                    if (result.score > groupedByName[result.tester_name].maxScore) {
+                        groupedByName[result.tester_name].maxScore = result.score;
+                    }
+                    if (result.score === 100) {
+                        groupedByName[result.tester_name].isPerfect = true;
+                    }
+                });
+
+                // 최고점수 기준으로 정렬 (내림차순)
+                const sortedUsers = Object.values(groupedByName).sort((a, b) => b.maxScore - a.maxScore);
+
                 // 결과 렌더링
-                const html = results.map(result => `
-                    <div style="padding: 12px; background: var(--surface-dim); border-radius: 8px; margin-bottom: 12px; border-left: 4px solid ${result.score === 100 ? 'var(--success)' : 'var(--outline-variant)'};">
-                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
-                            ${escapeHtml(result.tester_name)}
-                            ${result.score === 100 ? '<span style="display: inline-block; background: var(--success); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 8px;">만점</span>' : ''}
-                        </div>
-                        <div style="font-size: 18px; font-weight: 700; color: ${result.score === 100 ? 'var(--success)' : 'var(--primary)'}; margin-bottom: 4px;">
-                            ${result.score}점
-                        </div>
-                        <div style="font-size: 12px; color: var(--text-secondary);">
-                            ${formatDateForResults(result.created_at)}
+                const html = sortedUsers.map(user => `
+                    <div style="padding: 12px 16px; background: ${user.isPerfect ? 'rgba(82, 196, 26, 0.08)' : 'var(--surface-dim)'}; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid ${user.isPerfect ? 'var(--success)' : 'var(--outline-variant)'};">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;">
+                                    ${escapeHtml(user.name)}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 16px; font-weight: 700; color: ${user.isPerfect ? 'var(--success)' : 'var(--primary)'};">
+                                        ${user.maxScore}점
+                                    </span>
+                                    ${user.isPerfect ? '<span style="display: inline-block; background: var(--success); color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 600;">만점</span>' : ''}
+                                    <span style="font-size: 12px; color: var(--text-secondary); white-space: nowrap;">
+                                        총 ${user.attempts}회
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `).join('');
@@ -4295,6 +4344,12 @@
             const testResultsCloseBtn = document.getElementById('test-results-close-btn');
             if (testResultsCloseBtn) {
                 testResultsCloseBtn.addEventListener('click', closeTestResultsModal);
+            }
+
+            // Test Results Modal - Toggle File List Button
+            const toggleFileListBtn = document.getElementById('toggle-file-list-btn');
+            if (toggleFileListBtn) {
+                toggleFileListBtn.addEventListener('click', toggleFileList);
             }
 
             // Close modal on overlay click
@@ -6167,29 +6222,39 @@
         </div>
     </div>
 
-    <!-- 시험 성적 조회 모달 -->
-    <div id="test-results-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 900px; width: 90%; max-height: 85vh;">
-            <div class="modal-header">
-                <h3>시험 성적 조회</h3>
-                <button class="modal-close-btn" id="test-results-close-btn">
-                    <span class="material-icons">close</span>
+    <!-- 시험 성적 조회 풀팝업 모달 -->
+    <div id="test-results-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
+        <!-- 헤더 -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--outline-variant); flex-shrink: 0; height: 60px;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex: 1;">
+                <span class="material-icons" style="font-size: 24px; color: var(--primary);">assessment</span>
+                <span id="test-file-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">시험 성적 조회</span>
+            </h3>
+            <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                <button id="toggle-file-list-btn" class="test-results-toggle-btn" style="background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                    <span class="material-icons" style="font-size: 24px;">menu</span>
+                </button>
+                <button id="test-results-close-btn" style="background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                    <span class="material-icons" style="font-size: 24px;">close</span>
                 </button>
             </div>
-            <div class="modal-body" style="display: flex; gap: 16px; min-height: 400px;">
-                <!-- 테스트 파일 목록 -->
-                <div style="width: 280px; display: flex; flex-direction: column; border-right: 1px solid var(--outline-variant);">
-                    <div style="font-weight: 600; margin-bottom: 12px; padding-right: 12px;">테스트 파일</div>
-                    <div id="test-files-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;">
-                        <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
-                    </div>
+        </div>
+
+        <!-- 본문 -->
+        <div style="display: flex; flex: 1; min-height: 0;">
+            <!-- 테스트 파일 목록 (접기/펼치기 가능) -->
+            <div id="test-files-panel" style="width: 280px; display: flex; flex-direction: column; border-right: 1px solid var(--outline-variant); flex-shrink: 0; transition: all 0.3s ease; background: white;">
+                <div style="padding: 12px 16px; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--surface-dim);">테스트 파일</div>
+                <div id="test-files-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px;">
+                    <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
                 </div>
-                <!-- 응시 현황 -->
-                <div style="flex: 1; display: flex; flex-direction: column;">
-                    <div style="font-weight: 600; margin-bottom: 12px;">응시 현황</div>
-                    <div id="test-results-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;">
-                        <div style="color: var(--text-secondary); text-align: center; padding: 24px;">파일을 선택해주세요</div>
-                    </div>
+            </div>
+
+            <!-- 응시 현황 -->
+            <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+                <div style="padding: 12px 16px; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--surface-dim); flex-shrink: 0;">응시 현황</div>
+                <div id="test-results-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px;">
+                    <div style="color: var(--text-secondary); text-align: center; padding: 24px;">파일을 선택해주세요</div>
                 </div>
             </div>
         </div>
