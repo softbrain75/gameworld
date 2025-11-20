@@ -3296,9 +3296,134 @@
             }
         }
 
-        // 시험 파일 성적 조회 페이지로 이동
-        function showTestResultsModal() {
-            window.location.href = 'test_results.html';
+        // 시험 파일 성적 조회 모달 열기
+        async function showTestResultsModal() {
+            const modal = document.getElementById('test-results-modal');
+            modal.classList.add('active');
+            await loadTestFilesForResults();
+        }
+
+        // 시험 성적 조회 모달 닫기
+        function closeTestResultsModal() {
+            const modal = document.getElementById('test-results-modal');
+            modal.classList.remove('active');
+        }
+
+        // 테스트 파일 로드 (성적 조회용)
+        async function loadTestFilesForResults() {
+            try {
+                const filesList = document.getElementById('test-files-list');
+                filesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>';
+
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (!user) {
+                    filesList.innerHTML = '<div style="padding: 12px; color: var(--error); text-align: center;">로그인이 필요합니다</div>';
+                    return;
+                }
+
+                const { data: files, error } = await supabase
+                    .from('study_materials')
+                    .select('id, title')
+                    .eq('user_id', user.id)
+                    .not('test_token', 'is', null)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!files || files.length === 0) {
+                    filesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">테스트 파일이 없습니다</div>';
+                    return;
+                }
+
+                // 파일 목록 렌더링
+                filesList.innerHTML = files.map(file => `
+                    <div class="test-file-item" data-file-id="${file.id}" style="padding: 12px; cursor: pointer; border-bottom: 1px solid var(--surface-dim); transition: all 0.2s ease;">
+                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(file.title)}</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">클릭하여 보기</div>
+                    </div>
+                `).join('');
+
+                // 파일 아이템 클릭 이벤트
+                document.querySelectorAll('.test-file-item').forEach(item => {
+                    item.addEventListener('click', async () => {
+                        document.querySelectorAll('.test-file-item').forEach(el => {
+                            el.style.background = 'transparent';
+                            el.style.borderLeft = 'none';
+                        });
+                        item.style.background = 'var(--primary-light)';
+                        item.style.borderLeft = '4px solid var(--primary)';
+                        item.style.paddingLeft = '8px';
+
+                        const fileId = item.getAttribute('data-file-id');
+                        await loadTestResultsData(fileId);
+                    });
+                });
+
+                // 첫 번째 파일 자동 선택
+                if (files.length > 0) {
+                    const firstItem = filesList.querySelector('.test-file-item');
+                    if (firstItem) {
+                        firstItem.click();
+                    }
+                }
+            } catch (error) {
+                console.error('테스트 파일 로드 오류:', error);
+                document.getElementById('test-files-list').innerHTML = '<div style="padding: 12px; color: var(--error); text-align: center;">오류 발생</div>';
+            }
+        }
+
+        // 테스트 결과 데이터 로드
+        async function loadTestResultsData(fileId) {
+            try {
+                const resultsList = document.getElementById('test-results-list');
+                resultsList.innerHTML = '<div style="padding: 24px; color: var(--text-secondary); text-align: center;">로드 중...</div>';
+
+                const { data: results, error } = await supabase
+                    .from('test_results')
+                    .select('*')
+                    .eq('file_id', fileId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!results || results.length === 0) {
+                    resultsList.innerHTML = '<div style="padding: 24px; color: var(--text-secondary); text-align: center;">응시 기록이 없습니다</div>';
+                    return;
+                }
+
+                // 결과 렌더링
+                const html = results.map(result => `
+                    <div style="padding: 12px; background: var(--surface-dim); border-radius: 8px; margin-bottom: 12px; border-left: 4px solid ${result.score === 100 ? 'var(--success)' : 'var(--outline-variant)'};">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
+                            ${escapeHtml(result.tester_name)}
+                            ${result.score === 100 ? '<span style="display: inline-block; background: var(--success); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 8px;">만점</span>' : ''}
+                        </div>
+                        <div style="font-size: 18px; font-weight: 700; color: ${result.score === 100 ? 'var(--success)' : 'var(--primary)'}; margin-bottom: 4px;">
+                            ${result.score}점
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            ${formatDateForResults(result.created_at)}
+                        </div>
+                    </div>
+                `).join('');
+
+                resultsList.innerHTML = html;
+            } catch (error) {
+                console.error('테스트 결과 로드 오류:', error);
+                document.getElementById('test-results-list').innerHTML = '<div style="padding: 24px; color: var(--error); text-align: center;">오류 발생</div>';
+            }
+        }
+
+        // 날짜 포맷팅 (성적 조회용)
+        function formatDateForResults(dateString) {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
 
         // Hamburger Menu Logic
@@ -4166,12 +4291,28 @@
                 });
             });
 
+            // Test Results Modal Close Button
+            const testResultsCloseBtn = document.getElementById('test-results-close-btn');
+            if (testResultsCloseBtn) {
+                testResultsCloseBtn.addEventListener('click', closeTestResultsModal);
+            }
+
             // Close modal on overlay click
             document.getElementById('settings-modal').addEventListener('click', (e) => {
                 if (e.target.id === 'settings-modal') {
                     e.target.classList.remove('active');
                 }
             });
+
+            // Close test results modal on overlay click
+            const testResultsModal = document.getElementById('test-results-modal');
+            if (testResultsModal) {
+                testResultsModal.addEventListener('click', (e) => {
+                    if (e.target.id === 'test-results-modal') {
+                        closeTestResultsModal();
+                    }
+                });
+            }
 
             // Auth Modal Functions
             function openAuthModal() {
@@ -6022,6 +6163,34 @@
                     <span class="material-icons">logout</span>
                     <span>로그아웃</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 시험 성적 조회 모달 -->
+    <div id="test-results-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 900px; width: 90%; max-height: 85vh;">
+            <div class="modal-header">
+                <h3>시험 성적 조회</h3>
+                <button class="modal-close-btn" id="test-results-close-btn">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body" style="display: flex; gap: 16px; min-height: 400px;">
+                <!-- 테스트 파일 목록 -->
+                <div style="width: 280px; display: flex; flex-direction: column; border-right: 1px solid var(--outline-variant);">
+                    <div style="font-weight: 600; margin-bottom: 12px; padding-right: 12px;">테스트 파일</div>
+                    <div id="test-files-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+                        <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
+                    </div>
+                </div>
+                <!-- 응시 현황 -->
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <div style="font-weight: 600; margin-bottom: 12px;">응시 현황</div>
+                    <div id="test-results-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+                        <div style="color: var(--text-secondary); text-align: center; padding: 24px;">파일을 선택해주세요</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
