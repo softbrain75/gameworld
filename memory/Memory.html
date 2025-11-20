@@ -3259,6 +3259,7 @@
                     // 2. 캐시가 없으면 Supabase에서 가져오기 (로딩 표시)
                     const loadingOverlay = document.getElementById('loadingOverlay');
                     loadingOverlay.classList.add('active');
+
                     // Get file metadata
                     const { data: fileData, error: fileError } = await supabase
                         .from('study_materials')
