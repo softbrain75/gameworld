@@ -3392,23 +3392,35 @@
                 });
             }
 
-            // 공개 파일 설정 (추후 구현)
+            // 공개 파일 설정
             if (publicFilesBtn) {
-                publicFilesBtn.addEventListener('click', () => {
-                    console.log('📁 공개 파일 설정 (추후 구현)');
+                publicFilesBtn.addEventListener('click', async () => {
+                    console.log('📁 공개 파일 설정');
                     closeMypagePopup();
-                    alert('공개 파일 설정은 준비 중입니다.');
+                    await loadPublicFilesList();
+                    document.getElementById('public-files-modal').style.display = 'flex';
                 });
             }
 
-            // 공유 파일 설정 (추후 구현)
+            // 공유 파일 설정
             if (sharedFilesBtn) {
-                sharedFilesBtn.addEventListener('click', () => {
-                    console.log('🔗 공유 파일 설정 (추후 구현)');
+                sharedFilesBtn.addEventListener('click', async () => {
+                    console.log('🔗 공유 파일 설정');
                     closeMypagePopup();
-                    alert('공유 파일 설정은 준비 중입니다.');
+                    await loadSharedFilesList();
+                    document.getElementById('shared-files-modal').style.display = 'flex';
                 });
             }
+
+            // 공개 파일 모달 닫기
+            document.getElementById('public-files-close-btn').addEventListener('click', () => {
+                document.getElementById('public-files-modal').style.display = 'none';
+            });
+
+            // 공유 파일 모달 닫기
+            document.getElementById('shared-files-close-btn').addEventListener('click', () => {
+                document.getElementById('shared-files-modal').style.display = 'none';
+            });
 
             // 시험 파일 성적 조회
             if (testResultsBtn) {
@@ -3959,6 +3971,142 @@
                 } catch (error) {
                     console.error('공개 파일 로드 실패:', error);
                     publicFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일 로드 실패</div>';
+                }
+            };
+
+            // 공개 파일 설정 목록 로드
+            window.loadPublicFilesList = async function() {
+                const publicFilesList = document.getElementById('public-files-list');
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        publicFilesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">로그인이 필요합니다</div>';
+                        return;
+                    }
+
+                    const { data, error } = await supabase
+                        .from('study_materials')
+                        .select('id, title, is_public')
+                        .eq('owner_id', user.id)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    if (!data || data.length === 0) {
+                        publicFilesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">파일이 없습니다</div>';
+                        return;
+                    }
+
+                    // 파일 목록 표시 (공개/비공개 토글 포함)
+                    publicFilesList.innerHTML = data.map(file => `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--outline-variant);">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(file.title)}</div>
+                            </div>
+                            <button class="public-toggle-btn" data-file-id="${file.id}" style="margin-left: 12px; padding: 6px 12px; border: 1px solid var(--outline); border-radius: 4px; background: ${file.is_public ? 'var(--primary)' : 'var(--surface)'}; color: ${file.is_public ? 'white' : 'var(--text-primary)'}; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s ease; white-space: nowrap;">
+                                ${file.is_public ? '공개 중' : '비공개'}
+                            </button>
+                        </div>
+                    `).join('');
+
+                    // 토글 버튼 이벤트
+                    document.querySelectorAll('.public-toggle-btn').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            const fileId = btn.getAttribute('data-file-id');
+                            const currentStatus = btn.textContent.includes('공개');
+                            await togglePublicStatus(fileId, !currentStatus);
+                            await loadPublicFilesList(); // 목록 새로고침
+                        });
+                    });
+
+                    console.log('✅ 공개 파일 설정 목록 로드 완료:', data.length + '개');
+                } catch (error) {
+                    console.error('공개 파일 설정 목록 로드 실패:', error);
+                    publicFilesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">파일 로드 실패</div>';
+                }
+            };
+
+            // 공유 파일 설정 목록 로드
+            window.loadSharedFilesList = async function() {
+                const sharedFilesList = document.getElementById('shared-files-list');
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        sharedFilesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">로그인이 필요합니다</div>';
+                        return;
+                    }
+
+                    const { data, error } = await supabase
+                        .from('study_materials')
+                        .select('id, title, is_shared')
+                        .eq('owner_id', user.id)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    if (!data || data.length === 0) {
+                        sharedFilesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">파일이 없습니다</div>';
+                        return;
+                    }
+
+                    // 파일 목록 표시 (공유/비공유 토글 포함)
+                    sharedFilesList.innerHTML = data.map(file => `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--outline-variant);">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 500; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(file.title)}</div>
+                            </div>
+                            <button class="shared-toggle-btn" data-file-id="${file.id}" style="margin-left: 12px; padding: 6px 12px; border: 1px solid var(--outline); border-radius: 4px; background: ${file.is_shared ? 'var(--primary)' : 'var(--surface)'}; color: ${file.is_shared ? 'white' : 'var(--text-primary)'}; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s ease; white-space: nowrap;">
+                                ${file.is_shared ? '공유 중' : '미공유'}
+                            </button>
+                        </div>
+                    `).join('');
+
+                    // 토글 버튼 이벤트
+                    document.querySelectorAll('.shared-toggle-btn').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            const fileId = btn.getAttribute('data-file-id');
+                            const currentStatus = btn.textContent.includes('공유');
+                            await toggleSharedStatus(fileId, !currentStatus);
+                            await loadSharedFilesList(); // 목록 새로고침
+                        });
+                    });
+
+                    console.log('✅ 공유 파일 설정 목록 로드 완료:', data.length + '개');
+                } catch (error) {
+                    console.error('공유 파일 설정 목록 로드 실패:', error);
+                    sharedFilesList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">파일 로드 실패</div>';
+                }
+            };
+
+            // 공개 상태 토글
+            window.togglePublicStatus = async function(fileId, isPublic) {
+                try {
+                    const { error } = await supabase
+                        .from('study_materials')
+                        .update({ is_public: isPublic })
+                        .eq('id', fileId);
+
+                    if (error) throw error;
+                    console.log('✅ 파일 공개 상태 변경:', isPublic ? '공개' : '비공개');
+                } catch (error) {
+                    console.error('파일 공개 상태 변경 실패:', error);
+                    alert('파일 설정 변경에 실패했습니다.');
+                }
+            };
+
+            // 공유 상태 토글
+            window.toggleSharedStatus = async function(fileId, isShared) {
+                try {
+                    const { error } = await supabase
+                        .from('study_materials')
+                        .update({ is_shared: isShared })
+                        .eq('id', fileId);
+
+                    if (error) throw error;
+                    console.log('✅ 파일 공유 상태 변경:', isShared ? '공유' : '미공유');
+                } catch (error) {
+                    console.error('파일 공유 상태 변경 실패:', error);
+                    alert('파일 설정 변경에 실패했습니다.');
                 }
             };
 
@@ -6543,6 +6691,48 @@
         <!-- 본문 - 아코디언 형태 -->
         <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
             <div id="test-accordion-container" style="padding: 8px;">
+                <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 공개 파일 설정 모달 -->
+    <div id="public-files-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
+        <!-- 헤더 -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--outline-variant); flex-shrink: 0; height: 60px;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex: 1;">
+                <span class="material-icons" style="font-size: 24px; color: var(--primary);">public</span>
+                <span>공개 파일 설정</span>
+            </h3>
+            <button id="public-files-close-btn" style="background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                <span class="material-icons" style="font-size: 24px;">close</span>
+            </button>
+        </div>
+
+        <!-- 본문 - 리스트 형태 -->
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+            <div id="public-files-list" style="padding: 8px;">
+                <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 공유 파일 설정 모달 -->
+    <div id="shared-files-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
+        <!-- 헤더 -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--outline-variant); flex-shrink: 0; height: 60px;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex: 1;">
+                <span class="material-icons" style="font-size: 24px; color: var(--primary);">share</span>
+                <span>공유 파일 설정</span>
+            </h3>
+            <button id="shared-files-close-btn" style="background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                <span class="material-icons" style="font-size: 24px;">close</span>
+            </button>
+        </div>
+
+        <!-- 본문 - 리스트 형태 -->
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+            <div id="shared-files-list" style="padding: 8px;">
                 <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
             </div>
         </div>
