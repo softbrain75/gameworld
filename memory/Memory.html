@@ -2637,6 +2637,9 @@
                         }
                     } else {
                         // create 모드: 새 파일 생성
+                        const publicCheckbox = document.getElementById('file-public-checkbox');
+                        const isPublic = publicCheckbox ? publicCheckbox.checked : false;
+
                         const { error: dbError } = await supabase
                             .from('study_materials')
                             .insert({
@@ -2644,6 +2647,7 @@
                                 user_id: user.id,
                                 title: fileName,
                                 file_path: filePath,
+                                is_public: isPublic,
                                 view_count: 0,
                                 created_at: new Date().toISOString(),
                                 updated_at: new Date().toISOString()
