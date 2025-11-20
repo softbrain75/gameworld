@@ -103,17 +103,22 @@
             background: rgba(103, 80, 164, 0.2);
         }
 
+        /* 햄버거 버튼 - 기본은 표시, 메뉴 열렸을 때 숨김 */
+        #hamburger-btn {
+            display: flex;
+        }
+
+        .side-menu.open #hamburger-btn {
+            display: none;
+        }
+
         /* 닫기 버튼 - 메뉴 열렸을 때만 표시 */
-        .close-menu-btn {
+        #close-menu-btn {
             display: none !important;
         }
 
-        .side-menu.open .close-menu-btn {
+        .side-menu.open #close-menu-btn {
             display: flex !important;
-        }
-
-        .side-menu.open .hamburger-btn:not(.close-menu-btn) {
-            display: none;
         }
 
         /* Side Menu */
@@ -6574,7 +6579,7 @@
             <button class="hamburger-btn" id="hamburger-btn">
                 <span class="material-icons">menu</span>
             </button>
-            <button class="hamburger-btn close-menu-btn" id="close-menu-btn" style="display: none;">
+            <button class="hamburger-btn" id="close-menu-btn">
                 <span class="material-icons">draw</span>
             </button>
         </div>
