@@ -4324,16 +4324,14 @@
 
             // 로그인 버튼 클릭 이벤트
             document.getElementById('login-btn').addEventListener('click', () => {
-                openAuthModal();
-                // 로그인 탭으로 전환
-                switchAuthTab('login', { target: document.querySelectorAll('.auth-tab')[0] });
+                // index.html로 리다이렉트 (로그인 탭)
+                window.location.href = `../index.html?redirect=memory/Memory.html`;
             });
 
             // 회원가입 버튼 클릭 이벤트
             document.getElementById('signup-btn').addEventListener('click', () => {
-                openAuthModal();
-                // 회원가입 탭으로 전환
-                switchAuthTab('signup', { target: document.querySelectorAll('.auth-tab')[1] });
+                // index.html로 리다이렉트 (회원가입 탭)
+                window.location.href = `../index.html?redirect=memory/Memory.html&tab=signup`;
             });
 
             // Share button click event
