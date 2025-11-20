@@ -2113,7 +2113,7 @@
                         </div>
                     </div>
 
-                    <div style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; background: var(--surface-dim); border-radius: 8px; margin-bottom: 12px;">
+                    <div id="public-setting-container" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; background: var(--surface-dim); border-radius: 8px; margin-bottom: 12px;">
                         <input type="checkbox" id="file-public-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
                         <label for="file-public-checkbox" style="cursor: pointer; font-size: 14px; color: var(--text-primary); flex: 1; margin: 0;">
                             공개 설정
@@ -2224,9 +2224,17 @@
                 fileNameInput.disabled = false;
                 // "파일 추가" 버튼으로 들어온 경우는 editor-file-id를 'local'로 유지, 아니면 초기화
                 const fileIdElement = document.getElementById('editor-file-id');
-                if (fileIdElement.textContent !== 'local') {
+                const isLocalFile = fileIdElement.textContent === 'local';
+                if (!isLocalFile) {
                     fileIdElement.textContent = '';
                 }
+
+                // 로컬 파일이면 공개 설정 숨김, 아니면 표시 (Supabase 파일)
+                const publicSettingContainer = document.getElementById('public-setting-container');
+                if (publicSettingContainer) {
+                    publicSettingContainer.style.display = isLocalFile ? 'none' : 'flex';
+                }
+
                 // 공개 여부 체크박스 리셋
                 const publicCheckbox = document.getElementById('file-public-checkbox');
                 if (publicCheckbox) {
@@ -3170,6 +3178,12 @@
                     // Track original filename for change detection
                     previousFileName = fileData.title;
 
+                    // 공개 설정 표시 (Supabase 파일이므로 공개 설정 가능)
+                    const publicSettingContainer = document.getElementById('public-setting-container');
+                    if (publicSettingContainer) {
+                        publicSettingContainer.style.display = 'flex';
+                    }
+
                     // 공개 여부 체크박스 업데이트
                     const publicCheckbox = document.getElementById('file-public-checkbox');
                     if (publicCheckbox) {
@@ -3196,6 +3210,11 @@
                         document.getElementById('editor-file-id').textContent = '';
                         // Track original filename for change detection
                         previousFileName = fileData.name;
+                        // 로컬 파일이므로 공개 설정 숨김
+                        const publicSettingContainer = document.getElementById('public-setting-container');
+                        if (publicSettingContainer) {
+                            publicSettingContainer.style.display = 'none';
+                        }
                         switchMode('edit', fileData.name);
                     }
                 } catch (error) {
