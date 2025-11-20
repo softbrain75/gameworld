@@ -4322,6 +4322,20 @@
                 updateDifficultyUI();
             });
 
+            // 로그인 버튼 클릭 이벤트
+            document.getElementById('login-btn').addEventListener('click', () => {
+                openAuthModal();
+                // 로그인 탭으로 전환
+                switchAuthTab('login', { target: document.querySelectorAll('.auth-tab')[0] });
+            });
+
+            // 회원가입 버튼 클릭 이벤트
+            document.getElementById('signup-btn').addEventListener('click', () => {
+                openAuthModal();
+                // 회원가입 탭으로 전환
+                switchAuthTab('signup', { target: document.querySelectorAll('.auth-tab')[1] });
+            });
+
             // Share button click event
             document.getElementById('share-btn').addEventListener('click', async () => {
                 console.log('📤 공유 버튼 클릭됨');
@@ -6455,13 +6469,17 @@
                 <span class="material-icons">settings</span>
                 <span>설정</span>
             </button>
-            <button class="menu-bottom-item" id="mypage-btn">
-                <span class="material-icons">person</span>
-                <span>마이페이지</span>
+            <button class="menu-bottom-item" id="login-btn">
+                <span class="material-icons">login</span>
+                <span>로그인</span>
             </button>
-            <button class="menu-bottom-item" id="signup-btn" style="display: none;">
+            <button class="menu-bottom-item" id="signup-btn">
                 <span class="material-icons">person_add</span>
                 <span>회원가입</span>
+            </button>
+            <button class="menu-bottom-item" id="mypage-btn" style="display: none;">
+                <span class="material-icons">person</span>
+                <span>마이페이지</span>
             </button>
         </div>
     </div>
