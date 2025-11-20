@@ -103,6 +103,19 @@
             background: rgba(103, 80, 164, 0.2);
         }
 
+        /* 닫기 버튼 - 메뉴 열렸을 때만 표시 */
+        .close-menu-btn {
+            display: none !important;
+        }
+
+        .side-menu.open .close-menu-btn {
+            display: flex !important;
+        }
+
+        .side-menu.open .hamburger-btn:not(.close-menu-btn) {
+            display: none;
+        }
+
         /* Side Menu */
         .side-menu {
             position: fixed;
@@ -3819,6 +3832,12 @@
 
             hamburgerBtn.addEventListener('click', toggleMenu);
 
+            // 닫기 버튼 클릭 이벤트
+            const closeMenuBtn = document.getElementById('close-menu-btn');
+            if (closeMenuBtn) {
+                closeMenuBtn.addEventListener('click', closeMenu);
+            }
+
             // Load saved game mode from localStorage (Default: TTV mode)
             const savedMode = localStorage.getItem('memory_game_mode') || 'bold';
 
@@ -6554,6 +6573,9 @@
         <div class="menu-toggle-area">
             <button class="hamburger-btn" id="hamburger-btn">
                 <span class="material-icons">menu</span>
+            </button>
+            <button class="hamburger-btn close-menu-btn" id="close-menu-btn" style="display: none;">
+                <span class="material-icons">draw</span>
             </button>
         </div>
 
