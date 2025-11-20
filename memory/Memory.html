@@ -3650,19 +3650,13 @@
                 // 최고점수 기준으로 정렬 (내림차순)
                 const sortedUsers = Object.values(groupedByName).sort((a, b) => b.maxScore - a.maxScore);
 
-                // 결과 렌더링
+                // 결과 렌더링 - 한 줄 형식
                 const html = sortedUsers.map(user => `
-                    <div class="accordion-result-item ${user.isPerfect ? 'perfect' : ''}">
-                        <div class="accordion-result-name">
-                            ${escapeHtml(user.name)}
-                        </div>
-                        <div class="accordion-result-score ${user.isPerfect ? 'perfect' : ''}">
-                            ${user.maxScore}점
-                        </div>
-                        <div class="accordion-result-meta">
-                            ${user.isPerfect ? '<span class="perfect-badge">만점</span>' : ''}
-                            <span style="white-space: nowrap;">총 ${user.attempts}회</span>
-                        </div>
+                    <div class="accordion-result-item ${user.isPerfect ? 'perfect' : ''}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 8px;">
+                        <span style="font-weight: 600; color: var(--text-primary);">${escapeHtml(user.name)}</span>
+                        <span style="font-weight: 700; color: ${user.isPerfect ? 'var(--success)' : 'var(--primary)'}; margin: 0 12px;">${user.maxScore}점</span>
+                        <span style="font-size: 12px; color: var(--text-secondary); white-space: nowrap;">총 ${user.attempts}회</span>
+                        ${user.isPerfect ? '<span class="perfect-badge" style="margin-left: 8px;">만점</span>' : ''}
                     </div>
                 `).join('');
 
