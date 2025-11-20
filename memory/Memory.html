@@ -3639,6 +3639,7 @@
         let correctCount = 0;
         let score = 0;
         let totalBlanks = 0;
+        let originalTotalBlanks = 0; // 원래 전체 문제 개수 (틀린 것만 다시 할 때도 유지)
         let hintCount = 3;
         let startTime = 0;
         let highFrequencyWords = new Set();
@@ -3805,7 +3806,11 @@
             }
 
             totalBlanks = blanks.length;
-            console.log('✅ blanks 계산 완료 - blanks:', blanks);
+            // 틀린 것만 다시 할 때를 제외하고 원래 전체 문제 개수 설정
+            if (!wrongOnly) {
+                originalTotalBlanks = blanks.length;
+            }
+            console.log('✅ blanks 계산 완료 - blanks:', blanks, 'originalTotalBlanks:', originalTotalBlanks);
             console.log('updateUI 호출 직전');
             updateUI();
             console.log('updateUI 호출 직후');
@@ -4483,9 +4488,9 @@
                 document.getElementById('wrong-retry-btn').style.display = 'none';
 
                 // 모든 문제를 다 맞은 경우: 보너스 포인트 추가 + 축하 애니메이션
-                // 보너스 = 맞은 개수 * 100
-                bonusPoints = correctAnswers.length * 100;
-                console.log('🎉 완벽한 정답! 보너스 포인트:', bonusPoints);
+                // 보너스 = 원래 전체 문제 개수 * 100
+                bonusPoints = originalTotalBlanks * 100;
+                console.log('🎉 완벽한 정답! 보너스 포인트:', bonusPoints, '(originalTotalBlanks:', originalTotalBlanks, ')');
 
                 // 최종 점수 화면에 포인트 표시
                 document.getElementById('final-points').textContent = `+${bonusPoints.toLocaleString('ko-KR')} 포인트`;
