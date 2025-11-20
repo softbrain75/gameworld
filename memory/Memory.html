@@ -2389,23 +2389,8 @@
                     localStorage.setItem('local_md_files', JSON.stringify(localFiles));
                     console.log('✅ 로컬 파일에 저장됨:', fileName);
 
-                    // 로컬 파일 컨테이너 직접 업데이트
-                    const localFilesContainer = document.getElementById('local-files');
-                    if (localFilesContainer) {
-                        localFilesContainer.innerHTML = localFiles.map((file, index) => `
-                            <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
-                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
-                                    <span class="material-icons">description</span>
-                                    <span class="file-name">${escapeHtml(file.name)}</span>
-                                </div>
-                                <div class="file-actions" style="opacity: 1;">
-                                    <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
-                                        <span class="material-icons">settings</span>
-                                    </button>
-                                </div>
-                            </div>
-                        `).join('');
-                    }
+                    // loadLocalFiles() 호출로 메뉴 갱신 (파일 추가 버튼 포함)
+                    loadLocalFiles();
 
                     const originalText = saveBtn.textContent;
                     saveBtn.textContent = '✓ 저장됨';
@@ -2445,23 +2430,8 @@
                     localStorage.setItem('local_md_files', JSON.stringify(localFiles));
                     console.log('✅ 로컬 파일에 저장됨 (로그인 상태):', fileName);
 
-                    // 좌측 메뉴 갱신
-                    const localFilesContainer = document.getElementById('local-files');
-                    if (localFilesContainer) {
-                        localFilesContainer.innerHTML = localFiles.map((file, index) => `
-                            <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
-                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
-                                    <span class="material-icons">description</span>
-                                    <span class="file-name">${escapeHtml(file.name)}</span>
-                                </div>
-                                <div class="file-actions" style="opacity: 1;">
-                                    <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
-                                        <span class="material-icons">settings</span>
-                                    </button>
-                                </div>
-                            </div>
-                        `).join('');
-                    }
+                    // loadLocalFiles() 호출로 메뉴 갱신 (파일 추가 버튼 포함)
+                    loadLocalFiles();
 
                     const originalText = saveBtn.textContent;
                     saveBtn.textContent = '✓ 저장됨';
@@ -3023,19 +2993,24 @@
                 if (savedFiles.length === 0) {
                     localFilesContainer.innerHTML = addButton;
                 } else {
-                    const fileItems = savedFiles.map((file, index) => `
-                        <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
-                                <span class="material-icons">description</span>
-                                <span class="file-name">${escapeHtml(file.name)}</span>
+                    // 최신 파일이 가장 위에 나타나도록 역순 정렬
+                    const fileItems = savedFiles.reverse().map((file, displayIndex) => {
+                        // 원본 배열에서의 인덱스 계산 (역순이므로)
+                        const originalIndex = savedFiles.length - 1 - displayIndex;
+                        return `
+                            <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${originalIndex}, '${file.name.replace(/'/g, "\\'")}')">
+                                    <span class="material-icons">description</span>
+                                    <span class="file-name">${escapeHtml(file.name)}</span>
+                                </div>
+                                <div class="file-actions" style="opacity: 1;">
+                                    <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${originalIndex})" title="편집">
+                                        <span class="material-icons">settings</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="file-actions" style="opacity: 1;">
-                                <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
-                                    <span class="material-icons">settings</span>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
 
                     localFilesContainer.innerHTML = addButton + fileItems;
                 }
