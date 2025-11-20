@@ -2181,6 +2181,23 @@
             }
         }
 
+        /* Test Results Modal - File Panel Styles */
+        #test-files-panel {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--outline-variant);
+            flex-shrink: 0;
+            transition: width 0.3s ease, margin-left 0.3s ease;
+            background: white;
+        }
+
+        #test-files-panel.collapsed {
+            width: 0;
+            overflow: hidden;
+            border-right: none;
+        }
+
     </style>
 
     <!-- Supabase -->
@@ -3314,15 +3331,7 @@
         // 파일 목록 토글
         function toggleFileList() {
             const panel = document.getElementById('test-files-panel');
-            const isHidden = panel.style.display === 'none';
-
-            if (isHidden) {
-                panel.style.display = 'flex';
-                panel.style.width = '280px';
-            } else {
-                panel.style.display = 'none';
-                panel.style.width = '0';
-            }
+            panel.classList.toggle('collapsed');
         }
 
         // 테스트 파일 로드 (성적 조회용)
@@ -6243,7 +6252,7 @@
         <!-- 본문 -->
         <div style="display: flex; flex: 1; min-height: 0;">
             <!-- 테스트 파일 목록 (접기/펼치기 가능) -->
-            <div id="test-files-panel" style="width: 280px; display: flex; flex-direction: column; border-right: 1px solid var(--outline-variant); flex-shrink: 0; transition: all 0.3s ease; background: white;">
+            <div id="test-files-panel">
                 <div style="padding: 12px 16px; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--surface-dim);">테스트 파일</div>
                 <div id="test-files-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px;">
                     <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
