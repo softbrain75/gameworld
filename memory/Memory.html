@@ -1930,6 +1930,104 @@
         .success-message.show {
             display: block;
         }
+
+        /* Test Name Modal */
+        .test-name-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2600;
+        }
+
+        .test-name-modal.active {
+            display: flex;
+        }
+
+        .test-name-content {
+            background: white;
+            border-radius: 8px;
+            padding: 32px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.24);
+        }
+
+        .test-name-header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .test-name-header h2 {
+            margin: 0 0 12px 0;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .test-name-header p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #testNameInput {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--outline-variant);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Noto Sans KR';
+            box-sizing: border-box;
+            margin: 20px 0;
+            transition: border-color 0.2s;
+        }
+
+        #testNameInput:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .test-name-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .test-name-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Noto Sans KR';
+        }
+
+        #testNameCancel {
+            background: #f5f5f5;
+            color: #212121;
+        }
+
+        #testNameCancel:hover {
+            background: #e0e0e0;
+        }
+
+        #testNameStart {
+            background: var(--primary);
+            color: white;
+        }
+
+        #testNameStart:hover {
+            background: var(--primary-dark);
+        }
     </style>
 
     <!-- Supabase -->
@@ -4901,6 +4999,32 @@
                 }
             }
 
+            // Save test result if in test mode
+            if (window.currentTestTesterName && window.currentTestFileId) {
+                try {
+                    const { error: testError } = await supabase
+                        .from('test_results')
+                        .insert({
+                            file_id: window.currentTestFileId,
+                            tester_name: window.currentTestTesterName,
+                            score: finalScore,
+                            created_at: new Date().toISOString()
+                        });
+
+                    if (testError) {
+                        console.error('테스트 결과 저장 실패:', testError);
+                    } else {
+                        console.log('✅ 테스트 결과 저장 완료:', {
+                            fileName: currentGameFileName,
+                            testerName: window.currentTestTesterName,
+                            score: finalScore
+                        });
+                    }
+                } catch (error) {
+                    console.error('테스트 결과 저장 중 오류:', error);
+                }
+            }
+
             showGameScreen('gameover'); // 게임 컨트롤(Hint + Submit) 자동 숨김
         }
 
@@ -5296,12 +5420,97 @@
             startGame(true);
         });
 
+        // Test Name Modal Event Listeners
+        document.getElementById('testNameCancel').addEventListener('click', () => {
+            const testNameModal = document.getElementById('testNameModal');
+            testNameModal.classList.remove('active');
+            window.currentTestToken = null;
+            window.currentTestFileId = null;
+            window.currentTestFileData = null;
+            // Redirect to home
+            window.location.href = window.location.pathname;
+        });
+
+        document.getElementById('testNameStart').addEventListener('click', async () => {
+            const testNameInput = document.getElementById('testNameInput');
+            const testerName = testNameInput.value.trim();
+
+            if (!testerName) {
+                alert('이름을 입력해주세요');
+                testNameInput.focus();
+                return;
+            }
+
+            // Store tester name globally
+            window.currentTestTesterName = testerName;
+
+            // Hide modal and start game
+            const testNameModal = document.getElementById('testNameModal');
+            testNameModal.classList.remove('active');
+
+            // Clear input
+            testNameInput.value = '';
+
+            // Load and play the test file
+            console.log('📝 테스트 시작 - 응시자:', testerName);
+            await window.playGame(window.currentTestFileId, window.currentTestFileData.title);
+        });
+
+        // Allow Enter key to submit test name
+        document.getElementById('testNameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('testNameStart').click();
+            }
+        });
+
+        // Global variables for test sharing
+        window.currentTestToken = null;
+        window.currentTestFileId = null;
+        window.currentTestTesterName = null;
+        window.currentTestFileData = null;
+
         // Handle shared file access via URL parameter
         window.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
             const shareToken = params.get('share');
+            const testToken = params.get('test');
 
-            if (shareToken) {
+            if (testToken) {
+                console.log('📝 테스트 링크로 접속됨 - testToken:', testToken);
+
+                try {
+                    // Supabase에서 테스트 파일 찾기
+                    const { data: testFile, error } = await supabase
+                        .from('study_materials')
+                        .select('*')
+                        .eq('test_token', testToken)
+                        .single();
+
+                    if (error || !testFile) {
+                        console.error('테스트 파일을 찾을 수 없습니다:', error);
+                        alert('존재하지 않거나 더 이상 사용 가능하지 않은 테스트입니다.');
+                        return;
+                    }
+
+                    console.log('✅ 테스트 파일 찾음:', testFile.title);
+
+                    // Store test info globally
+                    window.currentTestToken = testToken;
+                    window.currentTestFileId = testFile.id;
+                    window.currentTestFileData = testFile;
+
+                    // Show test name input modal
+                    const testNameModal = document.getElementById('testNameModal');
+                    testNameModal.classList.add('active');
+
+                    // Focus on input field
+                    const testNameInput = document.getElementById('testNameInput');
+                    setTimeout(() => testNameInput.focus(), 100);
+                } catch (error) {
+                    console.error('테스트 파일 로드 중 오류:', error);
+                    alert('파일을 로드하는 중 오류가 발생했습니다.');
+                }
+            } else if (shareToken) {
                 console.log('🔗 공유 링크로 접속됨 - shareToken:', shareToken);
 
                 try {
@@ -5331,6 +5540,31 @@
         });
 
     </script>
+
+    <!-- 테스트 이름 입력 팝업 -->
+    <div id="testNameModal" class="test-name-modal" style="display: none;">
+        <div class="test-name-content">
+            <div class="test-name-header">
+                <h2>📝 테스트 시작</h2>
+                <p>이름을 입력하고 테스트를 시작하세요</p>
+            </div>
+            <input type="text" id="testNameInput" placeholder="이름을 입력하세요" maxlength="50" style="
+                width: 100%;
+                padding: 12px 16px;
+                border: 2px solid var(--outline-variant);
+                border-radius: 8px;
+                font-size: 16px;
+                font-family: 'Noto Sans KR';
+                box-sizing: border-box;
+                margin: 20px 0;
+                transition: border-color 0.2s;
+            ">
+            <div class="test-name-buttons">
+                <button id="testNameCancel" class="btn-back" style="flex: 1;">취소</button>
+                <button id="testNameStart" class="btn-save" style="flex: 1;">시작</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Auth Modal Overlay -->
     <div id="authModalOverlay" class="auth-modal-overlay">
