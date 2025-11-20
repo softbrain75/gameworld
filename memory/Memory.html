@@ -3196,6 +3196,107 @@
         setVh();
         window.addEventListener('resize', setVh);
 
+        // ========================================
+        // MyPage Popup Functions (before DOMContentLoaded)
+        // ========================================
+        async function openMypagePopup() {
+            const popup = document.getElementById('mypage-popup');
+            const usernameEl = document.getElementById('mypage-username');
+
+            // 사용자명 업데이트
+            if (window.currentProfile && window.currentProfile.username) {
+                usernameEl.textContent = window.currentProfile.username;
+            }
+
+            popup.classList.add('active');
+        }
+
+        function closeMypagePopup() {
+            const popup = document.getElementById('mypage-popup');
+            popup.classList.remove('active');
+        }
+
+        // MyPage Popup Event Listeners
+        function initMypagePopupListeners() {
+            const popup = document.getElementById('mypage-popup');
+            const mypageBtn = document.getElementById('mypage-btn');
+            const closeBtn = document.getElementById('mypage-close-btn');
+            const publicFilesBtn = document.getElementById('mypage-public-files-btn');
+            const sharedFilesBtn = document.getElementById('mypage-shared-files-btn');
+            const testResultsBtn = document.getElementById('mypage-test-results-btn');
+            const logoutBtn = document.getElementById('mypage-logout-btn');
+
+            // 마이페이지 버튼 클릭으로 팝업 열기
+            if (mypageBtn) {
+                mypageBtn.addEventListener('click', () => {
+                    openMypagePopup();
+                });
+            }
+
+            // 팝업 외부 클릭으로 닫기
+            if (popup) {
+                popup.addEventListener('click', (e) => {
+                    if (e.target === popup) {
+                        closeMypagePopup();
+                    }
+                });
+            }
+
+            // 닫기 버튼
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    closeMypagePopup();
+                });
+            }
+
+            // 공개 파일 설정 (추후 구현)
+            if (publicFilesBtn) {
+                publicFilesBtn.addEventListener('click', () => {
+                    console.log('📁 공개 파일 설정 (추후 구현)');
+                    closeMypagePopup();
+                    alert('공개 파일 설정은 준비 중입니다.');
+                });
+            }
+
+            // 공유 파일 설정 (추후 구현)
+            if (sharedFilesBtn) {
+                sharedFilesBtn.addEventListener('click', () => {
+                    console.log('🔗 공유 파일 설정 (추후 구현)');
+                    closeMypagePopup();
+                    alert('공유 파일 설정은 준비 중입니다.');
+                });
+            }
+
+            // 시험 파일 성적 조회
+            if (testResultsBtn) {
+                testResultsBtn.addEventListener('click', () => {
+                    console.log('📊 시험 파일 성적 조회');
+                    closeMypagePopup();
+                    showTestResultsModal();
+                });
+            }
+
+            // 로그아웃
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    if (confirm('로그아웃 하시겠습니까?')) {
+                        try {
+                            await supabase.auth.signOut();
+                            window.location.href = window.location.pathname;
+                        } catch (error) {
+                            console.error('로그아웃 오류:', error);
+                            alert('로그아웃 중 오류가 발생했습니다.');
+                        }
+                    }
+                });
+            }
+        }
+
+        // 시험 파일 성적 조회 모달 (추후 구현)
+        function showTestResultsModal() {
+            alert('시험 파일 성적 조회는 다음 단계에서 구현됩니다.');
+        }
+
         // Hamburger Menu Logic
         document.addEventListener('DOMContentLoaded', function() {
             const hamburgerBtn = document.getElementById('hamburger-btn');
@@ -4196,9 +4297,6 @@
                 if (user) {
                     // 로그인 상태: 마이페이지 버튼 표시
                     mypageBtn.style.display = 'flex';
-                    mypageBtn.onclick = () => {
-                        openMypagePopup();
-                    };
                     signupBtn.style.display = 'none';
                 } else {
                     // 로그아웃 상태: 로그인 페이지로 리다이렉트
@@ -5588,97 +5686,6 @@
             console.log('현재 correctAnswers:', correctAnswers);
             startGame(true);
         });
-
-        // MyPage Popup Functions
-        async function openMypagePopup() {
-            const popup = document.getElementById('mypage-popup');
-            const usernameEl = document.getElementById('mypage-username');
-
-            // 사용자명 업데이트
-            if (window.currentProfile && window.currentProfile.username) {
-                usernameEl.textContent = window.currentProfile.username;
-            }
-
-            popup.classList.add('active');
-        }
-
-        function closeMypagePopup() {
-            const popup = document.getElementById('mypage-popup');
-            popup.classList.remove('active');
-        }
-
-        // MyPage Popup Event Listeners
-        function initMypagePopupListeners() {
-            const popup = document.getElementById('mypage-popup');
-            const closeBtn = document.getElementById('mypage-close-btn');
-            const publicFilesBtn = document.getElementById('mypage-public-files-btn');
-            const sharedFilesBtn = document.getElementById('mypage-shared-files-btn');
-            const testResultsBtn = document.getElementById('mypage-test-results-btn');
-            const logoutBtn = document.getElementById('mypage-logout-btn');
-
-            // 팝업 외부 클릭으로 닫기
-            if (popup) {
-                popup.addEventListener('click', (e) => {
-                    if (e.target === popup) {
-                        closeMypagePopup();
-                    }
-                });
-            }
-
-            // 닫기 버튼
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
-                    closeMypagePopup();
-                });
-            }
-
-            // 공개 파일 설정 (추후 구현)
-            if (publicFilesBtn) {
-                publicFilesBtn.addEventListener('click', () => {
-                    console.log('📁 공개 파일 설정 (추후 구현)');
-                    closeMypagePopup();
-                    alert('공개 파일 설정은 준비 중입니다.');
-                });
-            }
-
-            // 공유 파일 설정 (추후 구현)
-            if (sharedFilesBtn) {
-                sharedFilesBtn.addEventListener('click', () => {
-                    console.log('🔗 공유 파일 설정 (추후 구현)');
-                    closeMypagePopup();
-                    alert('공유 파일 설정은 준비 중입니다.');
-                });
-            }
-
-            // 시험 파일 성적 조회
-            if (testResultsBtn) {
-                testResultsBtn.addEventListener('click', () => {
-                    console.log('📊 시험 파일 성적 조회');
-                    closeMypagePopup();
-                    showTestResultsModal();
-                });
-            }
-
-            // 로그아웃
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async () => {
-                    if (confirm('로그아웃 하시겠습니까?')) {
-                        try {
-                            await supabase.auth.signOut();
-                            window.location.href = window.location.pathname;
-                        } catch (error) {
-                            console.error('로그아웃 오류:', error);
-                            alert('로그아웃 중 오류가 발생했습니다.');
-                        }
-                    }
-                });
-            }
-        }
-
-        // 시험 파일 성적 조회 모달 (추후 구현)
-        function showTestResultsModal() {
-            alert('시험 파일 성적 조회는 다음 단계에서 구현됩니다.');
-        }
 
         // Test Name Modal Event Listeners - initialized after DOM is ready
         function initTestNameModalListeners() {
