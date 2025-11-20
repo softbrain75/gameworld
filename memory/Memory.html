@@ -2049,18 +2049,6 @@
             flex-direction: column;
             max-height: 70vh;
             overflow-y: auto;
-            animation: slideInUp 0.3s ease-out;
-        }
-
-        @keyframes slideInUp {
-            from {
-                transform: translateY(10px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
         }
 
         .mypage-header {
@@ -3223,8 +3211,14 @@
             const popupWidth = 240;
             const popupLeft = sideMenuRect.left + (sideMenuWidth - popupWidth) / 2;
 
-            // 버튼의 위쪽에 팝업 배치 (버튼의 top에서 팝업 위쪽 12px)
-            const popupTop = btnRect.top - 12; // 버튼 바로 위 12px
+            // 먼저 display를 flex로 설정해야 height를 계산할 수 있음
+            popup.style.display = 'block';
+            const popupContent = popup.querySelector('.mypage-popup-content');
+            const popupHeight = popupContent.offsetHeight; // 팝업의 실제 높이 계산
+
+            // 버튼의 위쪽에 팝업 배치 (팝업의 height를 고려)
+            // 팝업의 아래쪽이 버튼의 top과 만나도록 배치
+            const popupTop = btnRect.top - popupHeight - 12; // 팝업 높이 + 12px 간격
 
             popup.style.left = popupLeft + 'px';
             popup.style.top = popupTop + 'px';
