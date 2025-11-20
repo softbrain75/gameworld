@@ -4072,6 +4072,9 @@
             // Initialize menu data
             loadLocalFiles();
             loadHighFrequencyWords();
+
+            // Initialize test name modal listeners
+            initTestNameModalListeners();
         });
 
         // ========================================
@@ -5420,48 +5423,59 @@
             startGame(true);
         });
 
-        // Test Name Modal Event Listeners
-        document.getElementById('testNameCancel').addEventListener('click', () => {
-            const testNameModal = document.getElementById('testNameModal');
-            testNameModal.classList.remove('active');
-            window.currentTestToken = null;
-            window.currentTestFileId = null;
-            window.currentTestFileData = null;
-            // Redirect to home
-            window.location.href = window.location.pathname;
-        });
-
-        document.getElementById('testNameStart').addEventListener('click', async () => {
+        // Test Name Modal Event Listeners - initialized after DOM is ready
+        function initTestNameModalListeners() {
+            const testNameCancel = document.getElementById('testNameCancel');
+            const testNameStart = document.getElementById('testNameStart');
             const testNameInput = document.getElementById('testNameInput');
-            const testerName = testNameInput.value.trim();
 
-            if (!testerName) {
-                alert('이름을 입력해주세요');
-                testNameInput.focus();
-                return;
+            if (testNameCancel) {
+                testNameCancel.addEventListener('click', () => {
+                    const testNameModal = document.getElementById('testNameModal');
+                    testNameModal.classList.remove('active');
+                    window.currentTestToken = null;
+                    window.currentTestFileId = null;
+                    window.currentTestFileData = null;
+                    // Redirect to home
+                    window.location.href = window.location.pathname;
+                });
             }
 
-            // Store tester name globally
-            window.currentTestTesterName = testerName;
+            if (testNameStart) {
+                testNameStart.addEventListener('click', async () => {
+                    const testerName = testNameInput.value.trim();
 
-            // Hide modal and start game
-            const testNameModal = document.getElementById('testNameModal');
-            testNameModal.classList.remove('active');
+                    if (!testerName) {
+                        alert('이름을 입력해주세요');
+                        testNameInput.focus();
+                        return;
+                    }
 
-            // Clear input
-            testNameInput.value = '';
+                    // Store tester name globally
+                    window.currentTestTesterName = testerName;
 
-            // Load and play the test file
-            console.log('📝 테스트 시작 - 응시자:', testerName);
-            await window.playGame(window.currentTestFileId, window.currentTestFileData.title);
-        });
+                    // Hide modal and start game
+                    const testNameModal = document.getElementById('testNameModal');
+                    testNameModal.classList.remove('active');
 
-        // Allow Enter key to submit test name
-        document.getElementById('testNameInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('testNameStart').click();
+                    // Clear input
+                    testNameInput.value = '';
+
+                    // Load and play the test file
+                    console.log('📝 테스트 시작 - 응시자:', testerName);
+                    await window.playGame(window.currentTestFileId, window.currentTestFileData.title);
+                });
             }
-        });
+
+            // Allow Enter key to submit test name
+            if (testNameInput) {
+                testNameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        testNameStart.click();
+                    }
+                });
+            }
+        }
 
         // Global variables for test sharing
         window.currentTestToken = null;
