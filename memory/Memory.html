@@ -2031,13 +2031,16 @@
 
         /* MyPage Popup */
         .mypage-popup {
-            position: absolute;
-            display: none;
+            position: fixed;
+            opacity: 0;
+            pointer-events: none;
             z-index: 3000;
+            transition: opacity 0.2s ease;
         }
 
         .mypage-popup.active {
-            display: block;
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .mypage-popup-content {
