@@ -5556,26 +5556,16 @@
     </script>
 
     <!-- 테스트 이름 입력 팝업 -->
-    <div id="testNameModal" class="test-name-modal" style="display: none;">
+    <div id="testNameModal" class="test-name-modal">
         <div class="test-name-content">
             <div class="test-name-header">
                 <h2>📝 테스트 시작</h2>
                 <p>이름을 입력하고 테스트를 시작하세요</p>
             </div>
-            <input type="text" id="testNameInput" placeholder="이름을 입력하세요" maxlength="50" style="
-                width: 100%;
-                padding: 12px 16px;
-                border: 2px solid var(--outline-variant);
-                border-radius: 8px;
-                font-size: 16px;
-                font-family: 'Noto Sans KR';
-                box-sizing: border-box;
-                margin: 20px 0;
-                transition: border-color 0.2s;
-            ">
+            <input type="text" id="testNameInput" placeholder="이름을 입력하세요" maxlength="50">
             <div class="test-name-buttons">
-                <button id="testNameCancel" class="btn-back" style="flex: 1;">취소</button>
-                <button id="testNameStart" class="btn-save" style="flex: 1;">시작</button>
+                <button id="testNameCancel" class="btn-back">취소</button>
+                <button id="testNameStart" class="btn-save">시작</button>
             </div>
         </div>
     </div>
