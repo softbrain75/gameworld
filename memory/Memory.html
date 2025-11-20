@@ -4595,13 +4595,11 @@
                 document.getElementById('final-points').textContent = `+${bonusPoints.toLocaleString('ko-KR')} 포인트`;
                 document.getElementById('final-points').style.display = 'block';
 
-                // 메인 콘텐츠 스크롤 영역을 상단으로
-                const gameSection = document.querySelector('#game-section');
-                if (gameSection) {
-                    gameSection.scrollTop = 0;
+                // .container 스크롤 영역을 상단으로
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.scrollTop = 0;
                 }
-                // 페이지 전체 스크롤도 상단으로
-                window.scrollTo(0, 0);
 
                 // 폭죽 및 포인트 팝업 애니메이션 표시
                 createCelebration(bonusPoints);
