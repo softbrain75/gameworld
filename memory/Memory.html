@@ -4377,14 +4377,20 @@
             endGame(finalScore);
         }
 
-        // 정답 입력 시 파티클 효과 생성 (게임 헤더에서)
+        // 정답 입력 시 파티클 효과 생성 (진행 바 끝 위치에서)
         function createCorrectParticles(inputElement) {
-            const gameHeader = document.querySelector('.game-header');
-            if (!gameHeader) return;
+            const progressFill = document.getElementById('progress-fill');
+            const progressBar = document.querySelector('.progress-bar');
 
-            const rect = gameHeader.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.bottom - 10; // 진행 바 아래쪽에서 시작
+            if (!progressFill || !progressBar) return;
+
+            // 진행 바의 현재 너비(%)로 파티클 위치 계산
+            const progressPercent = (correctCount / totalBlanks) * 100;
+            const barRect = progressBar.getBoundingClientRect();
+            const fillWidth = (barRect.width * progressPercent) / 100;
+
+            const centerX = barRect.left + fillWidth; // 진행 바의 현재 끝 위치
+            const centerY = barRect.top + barRect.height / 2; // 진행 바 중앙
 
             const particleCount = 15; // 파티클 개수 증가
             const colors = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5']; // 초록색 계열
