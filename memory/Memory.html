@@ -2606,6 +2606,12 @@
 
                             if (dbError) {
                                 console.warn('새 파일 생성 실패:', dbError);
+                                // 중복 파일명 에러 처리
+                                if (dbError.code === '23505' || dbError.message.includes('unique')) {
+                                    alert(`❌ 파일 저장 실패\n\n같은 이름의 파일이 이미 존재합니다.\n다른 이름으로 저장해주세요.`);
+                                } else {
+                                    alert(`❌ 파일 저장 실패\n\n${dbError.message}`);
+                                }
                             } else {
                                 console.log('✅ 새 파일이 생성됨:', fileName);
                                 previousFileName = fileName;
@@ -2655,6 +2661,12 @@
 
                         if (dbError) {
                             console.warn('DB 저장 실패:', dbError);
+                            // 중복 파일명 에러 처리
+                            if (dbError.code === '23505' || dbError.message.includes('unique')) {
+                                alert(`❌ 파일 저장 실패\n\n같은 이름의 파일이 이미 존재합니다.\n다른 이름으로 저장해주세요.`);
+                            } else {
+                                alert(`❌ 파일 저장 실패\n\n${dbError.message}`);
+                            }
                         } else {
                             console.log('✅ Supabase에 저장됨:', fileName);
                             previousFileName = fileName;
@@ -3497,7 +3509,12 @@
                         }]);
 
                     if (dbError) {
-                        throw new Error('파일 정보 저장에 실패했습니다.');
+                        // 중복 파일명 에러 처리
+                        if (dbError.code === '23505' || dbError.message.includes('unique')) {
+                            throw new Error('같은 이름의 파일이 이미 존재합니다. 다른 이름으로 저장해주세요.');
+                        } else {
+                            throw new Error(`파일 정보 저장에 실패했습니다: ${dbError.message}`);
+                        }
                     }
 
                     alert(`✅ 파일을 가져왔습니다!\n파일명: ${newFileName}`);
