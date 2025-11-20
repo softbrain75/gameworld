@@ -2047,6 +2047,9 @@
                                 <button class="share-btn" id="share-btn" title="파일 공유">
                                     <span class="material-icons">share</span>
                                 </button>
+                                <button class="share-btn" id="test-share-btn" title="테스트 공유" style="display: none;">
+                                    <span class="material-icons">assignment</span>
+                                </button>
                             </div>
                         </div>
 
@@ -3139,8 +3142,12 @@
 
                         // Supabase 파일은 공유 버튼 표시
                         const shareBtn = document.getElementById('share-btn');
+                        const testShareBtn = document.getElementById('test-share-btn');
                         if (shareBtn) {
                             shareBtn.style.display = 'block';
+                        }
+                        if (testShareBtn) {
+                            testShareBtn.style.display = 'block';
                         }
 
                         if (lyrics.length > 0) {
@@ -3212,8 +3219,12 @@
 
                     // Supabase 파일은 공유 버튼 표시
                     const shareBtn = document.getElementById('share-btn');
+                    const testShareBtn = document.getElementById('test-share-btn');
                     if (shareBtn) {
                         shareBtn.style.display = 'block';
+                    }
+                    if (testShareBtn) {
+                        testShareBtn.style.display = 'block';
                     }
 
                     if (lyrics.length > 0) {
@@ -3589,6 +3600,54 @@
                             created_at: new Date().toISOString()
                         })
                         .eq('id', fileId);
+
+                    if (error) {
+                        console.error('테스트 공유 설정 오류:', error);
+                        alert('테스트 공유 설정에 실패했습니다.');
+                        return;
+                    }
+
+                    // 테스트 공유 링크 생성
+                    const testUrl = `${window.location.origin}${window.location.pathname}?test=${testToken}`;
+
+                    // 클립보드에 복사
+                    await navigator.clipboard.writeText(testUrl);
+
+                    alert(`✅ 테스트 공유 링크가 복사되었습니다!\n\n${testUrl}\n\n이 링크를 통해 접속한 사람은 테스트를 진행할 수 있습니다.`);
+                    console.log('테스트 공유 링크:', testUrl);
+                } catch (error) {
+                    console.error('테스트 공유 오류:', error);
+                    alert('테스트 공유 중 오류가 발생했습니다.');
+                }
+            });
+
+            // 게임 화면 - 테스트 공유 버튼 이벤트 리스너
+            document.getElementById('test-share-btn').addEventListener('click', async () => {
+                console.log('📝 테스트 공유 버튼 클릭됨 (게임화면)');
+                console.log('currentGameFileId:', currentGameFileId);
+
+                if (!currentGameFileId) {
+                    alert('공유할 파일이 없습니다.');
+                    return;
+                }
+
+                try {
+                    // UUID 생성 (앞 8자)
+                    const testToken = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+                        .replace(/[xy]/g, function(c) {
+                            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        })
+                        .substring(0, 8);
+
+                    // Supabase에 test_token 저장
+                    const { error } = await supabase
+                        .from('study_materials')
+                        .update({
+                            test_token: testToken,
+                            created_at: new Date().toISOString()
+                        })
+                        .eq('id', currentGameFileId);
 
                     if (error) {
                         console.error('테스트 공유 설정 오류:', error);
