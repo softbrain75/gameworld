@@ -2445,6 +2445,24 @@
                     localStorage.setItem('local_md_files', JSON.stringify(localFiles));
                     console.log('✅ 로컬 파일에 저장됨 (로그인 상태):', fileName);
 
+                    // 좌측 메뉴 갱신
+                    const localFilesContainer = document.getElementById('local-files');
+                    if (localFilesContainer) {
+                        localFilesContainer.innerHTML = localFiles.map((file, index) => `
+                            <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
+                                    <span class="material-icons">description</span>
+                                    <span class="file-name">${escapeHtml(file.name)}</span>
+                                </div>
+                                <div class="file-actions" style="opacity: 1;">
+                                    <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
+                                        <span class="material-icons">settings</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+
                     const originalText = saveBtn.textContent;
                     saveBtn.textContent = '✓ 저장됨';
                     saveBtn.style.background = 'var(--success)';
