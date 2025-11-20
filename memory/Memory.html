@@ -3522,9 +3522,6 @@
                         // 현재 아이템 토글
                         item.classList.toggle('expanded');
 
-                        // 헤더 제목 업데이트
-                        document.getElementById('test-file-title').textContent = fileTitle;
-
                         // 아이템이 열려있으면 결과 로드
                         if (item.classList.contains('expanded')) {
                             await loadAccordionTestResults(fileId, item);
