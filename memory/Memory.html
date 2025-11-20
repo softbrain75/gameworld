@@ -2198,6 +2198,15 @@
             border-right: none;
         }
 
+        /* Toggle button rotation animation */
+        #toggle-file-list-panel-btn {
+            transition: transform 0.3s ease;
+        }
+
+        #test-files-panel.collapsed #toggle-file-list-panel-btn {
+            transform: rotate(180deg);
+        }
+
     </style>
 
     <!-- Supabase -->
@@ -4361,6 +4370,14 @@
                 toggleFileListBtn.addEventListener('click', toggleFileList);
             }
 
+            // Test Results Modal - Toggle File List Panel Button (inside file panel header)
+            const toggleFileListPanelBtn = document.getElementById('toggle-file-list-panel-btn');
+            if (toggleFileListPanelBtn) {
+                toggleFileListPanelBtn.addEventListener('click', () => {
+                    toggleFileList();
+                });
+            }
+
             // Close modal on overlay click
             document.getElementById('settings-modal').addEventListener('click', (e) => {
                 if (e.target.id === 'settings-modal') {
@@ -6253,7 +6270,12 @@
         <div style="display: flex; flex: 1; min-height: 0;">
             <!-- 테스트 파일 목록 (접기/펼치기 가능) -->
             <div id="test-files-panel">
-                <div style="padding: 12px 16px; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--surface-dim);">테스트 파일</div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--surface-dim);">
+                    <span>테스트 파일</span>
+                    <button id="toggle-file-list-panel-btn" style="background: transparent; border: none; cursor: pointer; padding: 4px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; border-radius: 4px;">
+                        <span class="material-icons" style="font-size: 20px;">chevron_left</span>
+                    </button>
+                </div>
                 <div id="test-files-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px;">
                     <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
                 </div>
