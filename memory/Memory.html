@@ -4790,22 +4790,21 @@
 
             // Auth button (Login/Logout -> MyPage)
             async function updateAuthButton() {
-                const mypageBtn = document.getElementById('mypage-btn');
+                const loginBtn = document.getElementById('login-btn');
                 const signupBtn = document.getElementById('signup-btn');
+                const mypageBtn = document.getElementById('mypage-btn');
                 const { data: { user } } = await supabase.auth.getUser();
 
                 if (user) {
-                    // 로그인 상태: 마이페이지 버튼 표시
-                    mypageBtn.style.display = 'flex';
+                    // 로그인 상태: 마이페이지 버튼만 표시
+                    loginBtn.style.display = 'none';
                     signupBtn.style.display = 'none';
+                    mypageBtn.style.display = 'flex';
                 } else {
-                    // 로그아웃 상태: 로그인 페이지로 리다이렉트
-                    mypageBtn.style.display = 'none';
+                    // 로그아웃 상태: 로그인, 회원가입 버튼 표시
+                    loginBtn.style.display = 'flex';
                     signupBtn.style.display = 'flex';
-                    signupBtn.onclick = () => {
-                        // 회원가입 페이지로 리다이렉트
-                        window.location.href = `../index.html?redirect=memory/Memory.html&tab=signup`;
-                    };
+                    mypageBtn.style.display = 'none';
                 }
             }
 
