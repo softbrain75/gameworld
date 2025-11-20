@@ -4595,12 +4595,6 @@
                 document.getElementById('final-points').textContent = `+${bonusPoints.toLocaleString('ko-KR')} 포인트`;
                 document.getElementById('final-points').style.display = 'block';
 
-                // 결과 화면을 뷰의 상단으로 스크롤
-                const finalPointsElement = document.getElementById('final-points');
-                if (finalPointsElement) {
-                    finalPointsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-
                 // 폭죽 및 포인트 팝업 애니메이션 표시
                 createCelebration(bonusPoints);
 
@@ -4869,6 +4863,17 @@
                 // 결과 화면에서 헤더 숨기기
                 const gameHeader = document.querySelector('.game-header');
                 if (gameHeader) gameHeader.style.display = 'none';
+                // 게임 오버 화면을 상단으로 스크롤
+                const gameoverContent = document.querySelector('#game-section .gameover-screen');
+                if (gameoverContent) {
+                    // 약간의 지연을 줘서 DOM 업데이트 후 스크롤
+                    setTimeout(() => {
+                        const gameSection = document.querySelector('#game-section');
+                        if (gameSection) {
+                            gameSection.scrollTop = 0;
+                        }
+                    }, 50);
+                }
                 // 게임 오버 시에도 로그인 사용자만 가져오기 버튼 표시
                 if (window.currentUser && currentGameFileId) {
                     importBtn.style.display = 'flex';
