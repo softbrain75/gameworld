@@ -2423,9 +2423,47 @@
                     return;
                 }
 
+                // "파일 추가" 버튼으로 생성한 파일: 로그인 후에도 로컬 파일로 저장
+                const fileIdElement = document.getElementById('editor-file-id').textContent;
+                if (fileIdElement === 'local') {
+                    // 로컬 파일로 저장 (로그인 상태에서도)
+                    let localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                    const existingIndex = localFiles.findIndex(f => f.name === fileName);
+                    if (existingIndex > -1) {
+                        localFiles[existingIndex].content = content;
+                    } else {
+                        localFiles.push({
+                            name: fileName,
+                            content: content,
+                            created_at: new Date().toISOString()
+                        });
+                    }
+
+                    localStorage.setItem('local_md_files', JSON.stringify(localFiles));
+                    console.log('✅ 로컬 파일에 저장됨 (로그인 상태):', fileName);
+
+                    const originalText = saveBtn.textContent;
+                    saveBtn.textContent = '✓ 저장됨';
+                    saveBtn.style.background = 'var(--success)';
+
+                    // 로컬 파일 저장 후 게임 화면으로 자동 이동
+                    setTimeout(() => {
+                        saveBtn.textContent = originalText;
+                        saveBtn.style.background = '';
+
+                        // 저장된 파일 인덱스 찾기
+                        const localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                        const fileIndex = localFiles.findIndex(f => f.name === fileName);
+                        if (fileIndex > -1) {
+                            playLocalGame(fileIndex, fileName);
+                        }
+                    }, 1500);
+                    return;
+                }
+
                 // 로그인한 경우: 파일 업로드 방식 결정
                 const userId = user.id.replace(/-/g, '');
-                const existingFileId = document.getElementById('editor-file-id').textContent;
+                const existingFileId = fileIdElement;
 
                 let fileId = existingFileId;
                 let filePath = null;
@@ -2983,7 +3021,10 @@
 
                 // Re-attach add button listener
                 document.getElementById('add-local-file').addEventListener('click', () => {
-                    document.getElementById('local-file-input').click();
+                    // "파일 추가" 버튼: 새 파일을 로컬에 생성하는 모드로 전환
+                    // editor-file-id를 'local'로 설정해서 저장 시 로컬 파일로 저장되도록 함
+                    document.getElementById('editor-file-id').textContent = 'local';
+                    switchMode('create');
                 });
             }
 
