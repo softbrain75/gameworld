@@ -4400,22 +4400,23 @@
                     const particle = document.createElement('div');
                     particle.className = 'correct-particle';
 
-                    // 랜덤 각도로 분산 (위쪽으로 더 많이)
-                    const angle = (Math.random() * Math.PI) - (Math.PI / 2); // -90 ~ 0도 (위쪽)
-                    const velocity = 3 + Math.random() * 5;
-                    const tx = Math.cos(angle) * velocity * 50;
-                    const ty = Math.sin(angle) * velocity * 50 - 40; // 위로 더 많이
+                    // 진행 바 방향(오른쪽)으로 분산 + 위아래로도 분산
+                    // 주로 오른쪽으로 뚫고 나가는 느낌
+                    const angle = (Math.random() * Math.PI * 0.6) - (Math.PI * 0.3); // -54 ~ 54도 (오른쪽 중심)
+                    const velocity = 5 + Math.random() * 6;
+                    const tx = Math.cos(angle) * velocity * 60; // 오른쪽으로 더 멀리
+                    const ty = Math.sin(angle) * velocity * 60;
 
                     particle.style.position = 'fixed';
                     particle.style.left = centerX + 'px';
                     particle.style.top = centerY + 'px';
-                    particle.style.width = '12px';
-                    particle.style.height = '12px';
+                    particle.style.width = '14px';
+                    particle.style.height = '14px';
                     particle.style.borderRadius = '50%';
                     particle.style.backgroundColor = colors[i % colors.length];
                     particle.style.pointerEvents = 'none';
-                    particle.style.boxShadow = '0 0 8px ' + colors[i % colors.length];
-                    particle.style.animation = `particle-burst 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`;
+                    particle.style.boxShadow = '0 0 10px ' + colors[i % colors.length];
+                    particle.style.animation = `particle-burst 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards`; // elastic easing
                     particle.style.setProperty('--tx', tx + 'px');
                     particle.style.setProperty('--ty', ty + 'px');
                     particle.style.zIndex = '10000';
@@ -4423,8 +4424,8 @@
                     document.body.appendChild(particle);
 
                     // 애니메이션 후 제거
-                    setTimeout(() => particle.remove(), 800);
-                }, i * 20); // 파티클을 차례대로 생성
+                    setTimeout(() => particle.remove(), 900);
+                }, i * 15); // 파티클을 더 빠르게 차례대로 생성
             }
         }
 
