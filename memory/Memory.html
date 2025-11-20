@@ -3340,17 +3340,18 @@
             function updateDifficultyDisplay() {
                 const slider = document.getElementById('difficulty-slider');
                 const difficulty = parseInt(slider.value);
+                const selectedMode = document.querySelector('input[name="game-mode"]:checked').value;
 
                 document.getElementById('difficulty-percent').textContent = difficulty;
 
-                // Show hint text
+                // Show hint text based on game mode
                 let hint = '';
-                if (difficulty === 33) {
-                    hint = '약 1/3 정도의 단어만 테스트됩니다 (쉬움)';
-                } else if (difficulty === 66) {
-                    hint = '약 2/3 정도의 단어만 테스트됩니다 (보통)';
+                if (selectedMode === 'bold') {
+                    // TTV 모드
+                    hint = `TTV 단어중 ${difficulty}% 단어가 테스트됩니다`;
                 } else {
-                    hint = '모든 단어가 테스트됩니다 (어려움)';
+                    // 무작위 모드
+                    hint = `흔한단어를 제외한 단어중 ${difficulty}% 단어가 테스트됩니다`;
                 }
                 document.getElementById('difficulty-hint').textContent = hint;
             }
