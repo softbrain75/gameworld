@@ -4595,6 +4595,9 @@
                 document.getElementById('final-points').textContent = `+${bonusPoints.toLocaleString('ko-KR')} 포인트`;
                 document.getElementById('final-points').style.display = 'block';
 
+                // 페이지를 상단으로 스크롤
+                window.scrollTo(0, 0);
+
                 // 폭죽 및 포인트 팝업 애니메이션 표시
                 createCelebration(bonusPoints);
 
