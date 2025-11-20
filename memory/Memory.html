@@ -2407,12 +2407,19 @@
                     const originalText = saveBtn.textContent;
                     saveBtn.textContent = '✓ 저장됨';
                     saveBtn.style.background = 'var(--success)';
+
+                    // 로컬 파일 저장 후 게임 화면으로 자동 이동
                     setTimeout(() => {
                         saveBtn.textContent = originalText;
                         saveBtn.style.background = '';
-                    }, 2000);
 
-                    switchMode('list');
+                        // 저장된 파일 인덱스 찾기
+                        const localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                        const fileIndex = localFiles.findIndex(f => f.name === fileName);
+                        if (fileIndex > -1) {
+                            playLocalGame(fileIndex, fileName);
+                        }
+                    }, 1500);
                     return;
                 }
 
@@ -2572,13 +2579,28 @@
                 const originalText = saveBtn.textContent;
                 saveBtn.textContent = '✓ 저장됨';
                 saveBtn.style.background = 'var(--success)';
+
+                // 저장 후 게임 화면으로 자동 이동
                 setTimeout(() => {
                     saveBtn.textContent = originalText;
                     saveBtn.style.background = '';
-                }, 2000);
 
-                // Switch to list mode after save
-                switchMode('list');
+                    // 파일 ID와 이름으로 게임 시작
+                    const fileId = document.getElementById('editor-file-id').textContent;
+                    const fileName = fileNameInput.value.trim();
+
+                    if (fileId) {
+                        // Supabase 파일: playGame으로 시작
+                        playGame(fileId, fileName);
+                    } else {
+                        // 로컬 파일: playLocalGame으로 시작
+                        const localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                        const fileIndex = localFiles.findIndex(f => f.name === fileName);
+                        if (fileIndex > -1) {
+                            playLocalGame(fileIndex, fileName);
+                        }
+                    }
+                }, 1500);
             } catch (error) {
                 console.error('Save error:', error);
                 alert('파일 저장 중 오류가 발생했습니다');
