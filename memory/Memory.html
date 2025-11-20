@@ -1141,27 +1141,20 @@
             box-sizing: border-box; /* padding 포함한 너비 계산 */
         }
 
-        .title {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 0;
-            width: 100%;
-        }
-
-        .title-header {
+        .header-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
             width: 100%;
+            margin-bottom: 12px;
         }
 
-        .title-header h1 {
-            font-size: 32px;
+        .header-top h1 {
+            font-size: 24px;
             font-weight: 700;
             letter-spacing: -0.5px;
             margin: 0;
             color: var(--text-primary);
-            padding-bottom: 8px;
         }
 
         .title-buttons {
@@ -1240,48 +1233,63 @@
             }
         }
 
-        /* Playing Screen */
+        /* Playing Screen - Unified Header */
         .game-header {
-            margin-bottom: 24px;
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            border-bottom: 1px solid var(--outline-variant);
+            padding: 16px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .game-info {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
+            grid-template-columns: 1fr 1fr 1fr auto auto;
+            gap: 8px;
+            align-items: center;
             width: 100%;
+            margin-bottom: 8px;
         }
 
         .info-card {
             background: var(--surface-dim);
-            padding: 10px 12px;
-            border-radius: 12px;
+            padding: 6px 10px;
+            border-radius: 8px;
             text-align: center;
             border: 1px solid var(--outline-variant);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .info-label {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .info-value {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 700;
             color: var(--primary);
         }
 
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
         .progress-bar {
             width: 100%;
-            height: 4px;
+            height: 3px;
             background: var(--outline-variant);
-            border-radius: 2px;
-            margin-bottom: 24px;
+            border-radius: 1.5px;
             overflow: hidden;
         }
 
@@ -1292,17 +1300,11 @@
         }
 
         .test-display {
-            background: var(--surface);
             padding: 20px;
-            border-radius: 12px;
             line-height: 2;
             font-size: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             color: var(--text-primary);
-            box-sizing: border-box; /* padding 포함한 너비 계산 */
-            overflow-x: hidden; /* 좌우 스크롤 방지 */
-            word-wrap: break-word; /* 긴 단어 줄바꿈 */
         }
 
         .test-word {
@@ -1421,17 +1423,6 @@
             filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
         }
 
-        /* 정답 파티클 애니메이션 */
-        @keyframes particle-burst {
-            0% {
-                opacity: 1;
-                transform: translate(0, 0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translate(var(--tx), var(--ty)) scale(0);
-            }
-        }
 
         /* 포인트 플로팅 애니메이션 */
         @keyframes points-float {
@@ -1473,14 +1464,7 @@
 
         /* Game Controls Container */
         .game-controls {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
             display: none;
-            flex-direction: column;
-            gap: 12px;
-            align-items: flex-end;
-            z-index: 1000;
         }
 
         .game-controls.active {
@@ -1491,16 +1475,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 12px;
-            border-radius: 50%;
+            padding: 8px;
+            border-radius: 6px;
             background: var(--success);
             color: white;
             border: none;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(82, 196, 26, 0.4);
-            transition: all 0.3s ease;
-            width: 48px;
-            height: 48px;
+            transition: all 0.2s ease;
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
         }
 
         .submit-btn.active {
@@ -1509,8 +1493,7 @@
 
         .submit-btn:hover {
             background: #42961b;
-            box-shadow: 0 8px 20px rgba(82, 196, 26, 0.5);
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
 
         .submit-btn:active {
@@ -1520,7 +1503,7 @@
         .submit-btn:disabled {
             background: var(--outline);
             cursor: not-allowed;
-            box-shadow: none;
+            opacity: 0.5;
             transform: none;
         }
 
@@ -1529,21 +1512,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 12px;
-            border-radius: 50%;
+            padding: 8px;
+            border-radius: 6px;
             background: var(--primary);
             color: white;
             border: none;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(103, 80, 164, 0.3);
-            transition: all 0.3s ease;
-            width: 48px;
-            height: 48px;
+            transition: all 0.2s ease;
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
         }
 
         .hint-btn:hover {
             background: var(--primary-dark);
-            box-shadow: 0 4px 12px rgba(103, 80, 164, 0.4);
             transform: scale(1.05);
         }
 
@@ -1554,9 +1536,8 @@
         .hint-btn:disabled {
             background: var(--outline);
             cursor: not-allowed;
-            box-shadow: none;
+            opacity: 0.5;
             transform: none;
-            opacity: 0.6;
         }
 
         /* Game Over Screen */
@@ -2003,8 +1984,9 @@
             <!-- Game Section -->
             <section id="game-section">
                 <div class="game-container">
-                    <div class="title">
-                        <div class="title-header">
+                    <!-- Unified Header -->
+                    <div class="game-header">
+                        <div class="header-top">
                             <h1 id="game-title">Memories</h1>
                             <div class="title-buttons">
                                 <button class="share-btn" id="import-btn" title="파일 가져오기">
@@ -2015,31 +1997,37 @@
                                 </button>
                             </div>
                         </div>
-                    </div>
 
+                        <div class="game-info">
+                            <div class="info-card">
+                                <div class="info-label">맞은 개수</div>
+                                <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
+                            </div>
+                            <div class="info-card">
+                                <div class="info-label">점수</div>
+                                <div class="info-value" id="score">0</div>
+                            </div>
+                            <div class="info-card">
+                                <div class="info-label">포인트</div>
+                                <div class="info-value" id="game-points">0</div>
+                            </div>
+                            <div class="header-buttons">
+                                <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트)">
+                                    <span class="material-icons">lightbulb</span>
+                                </button>
+                                <button class="submit-btn" id="submit-btn">
+                                    <span class="material-icons">send</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
 
                     <!-- Playing Screen -->
                     <div class="playing-screen active">
-                        <div class="game-header">
-                            <div class="game-info">
-                                <div class="info-card">
-                                    <div class="info-label">맞은 개수</div>
-                                    <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
-                                </div>
-                                <div class="info-card">
-                                    <div class="info-label">점수</div>
-                                    <div class="info-value" id="score">0</div>
-                                </div>
-                                <div class="info-card">
-                                    <div class="info-label">포인트</div>
-                                    <div class="info-value" id="game-points">0</div>
-                                </div>
-                            </div>
-
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progress-fill"></div>
-                            </div>
-                        </div>
 
                         <div class="hint" id="hint-display" style="display: none;">
                             <span class="hint-icon">💡</span>
@@ -2077,15 +2065,6 @@
                 </div>
             </section>
 
-            <!-- Game Controls Container - Hint and Submit Button -->
-            <div class="game-controls" id="game-controls">
-                <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트)">
-                    <span class="material-icons">lightbulb</span>
-                </button>
-                <button class="submit-btn" id="submit-btn">
-                    <span class="material-icons">send</span>
-                </button>
-            </div>
 
             <!-- Create/Edit Mode -->
             <section id="editor-section">
@@ -2222,9 +2201,12 @@
             document.getElementById('game-section').classList.toggle('active', mode === 'game');
 
             // Game controls (Hint + Submit) - only show during game playing
-            const gameControls = document.getElementById('game-controls');
-            if (gameControls) {
-                gameControls.classList.toggle('active', mode === 'game');
+            const hintBtn = document.getElementById('hint-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            if (hintBtn && submitBtn) {
+                const shouldShow = mode === 'game';
+                hintBtn.style.display = shouldShow ? 'flex' : 'none';
+                submitBtn.style.display = shouldShow ? 'flex' : 'none';
             }
 
             // Update game title
@@ -3830,10 +3812,20 @@
             showGameScreen('playing');
 
             // Show game controls (Hint + Submit button) when game starts
-            const gameControls = document.getElementById('game-controls');
-            if (gameControls) {
-                gameControls.classList.add('active');
+            const hintBtn = document.getElementById('hint-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            if (hintBtn && submitBtn) {
+                hintBtn.style.display = 'flex';
+                submitBtn.style.display = 'flex';
             }
+
+            // 첫 번째 입력필드에 포커스
+            setTimeout(() => {
+                const firstInput = document.querySelector('.word-input');
+                if (firstInput) {
+                    firstInput.focus();
+                }
+            }, 100);
         }
 
         // Render table with proper formatting
@@ -4261,8 +4253,6 @@
                             input.style.backgroundImage = 'none';
                             input.disabled = true;
 
-                            // 파티클 효과 생성
-                            createCorrectParticles(input);
 
                             // correctAnswers에 추가
                             if (!correctAnswers.includes(blankIndex)) {
@@ -4377,57 +4367,6 @@
             endGame(finalScore);
         }
 
-        // 정답 입력 시 파티클 효과 생성 (진행 바 끝 위치에서)
-        function createCorrectParticles(inputElement) {
-            const progressFill = document.getElementById('progress-fill');
-            const progressBar = document.querySelector('.progress-bar');
-
-            if (!progressFill || !progressBar) return;
-
-            // 진행 바의 현재 너비(%)로 파티클 위치 계산
-            const progressPercent = (correctCount / totalBlanks) * 100;
-            const barRect = progressBar.getBoundingClientRect();
-            const fillWidth = (barRect.width * progressPercent) / 100;
-
-            const centerX = barRect.left + fillWidth; // 진행 바의 현재 끝 위치
-            const centerY = barRect.top + barRect.height / 2; // 진행 바 중앙
-
-            const particleCount = 15; // 파티클 개수 증가
-            const colors = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5']; // 초록색 계열
-
-            for (let i = 0; i < particleCount; i++) {
-                setTimeout(() => {
-                    const particle = document.createElement('div');
-                    particle.className = 'correct-particle';
-
-                    // 진행 바 방향(오른쪽)으로 분산 + 위아래로도 분산
-                    // 주로 오른쪽으로 뚫고 나가는 느낌
-                    const angle = (Math.random() * Math.PI * 0.6) - (Math.PI * 0.3); // -54 ~ 54도 (오른쪽 중심)
-                    const velocity = 5 + Math.random() * 6;
-                    const tx = Math.cos(angle) * velocity * 60; // 오른쪽으로 더 멀리
-                    const ty = Math.sin(angle) * velocity * 60;
-
-                    particle.style.position = 'fixed';
-                    particle.style.left = centerX + 'px';
-                    particle.style.top = centerY + 'px';
-                    particle.style.width = '14px';
-                    particle.style.height = '14px';
-                    particle.style.borderRadius = '50%';
-                    particle.style.backgroundColor = colors[i % colors.length];
-                    particle.style.pointerEvents = 'none';
-                    particle.style.boxShadow = '0 0 10px ' + colors[i % colors.length];
-                    particle.style.animation = `particle-burst 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards`; // elastic easing
-                    particle.style.setProperty('--tx', tx + 'px');
-                    particle.style.setProperty('--ty', ty + 'px');
-                    particle.style.zIndex = '10000';
-
-                    document.body.appendChild(particle);
-
-                    // 애니메이션 후 제거
-                    setTimeout(() => particle.remove(), 900);
-                }, i * 15); // 파티클을 더 빠르게 차례대로 생성
-            }
-        }
 
         // 폭죽 및 포인트 팝업 생성 함수
         function createCelebration(bonusPoints) {
@@ -4794,13 +4733,18 @@
         function showGameScreen(screenType) {
             const playingScreen = document.querySelector('#game-section .playing-screen');
             const gameoverScreen = document.querySelector('#game-section .gameover-screen');
-            const gameControls = document.getElementById('game-controls');
+            const hintBtn = document.getElementById('hint-btn');
+            const submitBtn = document.getElementById('submit-btn');
             const importBtn = document.getElementById('import-btn');
 
             if (screenType === 'playing') {
                 playingScreen.classList.add('active');
                 gameoverScreen.classList.remove('active');
-                gameControls.classList.add('active'); // Hint와 Submit 버튼 표시
+                if (hintBtn) hintBtn.style.display = 'flex';
+                if (submitBtn) submitBtn.style.display = 'flex';
+                // 플레이 화면에서 헤더 표시
+                const gameHeader = document.querySelector('.game-header');
+                if (gameHeader) gameHeader.style.display = '';
                 // 로그인 사용자이고 파일이 있으면 가져오기 버튼 표시
                 if (window.currentUser && currentGameFileId) {
                     importBtn.style.display = 'flex';
@@ -4810,7 +4754,11 @@
             } else if (screenType === 'gameover') {
                 playingScreen.classList.remove('active');
                 gameoverScreen.classList.add('active');
-                gameControls.classList.remove('active'); // Hint와 Submit 버튼 숨김
+                if (hintBtn) hintBtn.style.display = 'none';
+                if (submitBtn) submitBtn.style.display = 'none';
+                // 결과 화면에서 헤더 숨기기
+                const gameHeader = document.querySelector('.game-header');
+                if (gameHeader) gameHeader.style.display = 'none';
                 // 게임 오버 시에도 로그인 사용자만 가져오기 버튼 표시
                 if (window.currentUser && currentGameFileId) {
                     importBtn.style.display = 'flex';
