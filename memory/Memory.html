@@ -4574,13 +4574,17 @@
                         // 표 렌더링
                         const result = renderTable(tableLines, wordIndex, blankOrder);
 
-                        // 표의 각 셀에서 blank 단어들에 색상 적용
+                        // 표의 각 셀에서 blank 단어들에 색상 적용 및 값 채우기
                         const cells = result.element.querySelectorAll('td');
                         cells.forEach(cell => {
                             const inputs = cell.querySelectorAll('.word-input');
                             inputs.forEach(input => {
                                 const idx = parseInt(input.dataset.index);
                                 if (blanks.includes(idx)) {
+                                    // 정답 값을 입력 필드에 채우기
+                                    input.value = lyrics[idx];
+                                    input.disabled = true;
+
                                     if (correctAnswers.includes(idx)) {
                                         input.style.color = 'var(--correct-color, #10b981)';
                                         input.style.borderBottomColor = 'var(--correct-color, #10b981)';
