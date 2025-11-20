@@ -3056,6 +3056,13 @@
 
                         // 게임 화면으로 전환 및 게임 시작
                         switchMode('game', fileName);
+
+                        // Supabase 파일은 공유 버튼 표시
+                        const shareBtn = document.getElementById('share-btn');
+                        if (shareBtn) {
+                            shareBtn.style.display = 'block';
+                        }
+
                         if (lyrics.length > 0) {
                             correctAnswers = []; // Reset correct answers
                             startGame(false);
@@ -3122,6 +3129,13 @@
 
                     // Switch to game mode and start game
                     switchMode('game', fileName);
+
+                    // Supabase 파일은 공유 버튼 표시
+                    const shareBtn = document.getElementById('share-btn');
+                    if (shareBtn) {
+                        shareBtn.style.display = 'block';
+                    }
+
                     if (lyrics.length > 0) {
                         correctAnswers = []; // Reset correct answers
                         startGame(false);
@@ -3244,6 +3258,13 @@
                         // Switch to game mode and start game
                         switchMode('game', fileData.name);
                         console.log('switchMode 후 - lyrics.length:', lyrics.length);
+
+                        // 로컬 파일은 공유 버튼 숨김
+                        const shareBtn = document.getElementById('share-btn');
+                        if (shareBtn) {
+                            shareBtn.style.display = 'none';
+                        }
+
                         if (lyrics.length > 0) {
                             console.log('startGame 호출 조건 만족 - lyrics.length > 0');
                             correctAnswers = []; // Reset correct answers
