@@ -2028,6 +2028,182 @@
         #testNameStart:hover {
             background: var(--primary-dark);
         }
+
+        /* MyPage Popup */
+        .mypage-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: flex-start;
+            justify-content: flex-end;
+            padding: 20px;
+            z-index: 3000;
+        }
+
+        .mypage-popup.active {
+            display: flex;
+        }
+
+        .mypage-popup-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .mypage-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-bottom: 1px solid var(--outline-variant);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-avatar .material-icons {
+            font-size: 24px;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .mypage-close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .mypage-close-btn:hover {
+            background: var(--surface-dim);
+            color: var(--text-primary);
+        }
+
+        .mypage-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 8px 0;
+        }
+
+        .mypage-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .mypage-menu-item .material-icons {
+            font-size: 20px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .mypage-menu-item:hover {
+            background: var(--surface);
+        }
+
+        .mypage-menu-item:active {
+            background: var(--surface-dim);
+        }
+
+        .mypage-divider {
+            height: 1px;
+            background: var(--outline-variant);
+            margin: 4px 0;
+        }
+
+        .mypage-menu-item.mypage-logout {
+            color: var(--error);
+        }
+
+        .mypage-menu-item.mypage-logout .material-icons {
+            color: var(--error);
+        }
+
+        .mypage-menu-item.mypage-logout:hover {
+            background: rgba(245, 34, 45, 0.08);
+        }
+
+        /* Overlay click to close */
+        .mypage-popup {
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .mypage-popup-content {
+            animation: slideInRight 0.2s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(320px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 
     <!-- Supabase -->
@@ -4011,36 +4187,22 @@
                 }
             }
 
-            // Auth button (Login/Logout)
+            // Auth button (Login/Logout -> MyPage)
             async function updateAuthButton() {
-                const authBtn = document.getElementById('logout-btn');
+                const mypageBtn = document.getElementById('mypage-btn');
                 const signupBtn = document.getElementById('signup-btn');
                 const { data: { user } } = await supabase.auth.getUser();
 
                 if (user) {
-                    // 로그인 상태: 로그아웃 버튼만 표시
-                    authBtn.innerHTML = `
-                        <span class="material-icons">logout</span>
-                        <span>로그아웃</span>
-                    `;
-                    authBtn.onclick = async () => {
-                        if (confirm('로그아웃 하시겠습니까?')) {
-                            await supabase.auth.signOut();
-                            updateAuthButton(); // 버튼 상태 업데이트
-                            loadMyFiles(); // 파일 목록 새로고침
-                        }
+                    // 로그인 상태: 마이페이지 버튼 표시
+                    mypageBtn.style.display = 'flex';
+                    mypageBtn.onclick = () => {
+                        openMypagePopup();
                     };
                     signupBtn.style.display = 'none';
                 } else {
-                    // 로그아웃 상태: 로그인 버튼과 회원가입 버튼 표시
-                    authBtn.innerHTML = `
-                        <span class="material-icons">login</span>
-                        <span>로그인</span>
-                    `;
-                    authBtn.onclick = () => {
-                        // Memory.html로 돌아올 리다이렉트 URL 추가
-                        window.location.href = `../index.html?redirect=memory/Memory.html`;
-                    };
+                    // 로그아웃 상태: 로그인 페이지로 리다이렉트
+                    mypageBtn.style.display = 'none';
                     signupBtn.style.display = 'flex';
                     signupBtn.onclick = () => {
                         // 회원가입 페이지로 리다이렉트
@@ -4076,6 +4238,9 @@
 
             // Initialize test name modal listeners
             initTestNameModalListeners();
+
+            // Initialize mypage popup listeners
+            initMypagePopupListeners();
         });
 
         // ========================================
@@ -5424,6 +5589,97 @@
             startGame(true);
         });
 
+        // MyPage Popup Functions
+        async function openMypagePopup() {
+            const popup = document.getElementById('mypage-popup');
+            const usernameEl = document.getElementById('mypage-username');
+
+            // 사용자명 업데이트
+            if (window.currentProfile && window.currentProfile.username) {
+                usernameEl.textContent = window.currentProfile.username;
+            }
+
+            popup.classList.add('active');
+        }
+
+        function closeMypagePopup() {
+            const popup = document.getElementById('mypage-popup');
+            popup.classList.remove('active');
+        }
+
+        // MyPage Popup Event Listeners
+        function initMypagePopupListeners() {
+            const popup = document.getElementById('mypage-popup');
+            const closeBtn = document.getElementById('mypage-close-btn');
+            const publicFilesBtn = document.getElementById('mypage-public-files-btn');
+            const sharedFilesBtn = document.getElementById('mypage-shared-files-btn');
+            const testResultsBtn = document.getElementById('mypage-test-results-btn');
+            const logoutBtn = document.getElementById('mypage-logout-btn');
+
+            // 팝업 외부 클릭으로 닫기
+            if (popup) {
+                popup.addEventListener('click', (e) => {
+                    if (e.target === popup) {
+                        closeMypagePopup();
+                    }
+                });
+            }
+
+            // 닫기 버튼
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    closeMypagePopup();
+                });
+            }
+
+            // 공개 파일 설정 (추후 구현)
+            if (publicFilesBtn) {
+                publicFilesBtn.addEventListener('click', () => {
+                    console.log('📁 공개 파일 설정 (추후 구현)');
+                    closeMypagePopup();
+                    alert('공개 파일 설정은 준비 중입니다.');
+                });
+            }
+
+            // 공유 파일 설정 (추후 구현)
+            if (sharedFilesBtn) {
+                sharedFilesBtn.addEventListener('click', () => {
+                    console.log('🔗 공유 파일 설정 (추후 구현)');
+                    closeMypagePopup();
+                    alert('공유 파일 설정은 준비 중입니다.');
+                });
+            }
+
+            // 시험 파일 성적 조회
+            if (testResultsBtn) {
+                testResultsBtn.addEventListener('click', () => {
+                    console.log('📊 시험 파일 성적 조회');
+                    closeMypagePopup();
+                    showTestResultsModal();
+                });
+            }
+
+            // 로그아웃
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    if (confirm('로그아웃 하시겠습니까?')) {
+                        try {
+                            await supabase.auth.signOut();
+                            window.location.href = window.location.pathname;
+                        } catch (error) {
+                            console.error('로그아웃 오류:', error);
+                            alert('로그아웃 중 오류가 발생했습니다.');
+                        }
+                    }
+                });
+            }
+        }
+
+        // 시험 파일 성적 조회 모달 (추후 구현)
+        function showTestResultsModal() {
+            alert('시험 파일 성적 조회는 다음 단계에서 구현됩니다.');
+        }
+
         // Test Name Modal Event Listeners - initialized after DOM is ready
         function initTestNameModalListeners() {
             const testNameCancel = document.getElementById('testNameCancel');
@@ -5704,14 +5960,58 @@
                 <span class="material-icons">settings</span>
                 <span>설정</span>
             </button>
-            <button class="menu-bottom-item" id="logout-btn">
-                <span class="material-icons">logout</span>
-                <span>로그아웃</span>
+            <button class="menu-bottom-item" id="mypage-btn">
+                <span class="material-icons">person</span>
+                <span>마이페이지</span>
             </button>
             <button class="menu-bottom-item" id="signup-btn" style="display: none;">
                 <span class="material-icons">person_add</span>
                 <span>회원가입</span>
             </button>
+        </div>
+    </div>
+
+    <!-- 마이페이지 팝업 -->
+    <div id="mypage-popup" class="mypage-popup" style="display: none;">
+        <div class="mypage-popup-content">
+            <!-- 사용자 정보 -->
+            <div class="mypage-header">
+                <div class="user-avatar">
+                    <span class="material-icons">person</span>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="mypage-username">사용자 이름</div>
+                    <div class="user-status">로그인됨</div>
+                </div>
+                <button class="mypage-close-btn" id="mypage-close-btn">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <!-- 메뉴 항목들 -->
+            <div class="mypage-menu">
+                <button class="mypage-menu-item" id="mypage-public-files-btn">
+                    <span class="material-icons">public</span>
+                    <span>공개 파일 설정</span>
+                </button>
+
+                <button class="mypage-menu-item" id="mypage-shared-files-btn">
+                    <span class="material-icons">share</span>
+                    <span>공유 파일 설정</span>
+                </button>
+
+                <button class="mypage-menu-item" id="mypage-test-results-btn">
+                    <span class="material-icons">assessment</span>
+                    <span>시험 파일 성적 조회</span>
+                </button>
+
+                <div class="mypage-divider"></div>
+
+                <button class="mypage-menu-item mypage-logout" id="mypage-logout-btn">
+                    <span class="material-icons">logout</span>
+                    <span>로그아웃</span>
+                </button>
+            </div>
         </div>
     </div>
 
