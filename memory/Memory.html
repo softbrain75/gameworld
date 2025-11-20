@@ -4013,7 +4013,7 @@
                     document.querySelectorAll('.public-toggle-btn').forEach(btn => {
                         btn.addEventListener('click', async () => {
                             const fileId = btn.getAttribute('data-file-id');
-                            const currentStatus = btn.textContent.includes('공개');
+                            const currentStatus = btn.textContent.includes('공개 중');
                             await togglePublicStatus(fileId, !currentStatus);
                             await loadPublicFilesList(); // 목록 새로고침
                         });
@@ -4065,7 +4065,7 @@
                     document.querySelectorAll('.shared-toggle-btn').forEach(btn => {
                         btn.addEventListener('click', async () => {
                             const fileId = btn.getAttribute('data-file-id');
-                            const currentStatus = btn.textContent.includes('공유');
+                            const currentStatus = btn.textContent.includes('공유 중');
                             await toggleSharedStatus(fileId, !currentStatus);
                             await loadSharedFilesList(); // 목록 새로고침
                         });
