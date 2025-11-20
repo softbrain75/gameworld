@@ -3488,7 +3488,12 @@
                         </button>
                         <div class="accordion-body">
                             <div class="accordion-body-content">
-                                <div class="accordion-body-title">응시 현황</div>
+                                <div class="accordion-body-title" style="display: flex; align-items: center; justify-content: space-between;">
+                                    <span>응시 현황</span>
+                                    <button class="excel-download-btn" data-file-id="${file.id}" style="background: transparent; border: none; cursor: pointer; padding: 4px 8px; color: var(--primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; border-radius: 4px;" title="엑셀 다운로드">
+                                        <span class="material-icons" style="font-size: 18px;">file_download</span>
+                                    </button>
+                                </div>
                                 <div class="accordion-results" style="display: flex; flex-direction: column; gap: 0;">
                                     <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
                                 </div>
@@ -3524,6 +3529,17 @@
                         if (item.classList.contains('expanded')) {
                             await loadAccordionTestResults(fileId, item);
                         }
+                    });
+                });
+
+                // 엑셀 다운로드 버튼 클릭 이벤트
+                document.querySelectorAll('.excel-download-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        const fileId = btn.getAttribute('data-file-id');
+                        const item = btn.closest('.test-accordion-item');
+                        const fileTitle = item.querySelector('.accordion-header-title').textContent;
+                        await downloadTestResultsAsExcel(fileId, fileTitle);
                     });
                 });
 
@@ -3685,6 +3701,75 @@
             const hours = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+        // 엑셀 다운로드 함수
+        async function downloadTestResultsAsExcel(fileId, fileTitle) {
+            try {
+                // 테스트 결과 데이터 조회
+                const { data: results, error } = await supabase
+                    .from('test_results')
+                    .select('*')
+                    .eq('file_id', fileId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!results || results.length === 0) {
+                    alert('다운로드할 데이터가 없습니다.');
+                    return;
+                }
+
+                // 사람별로 그룹화
+                const groupedByName = {};
+                results.forEach(result => {
+                    if (!groupedByName[result.tester_name]) {
+                        groupedByName[result.tester_name] = {
+                            name: result.tester_name,
+                            attempts: 0,
+                            maxScore: 0,
+                            isPerfect: false
+                        };
+                    }
+                    groupedByName[result.tester_name].attempts += 1;
+                    if (result.score > groupedByName[result.tester_name].maxScore) {
+                        groupedByName[result.tester_name].maxScore = result.score;
+                    }
+                    if (result.score === 100) {
+                        groupedByName[result.tester_name].isPerfect = true;
+                    }
+                });
+
+                // 최고점수 기준으로 정렬
+                const sortedUsers = Object.values(groupedByName).sort((a, b) => b.maxScore - a.maxScore);
+
+                // CSV 데이터 생성
+                let csvContent = '이름,점수,총 시도 횟수,상태\n';
+                sortedUsers.forEach(user => {
+                    const status = user.isPerfect ? '만점' : '미수';
+                    csvContent += `"${user.name}",${user.maxScore},${user.attempts},"${status}"\n`;
+                });
+
+                // Blob 생성 (Excel 형식)
+                const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+
+                // 다운로드 링크 생성
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+
+                link.setAttribute('href', url);
+                link.setAttribute('download', `${fileTitle}_성적_${new Date().getTime()}.csv`);
+                link.style.visibility = 'hidden';
+
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('엑셀 다운로드 오류:', error);
+                alert('다운로드 중 오류가 발생했습니다.');
+            }
         }
 
         // Hamburger Menu Logic
