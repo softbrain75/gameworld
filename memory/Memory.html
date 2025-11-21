@@ -6269,10 +6269,11 @@
                                         wordSpan.style.fontWeight = 'bold';
                                     }
 
-                                    // Italic으로 표시된 단어 (단어 값으로 매칭)
-                                    console.log('🔍 결과화면 Bold 단어 매칭:', { word, wordIndex, blanks: blanks.includes(wordIndex), italicWordValues });
-                                    if (italicWordValues.includes(word)) {
-                                        console.log('✅ Italic 매칭 성공:', word);
+                                    // Italic으로 표시된 단어 (lyrics 배열 값으로 매칭)
+                                    const lyricsWord = lyrics[wordIndex];
+                                    console.log('🔍 결과화면 Bold 단어 매칭:', { word, lyricsWord, wordIndex, italicWordValues });
+                                    if (italicWordValues.includes(lyricsWord)) {
+                                        console.log('✅ Italic 매칭 성공:', lyricsWord);
                                         wordSpan.style.fontStyle = 'italic';
                                         wordSpan.style.opacity = '0.7';
                                     }
@@ -6305,10 +6306,11 @@
                                             wordSpan.style.color = 'var(--wrong-color, #ef4444)';
                                         }
 
-                                        // Italic으로 표시된 단어 (단어 값으로 매칭)
-                                        console.log('🔍 결과화면 일반 단어 매칭:', { word, wordIndex, blanks: blanks.includes(wordIndex), italicWordValues });
-                                        if (italicWordValues.includes(word)) {
-                                            console.log('✅ Italic 매칭 성공:', word);
+                                        // Italic으로 표시된 단어 (lyrics 배열 값으로 매칭)
+                                        const lyricsWord = lyrics[wordIndex];
+                                        console.log('🔍 결과화면 일반 단어 매칭:', { word, lyricsWord, wordIndex, italicWordValues });
+                                        if (italicWordValues.includes(lyricsWord)) {
+                                            console.log('✅ Italic 매칭 성공:', lyricsWord);
                                             wordSpan.style.fontStyle = 'italic';
                                             wordSpan.style.opacity = '0.7';
                                         }
