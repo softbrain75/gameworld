@@ -5142,10 +5142,11 @@
                         td.style.fontWeight = 'bold';
                     }
 
-                    // 셀 내용 파싱 (**bold** 포함)
+                    // 셀 내용 파싱 (**bold** 및 *italic* 포함)
                     let remaining = cell.trim();
                     while (remaining.length > 0) {
                         const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+                        const italicMatch = remaining.match(/^\s*\*([^*]+)\*/);
 
                         if (boldMatch) {
                             const word = boldMatch[1].trim();
@@ -5212,8 +5213,27 @@
                                 wordIndex++;
                             }
                             remaining = remaining.substring(boldMatch[0].length);
+                        } else if (italicMatch) {
+                            // Italic 단어 (blank에 포함되지 않음 - 표시만 함)
+                            const word = italicMatch[1].trim();
+                            if (word && wordIndex < lyrics.length) {
+                                const wordEl = document.createElement('span');
+                                wordEl.style.display = 'inline-block';
+                                wordEl.style.margin = '0 4px';
+
+                                const wordSpan = document.createElement('span');
+                                wordSpan.className = 'word-visible';
+                                wordSpan.textContent = word;
+                                wordSpan.style.fontStyle = 'italic';
+                                wordSpan.style.opacity = '0.7';
+                                wordEl.appendChild(wordSpan);
+
+                                td.appendChild(wordEl);
+                                wordIndex++;
+                            }
+                            remaining = remaining.substring(italicMatch[0].length);
                         } else {
-                            const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                            const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|\*|$)/);
                             if (nonBoldMatch && nonBoldMatch[1].trim()) {
                                 const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
                                 words.forEach(word => {
