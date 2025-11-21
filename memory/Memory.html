@@ -5281,16 +5281,21 @@
                                             checkbox.setAttribute('data-blank-index', wordIndex);
                                             checkbox.addEventListener('change', (e) => {
                                                 const idx = parseInt(inputEl.dataset.index);
+                                                const wordValue = lyrics[idx];
                                                 if (e.target.checked) {
                                                     inputEl.classList.add('italic-marked');
                                                     if (!italicWords.includes(idx)) {
                                                         italicWords.push(idx);
                                                     }
+                                                    if (!italicWordValues.includes(wordValue)) {
+                                                        italicWordValues.push(wordValue);
+                                                    }
                                                 } else {
                                                     inputEl.classList.remove('italic-marked');
                                                     italicWords = italicWords.filter(i => i !== idx);
+                                                    italicWordValues = italicWordValues.filter(w => w !== wordValue);
                                                 }
-                                                console.log('Italic 단어 목록:', italicWords);
+                                                console.log('✅ 표 비Bold - Italic 체크:', { idx, word: wordValue, italicWords, italicWordValues });
                                             });
 
                                             container.appendChild(inputEl);
@@ -5520,16 +5525,21 @@
                                 checkbox.setAttribute('data-blank-index', wordIndex);
                                 checkbox.addEventListener('change', (e) => {
                                     const idx = parseInt(inputEl.dataset.index);
+                                    const wordValue = lyrics[idx];
                                     if (e.target.checked) {
                                         inputEl.classList.add('italic-marked');
                                         if (!italicWords.includes(idx)) {
                                             italicWords.push(idx);
                                         }
+                                        if (!italicWordValues.includes(wordValue)) {
+                                            italicWordValues.push(wordValue);
+                                        }
                                     } else {
                                         inputEl.classList.remove('italic-marked');
                                         italicWords = italicWords.filter(i => i !== idx);
+                                        italicWordValues = italicWordValues.filter(w => w !== wordValue);
                                     }
-                                    console.log('Italic 단어 목록:', italicWords);
+                                    console.log('✅ 일반 Bold - Italic 체크:', { idx, word: wordValue, italicWords, italicWordValues });
                                 });
 
                                 container.appendChild(inputEl);
@@ -5610,16 +5620,21 @@
                                         checkbox.setAttribute('data-blank-index', wordIndex);
                                         checkbox.addEventListener('change', (e) => {
                                             const idx = parseInt(inputEl.dataset.index);
+                                            const wordValue = lyrics[idx];
                                             if (e.target.checked) {
                                                 inputEl.classList.add('italic-marked');
                                                 if (!italicWords.includes(idx)) {
                                                     italicWords.push(idx);
                                                 }
+                                                if (!italicWordValues.includes(wordValue)) {
+                                                    italicWordValues.push(wordValue);
+                                                }
                                             } else {
                                                 inputEl.classList.remove('italic-marked');
                                                 italicWords = italicWords.filter(i => i !== idx);
+                                                italicWordValues = italicWordValues.filter(w => w !== wordValue);
                                             }
-                                            console.log('Italic 단어 목록:', italicWords);
+                                            console.log('✅ 일반 비Bold - Italic 체크:', { idx, word: wordValue, italicWords, italicWordValues });
                                         });
 
                                         container.appendChild(inputEl);
@@ -6113,6 +6128,7 @@
 
             // 디버그: italicWords와 correctAnswers 로그
             console.log('🎨 displayOriginalText - italicWords:', italicWords);
+            console.log('🎨 displayOriginalText - italicWordValues:', italicWordValues);
             console.log('🎨 displayOriginalText - correctAnswers:', correctAnswers);
             console.log('🎨 displayOriginalText - blanks:', blanks);
             console.log('🎨 displayOriginalText - lyrics:', lyrics);
