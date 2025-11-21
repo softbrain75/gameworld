@@ -4873,6 +4873,7 @@
         // Hint tracking: { inputElementId: { revealedCount: 0 } }
         let hintProgress = {};
         let lastSelectedInput = null; // 마지막으로 선택된 입력필드 추적
+        let boldStates = {}; // 게임 모드에서 Bold 상태 추적 { dataIndex: true/false }
 
         // Difficulty settings
         const difficultySettings = {
@@ -4962,6 +4963,7 @@
             startTime = Date.now();
             currentBlankIndex = -1;
             hintProgress = {}; // 힌트 진행상황 초기화
+            boldStates = {}; // Bold 상태 초기화
 
             // 게임 시작 시 현재 사용자 포인트 표시 (supabaseClient.js의 getCurrentPoints 사용)
             const currentPoints = typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0;
@@ -5701,6 +5703,7 @@
         // End game
         async function endGame(finalScore = score) {
             gameState = 'gameover';
+            boldStates = {}; // Bold 상태 초기화
             document.getElementById('final-score').textContent = `${finalScore}점`;
 
             // 입력하지 않은 빈칸들은 correctAnswers에서 제거 (미입력=오답)
@@ -6084,13 +6087,46 @@
             }
         });
 
-        // Ctrl+D 단축키 - 삭제하기
+        // Ctrl+D 단축키 - 편집 모드: 삭제, 게임 모드: Bold 토글
         document.addEventListener('keydown', function(event) {
             if (event.ctrlKey && (event.key === 'd' || event.key === 'D')) {
                 event.preventDefault();
-                deleteFile();
+
+                // 게임 모드에서는 Bold 토글
+                if (currentMode === 'game') {
+                    toggleBoldInGame();
+                } else if (currentMode === 'edit') {
+                    // 편집 모드에서는 파일 삭제
+                    deleteFile();
+                }
             }
         });
+
+        // Game mode - Toggle bold for current input field
+        function toggleBoldInGame() {
+            const selectedInput = lastSelectedInput || document.activeElement;
+
+            // 선택된 입력필드가 word-input인지 확인
+            if (!selectedInput || !selectedInput.classList.contains('word-input')) {
+                console.log('⚠️ Bold 토글: 입력필드가 선택되지 않음');
+                return;
+            }
+
+            const dataIndex = selectedInput.dataset.index;
+
+            // Bold 상태 토글
+            if (boldStates[dataIndex]) {
+                // Bold 제거
+                boldStates[dataIndex] = false;
+                selectedInput.style.fontWeight = 'normal';
+                console.log('🔤 Bold 제거:', dataIndex);
+            } else {
+                // Bold 적용
+                boldStates[dataIndex] = true;
+                selectedInput.style.fontWeight = 'bold';
+                console.log('🔤 Bold 적용:', dataIndex);
+            }
+        }
 
         // Hint function - reveal characters one by one
         function showHint() {
