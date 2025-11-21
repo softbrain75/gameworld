@@ -5762,13 +5762,28 @@
                 const userAnswer = input.value.trim();
                 if (userAnswer === correctAnswer) {
                     totalCorrect++;
-                    input.classList.add('correct');
                     input.classList.remove('wrong');
+
+                    // 힌트 사용 여부 확인
+                    const usedHint = hintProgress[blankIndex] && hintProgress[blankIndex].usedHint;
+
+                    if (usedHint) {
+                        // 힌트를 사용한 경우: 황색으로 표시하고 맞은 갯수에 포함 안 함
+                        input.classList.add('hint-used');
+                        input.classList.remove('correct');
+                        // totalCorrect는 증가하지 않음 (이미 증가한 것을 되돌려야 함)
+                        totalCorrect--;
+                    } else {
+                        // 힌트를 사용하지 않은 경우: 초록색으로 표시
+                        input.classList.add('correct');
+                        input.classList.remove('hint-used');
+                    }
+
                     // 정확히 입력한 것만 correctAnswers에 추가
                     correctAnswers.push(blankIndex);
                 } else {
                     input.classList.add('wrong');
-                    input.classList.remove('correct');
+                    input.classList.remove('correct', 'hint-used');
                     const answerSpan = document.createElement('span');
                     answerSpan.className = 'answer-display';
                     answerSpan.textContent = `(정답: ${correctAnswer})`;
@@ -6349,13 +6364,23 @@
             if (nextRevealed === correctWord.length) {
                 console.log('🎯 정답 완성! 다음 필드로 이동');
 
-                selectedInput.classList.add('correct'); // 정답 표시
                 selectedInput.classList.remove('wrong', 'partial-correct');
                 selectedInput.style.backgroundImage = 'none'; // 배경 그래디언트 제거
                 selectedInput.disabled = true; // 입력 불가능하게 설정
 
-                // 점수 업데이트 (correctCount 증가)
-                correctCount++;
+                // 힌트 사용 여부 확인
+                const usedHint = hintProgress[dataIndex] && hintProgress[dataIndex].usedHint;
+
+                if (usedHint) {
+                    // 힌트를 사용한 경우: 황색으로 표시하고 맞은 갯수에 포함 안 함
+                    selectedInput.classList.add('hint-used');
+                    // correctCount는 증가하지 않음
+                } else {
+                    // 힌트를 사용하지 않은 경우: 초록색으로 표시하고 맞은 갯수에 포함
+                    selectedInput.classList.add('correct');
+                    correctCount++;
+                }
+
                 if (totalBlanks > 0) {
                     score = Math.round((correctCount / totalBlanks) * 100);
                 }
