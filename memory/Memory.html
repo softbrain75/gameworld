@@ -5504,7 +5504,29 @@
 
                                 blankOrder++;
 
+                                // Italic 체크박스 추가 (초기에는 숨김)
+                                const checkbox = document.createElement('input');
+                                checkbox.type = 'checkbox';
+                                checkbox.className = 'italic-checkbox';
+                                checkbox.title = 'Italic으로 표시';
+                                checkbox.style.display = 'none'; // 초기에는 숨김
+                                checkbox.setAttribute('data-blank-index', wordIndex);
+                                checkbox.addEventListener('change', (e) => {
+                                    const idx = parseInt(inputEl.dataset.index);
+                                    if (e.target.checked) {
+                                        inputEl.classList.add('italic-marked');
+                                        if (!italicWords.includes(idx)) {
+                                            italicWords.push(idx);
+                                        }
+                                    } else {
+                                        inputEl.classList.remove('italic-marked');
+                                        italicWords = italicWords.filter(i => i !== idx);
+                                    }
+                                    console.log('Italic 단어 목록:', italicWords);
+                                });
+
                                 container.appendChild(inputEl);
+                                container.appendChild(checkbox);
                                 wordEl.appendChild(container);
                             } else {
                                 const wordSpan = document.createElement('span');
@@ -5572,7 +5594,29 @@
 
                                         blankOrder++;
 
+                                        // Italic 체크박스 추가 (초기에는 숨김)
+                                        const checkbox = document.createElement('input');
+                                        checkbox.type = 'checkbox';
+                                        checkbox.className = 'italic-checkbox';
+                                        checkbox.title = 'Italic으로 표시';
+                                        checkbox.style.display = 'none'; // 초기에는 숨김
+                                        checkbox.setAttribute('data-blank-index', wordIndex);
+                                        checkbox.addEventListener('change', (e) => {
+                                            const idx = parseInt(inputEl.dataset.index);
+                                            if (e.target.checked) {
+                                                inputEl.classList.add('italic-marked');
+                                                if (!italicWords.includes(idx)) {
+                                                    italicWords.push(idx);
+                                                }
+                                            } else {
+                                                inputEl.classList.remove('italic-marked');
+                                                italicWords = italicWords.filter(i => i !== idx);
+                                            }
+                                            console.log('Italic 단어 목록:', italicWords);
+                                        });
+
                                         container.appendChild(inputEl);
+                                        container.appendChild(checkbox);
                                         wordEl.appendChild(container);
                                     } else {
                                         const wordSpan = document.createElement('span');
