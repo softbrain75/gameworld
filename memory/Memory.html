@@ -4902,7 +4902,8 @@
         let blanks = [];
         let correctAnswers = [];
         let hintUsedAnswers = []; // 힌트를 사용한 정답 추적
-        let italicWords = []; // Italic으로 표시된 단어 추적
+        let italicWords = []; // Italic으로 표시된 단어 추적 (객체: {index, word})
+        let italicWordValues = []; // Italic 단어 값만 추적 (renderTable 등에서 인덱스 불일치 해결)
         let currentBlankIndex = -1;
         let correctCount = 0;
         let score = 0;
@@ -5015,7 +5016,8 @@
             startTime = Date.now();
             currentBlankIndex = -1;
             hintProgress = {}; // 힌트 진행상황 초기화
-            italicWords = []; // Italic 단어 초기화
+            italicWords = []; // Italic 단어 초기화 (인덱스)
+            italicWordValues = []; // Italic 단어 초기화 (값)
 
             // 게임 시작 시 현재 사용자 포인트 표시 (supabaseClient.js의 getCurrentPoints 사용)
             const currentPoints = typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0;
@@ -5187,16 +5189,21 @@
                                     checkbox.setAttribute('data-blank-index', wordIndex);
                                     checkbox.addEventListener('change', (e) => {
                                         const idx = parseInt(inputEl.dataset.index);
+                                        const wordValue = lyrics[idx];
                                         if (e.target.checked) {
                                             inputEl.classList.add('italic-marked');
                                             if (!italicWords.includes(idx)) {
                                                 italicWords.push(idx);
                                             }
+                                            if (!italicWordValues.includes(wordValue)) {
+                                                italicWordValues.push(wordValue);
+                                            }
                                         } else {
                                             inputEl.classList.remove('italic-marked');
                                             italicWords = italicWords.filter(i => i !== idx);
+                                            italicWordValues = italicWordValues.filter(w => w !== wordValue);
                                         }
-                                        console.log('✅ 표 Bold - Italic 체크:', { idx, word: lyrics[idx], inputValue: inputEl.value, italicWords });
+                                        console.log('✅ 표 Bold - Italic 체크:', { idx, word: wordValue, italicWords, italicWordValues });
                                     });
 
                                     container.appendChild(inputEl);
@@ -6188,8 +6195,8 @@
                                         span.style.color = 'var(--wrong-color, #ef4444)';
                                     }
 
-                                    // Italic으로 표시된 단어
-                                    if (italicWords.includes(foundIndex)) {
+                                    // Italic으로 표시된 단어 (단어 값으로 매칭)
+                                    if (italicWordValues.includes(text)) {
                                         span.style.fontStyle = 'italic';
                                         span.style.opacity = '0.7';
                                     }
@@ -6246,8 +6253,8 @@
                                         wordSpan.style.fontWeight = 'bold';
                                     }
 
-                                    // Italic으로 표시된 단어
-                                    if (italicWords.includes(wordIndex)) {
+                                    // Italic으로 표시된 단어 (단어 값으로 매칭)
+                                    if (italicWordValues.includes(word)) {
                                         wordSpan.style.fontStyle = 'italic';
                                         wordSpan.style.opacity = '0.7';
                                     }
@@ -6280,8 +6287,8 @@
                                             wordSpan.style.color = 'var(--wrong-color, #ef4444)';
                                         }
 
-                                        // Italic으로 표시된 단어
-                                        if (italicWords.includes(wordIndex)) {
+                                        // Italic으로 표시된 단어 (단어 값으로 매칭)
+                                        if (italicWordValues.includes(word)) {
                                             wordSpan.style.fontStyle = 'italic';
                                             wordSpan.style.opacity = '0.7';
                                         }
