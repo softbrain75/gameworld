@@ -5684,10 +5684,12 @@
                             } else {
                                 // 힌트를 사용하지 않은 경우: 초록색으로 표시하고 맞은 갯수에 포함
                                 correctCount++;
-                                // 정답(초록색)일 때만 체크박스 표시
-                                const checkbox = document.querySelector(`.italic-checkbox[data-blank-index="${blankIndex}"]`);
-                                if (checkbox) {
-                                    checkbox.style.display = 'inline-block';
+                                // 정답(초록색)일 때만 체크박스 표시 (TTV 모드에서만)
+                                if (gameMode === 'bold') {
+                                    const checkbox = document.querySelector(`.italic-checkbox[data-blank-index="${blankIndex}"]`);
+                                    if (checkbox) {
+                                        checkbox.style.display = 'inline-block';
+                                    }
                                 }
                             }
 
@@ -6016,8 +6018,8 @@
                 }
             }
 
-            // Italic 단어들이 있으면 MD 파일 업데이트
-            if (italicWords.length > 0) {
+            // Italic 단어들이 있으면 MD 파일 업데이트 (TTV 모드에서만)
+            if (italicWords.length > 0 && gameMode === 'bold') {
                 await updateMarkdownWithItalic();
             }
 
@@ -6036,16 +6038,10 @@
                     const word = lyrics[wordIndex];
                     const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-                    // 1. 먼저 **단어** 형식을 찾아서 *단어*로 변경
+                    // **단어** 형식을 찾아서 *단어*로 변경
+                    // (TTV 모드에서는 bold 형식만 변환)
                     const boldPattern = new RegExp(`\\*\\*${escapedWord}\\*\\*`, 'g');
                     updatedMarkdown = updatedMarkdown.replace(boldPattern, `*${word}*`);
-
-                    // 2. **단어**가 없으면 일반 텍스트 형식도 확인
-                    // 단어 경계를 기준으로 정확히 매칭 (단어 앞뒤에 공백이나 문장부호)
-                    const textPattern = new RegExp(`(^|\\s|\\||,|\\.|;|:|!|\\?|\\(|\\))${escapedWord}(?=\\s|\\||,|\\.|;|:|!|\\?|\\)|$)`, 'gm');
-                    updatedMarkdown = updatedMarkdown.replace(textPattern, (match, prefix) => {
-                        return prefix + `*${word}*`;
-                    });
                 }
             }
 
