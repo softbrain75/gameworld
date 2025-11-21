@@ -6243,6 +6243,12 @@
                                         wordSpan.style.color = 'var(--wrong-color, #ef4444)';
                                         wordSpan.style.fontWeight = 'bold';
                                     }
+
+                                    // Italic으로 표시된 단어
+                                    if (italicWords.includes(wordIndex)) {
+                                        wordSpan.style.fontStyle = 'italic';
+                                        wordSpan.style.opacity = '0.7';
+                                    }
                                 } else {
                                     wordSpan.style.fontWeight = 'bold';
                                 }
@@ -6270,6 +6276,12 @@
                                             wordSpan.style.color = '#ad6800';
                                         } else {
                                             wordSpan.style.color = 'var(--wrong-color, #ef4444)';
+                                        }
+
+                                        // Italic으로 표시된 단어
+                                        if (italicWords.includes(wordIndex)) {
+                                            wordSpan.style.fontStyle = 'italic';
+                                            wordSpan.style.opacity = '0.7';
                                         }
                                     }
 
