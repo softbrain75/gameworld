@@ -5956,6 +5956,7 @@
                         localFiles[fileIndex].content = updatedMarkdown;
                         localStorage.setItem('local_md_files', JSON.stringify(localFiles));
                         console.log('✅ 로컬 파일 업데이트됨:', currentGameFileName);
+                        console.log('💾 localStorage에 저장됨');
                     }
                 } catch (error) {
                     console.error('로컬 파일 업데이트 오류:', error);
@@ -5987,6 +5988,7 @@
                                 // 로컬 캐시도 업데이트
                                 const cacheKey = `file_cache_${fileId}`;
                                 localStorage.setItem(cacheKey, updatedMarkdown);
+                                console.log('💾 localStorage 캐시에 저장됨:', cacheKey);
                             }
                         }
                     }
