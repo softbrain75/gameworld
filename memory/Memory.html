@@ -5196,7 +5196,7 @@
                                             inputEl.classList.remove('italic-marked');
                                             italicWords = italicWords.filter(i => i !== idx);
                                         }
-                                        console.log('Italic 단어 목록:', italicWords);
+                                        console.log('✅ 표 Bold - Italic 체크:', { idx, word: lyrics[idx], inputValue: inputEl.value, italicWords });
                                     });
 
                                     container.appendChild(inputEl);
@@ -6103,6 +6103,12 @@
         function displayOriginalText() {
             const displayEl = document.getElementById('original-text-display');
             displayEl.innerHTML = '';
+
+            // 디버그: italicWords와 correctAnswers 로그
+            console.log('🎨 displayOriginalText - italicWords:', italicWords);
+            console.log('🎨 displayOriginalText - correctAnswers:', correctAnswers);
+            console.log('🎨 displayOriginalText - blanks:', blanks);
+            console.log('🎨 displayOriginalText - lyrics:', lyrics);
 
             // 원본 마크다운이 있으면 파싱해서 표 포함해서 렌더링
             if (originalMarkdown) {
