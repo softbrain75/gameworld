@@ -4861,6 +4861,7 @@
         let originalMarkdown = '';
         let blanks = [];
         let correctAnswers = [];
+        let hintUsedAnswers = []; // 힌트를 사용한 정답 추적
         let currentBlankIndex = -1;
         let correctCount = 0;
         let score = 0;
@@ -5583,8 +5584,9 @@
             const inputs = document.querySelectorAll('.word-input');
             let totalCorrect = 0;
 
-            // 제출 시 correctAnswers 초기화 (정확히 입력한 것들을 기록)
+            // 제출 시 correctAnswers와 hintUsedAnswers 초기화
             correctAnswers = [];
+            hintUsedAnswers = [];
 
             inputs.forEach((input, index) => {
                 const blankIndex = blanks[index];
@@ -5603,14 +5605,15 @@
                         input.classList.remove('correct');
                         // totalCorrect는 증가하지 않음 (이미 증가한 것을 되돌려야 함)
                         totalCorrect--;
+                        // hintUsedAnswers에만 추가 (correctAnswers에는 추가 안 함)
+                        hintUsedAnswers.push(blankIndex);
                     } else {
                         // 힌트를 사용하지 않은 경우: 초록색으로 표시
                         input.classList.add('correct');
                         input.classList.remove('hint-used');
+                        // correctAnswers에만 추가
+                        correctAnswers.push(blankIndex);
                     }
-
-                    // 정확히 입력한 것만 correctAnswers에 추가
-                    correctAnswers.push(blankIndex);
                 } else {
                     input.classList.add('wrong');
                     input.classList.remove('correct', 'hint-used');
@@ -5878,6 +5881,10 @@
                                     if (correctAnswers.includes(idx)) {
                                         input.style.color = 'var(--correct-color, #10b981)';
                                         input.style.borderBottomColor = 'var(--correct-color, #10b981)';
+                                    } else if (hintUsedAnswers.includes(idx)) {
+                                        // 힌트 사용한 경우: 노란색
+                                        input.style.color = '#ad6800';
+                                        input.style.borderBottomColor = '#faad14';
                                     } else {
                                         input.style.color = 'var(--wrong-color, #ef4444)';
                                         input.style.borderBottomColor = 'var(--wrong-color, #ef4444)';
@@ -5895,6 +5902,9 @@
                                 if (foundIndex !== -1 && blanks.includes(foundIndex)) {
                                     if (correctAnswers.includes(foundIndex)) {
                                         span.style.color = 'var(--correct-color, #10b981)';
+                                    } else if (hintUsedAnswers.includes(foundIndex)) {
+                                        // 힌트 사용한 경우: 노란색
+                                        span.style.color = '#ad6800';
                                     } else {
                                         span.style.color = 'var(--wrong-color, #ef4444)';
                                     }
@@ -5941,6 +5951,10 @@
                                     if (correctAnswers.includes(wordIndex)) {
                                         wordSpan.style.color = 'var(--correct-color, #10b981)';
                                         wordSpan.style.fontWeight = 'bold';
+                                    } else if (hintUsedAnswers.includes(wordIndex)) {
+                                        // 힌트 사용한 경우: 노란색
+                                        wordSpan.style.color = '#ad6800';
+                                        wordSpan.style.fontWeight = 'bold';
                                     } else {
                                         // correctAnswers에 포함되지 않으면 틀렸거나 입력 안 함 (붉은색)
                                         wordSpan.style.color = 'var(--wrong-color, #ef4444)';
@@ -5968,6 +5982,9 @@
                                     if (blanks.includes(wordIndex)) {
                                         if (correctAnswers.includes(wordIndex)) {
                                             wordSpan.style.color = 'var(--correct-color, #10b981)';
+                                        } else if (hintUsedAnswers.includes(wordIndex)) {
+                                            // 힌트 사용한 경우: 노란색
+                                            wordSpan.style.color = '#ad6800';
                                         } else {
                                             wordSpan.style.color = 'var(--wrong-color, #ef4444)';
                                         }
@@ -6001,6 +6018,9 @@
                         // correctAnswers에 포함되면 정확히 입력한 것 (초록색)
                         if (correctAnswers.includes(index)) {
                             wordSpan.classList.add('correct');
+                        } else if (hintUsedAnswers.includes(index)) {
+                            // 힌트 사용한 경우: 노란색
+                            wordSpan.classList.add('hint-used');
                         } else {
                             // correctAnswers에 포함되지 않으면 틀렸거나 입력 안 함 (붉은색)
                             wordSpan.classList.add('wrong');
