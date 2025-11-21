@@ -1061,58 +1061,6 @@
             transform: translateY(-1px);
         }
 
-        .btn-share {
-            padding: 10px 12px;
-            background: #1890ff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
-            flex: 1;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
-            min-width: 0;
-        }
-
-        .btn-share:hover {
-            background: #096dd9;
-            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .btn-test {
-            padding: 10px 12px;
-            background: #faad14;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(250, 173, 20, 0.2);
-            flex: 1;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap;
-            min-width: 0;
-        }
-
-        .btn-test:hover {
-            background: #d48806;
-            box-shadow: 0 4px 12px rgba(250, 173, 20, 0.3);
-            transform: translateY(-1px);
-        }
-
         /* Scrollbar styling */
         #editor {
             scrollbar-width: thin;
@@ -2595,8 +2543,6 @@
                     <div class="editor-actions">
                         <button class="btn-back" id="delete-btn">삭제</button>
                         <button class="btn-save" id="save-btn">저장</button>
-                        <button class="btn-share" id="share-file-btn" style="display: none;">파일 공유</button>
-                        <button class="btn-test" id="test-file-btn" style="display: none;">테스트 공유</button>
                     </div>
                 </div>
             </section>
@@ -2704,16 +2650,6 @@
                 const publicSettingContainer = document.getElementById('public-setting-container');
                 if (publicSettingContainer) {
                     publicSettingContainer.style.display = isLocalFile ? 'none' : 'flex';
-                }
-
-                // 공유 버튼들 숨김 (create 모드에서는 저장 후에만 공유 가능)
-                const shareFileBtn = document.getElementById('share-file-btn');
-                const testFileBtn = document.getElementById('test-file-btn');
-                if (shareFileBtn) {
-                    shareFileBtn.style.display = 'none';
-                }
-                if (testFileBtn) {
-                    testFileBtn.style.display = 'none';
                 }
 
                 // 공개 여부 체크박스 리셋
@@ -4315,16 +4251,6 @@
                         publicSettingContainer.style.display = 'flex';
                     }
 
-                    // 공유 버튼들 표시 (edit 모드에서만)
-                    const shareFileBtn = document.getElementById('share-file-btn');
-                    const testFileBtn = document.getElementById('test-file-btn');
-                    if (shareFileBtn) {
-                        shareFileBtn.style.display = 'flex';
-                    }
-                    if (testFileBtn) {
-                        testFileBtn.style.display = 'flex';
-                    }
-
                     // 공개 여부 체크박스 업데이트
                     const publicCheckbox = document.getElementById('file-public-checkbox');
                     if (publicCheckbox) {
@@ -4355,15 +4281,6 @@
                         const publicSettingContainer = document.getElementById('public-setting-container');
                         if (publicSettingContainer) {
                             publicSettingContainer.style.display = 'none';
-                        }
-                        // 로컬 파일이므로 공유 버튼들 숨김
-                        const shareFileBtn = document.getElementById('share-file-btn');
-                        const testFileBtn = document.getElementById('test-file-btn');
-                        if (shareFileBtn) {
-                            shareFileBtn.style.display = 'none';
-                        }
-                        if (testFileBtn) {
-                            testFileBtn.style.display = 'none';
                         }
                         switchMode('edit', fileData.name);
                     }
@@ -4571,102 +4488,6 @@
                 }
             });
 
-            // 편집화면 - 파일 공유 버튼 이벤트 리스너
-            document.getElementById('share-file-btn').addEventListener('click', async () => {
-                console.log('📤 파일 공유 버튼 클릭됨 (편집화면)');
-
-                const fileId = document.getElementById('editor-file-id').textContent;
-                if (!fileId) {
-                    alert('공유할 파일이 없습니다. 먼저 파일을 저장해주세요.');
-                    return;
-                }
-
-                try {
-                    // UUID 생성 (앞 8자)
-                    const shareToken = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-                        .replace(/[xy]/g, function(c) {
-                            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                            return v.toString(16);
-                        })
-                        .substring(0, 8);
-
-                    // Supabase에 share_token 저장
-                    const { error } = await supabase
-                        .from('study_materials')
-                        .update({
-                            share_token: shareToken,
-                            is_shared: true,
-                            shared_at: new Date().toISOString()
-                        })
-                        .eq('id', fileId);
-
-                    if (error) {
-                        console.error('공유 설정 오류:', error);
-                        alert('공유 설정에 실패했습니다.');
-                        return;
-                    }
-
-                    // 공유 링크 생성
-                    const shareUrl = `${window.location.origin}${window.location.pathname}?share=${shareToken}`;
-
-                    // 클립보드에 복사
-                    await navigator.clipboard.writeText(shareUrl);
-
-                    alert(`✅ 공유 링크가 복사되었습니다!\n\n${shareUrl}`);
-                    console.log('파일 공유 링크:', shareUrl);
-                } catch (error) {
-                    console.error('파일 공유 오류:', error);
-                    alert('파일 공유 중 오류가 발생했습니다.');
-                }
-            });
-
-            // 편집화면 - 테스트 공유 버튼 이벤트 리스너
-            document.getElementById('test-file-btn').addEventListener('click', async () => {
-                console.log('📝 테스트 공유 버튼 클릭됨 (편집화면)');
-
-                const fileId = document.getElementById('editor-file-id').textContent;
-                if (!fileId) {
-                    alert('공유할 파일이 없습니다. 먼저 파일을 저장해주세요.');
-                    return;
-                }
-
-                try {
-                    // UUID 생성 (앞 8자)
-                    const testToken = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
-                        .replace(/[xy]/g, function(c) {
-                            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-                            return v.toString(16);
-                        })
-                        .substring(0, 8);
-
-                    // Supabase에 test_token 저장
-                    const { error } = await supabase
-                        .from('study_materials')
-                        .update({
-                            test_token: testToken,
-                            created_at: new Date().toISOString()
-                        })
-                        .eq('id', fileId);
-
-                    if (error) {
-                        console.error('테스트 공유 설정 오류:', error);
-                        alert('테스트 공유 설정에 실패했습니다.');
-                        return;
-                    }
-
-                    // 테스트 공유 링크 생성
-                    const testUrl = `${window.location.origin}${window.location.pathname}?test=${testToken}`;
-
-                    // 클립보드에 복사
-                    await navigator.clipboard.writeText(testUrl);
-
-                    alert(`✅ 테스트 공유 링크가 복사되었습니다!\n\n${testUrl}\n\n이 링크를 통해 접속한 사람은 테스트를 진행할 수 있습니다.`);
-                    console.log('테스트 공유 링크:', testUrl);
-                } catch (error) {
-                    console.error('테스트 공유 오류:', error);
-                    alert('테스트 공유 중 오류가 발생했습니다.');
-                }
-            });
 
             // 게임 화면 - 테스트 공유 버튼 이벤트 리스너
             document.getElementById('test-share-btn').addEventListener('click', async () => {
