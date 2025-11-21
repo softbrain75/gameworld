@@ -2833,6 +2833,16 @@
             }
 
             try {
+                // 로딩 스피너 표시
+                const loadingOverlay = document.querySelector('.loading-overlay');
+                const loadingText = document.querySelector('.loading-text');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('active');
+                    if (loadingText) {
+                        loadingText.textContent = '파일을 저장하는 중...';
+                    }
+                }
+
                 // Supabase가 로드되었는지 확인하고 현재 사용자 확인
                 let user = null;
                 if (typeof supabase !== 'undefined') {
@@ -3087,6 +3097,8 @@
                         } else {
                             console.log('✅ Supabase에 저장됨:', fileName);
                             previousFileName = fileName;
+                            // create 모드에서 저장 후 fileId 설정
+                            document.getElementById('editor-file-id').textContent = fileId;
                             await loadMyFiles();
                         }
                     }
@@ -3120,6 +3132,12 @@
             } catch (error) {
                 console.error('Save error:', error);
                 alert('파일 저장 중 오류가 발생했습니다');
+            } finally {
+                // 로딩 스피너 숨김
+                const loadingOverlay = document.querySelector('.loading-overlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.remove('active');
+                }
             }
         }
 
