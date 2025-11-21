@@ -6034,9 +6034,18 @@
             for (const wordIndex of italicWords) {
                 if (wordIndex < lyrics.length) {
                     const word = lyrics[wordIndex];
-                    // **단어** 형식을 *단어*로 변경
-                    const boldPattern = new RegExp(`\\*\\*${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\*\\*`, 'g');
+                    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+                    // 1. 먼저 **단어** 형식을 찾아서 *단어*로 변경
+                    const boldPattern = new RegExp(`\\*\\*${escapedWord}\\*\\*`, 'g');
                     updatedMarkdown = updatedMarkdown.replace(boldPattern, `*${word}*`);
+
+                    // 2. **단어**가 없으면 일반 텍스트 형식도 확인
+                    // 단어 경계를 기준으로 정확히 매칭 (단어 앞뒤에 공백이나 문장부호)
+                    const textPattern = new RegExp(`(^|\\s|\\||,|\\.|;|:|!|\\?|\\(|\\))${escapedWord}(?=\\s|\\||,|\\.|;|:|!|\\?|\\)|$)`, 'gm');
+                    updatedMarkdown = updatedMarkdown.replace(textPattern, (match, prefix) => {
+                        return prefix + `*${word}*`;
+                    });
                 }
             }
 
