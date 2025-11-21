@@ -1447,6 +1447,13 @@
             background: rgba(250, 173, 20, 0.1);
         }
 
+        /* 힌트 사용한 경우 - 황색으로 표시, 맞은 갯수에 포함 안 함 */
+        .word-input.hint-used {
+            border-bottom: 2px solid #faad14;
+            background: rgba(250, 173, 20, 0.2);
+            color: #ad6800;
+        }
+
         .word-input.partial-correct::after {
             content: '';
             position: absolute;
@@ -2474,7 +2481,7 @@
                                 <div class="info-value" id="game-points">0</div>
                             </div>
                             <div class="header-buttons">
-                                <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트 차감) [ctrl+H]>
+                                <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트 차감) ctrl+H">
                                     <span class="material-icons">lightbulb</span>
                                 </button>
                                 <button class="submit-btn" id="submit-btn">
@@ -5653,7 +5660,19 @@
                                 correctAnswers.push(blankIndex);
                             }
 
-                            correctCount++;
+                            // 힌트 사용 여부 확인
+                            const usedHint = hintProgress[blankIndex] && hintProgress[blankIndex].usedHint;
+
+                            if (usedHint) {
+                                // 힌트를 사용한 경우: 황색으로 표시하고 맞은 갯수에 포함 안 함
+                                input.classList.remove('correct');
+                                input.classList.add('hint-used');
+                                // correctCount는 증가하지 않음
+                            } else {
+                                // 힌트를 사용하지 않은 경우: 초록색으로 표시하고 맞은 갯수에 포함
+                                correctCount++;
+                            }
+
                             if (totalBlanks > 0) {
                                 score = Math.round((correctCount / totalBlanks) * 100);
                             }
@@ -6287,6 +6306,7 @@
             }
 
             hintProgress[dataIndex].revealedCount = nextRevealed;
+            hintProgress[dataIndex].usedHint = true; // 힌트 사용 여부 표시
 
             // 부분 공개된 단어만 표시 (뒤의 빈칸은 "_"로 표시 안함)
             const revealedWord = correctWord.substring(0, nextRevealed);
