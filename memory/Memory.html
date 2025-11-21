@@ -6270,11 +6270,8 @@
                                         wordSpan.style.fontWeight = 'bold';
                                     }
 
-                                    // Italic으로 표시된 단어 (lyrics 배열 값으로 매칭)
-                                    const lyricsWord = lyrics[wordIndex];
-                                    console.log('🔍 결과화면 Bold 단어 매칭:', { word, lyricsWord, wordIndex, italicWordValues });
-                                    if (italicWordValues.includes(lyricsWord)) {
-                                        console.log('✅ Italic 매칭 성공:', lyricsWord);
+                                    // Italic으로 표시된 단어
+                                    if (italicWords.includes(wordIndex)) {
                                         wordSpan.classList.add('italic-marked');
                                     }
                                 } else {
@@ -6306,11 +6303,8 @@
                                             wordSpan.style.color = 'var(--wrong-color, #ef4444)';
                                         }
 
-                                        // Italic으로 표시된 단어 (lyrics 배열 값으로 매칭)
-                                        const lyricsWord = lyrics[wordIndex];
-                                        console.log('🔍 결과화면 일반 단어 매칭:', { word, lyricsWord, wordIndex, italicWordValues });
-                                        if (italicWordValues.includes(lyricsWord)) {
-                                            console.log('✅ Italic 매칭 성공:', lyricsWord);
+                                        // Italic으로 표시된 단어
+                                        if (italicWords.includes(wordIndex)) {
                                             wordSpan.classList.add('italic-marked');
                                         }
                                     }
