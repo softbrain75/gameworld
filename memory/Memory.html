@@ -4356,6 +4356,15 @@
                         if (publicSettingContainer) {
                             publicSettingContainer.style.display = 'none';
                         }
+                        // 로컬 파일이므로 공유 버튼들 숨김
+                        const shareFileBtn = document.getElementById('share-file-btn');
+                        const testFileBtn = document.getElementById('test-file-btn');
+                        if (shareFileBtn) {
+                            shareFileBtn.style.display = 'none';
+                        }
+                        if (testFileBtn) {
+                            testFileBtn.style.display = 'none';
+                        }
                         switchMode('edit', fileData.name);
                     }
                 } catch (error) {
