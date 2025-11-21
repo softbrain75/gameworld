@@ -5166,11 +5166,13 @@
 
                                     blankOrder++;
 
-                                    // Italic 체크박스 추가
+                                    // Italic 체크박스 추가 (초기에는 숨김)
                                     const checkbox = document.createElement('input');
                                     checkbox.type = 'checkbox';
                                     checkbox.className = 'italic-checkbox';
                                     checkbox.title = 'Italic으로 표시';
+                                    checkbox.style.display = 'none'; // 초기에는 숨김
+                                    checkbox.setAttribute('data-blank-index', wordIndex);
                                     checkbox.addEventListener('change', (e) => {
                                         const idx = parseInt(inputEl.dataset.index);
                                         if (e.target.checked) {
@@ -5232,11 +5234,13 @@
 
                                             blankOrder++;
 
-                                            // Italic 체크박스 추가
+                                            // Italic 체크박스 추가 (초기에는 숨김)
                                             const checkbox = document.createElement('input');
                                             checkbox.type = 'checkbox';
                                             checkbox.className = 'italic-checkbox';
                                             checkbox.title = 'Italic으로 표시';
+                                            checkbox.style.display = 'none'; // 초기에는 숨김
+                                            checkbox.setAttribute('data-blank-index', wordIndex);
                                             checkbox.addEventListener('change', (e) => {
                                                 const idx = parseInt(inputEl.dataset.index);
                                                 if (e.target.checked) {
@@ -5584,6 +5588,11 @@
                             } else {
                                 // 힌트를 사용하지 않은 경우: 초록색으로 표시하고 맞은 갯수에 포함
                                 correctCount++;
+                                // 정답(초록색)일 때만 체크박스 표시
+                                const checkbox = document.querySelector(`.italic-checkbox[data-blank-index="${blankIndex}"]`);
+                                if (checkbox) {
+                                    checkbox.style.display = 'inline-block';
+                                }
                             }
 
                             if (totalBlanks > 0) {
@@ -5971,6 +5980,12 @@
                                         input.style.color = 'var(--wrong-color, #ef4444)';
                                         input.style.borderBottomColor = 'var(--wrong-color, #ef4444)';
                                     }
+
+                                    // Italic으로 표시된 단어
+                                    if (italicWords.includes(idx)) {
+                                        input.style.fontStyle = 'italic';
+                                        input.style.opacity = '0.7';
+                                    }
                                 }
                             });
 
@@ -5989,6 +6004,12 @@
                                         span.style.color = '#ad6800';
                                     } else {
                                         span.style.color = 'var(--wrong-color, #ef4444)';
+                                    }
+
+                                    // Italic으로 표시된 단어
+                                    if (italicWords.includes(foundIndex)) {
+                                        span.style.fontStyle = 'italic';
+                                        span.style.opacity = '0.7';
                                     }
                                 }
                             });
