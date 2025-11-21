@@ -3966,7 +3966,7 @@
                     // 파일 목록 표시 (공개/비공개 토글 포함)
                     publicFilesList.innerHTML = data.map(file => `
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--outline-variant);">
-                            <div style="flex: 1; min-width: 0; cursor: pointer;" onclick="document.getElementById('public-files-modal').style.display = 'none'; editFile('${file.id}');">
+                            <div style="flex: 1; min-width: 0; cursor: pointer;" onclick="document.getElementById('public-files-modal').style.display = 'none'; playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}');">
                                 <div style="font-weight: 500; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">${escapeHtml(file.title)}</div>
                             </div>
                             <button class="public-toggle-btn" data-file-id="${file.id}" style="margin-left: 12px; padding: 6px 12px; border: 1px solid var(--outline); border-radius: 4px; background: ${file.is_public ? 'var(--primary)' : 'var(--surface)'}; color: ${file.is_public ? 'white' : 'var(--text-primary)'}; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s ease; white-space: nowrap;">
@@ -4018,7 +4018,7 @@
                     // 파일 목록 표시 (공유/비공유 토글 포함)
                     sharedFilesList.innerHTML = data.map(file => `
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--outline-variant);">
-                            <div style="flex: 1; min-width: 0; cursor: pointer;" onclick="document.getElementById('shared-files-modal').style.display = 'none'; editFile('${file.id}');">
+                            <div style="flex: 1; min-width: 0; cursor: pointer;" onclick="document.getElementById('shared-files-modal').style.display = 'none'; playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}');">
                                 <div style="font-weight: 500; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">${escapeHtml(file.title)}</div>
                             </div>
                             <button class="shared-toggle-btn" data-file-id="${file.id}" style="margin-left: 12px; padding: 6px 12px; border: 1px solid var(--outline); border-radius: 4px; background: ${file.is_shared ? 'var(--primary)' : 'var(--surface)'}; color: ${file.is_shared ? 'white' : 'var(--text-primary)'}; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s ease; white-space: nowrap;">
