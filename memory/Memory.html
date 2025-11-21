@@ -4957,24 +4957,35 @@
                 // 표 구분선 제외 (|---|---|)
                 if (line.trim().match(/^\|[\s\-:]+\|/)) return;
 
-                // **bold** 패턴 찾기
+                // **bold** 및 *italic* 패턴 찾기
                 let remaining = line;
                 while (remaining.length > 0) {
+                    // bold 패턴 (**word**)를 먼저 찾기
                     const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+                    // italic 패턴 (*word*)을 찾기
+                    const italicMatch = remaining.match(/^\s*\*([^*]+)\*/);
 
                     if (boldMatch) {
-                        // TTV를 찾음 (공백을 포함한 전체를 하나의 항목으로 유지)
+                        // Bold를 찾음
                         const boldContent = boldMatch[1].trim();
                         if (boldContent) {
-                            // bold 내용 전체를 하나의 단어로 처리 (공백 포함)
                             lyrics.push(boldContent);
                             boldWords.push(wordIndex);
                             wordIndex++;
                         }
                         remaining = remaining.substring(boldMatch[0].length);
+                    } else if (italicMatch) {
+                        // Italic을 찾음 (bold가 아닌 경우만 처리)
+                        const italicContent = italicMatch[1].trim();
+                        if (italicContent) {
+                            lyrics.push(italicContent);
+                            // italic 단어도 lyrics에 추가하되, boldWords에는 추가하지 않음 (blank에서 제외)
+                            wordIndex++;
+                        }
+                        remaining = remaining.substring(italicMatch[0].length);
                     } else {
-                        // bold가 아닌 부분 찾기
-                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                        // bold/italic이 아닌 부분 찾기
+                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|\*|$)/);
                         if (nonBoldMatch && nonBoldMatch[1].trim()) {
                             // |는 표의 구분자이므로 제거
                             const text = nonBoldMatch[1].replace(/\|/g, ' ');
@@ -5439,6 +5450,7 @@
                 let remaining = line;
                 while (remaining.length > 0) {
                     const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
+                    const italicMatch = remaining.match(/^\s*\*([^*]+)\*/);
 
                     if (boldMatch) {
                         // Bold 단어
@@ -5485,8 +5497,28 @@
                             wordIndex++;
                         }
                         remaining = remaining.substring(boldMatch[0].length);
+                    } else if (italicMatch) {
+                        // Italic 단어 (blank에 포함되지 않음 - 표시만 함)
+                        const word = italicMatch[1].trim();
+                        if (word && wordIndex < lyrics.length) {
+                            const wordEl = document.createElement('span');
+                            wordEl.className = 'lyric-word';
+                            wordEl.style.display = 'inline-block';
+                            wordEl.style.margin = '0 4px';
+
+                            const wordSpan = document.createElement('span');
+                            wordSpan.className = 'word-visible';
+                            wordSpan.textContent = word;
+                            wordSpan.style.fontStyle = 'italic';
+                            wordSpan.style.opacity = '0.7';
+                            wordEl.appendChild(wordSpan);
+
+                            lineDiv.appendChild(wordEl);
+                            wordIndex++;
+                        }
+                        remaining = remaining.substring(italicMatch[0].length);
                     } else {
-                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|$)/);
+                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|\*|$)/);
                         if (nonBoldMatch && nonBoldMatch[1].trim()) {
                             const text = nonBoldMatch[1];
                             const words = text.split(/[\s]+/).filter(w => w.length > 0);
