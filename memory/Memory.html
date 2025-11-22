@@ -52,22 +52,19 @@
         }
 
         /* Menu Toggle Area */
+        /* 기본: 숨김 (미디어쿼리에서 표시) */
         .menu-toggle-area {
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: space-between; /* 좌우 끝에 배치 */
             padding: 6px 8px; /* 좌우 패딩 고정 */
             margin-bottom: 0px;
         }
 
-        .side-menu.open .menu-toggle-area {
-            padding: 6px 8px; /* 동일한 패딩 유지 */
-        }
-
         /* Hamburger Menu Button */
         .hamburger-btn {
             width: 35px;
-            height: 40px;
+            height: 34.25px;
             border: none;
             background: transparent;
             cursor: pointer;
@@ -103,18 +100,17 @@
             background: rgba(103, 80, 164, 0.2);
         }
 
-        /* 햄버거 버튼 - 항상 표시 */
-        #hamburger-btn {
-            display: flex;
-        }
-
-        /* 닫기 버튼 - 메뉴 열렸을 때만 표시 */
-        #close-menu-btn {
+        /* 기본 숨김 (미디어쿼리에서 표시) */
+        #hamburger-btn-mobile,
+        #hamburger-btn-desktop,
+        #close-menu-btn,
+        #close-menu-btn-mobile {
             display: none !important;
         }
 
-        .side-menu.open #close-menu-btn {
-            display: flex !important;
+        /* 모바일 Drawer 헤더 - 기본 숨김 */
+        .mobile-drawer-header {
+            display: none !important;
         }
 
         /* Side Menu */
@@ -291,6 +287,10 @@
             display: block; /* 열렸을 때만 보임 */
         }
 
+        .side-menu.mobile-open .menu-section {
+            display: block; /* 모바일 drawer 열렸을 때도 보임 */
+        }
+
         .menu-section-header {
             display: flex;
             align-items: center;
@@ -307,6 +307,10 @@
 
         .side-menu.open .menu-section-header {
             justify-content: flex-start; /* 열렸을 때 왼쪽 정렬 */
+        }
+
+        .side-menu.mobile-open .menu-section-header {
+            justify-content: flex-start; /* 모바일 drawer에서도 왼쪽 정렬 */
         }
 
         .menu-section-header .material-icons {
@@ -359,6 +363,20 @@
             opacity: 1; /* 열렸을 때 보임 */
         }
 
+        .side-menu.mobile-open .menu-file-item .file-name {
+            opacity: 1; /* 모바일 drawer 열렸을 때 보임 */
+        }
+
+        .side-menu.mobile-open .menu-action-btn {
+            display: flex; /* 모바일 drawer에서도 표시 */
+        }
+
+        .side-menu.mobile-open .menu-action-btn span:not(.material-icons) {
+            display: inline; /* 텍스트 스팬 표시 */
+            color: var(--text-primary); /* 텍스트 색깔 명시 */
+            opacity: 1; /* 모바일 drawer 열렸을 때 액션 버튼 텍스트 보임 */
+        }
+
         .menu-file-item .file-actions {
             display: flex;
             gap: 4px;
@@ -368,6 +386,10 @@
 
         .side-menu.open .menu-file-item:hover .file-actions {
             opacity: 1; /* 사이드바 열렸을 때만 hover 시 보임 */
+        }
+
+        .side-menu.mobile-open .menu-file-item:hover .file-actions {
+            opacity: 1; /* 모바일 drawer에서도 hover 시 보임 */
         }
 
         .file-action-btn {
@@ -406,6 +428,11 @@
             border-top: 1px solid var(--outline-variant); /* 열렸을 때 border 추가 */
         }
 
+        .side-menu.mobile-open .menu-bottom {
+            padding: 8px 8px 16px 8px; /* 모바일에서도 동일한 패딩 */
+            border-top: 1px solid var(--outline-variant); /* 모바일 drawer에서도 border 추가 */
+        }
+
         .menu-bottom-item {
             display: flex;
             align-items: center;
@@ -427,6 +454,10 @@
             padding: 10px 8px; /* 패딩 동일하게 유지 */
         }
 
+        .side-menu.mobile-open .menu-bottom-item {
+            padding: 10px 8px; /* 모바일에서도 동일한 패딩 */
+        }
+
         .menu-bottom-item:hover {
             background: var(--surface-dim);
         }
@@ -438,6 +469,187 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0; /* 아이콘 크기 고정 */
+        }
+
+        /* Responsive Layout - 1024px breakpoint */
+        @media (max-width: 1023px) {
+            /* Hide side-menu completely on small screens */
+            .side-menu {
+                display: none !important;
+            }
+
+            /* Show side-menu only when it has mobile-open class */
+            .side-menu.mobile-open {
+                display: flex !important;
+            }
+
+            /* Hide desktop menu-toggle-area on mobile */
+            .menu-toggle-desktop {
+                display: none !important;
+            }
+
+            /* Show hamburger button on mobile */
+            #hamburger-btn-mobile {
+                display: flex !important;
+                position: fixed;
+                top: 6px;
+                left: 8px;
+                z-index: 9999;
+            }
+
+            /* Show mobile drawer header on mobile */
+            .mobile-drawer-header {
+                display: flex !important;
+                justify-content: flex-end;
+                align-items: center;
+                padding: 4px 8px;
+                margin-bottom: 8px;
+            }
+
+            /* Adjust container for mobile (no top margin needed) */
+            .container {
+                margin-left: 0 !important;
+                width: 100% !important;
+                margin-top: 0;
+            }
+
+            /* Mobile drawer styling */
+            .side-menu.mobile-open {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 260px !important;
+                height: 100dvh;
+                z-index: 999;
+                overflow: auto !important;
+            }
+
+            /* Show close button mobile */
+            .side-menu.mobile-open #close-menu-btn-mobile {
+                display: flex !important;
+            }
+
+            /* Hide menu sections until drawer is open */
+            .side-menu .menu-section {
+                display: none;
+            }
+
+            .side-menu.mobile-open .menu-section {
+                display: block;
+            }
+
+            /* Show menu actions in drawer */
+            .side-menu .menu-actions {
+                display: none;
+            }
+
+            .side-menu.mobile-open .menu-actions {
+                display: flex;
+            }
+
+            /* Fix overflow for mobile drawer to show text */
+            .side-menu {
+                overflow: visible !important;
+            }
+
+            /* Show all text spans in mobile drawer */
+            .side-menu.mobile-open span:not(.material-icons) {
+                opacity: 1 !important;
+                display: inline !important;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            /* Show side-menu on large screens */
+            .side-menu {
+                display: flex !important;
+                position: fixed;
+            }
+
+            /* Hide mobile hamburger button on desktop */
+            #hamburger-btn-mobile {
+                display: none !important;
+            }
+
+            /* Hide mobile drawer header on desktop */
+            .mobile-drawer-header {
+                display: none !important;
+            }
+
+            /* Show desktop menu-toggle-area */
+            .menu-toggle-desktop {
+                display: flex !important;
+                position: static;
+                width: 100%;
+                height: auto;
+                background: transparent;
+                border: none;
+                padding: 4px 8px 16px 8px;
+                margin-bottom: 8px;
+                z-index: auto;
+            }
+
+            /* Show hamburger button on desktop */
+            #hamburger-btn-desktop {
+                display: flex !important;
+            }
+
+            /* Hide close button by default on desktop */
+            #close-menu-btn {
+                display: none !important;
+            }
+
+            /* Show close button only when sidebar is open on desktop */
+            .side-menu.open #close-menu-btn {
+                display: flex !important;
+            }
+
+            /* Show menu actions on large screens */
+            .side-menu .menu-actions {
+                display: flex !important;
+            }
+
+            /* Hide menu sections by default on large screens */
+            .side-menu .menu-section {
+                display: none !important;
+            }
+
+            /* Show menu sections only when sidebar is open on large screens */
+            .side-menu.open .menu-section {
+                display: block !important;
+            }
+
+            /* Restore container margins on large screens */
+            .container {
+                margin-left: 52px;
+                width: calc(100% - 52px);
+                margin-top: 0;
+            }
+
+            .container.menu-open {
+                margin-left: 260px;
+                width: calc(100% - 260px);
+            }
+        }
+
+        /* Slide in animation */
+        @keyframes slideInFromLeft {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        /* Slide out animation */
+        @keyframes slideOutToLeft {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-100%);
+            }
         }
 
         /* Settings Modal */
@@ -1161,6 +1373,8 @@
             justify-content: space-between;
             width: 100%;
             margin-bottom: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--outline-variant);
         }
 
         .header-top h1 {
@@ -1229,6 +1443,7 @@
         .playing-screen, .gameover-screen {
             display: none;
             width: 100%;
+            padding-top: 50px;
         }
 
         .playing-screen.active, .gameover-screen.active {
@@ -1249,22 +1464,46 @@
 
         /* Playing Screen - Unified Header */
         .game-header {
-            position: sticky;
-            top: 0;
             background: var(--surface);
             border-bottom: 1px solid var(--outline-variant);
-            padding: 16px;
-            z-index: 1000;
+            padding: 0px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .game-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0px;
+            width: 100vw;
+            margin-bottom: 0px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--outline-variant);
+            padding: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            top: 0;
+            z-index: 100;
+            box-sizing: border-box;
+        }
+
+        .game-info-row {
+            display: flex;
             gap: 8px;
             align-items: center;
-            width: 100%;
-            margin-bottom: 8px;
+            padding-left: 46px;
+        }
+
+        .game-info .header-buttons {
+            margin-left: auto;
+        }
+
+        .game-info .progress-bar {
+            width: calc(100% + 32px);
+            margin: 8px -16px -8px -16px;
+            border-radius: 0;
         }
 
         .info-card {
@@ -1432,6 +1671,34 @@
         span.italic-marked {
             font-style: italic;
             opacity: 0.7;
+        }
+
+        /* 토스트 팝업 */
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffff;
+            color: var(--on-surface);
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            max-width: 90%;
+            animation: slideUp 0.3s ease-out;
+            border-left: 4px solid var(--primary);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
 
         @keyframes shake {
@@ -2423,6 +2690,34 @@
                 <div class="game-container">
                     <!-- Unified Header -->
                     <div class="game-header">
+                        <!-- Game Info Bar (Top) -->
+                        <div class="game-info">
+                            <div class="game-info-row">
+                                <div class="info-card">
+                                    <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
+                                </div>
+                                <div class="info-card">
+                                    <div class="info-value"><span id="game-points">0</span>P</div>
+                                </div>
+                                <div class="header-buttons">
+                                    <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트 차감) ctrl+H">
+                                        <span class="material-icons">lightbulb</span>
+                                    </button>
+                                    <button class="submit-btn" id="submit-btn">
+                                        <span class="material-icons">send</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playing Screen -->
+                    <div class="playing-screen active">
+                        <!-- Title and Buttons -->
                         <div class="header-top">
                             <h1 id="game-title">Memories</h1>
                             <div class="title-buttons">
@@ -2437,37 +2732,6 @@
                                 </button>
                             </div>
                         </div>
-
-                        <div class="game-info">
-                            <div class="info-card">
-                                <div class="info-label">맞은 개수</div>
-                                <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
-                            </div>
-                            <div class="info-card">
-                                <div class="info-label">점수</div>
-                                <div class="info-value" id="score">0</div>
-                            </div>
-                            <div class="info-card">
-                                <div class="info-label">포인트</div>
-                                <div class="info-value" id="game-points">0</div>
-                            </div>
-                            <div class="header-buttons">
-                                <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트 차감) ctrl+H">
-                                    <span class="material-icons">lightbulb</span>
-                                </button>
-                                <button class="submit-btn" id="submit-btn">
-                                    <span class="material-icons">send</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progress-fill"></div>
-                        </div>
-                    </div>
-
-                    <!-- Playing Screen -->
-                    <div class="playing-screen active">
 
                         <div class="hint" id="hint-display" style="display: none;">
                             <span class="hint-icon">💡</span>
@@ -2607,6 +2871,26 @@
         function setVh() {
             const vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', vh + 'px');
+        }
+
+        // 토스트 팝업 표시 함수
+        function showToast(message, duration = 3000) {
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease-out reverse';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, duration);
         }
 
         // iOS 높이 문제 해결: 사이드메뉴와 컨테이너 높이를 동적으로 설정
@@ -3018,26 +3302,31 @@
                     filePath = `${userId}/${fileId}.md`;
                 }
 
-                // Supabase Storage에 파일 업로드
-                const { error: uploadError } = await supabase
+                // 로컬 캐시에 즉시 저장 (UI 반응성 향상)
+                // 게임 로드와 편집 로드에서 사용하는 캐시 키와 통일
+                const cacheKey = `markdown_${fileName}`;
+                localStorage.setItem(cacheKey, content);
+                console.log('💾 localStorage 캐시에 즉시 저장됨:', cacheKey);
+
+                // Supabase Storage에 파일 업로드 (백그라운드 진행, await 하지 않음)
+                // 에러는 콘솔에만 기록
+                supabase
                     .storage
                     .from('study_materials')
                     .upload(filePath, new Blob([content], { type: 'text/plain' }), {
                         upsert: true  // 파일이 이미 있으면 덮어쓰기
-                    });
+                    })
+                    .then(({ error }) => {
+                        if (error) {
+                            console.error('Storage 업로드 실패 (백그라운드):', error);
+                        } else {
+                            console.log('✅ Storage에 파일 업로드됨 (백그라운드):', filePath);
+                        }
+                    })
+                    .catch(err => console.error('Storage 업로드 중 오류 (백그라운드):', err));
 
-                if (uploadError) {
-                    console.warn('파일 업로드 실패:', uploadError);
-                    alert('파일 저장 중 오류가 발생했습니다');
-                } else {
-                    console.log('✅ Storage에 파일 업로드됨:', filePath);
-
-                    // 로컬 캐시에 저장 (Supabase와 동기화)
-                    const cacheKey = `file_cache_${fileId}`;
-                    localStorage.setItem(cacheKey, content);
-                    console.log('💾 localStorage 캐시에 저장됨:', cacheKey);
-
-                    // DB 저장/업데이트
+                // DB 저장/업데이트 (Storage 업로드와 병렬로 진행)
+                try {
                     if (currentMode === 'edit' && existingFileId) {
                         const isFileNameChanged = fileName !== previousFileName;
 
@@ -3125,42 +3414,45 @@
                             await loadMyFiles();
                         }
                     }
-                }
 
-                const originalText = saveBtn.textContent;
-                saveBtn.textContent = '✓ 저장됨';
-                saveBtn.style.background = 'var(--success)';
+                    const originalText = saveBtn.textContent;
+                    saveBtn.textContent = '✓ 저장됨';
+                    saveBtn.style.background = 'var(--success)';
 
-                // 저장 후 게임 화면으로 자동 이동
-                setTimeout(() => {
-                    saveBtn.textContent = originalText;
-                    saveBtn.style.background = '';
+                    // 저장 후 게임 화면으로 자동 이동
+                    setTimeout(() => {
+                        saveBtn.textContent = originalText;
+                        saveBtn.style.background = '';
 
-                    // 파일 ID와 이름으로 게임 시작
-                    const fileId = document.getElementById('editor-file-id').textContent;
-                    const fileName = fileNameInput.value.trim();
+                        // 파일 ID와 이름으로 게임 시작
+                        const fileId = document.getElementById('editor-file-id').textContent;
+                        const fileName = fileNameInput.value.trim();
 
-                    if (fileId) {
-                        // Supabase 파일: playGame으로 시작
-                        playGame(fileId, fileName);
-                    } else {
-                        // 로컬 파일: playLocalGame으로 시작
-                        const localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
-                        const fileIndex = localFiles.findIndex(f => f.name === fileName);
-                        if (fileIndex > -1) {
-                            playLocalGame(fileIndex, fileName);
+                        if (fileId) {
+                            // Supabase 파일: playGame으로 시작
+                            playGame(fileId, fileName);
+                        } else {
+                            // 로컬 파일: playLocalGame으로 시작
+                            const localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                            const fileIndex = localFiles.findIndex(f => f.name === fileName);
+                            if (fileIndex > -1) {
+                                playLocalGame(fileIndex, fileName);
+                            }
                         }
+                    }, 1500);
+                } catch (error) {
+                    console.error('Save error:', error);
+                    alert('파일 저장 중 오류가 발생했습니다');
+                } finally {
+                    // 로딩 스피너 숨김
+                    const loadingOverlay = document.querySelector('.loading-overlay');
+                    if (loadingOverlay) {
+                        loadingOverlay.classList.remove('active');
                     }
-                }, 1500);
-            } catch (error) {
-                console.error('Save error:', error);
-                alert('파일 저장 중 오류가 발생했습니다');
-            } finally {
-                // 로딩 스피너 숨김
-                const loadingOverlay = document.querySelector('.loading-overlay');
-                if (loadingOverlay) {
-                    loadingOverlay.classList.remove('active');
                 }
+            } catch (error) {
+                console.error('파일 저장 중 오류:', error);
+                alert('파일 저장 중 오류가 발생했습니다');
             }
         }
 
@@ -3244,9 +3536,10 @@
                     } else {
                         console.log('✅ Supabase 파일 삭제됨:', fileName);
                         alert('파일이 삭제되었습니다');
-                        // 로컬 캐시도 삭제
-                        const cacheKey = `file_cache_${fileId}`;
+                        // 로컬 캐시도 삭제 (editFile, loadFile, saveFile, playGame과 동일한 캐시 키 사용)
+                        const cacheKey = `markdown_${fileName}`;
                         localStorage.removeItem(cacheKey);
+                        console.log('💾 localStorage 캐시 삭제됨:', cacheKey);
                         // 파일 목록 업데이트 (새로고침 대신 함수 호출)
                         await loadMyFiles();
                         loadPublicFiles();
@@ -3263,8 +3556,14 @@
             try {
                 let content = null;
 
-                // 1. Supabase에서 먼저 시도 (filePath가 있으면 Supabase 파일)
-                if (filePath && typeof supabase !== 'undefined') {
+                // 1. localStorage에서 먼저 시도 (캐시 우선)
+                content = localStorage.getItem(`markdown_${fileName}`);
+                if (content) {
+                    console.log('✅ localStorage 캐시에서 불러옴:', fileName);
+                }
+
+                // 2. Supabase에서 시도 (캐시에 없으면)
+                if (!content && filePath && typeof supabase !== 'undefined') {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (user) {
                         const { data, error } = await supabase
@@ -3275,21 +3574,19 @@
                         if (!error && data) {
                             content = await data.text();
                             console.log('✅ Supabase에서 불러옴:', fileName);
+                            // Supabase에서 불러온 내용을 캐시에 저장
+                            localStorage.setItem(`markdown_${fileName}`, content);
                         }
                     }
                 }
 
-                // 2. localStorage에서 시도
-                if (!content) {
-                    content = localStorage.getItem(`markdown_${fileName}`);
-                }
-
-                // 3. 기본 파일에서 시도 (data 폴더)
+                // 3. 기본 파일에서 시도 (캐시와 Supabase 모두 없으면)
                 if (!content) {
                     try {
                         const response = await fetch(`./data/${encodeURIComponent(fileName)}`);
                         if (response.ok) {
                             content = await response.text();
+                            console.log('✅ 기본 파일(data 폴더)에서 불러옴:', fileName);
                         }
                     } catch (e) {
                         console.log('Server file not found');
@@ -3429,6 +3726,30 @@
                     console.log('📊 시험 파일 성적 조회');
                     closeMypagePopup();
                     showTestResultsModal();
+                });
+            }
+
+            // 캐시파일삭제
+            const clearCacheBtn = document.getElementById('mypage-clear-cache-btn');
+            if (clearCacheBtn) {
+                clearCacheBtn.addEventListener('click', () => {
+                    console.log('🗑️ 캐시파일삭제 시작');
+
+                    // localStorage에서 markdown 캐시 파일 찾아서 삭제
+                    let deletedCount = 0;
+                    const keys = Object.keys(localStorage);
+
+                    for (const key of keys) {
+                        if (key.startsWith('markdown_')) {
+                            localStorage.removeItem(key);
+                            deletedCount++;
+                            console.log('🗑️ 삭제됨:', key);
+                        }
+                    }
+
+                    closeMypagePopup();
+                    alert(`캐시파일이 삭제되었습니다.\n삭제된 파일: ${deletedCount}개`);
+                    console.log(`✅ 총 ${deletedCount}개의 캐시파일이 삭제되었습니다.`);
                 });
             }
 
@@ -3782,9 +4103,9 @@
             }
         }
 
-        // Hamburger Menu Logic
+        // Hamburger Menu Logic - Responsive
         document.addEventListener('DOMContentLoaded', function() {
-            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const hamburgerBtn = document.getElementById('hamburger-btn-mobile');
             const sideMenu = document.getElementById('side-menu');
             const container = document.querySelector('.container');
 
@@ -3793,35 +4114,169 @@
                 return;
             }
 
+            // Check if we're on mobile or desktop
+            function isMobileView() {
+                return window.innerWidth < 1024;
+            }
+
             function toggleMenu() {
-                sideMenu.classList.toggle('open');
-                container.classList.toggle('menu-open');
-                // 사이드바 상태 저장
-                const isOpen = sideMenu.classList.contains('open');
-                localStorage.setItem('sideMenuOpen', isOpen);
+                if (isMobileView()) {
+                    // Mobile: toggle mobile-open class
+                    const isOpen = sideMenu.classList.contains('mobile-open');
+                    if (isOpen) {
+                        // 닫기
+                        closeMenu();
+                    } else {
+                        // 열기 - 사이드바 먼저 열기, 그 다음 overlay 생성
+                        sideMenu.classList.add('mobile-open');
+                        setupMobileOverlayListener();
+                    }
+                } else {
+                    // Desktop: toggle open class
+                    sideMenu.classList.toggle('open');
+                    container.classList.toggle('menu-open');
+                    // 사이드바 상태 저장
+                    const isOpen = sideMenu.classList.contains('open');
+                    localStorage.setItem('sideMenuOpen', isOpen);
+                }
             }
 
             function closeMenu() {
-                sideMenu.classList.remove('open');
-                container.classList.remove('menu-open');
-                // 사이드바 상태 저장
-                localStorage.setItem('sideMenuOpen', false);
+                if (isMobileView()) {
+                    // Mobile: remove mobile-open class
+                    sideMenu.classList.remove('mobile-open');
+                    // Remove dimmed overlay
+                    const overlay = document.querySelector('.mobile-drawer-overlay');
+                    if (overlay) {
+                        overlay.remove();
+                    }
+                } else {
+                    // Desktop: remove open class
+                    sideMenu.classList.remove('open');
+                    container.classList.remove('menu-open');
+                    // 사이드바 상태 저장
+                    localStorage.setItem('sideMenuOpen', false);
+                }
             }
 
-            // 페이지 로드 시 사이드바 상태 복원
-            const savedMenuState = localStorage.getItem('sideMenuOpen');
-            if (savedMenuState === 'true') {
-                sideMenu.classList.add('open');
-                container.classList.add('menu-open');
+            // Setup overlay click listener for mobile
+            function setupMobileOverlayListener() {
+                if (!isMobileView()) return;
+
+                // Create overlay if it doesn't exist
+                let overlay = document.querySelector('.mobile-drawer-overlay');
+                if (!overlay && sideMenu.classList.contains('mobile-open')) {
+                    overlay = document.createElement('div');
+                    overlay.className = 'mobile-drawer-overlay';
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 260px;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0, 0, 0, 0.5);
+                        z-index: 998;
+                        cursor: pointer;
+                    `;
+                    document.body.appendChild(overlay);
+
+                    overlay.addEventListener('click', closeMenu);
+                }
             }
 
+            // 페이지 로드 시 사이드바 상태 복원 (데스크톱에서만)
+            if (!isMobileView()) {
+                const savedMenuState = localStorage.getItem('sideMenuOpen');
+                if (savedMenuState === 'true') {
+                    sideMenu.classList.add('open');
+                    container.classList.add('menu-open');
+                }
+            }
+
+            // 모바일 hamburger 버튼
             hamburgerBtn.addEventListener('click', toggleMenu);
 
-            // 닫기 버튼 클릭 이벤트
+            // 데스크톱 hamburger 버튼
+            const hamburgerBtnDesktop = document.getElementById('hamburger-btn-desktop');
+            if (hamburgerBtnDesktop) {
+                hamburgerBtnDesktop.addEventListener('click', toggleMenu);
+            }
+
+            // 데스크톱 닫기 버튼 클릭 이벤트
             const closeMenuBtn = document.getElementById('close-menu-btn');
             if (closeMenuBtn) {
                 closeMenuBtn.addEventListener('click', closeMenu);
             }
+
+            // 모바일 닫기 버튼 클릭 이벤트
+            const closeMenuBtnMobile = document.getElementById('close-menu-btn-mobile');
+            if (closeMenuBtnMobile) {
+                closeMenuBtnMobile.addEventListener('click', closeMenu);
+            }
+
+            // 모바일에서 drawer 내부의 버튼 클릭 시 drawer 닫기
+            function setupMobileMenuItemCloseListener() {
+                if (!isMobileView()) return;
+
+                // 파일 관련 항목 클릭 시 drawer 닫기 (동적 생성 요소도 대응)
+                // 캡처링 단계에서 먼저 처리하여 stopPropagation()을 무시함
+                document.addEventListener('click', function(e) {
+                    if (!isMobileView()) return;
+
+                    // .file-action-btn 클릭 (파일 수정, 삭제) - 가장 먼저 확인
+                    if (e.target.closest('.file-action-btn')) {
+                        closeMenu();
+                        return;
+                    }
+
+                    // .menu-action-btn 클릭 (새 파일, 파일 검색)
+                    if (e.target.closest('.menu-action-btn')) {
+                        closeMenu();
+                        return;
+                    }
+
+                    // .menu-file-item 클릭 (파일 목록)
+                    if (e.target.closest('.menu-file-item')) {
+                        closeMenu();
+                        return;
+                    }
+
+                    // #add-local-file 클릭 (로컬 파일 추가)
+                    if (e.target.closest('#add-local-file')) {
+                        closeMenu();
+                        return;
+                    }
+                }, true);
+
+                // 설정과 마이페이지는 제외 (drawer 닫지 않음)
+                const excludeButtons = sideMenu.querySelectorAll('#settings-btn, #mypage-btn');
+                excludeButtons.forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.stopPropagation(); // drawer 닫기 방지
+                    });
+                });
+            }
+
+            setupMobileMenuItemCloseListener();
+
+            // Handle window resize to switch between mobile and desktop
+            window.addEventListener('resize', function() {
+                // Reset menu state when resizing across 1024px breakpoint
+                const wasMobileView = sideMenu.classList.contains('mobile-open');
+                const isMobile = isMobileView();
+
+                if (wasMobileView && !isMobile) {
+                    // Was mobile, now desktop
+                    sideMenu.classList.remove('mobile-open');
+                    // Clean up overlay
+                    const overlay = document.querySelector('.mobile-drawer-overlay');
+                    if (overlay) overlay.remove();
+                } else if (!wasMobileView && isMobile) {
+                    // Was desktop, now mobile
+                    sideMenu.classList.remove('open');
+                    container.classList.remove('menu-open');
+                }
+            });
 
             // Load saved game mode from localStorage (Default: TTV mode)
             const savedMode = localStorage.getItem('memory_game_mode') || 'bold';
@@ -4130,13 +4585,13 @@
                     const savedMode = localStorage.getItem('memory_game_mode') || 'bold';
                     gameMode = savedMode;
 
-                    // 1. 로컬 캐시에서 먼저 확인
-                    const cacheKey = `file_cache_${fileId}`;
+                    // 1. 로컬 캐시에서 먼저 확인 (editFile, loadFile, saveFile과 동일한 캐시 키 사용)
+                    const cacheKey = `markdown_${fileName}`;
                     const cachedContent = localStorage.getItem(cacheKey);
                     let fileDataForViewCount = null;
 
                     if (cachedContent) {
-                        console.log('✅ 로컬 캐시에서 파일 로드:', fileName);
+                        console.log('✅ localStorage 캐시에서 파일 로드:', fileName);
                         parseLyrics(cachedContent);
 
                         // 게임 화면으로 전환 및 게임 시작
@@ -4261,22 +4716,36 @@
                     // 현재 편집 파일 데이터 저장 (공개 여부 포함)
                     currentEditFileData = fileData;
 
-                    // Storage에서 파일 내용 다운로드
-                    const { data: storageData, error: storageError } = await supabase
-                        .storage
-                        .from('study_materials')
-                        .download(fileData.file_path);
+                    let content = null;
 
-                    if (storageError) {
-                        console.error('파일 다운로드 오류:', storageError);
-                        console.error('파일 경로:', fileData.file_path);
-                        console.error('파일 ID:', fileId);
-                        alert('파일을 다운로드할 수 없습니다. 파일이 삭제되었거나 경로가 잘못되었을 수 있습니다.');
-                        return;
+                    // 1. localStorage 캐시에서 먼저 시도 (캐시 우선)
+                    const cacheKey = `markdown_${fileData.title}`;
+                    const cachedContent = localStorage.getItem(cacheKey);
+                    if (cachedContent) {
+                        content = cachedContent;
+                        console.log('✅ localStorage 캐시에서 파일 로드:', fileData.title);
+                    } else {
+                        // 2. Storage에서 파일 내용 다운로드 (캐시에 없으면)
+                        const { data: storageData, error: storageError } = await supabase
+                            .storage
+                            .from('study_materials')
+                            .download(fileData.file_path);
+
+                        if (storageError) {
+                            console.error('파일 다운로드 오류:', storageError);
+                            console.error('파일 경로:', fileData.file_path);
+                            console.error('파일 ID:', fileId);
+                            alert('파일을 다운로드할 수 없습니다. 파일이 삭제되었거나 경로가 잘못되었을 수 있습니다.');
+                            return;
+                        }
+
+                        // Blob을 텍스트로 변환
+                        content = await storageData.text();
+                        console.log('✅ Storage에서 파일 로드:', fileData.title);
+
+                        // Storage에서 가져온 내용을 캐시에 저장
+                        localStorage.setItem(cacheKey, content);
                     }
-
-                    // Blob을 텍스트로 변환
-                    const content = await storageData.text();
 
                     // editor에 내용 로드하고 edit 모드로 전환
                     editor.value = content;
@@ -4903,8 +5372,9 @@
         let blanks = [];
         let correctAnswers = [];
         let hintUsedAnswers = []; // 힌트를 사용한 정답 추적
-        let italicWords = []; // Italic으로 표시된 단어 추적 (객체: {index, word})
+        let italicWords = []; // Italic으로 표시된 단어 추적 (게임 중 사용자가 체크한 단어의 인덱스)
         let italicWordValues = []; // Italic 단어 값만 추적 (renderTable 등에서 인덱스 불일치 해결)
+        let parsedItalicWordIndices = []; // 파일 파싱 시 발견된 italic 단어의 인덱스 (게임 로드 시 복원용)
         let currentBlankIndex = -1;
         let correctCount = 0;
         let score = 0;
@@ -4950,6 +5420,7 @@
             const lines = mdText.split('\n');
             lyrics = [];  // 직접 배열에 저장 (fullText 중간 단계 제거)
             boldWords = [];
+            parsedItalicWordIndices = []; // 파일에서 발견된 italic 단어 초기화
             let wordIndex = 0;
 
             lines.forEach(line => {
@@ -4982,6 +5453,8 @@
                         if (italicContent) {
                             lyrics.push(italicContent);
                             // italic 단어도 lyrics에 추가하되, boldWords에는 추가하지 않음 (blank에서 제외)
+                            // 파싱 시점에 italicWords 배열에 추가 (게임 로드 시 자동 복원)
+                            // 참고: startGame()에서 italicWords가 초기화되므로, 여기서는 임시로 저장만 함
                             wordIndex++;
                         }
                         remaining = remaining.substring(italicMatch[0].length);
@@ -5195,10 +5668,13 @@
                                             inputEl.classList.add('italic-marked');
                                             if (!italicWords.includes(idx)) {
                                                 italicWords.push(idx);
+                                                // 배열을 정렬된 상태로 유지 (인덱스 순서)
+                                                italicWords.sort((a, b) => a - b);
                                             }
                                             if (!italicWordValues.includes(wordValue)) {
                                                 italicWordValues.push(wordValue);
                                             }
+                                            showToast('✓ 체크하신 TTC는 시험 종료후 원본에서 italic으로 표시되고, 향후 시험에 나오지 않습니다');
                                         } else {
                                             inputEl.classList.remove('italic-marked');
                                             italicWords = italicWords.filter(i => i !== idx);
@@ -5287,10 +5763,12 @@
                                                     inputEl.classList.add('italic-marked');
                                                     if (!italicWords.includes(idx)) {
                                                         italicWords.push(idx);
+                                                        italicWords.sort((a, b) => a - b);
                                                     }
                                                     if (!italicWordValues.includes(wordValue)) {
                                                         italicWordValues.push(wordValue);
                                                     }
+                                                    showToast('✓ 체크하신 TTC는 시험 종료후 원본에서 italic으로 표시되고, 향후 시험에 나오지 않습니다');
                                                 } else {
                                                     inputEl.classList.remove('italic-marked');
                                                     italicWords = italicWords.filter(i => i !== idx);
@@ -5531,10 +6009,12 @@
                                         inputEl.classList.add('italic-marked');
                                         if (!italicWords.includes(idx)) {
                                             italicWords.push(idx);
+                                            italicWords.sort((a, b) => a - b);
                                         }
                                         if (!italicWordValues.includes(wordValue)) {
                                             italicWordValues.push(wordValue);
                                         }
+                                        showToast('✓ 체크하신 TTC는 시험 종료후 원본에서 italic으로 표시되고, 향후 시험에 나오지 않습니다');
                                     } else {
                                         inputEl.classList.remove('italic-marked');
                                         italicWords = italicWords.filter(i => i !== idx);
@@ -5626,10 +6106,12 @@
                                                 inputEl.classList.add('italic-marked');
                                                 if (!italicWords.includes(idx)) {
                                                     italicWords.push(idx);
+                                                    italicWords.sort((a, b) => a - b);
                                                 }
                                                 if (!italicWordValues.includes(wordValue)) {
                                                     italicWordValues.push(wordValue);
                                                 }
+                                                showToast('✓ 체크하신 TTC는 시험 종료후 원본에서 italic으로 표시되고, 향후 시험에 나오지 않습니다');
                                             } else {
                                                 inputEl.classList.remove('italic-marked');
                                                 italicWords = italicWords.filter(i => i !== idx);
@@ -5784,7 +6266,6 @@
         function updateScore() {
             document.getElementById('correct-count').textContent = correctCount;
             document.getElementById('total-blanks').textContent = totalBlanks;
-            document.getElementById('score').textContent = score;
             const progress = totalBlanks > 0 ? (correctCount / totalBlanks) * 100 : 0;
             document.getElementById('progress-fill').style.width = progress + '%';
         }
@@ -6068,6 +6549,9 @@
                 }
             }
 
+            // 💡 중요: originalMarkdown 변수도 업데이트 (결과 화면에서 사용하기 위해)
+            originalMarkdown = updatedMarkdown;
+
             // 로컬 파일인지 Supabase 파일인지 확인
             const fileId = document.getElementById('editor-file-id').textContent;
 
@@ -6086,38 +6570,44 @@
                     console.error('로컬 파일 업데이트 오류:', error);
                 }
             } else {
-                // Supabase 파일: 데이터베이스에 업데이트
-                try {
-                    if (typeof supabase !== 'undefined') {
-                        // 파일의 경로를 조회
-                        const { data: fileData } = await supabase
+                // Supabase 파일: 로컬 캐시 즉시 저장 후, Storage 업로드는 백그라운드 진행
+                // 로컬 캐시에 즉시 저장 (게임 로드와 동일한 키 사용)
+                const cacheKey = `markdown_${currentGameFileName}`;
+                localStorage.setItem(cacheKey, updatedMarkdown);
+                console.log('💾 localStorage 캐시에 즉시 저장됨:', cacheKey);
+
+                // Supabase Storage에 업로드 (백그라운드 진행, await 하지 않음)
+                if (typeof supabase !== 'undefined') {
+                    try {
+                        // 파일의 경로를 조회 (동기 대신 비동기로 진행)
+                        supabase
                             .from('study_materials')
                             .select('file_path')
                             .eq('id', fileId)
-                            .single();
-
-                        if (fileData && fileData.file_path) {
-                            // Storage에 업데이트
-                            const { error: uploadError } = await supabase
-                                .storage
-                                .from('study_materials')
-                                .upload(fileData.file_path, new Blob([updatedMarkdown], { type: 'text/plain' }), {
-                                    upsert: true
-                                });
-
-                            if (uploadError) {
-                                console.error('Supabase 파일 업데이트 오류:', uploadError);
-                            } else {
-                                console.log('✅ Supabase 파일 업데이트됨:', currentGameFileName);
-                                // 로컬 캐시도 업데이트
-                                const cacheKey = `file_cache_${fileId}`;
-                                localStorage.setItem(cacheKey, updatedMarkdown);
-                                console.log('💾 localStorage 캐시에 저장됨:', cacheKey);
-                            }
-                        }
+                            .single()
+                            .then(({ data: fileData }) => {
+                                if (fileData && fileData.file_path) {
+                                    // Storage에 업데이트 (백그라운드)
+                                    supabase
+                                        .storage
+                                        .from('study_materials')
+                                        .upload(fileData.file_path, new Blob([updatedMarkdown], { type: 'text/plain' }), {
+                                            upsert: true
+                                        })
+                                        .then(({ error: uploadError }) => {
+                                            if (uploadError) {
+                                                console.error('Supabase 파일 업데이트 오류 (백그라운드):', uploadError);
+                                            } else {
+                                                console.log('✅ Supabase 파일 업데이트됨 (백그라운드):', currentGameFileName);
+                                            }
+                                        })
+                                        .catch(err => console.error('Storage 업로드 중 오류 (백그라운드):', err));
+                                }
+                            })
+                            .catch(err => console.error('파일 경로 조회 중 오류 (백그라운드):', err));
+                    } catch (error) {
+                        console.error('Supabase 파일 업데이트 초기화 중 오류:', error);
                     }
-                } catch (error) {
-                    console.error('Supabase 파일 업데이트 중 오류:', error);
                 }
             }
         }
@@ -6237,7 +6727,10 @@
 
                     let remaining = line;
                     while (remaining.length > 0) {
+                        // Bold 패턴을 먼저 체크 (** ** 형태)
                         const boldMatch = remaining.match(/^(\s*)\*\*([^*]+)\*\*/);
+                        // Italic 패턴 체크 (* * 형태, **는 제외)
+                        const italicMatch = !boldMatch && remaining.match(/^(\s*)\*(?!\*)([^*]+)\*(?!\*)/);
 
                         if (boldMatch) {
                             // 앞의 공백이 있으면 textNode로 추가
@@ -6281,9 +6774,49 @@
                                 wordIndex++;
                             }
                             remaining = remaining.substring(boldMatch[0].length);
+                        } else if (italicMatch) {
+                            console.log('🔍 Italic 매칭됨:', italicMatch[0], 'word:', italicMatch[2].trim());
+                            // 앞의 공백이 있으면 textNode로 추가
+                            const leadingSpace = italicMatch[1];
+                            if (leadingSpace) {
+                                lineDiv.appendChild(document.createTextNode(leadingSpace));
+                            }
+
+                            // Italic 단어
+                            const word = italicMatch[2].trim();
+                            if (word && wordIndex < lyrics.length) {
+                                const wordSpan = document.createElement('span');
+                                wordSpan.textContent = word;
+                                wordSpan.style.display = 'inline';
+                                wordSpan.style.fontStyle = 'italic';
+                                wordSpan.style.opacity = '0.7';
+
+                                // blanks에 포함된 단어인지 확인
+                                if (blanks.includes(wordIndex)) {
+                                    // correctAnswers에 포함되면 정확히 입력한 것 (초록색)
+                                    if (correctAnswers.includes(wordIndex)) {
+                                        wordSpan.style.color = 'var(--correct-color, #10b981)';
+                                    } else if (hintUsedAnswers.includes(wordIndex)) {
+                                        // 힌트 사용한 경우: 노란색
+                                        wordSpan.style.color = '#ad6800';
+                                    } else {
+                                        // correctAnswers에 포함되지 않으면 틀렸거나 입력 안 함 (붉은색)
+                                        wordSpan.style.color = 'var(--wrong-color, #ef4444)';
+                                    }
+
+                                    // Italic으로 표시된 단어
+                                    if (italicWords.includes(wordIndex)) {
+                                        wordSpan.classList.add('italic-marked');
+                                    }
+                                }
+
+                                lineDiv.appendChild(wordSpan);
+                                wordIndex++;
+                            }
+                            remaining = remaining.substring(italicMatch[0].length);
                         } else {
                             // 일반 단어 (공백 포함)
-                            const wordMatch = remaining.match(/^([^\s*]+|\s+|\*(?!\*)|[^\w*])/);
+                            const wordMatch = remaining.match(/^([^\s*]+|\s+|[^\w*])/);
                             if (wordMatch) {
                                 const word = wordMatch[1];
                                 if (/\S/.test(word)) {
@@ -6584,8 +7117,18 @@
         // Game button event listeners
         document.getElementById('submit-btn').addEventListener('click', submitGame);
         document.querySelector('#game-section .retry-btn').addEventListener('click', () => {
-            correctAnswers = [];
-            startGame(false);
+            console.log('다시 하기 클릭');
+            // "다시 하기" 시에는 파일을 다시 로드해서 최신 상태를 반영
+            // (italic으로 변환된 단어들을 반영하기 위해)
+            if (currentGameFileId) {
+                playGame(currentGameFileId, currentGameFileName);
+            } else {
+                const localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                const fileIndex = localFiles.findIndex(f => f.name === currentGameFileName);
+                if (fileIndex > -1) {
+                    playLocalGame(fileIndex, currentGameFileName);
+                }
+            }
         });
         document.querySelector('#game-section .wrong-retry-btn').addEventListener('click', () => {
             console.log('틀린 것만 다시 클릭');
@@ -6805,14 +7348,26 @@
         </div>
     </div>
 
+    <!-- 모바일 Hamburger 버튼 (side-menu 밖) -->
+    <button class="hamburger-btn" id="hamburger-btn-mobile">
+        <span class="material-icons">menu</span>
+    </button>
+
     <!-- Side Menu -->
     <div class="side-menu" id="side-menu">
-        <!-- 햄버거 버튼 -->
-        <div class="menu-toggle-area">
-            <button class="hamburger-btn" id="hamburger-btn">
+        <!-- 메뉴 토글 에어리어 - 데스크톱용 (side-menu 안) -->
+        <div class="menu-toggle-area menu-toggle-desktop">
+            <button class="hamburger-btn" id="hamburger-btn-desktop">
                 <span class="material-icons">menu</span>
             </button>
-            <button class="hamburger-btn close-menu-btn-style" id="close-menu-btn">
+            <button class="hamburger-btn" id="close-menu-btn">
+                <span class="material-icons">chevron_left</span>
+            </button>
+        </div>
+
+        <!-- 모바일 Drawer 헤더 (Close 버튼만) -->
+        <div class="mobile-drawer-header">
+            <button class="hamburger-btn" id="close-menu-btn-mobile">
                 <span class="material-icons">chevron_left</span>
             </button>
         </div>
@@ -6924,6 +7479,11 @@
                 <button class="mypage-menu-item" id="mypage-test-results-btn">
                     <span class="material-icons">assessment</span>
                     <span>시험 파일 성적 조회</span>
+                </button>
+
+                <button class="mypage-menu-item" id="mypage-clear-cache-btn">
+                    <span class="material-icons">delete_sweep</span>
+                    <span>캐시파일삭제</span>
                 </button>
 
                 <div class="mypage-divider"></div>
