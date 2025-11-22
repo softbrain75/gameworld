@@ -1483,7 +1483,7 @@
         .playing-screen, .gameover-screen {
             display: none;
             width: 100%;
-            padding-top: 50px;
+            padding-top: 60px;
         }
 
         .playing-screen.active, .gameover-screen.active {
@@ -1533,7 +1533,17 @@
             display: flex;
             gap: 8px;
             align-items: center;
-            padding-left: 46px;
+            padding-left: 16px;
+            padding-right: 16px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-bottom: 1px solid var(--outline-variant);
+            z-index: 100;
+            box-sizing: border-box;
+            height: 50px;
         }
 
         .game-info .header-buttons {
@@ -1584,6 +1594,12 @@
             background: var(--outline-variant);
             border-radius: 1.5px;
             overflow: hidden;
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 0;
+            z-index: 99;
+            box-sizing: border-box;
         }
 
         .progress-fill {
@@ -2728,10 +2744,6 @@
             <!-- Game Section -->
             <section id="game-section">
                 <div class="game-container">
-                    <!-- Unified Header -->
-                    <div class="game-header">
-                    </div>
-
                     <!-- Game Info Row -->
                     <div class="game-info-row">
                         <div class="info-card">
@@ -6966,8 +6978,10 @@
                 if (hintBtn) hintBtn.style.display = 'flex';
                 if (submitBtn) submitBtn.style.display = 'flex';
                 // 플레이 화면에서 헤더 표시
-                const gameHeader = document.querySelector('.game-header');
-                if (gameHeader) gameHeader.style.display = '';
+                const gameInfoRow = document.querySelector('.game-info-row');
+                const progressBar = document.querySelector('.progress-bar');
+                if (gameInfoRow) gameInfoRow.style.display = 'flex';
+                if (progressBar) progressBar.style.display = 'block';
                 // 로그인 사용자이고 파일이 있으면 가져오기 버튼 표시
                 if (window.currentUser && currentGameFileId) {
                     importBtn.style.display = 'flex';
@@ -6980,8 +6994,10 @@
                 if (hintBtn) hintBtn.style.display = 'none';
                 if (submitBtn) submitBtn.style.display = 'none';
                 // 결과 화면에서 헤더 숨기기
-                const gameHeader = document.querySelector('.game-header');
-                if (gameHeader) gameHeader.style.display = 'none';
+                const gameInfoRow = document.querySelector('.game-info-row');
+                const progressBar = document.querySelector('.progress-bar');
+                if (gameInfoRow) gameInfoRow.style.display = 'none';
+                if (progressBar) progressBar.style.display = 'none';
                 // 게임 오버 화면을 상단으로 스크롤
                 const gameoverContent = document.querySelector('#game-section .gameover-screen');
                 if (gameoverContent) {
