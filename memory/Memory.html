@@ -2824,6 +2824,15 @@
                                 height: 48px;
                                 transition: border-color 0.2s;
                             " />
+                            <div id="public-setting-container" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; background: var(--surface-dim); border-radius: 8px; margin-top: 12px;">
+                                <input type="checkbox" id="file-public-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+                                <label for="file-public-checkbox" style="cursor: pointer; font-size: 14px; color: var(--text-primary); flex: 1; margin: 0;">
+                                    공개 설정
+                                </label>
+                                <span style="font-size: 12px; color: var(--text-secondary);">
+                                    체크하면 다른 사용자도 이 파일을 볼 수 있습니다
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -2848,16 +2857,6 @@
                                 <span class="stat-value" id="bold-count">0</span>
                             </div>
                         </div>
-                    </div>
-
-                    <div id="public-setting-container" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; background: var(--surface-dim); border-radius: 8px; margin-bottom: 12px;">
-                        <input type="checkbox" id="file-public-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
-                        <label for="file-public-checkbox" style="cursor: pointer; font-size: 14px; color: var(--text-primary); flex: 1; margin: 0;">
-                            공개 설정
-                        </label>
-                        <span style="font-size: 12px; color: var(--text-secondary);">
-                            체크하면 다른 사용자도 이 파일을 볼 수 있습니다
-                        </span>
                     </div>
 
                     <div class="editor-actions" style="display: none;">
