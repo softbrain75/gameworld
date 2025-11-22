@@ -1038,9 +1038,7 @@
         /* Create/Edit Mode */
         #editor-section {
             display: none;
-            flex: 1;
             flex-direction: column;
-            min-height: 0;
             overflow-x: hidden; /* 좌우 스크롤 방지 */
         }
 
@@ -1054,9 +1052,10 @@
             padding: 0px;
             display: flex;
             flex-direction: column;
-            flex: 1;
-            min-height: 0;
             box-sizing: border-box; /* padding 포함한 너비 계산 */
+            max-height: calc(100dvh - 32px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .editor-header {
@@ -1074,6 +1073,8 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
+            padding-top: 4px;
+            padding-left: 28px;
         }
 
         .editor-title-id {
@@ -1146,10 +1147,8 @@
         }
 
         .editor-area {
-            flex: 1;
             display: flex;
             flex-direction: column;
-            min-height: 0;
             overflow-y: auto;
         }
 
@@ -2776,7 +2775,7 @@
                     <div class="editor-header">
                         <div style="width: 100%;">
                             <div class="editor-title">
-                                <span>✏️ 파일 편집</span>
+                                <span>파일 편집</span>
                                 <span class="editor-title-id" id="editor-file-id"></span>
                             </div>
                             <input type="text" id="file-name-input" placeholder="파일 이름 입력..." style="
