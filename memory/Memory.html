@@ -1152,7 +1152,6 @@
         }
 
         #editor {
-            flex: 1;
             min-height: 300px;
             padding: 16px;
             border: 2px solid var(--outline-variant);
@@ -1165,6 +1164,8 @@
             background: white;
             transition: border-color 0.2s;
             overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         #editor:focus {
@@ -2854,6 +2855,14 @@
         const deleteBtn = document.getElementById('delete-btn');
         const fileList = document.getElementById('file-list');
 
+        // 텍스트에어리어 높이 자동 조정 함수
+        function adjustEditorHeight() {
+            if (!editor) return;
+            editor.style.height = 'auto';
+            const scrollHeight = editor.scrollHeight;
+            editor.style.height = Math.max(scrollHeight, 300) + 'px';
+        }
+
         // Track previous filename for change detection
         let previousFileName = '';
         let isRenamingFile = false;
@@ -2945,6 +2954,8 @@
                 editor.value = '';
                 fileNameInput.value = '';
                 fileNameInput.disabled = false;
+                // 높이 조정
+                setTimeout(adjustEditorHeight, 0);
                 // "파일 추가" 버튼으로 들어온 경우는 editor-file-id를 'local'로 유지, 아니면 초기화
                 const fileIdElement = document.getElementById('editor-file-id');
                 const isLocalFile = fileIdElement.textContent === 'local';
@@ -2968,6 +2979,8 @@
                 currentEditFile = fileName;
                 fileNameInput.value = fileName;
                 fileNameInput.disabled = false;
+                // 높이 조정
+                setTimeout(adjustEditorHeight, 0);
             }
 
             // Focus editor
@@ -3065,6 +3078,8 @@
 
             const boldMatches = text.match(/\*\*[^*]+\*\*/g) || [];
             boldCount.textContent = boldMatches.length;
+
+            adjustEditorHeight();
         }
 
         function escapeHtml(text) {
