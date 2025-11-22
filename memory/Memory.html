@@ -2896,7 +2896,7 @@
             if (!editor) return;
             editor.style.height = 'auto';
             const scrollHeight = editor.scrollHeight;
-            editor.style.height = Math.max(scrollHeight, 300) + 'px';
+            editor.style.height = scrollHeight + 'px';
         }
 
         // Track previous filename for change detection
