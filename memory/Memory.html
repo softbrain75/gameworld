@@ -1081,6 +1081,10 @@
             display: none;
         }
 
+        .editor-file-id-hidden {
+            display: none !important;
+        }
+
         .editor-title-buttons {
             display: flex;
             gap: 6px;
@@ -2794,6 +2798,7 @@
                         <div style="width: 100%;">
                             <div class="editor-title">
                                 <span>파일 편집</span>
+                                <span class="editor-file-id-hidden" id="editor-file-id"></span>
                                 <div class="editor-title-buttons">
                                     <button class="toolbar-btn" id="title-bold-btn">TTV 표시</button>
                                     <button class="btn-back" id="title-delete-btn">삭제</button>
@@ -4797,8 +4802,6 @@
                     // editor에 내용 로드하고 edit 모드로 전환
                     editor.value = content;
                     updatePreview();
-                    // fileId 표시
-                    document.getElementById('editor-file-id').textContent = fileId;
                     // Track original filename for change detection
                     previousFileName = fileData.title;
 
