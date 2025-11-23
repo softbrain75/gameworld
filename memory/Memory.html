@@ -8,6 +8,8 @@
     <title>Markdown Bold 에디터</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+
     <style>
         * {
             margin: 0;
@@ -304,6 +306,21 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             transition: justify-content 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .menu-section-header:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .menu-section-header .arrow-icon {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-section-header.collapsed .arrow-icon {
+            transform: rotate(-90deg);
         }
 
         .side-menu.open .menu-section-header {
@@ -323,6 +340,15 @@
             flex-direction: column;
             gap: 2px;
             margin-top: 4px;
+            max-height: none;
+            overflow: visible;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        .menu-file-list.collapsed {
+            max-height: 0;
+            opacity: 0;
         }
 
         .menu-file-item {
@@ -1415,7 +1441,7 @@
             justify-content: space-between;
             width: 100%;
             margin-bottom: 12px;
-            padding: 12px 16px;
+            padding: 12px 0px;
             border-bottom: 1px solid var(--outline-variant);
         }
 
@@ -1482,12 +1508,17 @@
             }
         }
 
-        .playing-screen, .gameover-screen {
+        .playing-screen {
             display: none;
             width: 100%;
             padding-top: 60px;
         }
 
+        .gameover-screen {
+            display: none;
+            width: 100%;
+            padding-top: 10px;
+        }        
         .playing-screen.active, .gameover-screen.active {
             display: block;
             animation: fadeIn 1s ease-out;
@@ -1613,7 +1644,7 @@
         }
 
         .test-display {
-            padding: 20px;
+            padding: 2px;
             line-height: 2;
             font-size: 16px;
             margin-bottom: 20px;
@@ -2777,14 +2808,17 @@
                         <div class="header-top">
                             <h1 id="game-title">Memories</h1>
                             <div class="title-buttons">
+                                <button class="share-btn" id="show-file-btn" title="보이기" style="display: none;">
+                                    <span class="material-symbols-outlined">table_eye</span>
+                                </button>                                
                                 <button class="share-btn" id="import-btn" title="파일 가져오기">
                                     <span class="material-icons">download</span>
                                 </button>
                                 <button class="share-btn" id="share-btn" title="파일 공유">
-                                    <span class="material-icons">share</span>
+                                    <span class="material-symbols-outlined">inbox_text_share</span>
                                 </button>
-                                <button class="share-btn" id="test-share-btn" title="테스트 공유" style="display: none;">
-                                    <span class="material-icons">mail</span>
+                                <button class="share-btn" id="test-share-btn" title="시험 형태로 공유" style="display: none;">
+                                    <span class="material-symbols-outlined">export_notes</span>
                                 </button>
                             </div>
                         </div>
@@ -2850,6 +2884,7 @@
                                 font-size: 16px;
                                 font-family: 'Noto Sans KR';
                                 width: 100%;
+                                max-width: 550px;
                                 box-sizing: border-box;
                                 height: 48px;
                                 transition: border-color 0.2s;
@@ -2857,11 +2892,8 @@
                             <div id="public-setting-container" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; background: var(--surface-dim); border-radius: 8px; margin-top: 12px;">
                                 <input type="checkbox" id="file-public-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
                                 <label for="file-public-checkbox" style="cursor: pointer; font-size: 14px; color: var(--text-primary); flex: 1; margin: 0;">
-                                    공개 설정
+                                    공개 설정(체크하면 다른 사용자도 이 파일을 볼 수 있습니다)
                                 </label>
-                                <span style="font-size: 12px; color: var(--text-secondary);">
-                                    체크하면 다른 사용자도 이 파일을 볼 수 있습니다
-                                </span>
                             </div>
                         </div>
                     </div>
@@ -2905,7 +2937,15 @@
         let currentGameFileId = null; // 게임 중인 파일의 Supabase ID
         let currentGameFileName = null; // 게임 중인 파일의 이름
         let currentEditFileData = null; // 편집 중인 파일의 전체 데이터 (공개 여부 등)
+        let currentGameFileSource = null; // 게임 파일의 출처 ('myfile', 'localfile', 'publicfile', 'testshare')
         let files = [];
+
+        // 디바이스 감지 (iOS 감지)
+        const isIOS = () => {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        };
+        console.log('📱 디바이스 감지 - isIOS:', isIOS(), 'userAgent:', navigator.userAgent, 'platform:', navigator.platform);
 
         // DOM Elements
         const editor = document.getElementById('editor');
@@ -2933,8 +2973,33 @@
         let isRenamingFile = false;
 
         // Detect filename change (actual handling happens in saveFile)
+        // 텍스트 너비 측정 함수
+        function getTextWidth(text, font) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = font;
+            return ctx.measureText(text).width;
+        }
+
         fileNameInput.addEventListener('input', (e) => {
             const newFileName = fileNameInput.value.trim();
+
+            // 입력값의 너비 측정 (padding 16px * 2 = 32px 포함)
+            const fontSize = window.getComputedStyle(fileNameInput).fontSize;
+            const fontFamily = window.getComputedStyle(fileNameInput).fontFamily;
+            const font = `${fontSize} ${fontFamily}`;
+            const textWidth = getTextWidth(newFileName, font);
+            const paddingWidth = 32; // padding: 12px 16px
+            const totalWidth = textWidth + paddingWidth;
+
+            // 550px를 초과하면 마지막 글자 제거
+            if (totalWidth > 550) {
+                fileNameInput.value = fileNameInput.value.slice(0, -1);
+                alert('파일명 길이 제한: 최대 550px까지만 입력 가능합니다.');
+                console.log('⚠️ 파일명 길이 제한: 600px 초과');
+                return;
+            }
+
             if (currentMode === 'edit' && newFileName !== previousFileName && previousFileName !== '') {
                 console.log(`📝 파일명 변경: "${previousFileName}" → "${newFileName}"`);
             }
@@ -3181,7 +3246,6 @@
                     return `
                         <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${originalIndex}, '${file.name.replace(/'/g, "\\'")}')">
-                                <span class="material-icons">description</span>
                                 <span class="file-name">${escapeHtml(file.name)}</span>
                             </div>
                             <div class="file-actions" style="opacity: 1;">
@@ -3448,7 +3512,8 @@
                                 .update({
                                     title: fileName,
                                     is_public: isPublic,
-                                    updated_at: new Date().toISOString()
+                                    updated_at: new Date().toISOString(),
+                                    view_at: new Date().toISOString()  // updated_at과 동일하게 설정
                                 })
                                 .eq('id', existingFileId);
 
@@ -3477,7 +3542,8 @@
                                 is_public: isPublic,
                                 view_count: 0,
                                 created_at: new Date().toISOString(),
-                                updated_at: new Date().toISOString()
+                                updated_at: new Date().toISOString(),
+                                view_at: new Date().toISOString()  // view_at도 동일하게 설정
                             });
 
                         if (dbError) {
@@ -3592,7 +3658,6 @@
                             localFilesContainer.innerHTML = localFiles.map((file, index) => `
                                 <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
-                                        <span class="material-icons">description</span>
                                         <span class="file-name">${escapeHtml(file.name)}</span>
                                     </div>
                                     <div class="file-actions" style="opacity: 1;">
@@ -3832,6 +3897,11 @@
                             localStorage.removeItem(key);
                             deletedCount++;
                             console.log('🗑️ 삭제됨:', key);
+                        }
+                        // show-file-btn 상태도 함께 삭제 (파일 캐시 삭제 시 버튼 상태도 초기화)
+                        if (key.startsWith('show_file_btn_used_')) {
+                            localStorage.removeItem(key);
+                            console.log('🗑️ show-file-btn 상태 삭제됨:', key);
                         }
                     }
 
@@ -4404,7 +4474,6 @@
                             myFilesContainer.innerHTML = cachedFiles.map(file => `
                                 <div class="menu-file-item" style="width: 100%; justify-content: space-between; opacity: 0.7;">
                                     <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
-                                        <span class="material-icons">description</span>
                                         <span class="file-name">${escapeHtml(file.title)} (캐시)</span>
                                     </div>
                                 </div>
@@ -4414,19 +4483,71 @@
                         // 2. localStorage에 저장된 파일 (로컬 파일 섹션)
                         const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
                         if (savedFiles.length > 0) {
-                            localFilesContainer.innerHTML = savedFiles.map((file, index) => `
-                                <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
-                                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
-                                        <span class="material-icons">description</span>
-                                        <span class="file-name">${escapeHtml(file.name)}</span>
+                            // 처음 10개만 표시
+                            const pageSize = 10;
+                            let currentLocalIndex = pageSize;
+
+                            const renderLocalFileItems = (files) => {
+                                return files.map((file, index) => `
+                                    <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                                        <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
+                                            <span class="file-name">${escapeHtml(file.name)}</span>
+                                        </div>
+                                        <div class="file-actions" style="opacity: 1;">
+                                            <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
+                                                <span class="material-icons">edit</span>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="file-actions" style="opacity: 1;">
-                                        <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
-                                            <span class="material-icons">edit</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            `).join('');
+                                `).join('');
+                            };
+
+                            localFilesContainer.innerHTML = renderLocalFileItems(savedFiles.slice(0, pageSize));
+
+                            // More 버튼 표시 (10개 이상일 때)
+                            if (savedFiles.length > pageSize) {
+                                const createLocalMoreBtn = () => {
+                                    const moreBtn = document.createElement('button');
+                                    moreBtn.className = 'menu-more-btn';
+                                    moreBtn.textContent = 'More';
+                                    moreBtn.style.cssText = `
+                                        width: 100%;
+                                        padding: 8px 12px;
+                                        background: var(--surface-dim);
+                                        border: 1px solid var(--outline-variant);
+                                        border-radius: 6px;
+                                        color: var(--text-primary);
+                                        font-size: 13px;
+                                        cursor: pointer;
+                                        margin-top: 4px;
+                                        transition: all 0.2s ease;
+                                    `;
+
+                                    moreBtn.addEventListener('mouseover', () => {
+                                        moreBtn.style.background = 'var(--primary-light)';
+                                    });
+                                    moreBtn.addEventListener('mouseout', () => {
+                                        moreBtn.style.background = 'var(--surface-dim)';
+                                    });
+
+                                    moreBtn.addEventListener('click', () => {
+                                        const nextFiles = savedFiles.slice(currentLocalIndex, currentLocalIndex + pageSize);
+                                        const additionalHTML = renderLocalFileItems(nextFiles);
+                                        localFilesContainer.innerHTML = localFilesContainer.innerHTML.replace(moreBtn.outerHTML, additionalHTML);
+
+                                        currentLocalIndex += pageSize;
+
+                                        // 남은 파일이 있으면 More 버튼 다시 추가
+                                        if (currentLocalIndex < savedFiles.length) {
+                                            localFilesContainer.appendChild(createLocalMoreBtn());
+                                        }
+                                    });
+
+                                    return moreBtn;
+                                };
+
+                                localFilesContainer.appendChild(createLocalMoreBtn());
+                            }
                         } else {
                             localFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">저장된 파일이 없습니다</div>';
                         }
@@ -4441,13 +4562,19 @@
                         .from('study_materials')
                         .select('*')
                         .eq('user_id', user.id)
-                        .order('updated_at', { ascending: false });
 
                     if (error) throw error;
 
                     if (!data || data.length === 0) {
                         myFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일이 없습니다</div>';
                     } else {
+                        // view_at으로 정렬 (최신순)
+                        data.sort((a, b) => {
+                            const timeA = a.view_at ? new Date(a.view_at).getTime() : 0;
+                            const timeB = b.view_at ? new Date(b.view_at).getTime() : 0;
+                            return timeB - timeA; // 내림차순 (최신순)
+                        });
+
                         // Supabase 파일을 로컬 캐시에 저장
                         data.forEach(file => {
                             const cacheKey = `supabase_file_${file.id}`;
@@ -4457,23 +4584,76 @@
                                 id: file.id,
                                 title: file.title,
                                 file_path: file.file_path,
-                                updated_at: file.updated_at
+                                updated_at: file.updated_at,
+                                view_at: file.view_at
                             }));
                         });
 
-                        myFilesContainer.innerHTML = data.map(file => `
-                            <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
-                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
-                                    <span class="material-icons">description</span>
-                                    <span class="file-name">${escapeHtml(file.title)}</span>
+                        // 처음 10개만 표시
+                        const pageSize = 10;
+                        let currentIndex = pageSize;
+
+                        const renderFileItems = (files) => {
+                            return files.map(file => `
+                                <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                                        <span class="file-name">${escapeHtml(file.title)}</span>
+                                    </div>
+                                    <div class="file-actions" style="opacity: 1;">
+                                        <button class="file-action-btn" onclick="event.stopPropagation(); editFile('${file.id}')" title="편집">
+                                            <span class="material-icons">edit</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="file-actions" style="opacity: 1;">
-                                    <button class="file-action-btn" onclick="event.stopPropagation(); editFile('${file.id}')" title="편집">
-                                        <span class="material-icons">edit</span>
-                                    </button>
-                                </div>
-                            </div>
-                        `).join('');
+                            `).join('');
+                        };
+
+                        myFilesContainer.innerHTML = renderFileItems(data.slice(0, pageSize));
+
+                        // More 버튼 표시 (10개 이상일 때)
+                        if (data.length > pageSize) {
+                            const createMoreBtn = () => {
+                                const moreBtn = document.createElement('button');
+                                moreBtn.className = 'menu-more-btn';
+                                moreBtn.textContent = 'More';
+                                moreBtn.style.cssText = `
+                                    width: 100%;
+                                    padding: 8px 12px;
+                                    background: var(--surface-dim);
+                                    border: 1px solid var(--outline-variant);
+                                    border-radius: 6px;
+                                    color: var(--text-primary);
+                                    font-size: 13px;
+                                    cursor: pointer;
+                                    margin-top: 4px;
+                                    transition: all 0.2s ease;
+                                `;
+
+                                moreBtn.addEventListener('mouseover', () => {
+                                    moreBtn.style.background = 'var(--primary-light)';
+                                });
+                                moreBtn.addEventListener('mouseout', () => {
+                                    moreBtn.style.background = 'var(--surface-dim)';
+                                });
+
+                                moreBtn.addEventListener('click', () => {
+                                    const nextFiles = data.slice(currentIndex, currentIndex + pageSize);
+                                    const additionalHTML = renderFileItems(nextFiles);
+                                    myFilesContainer.innerHTML = myFilesContainer.innerHTML.replace(moreBtn.outerHTML, additionalHTML);
+
+                                    currentIndex += pageSize;
+
+                                    // 남은 파일이 있으면 More 버튼 다시 추가
+                                    if (currentIndex < data.length) {
+                                        myFilesContainer.appendChild(createMoreBtn());
+                                    }
+                                });
+
+                                return moreBtn;
+                            };
+
+                            myFilesContainer.appendChild(createMoreBtn());
+                        }
 
                         console.log('✅ 마이 파일 로드 완료:', data.length + '개');
                     }
@@ -4496,8 +4676,7 @@
                         .from('study_materials')
                         .select('*')
                         .eq('is_public', true)
-                        .order('view_count', { ascending: false })
-                        .limit(10);
+                        .order('view_count', { ascending: false });
 
                     if (error) throw error;
 
@@ -4506,18 +4685,69 @@
                         return;
                     }
 
-                    // 상위 10개 공개 파일 표시 (조회수 포함, 한 줄에 표시)
-                    publicFilesContainer.innerHTML = data.map((file, index) => `
-                        <div class="menu-file-item" style="width: 100%; justify-content: flex-start;">
-                            <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
-                                <span class="material-icons">description</span>
-                                <span class="file-name">${escapeHtml(file.title)}</span>
-                                <span style="margin-left: auto; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">👁️ ${file.view_count || 0}</span>
-                            </div>
-                        </div>
-                    `).join('');
+                    // 처음 10개만 표시
+                    const pageSize = 10;
+                    let currentPublicIndex = pageSize;
 
-                    console.log('✅ 상위 10개 공개 파일 로드 완료:', data.length + '개');
+                    const renderPublicFileItems = (files) => {
+                        return files.map((file, index) => `
+                            <div class="menu-file-item" style="width: 100%; justify-content: flex-start;">
+                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                                    <span class="file-name">${escapeHtml(file.title)}</span>
+                                    <span style="margin-left: auto; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">👁️ ${file.view_count || 0}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    };
+
+                    publicFilesContainer.innerHTML = renderPublicFileItems(data.slice(0, pageSize));
+
+                    // More 버튼 표시 (10개 이상일 때)
+                    if (data.length > pageSize) {
+                        const createPublicMoreBtn = () => {
+                            const moreBtn = document.createElement('button');
+                            moreBtn.className = 'menu-more-btn';
+                            moreBtn.textContent = 'More';
+                            moreBtn.style.cssText = `
+                                width: 100%;
+                                padding: 8px 12px;
+                                background: var(--surface-dim);
+                                border: 1px solid var(--outline-variant);
+                                border-radius: 6px;
+                                color: var(--text-primary);
+                                font-size: 13px;
+                                cursor: pointer;
+                                margin-top: 4px;
+                                transition: all 0.2s ease;
+                            `;
+
+                            moreBtn.addEventListener('mouseover', () => {
+                                moreBtn.style.background = 'var(--primary-light)';
+                            });
+                            moreBtn.addEventListener('mouseout', () => {
+                                moreBtn.style.background = 'var(--surface-dim)';
+                            });
+
+                            moreBtn.addEventListener('click', () => {
+                                const nextFiles = data.slice(currentPublicIndex, currentPublicIndex + pageSize);
+                                const additionalHTML = renderPublicFileItems(nextFiles);
+                                publicFilesContainer.innerHTML = publicFilesContainer.innerHTML.replace(moreBtn.outerHTML, additionalHTML);
+
+                                currentPublicIndex += pageSize;
+
+                                // 남은 파일이 있으면 More 버튼 다시 추가
+                                if (currentPublicIndex < data.length) {
+                                    publicFilesContainer.appendChild(createPublicMoreBtn());
+                                }
+                            });
+
+                            return moreBtn;
+                        };
+
+                        publicFilesContainer.appendChild(createPublicMoreBtn());
+                    }
+
+                    console.log('✅ 공개 파일 로드 완료:', data.length + '개');
                 } catch (error) {
                     console.error('공개 파일 로드 실패:', error);
                     publicFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">파일 로드 실패</div>';
@@ -4551,7 +4781,7 @@
                     publicFilesList.innerHTML = data.map(file => `
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--outline-variant);">
                             <div style="flex: 1; min-width: 0; cursor: pointer;" onclick="document.getElementById('public-files-modal').style.display = 'none'; playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}');">
-                                <div style="font-weight: 500; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">${escapeHtml(file.title)}</div>
+                                <div style="font-weight: 500; color: var(--primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-wrap: break-word; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">${escapeHtml(file.title)}</div>
                             </div>
                             <button class="public-toggle-btn" data-file-id="${file.id}" style="margin-left: 12px; padding: 6px 12px; border: 1px solid var(--outline); border-radius: 4px; background: ${file.is_public ? 'var(--primary)' : 'var(--surface)'}; color: ${file.is_public ? 'white' : 'var(--text-primary)'}; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s ease; white-space: nowrap;">
                                 ${file.is_public ? '공개 중' : '비공개'}
@@ -4603,7 +4833,7 @@
                     sharedFilesList.innerHTML = data.map(file => `
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--outline-variant);">
                             <div style="flex: 1; min-width: 0; cursor: pointer;" onclick="document.getElementById('shared-files-modal').style.display = 'none'; playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}');">
-                                <div style="font-weight: 500; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">${escapeHtml(file.title)}</div>
+                                <div style="font-weight: 500; color: var(--primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-wrap: break-word; transition: all 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">${escapeHtml(file.title)}</div>
                             </div>
                             <button class="shared-toggle-btn" data-file-id="${file.id}" style="margin-left: 12px; padding: 6px 12px; border: 1px solid var(--outline); border-radius: 4px; background: ${file.is_shared ? 'var(--primary)' : 'var(--surface)'}; color: ${file.is_shared ? 'white' : 'var(--text-primary)'}; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s ease; white-space: nowrap;">
                                 ${file.is_shared ? '공유 중' : '미공유'}
@@ -4667,6 +4897,7 @@
                     // 현재 게임 파일 정보 저장 (캐시 로드 전에 설정)
                     currentGameFileId = fileId;
                     currentGameFileName = fileName;
+                    currentGameFileSource = 'myfile'; // 마이 파일에서 시작
                     console.log('💾 currentGameFileId 설정됨:', currentGameFileId);
 
                     // Get game mode from settings (Default: TTV mode)
@@ -4750,9 +4981,26 @@
                         title: fileName,
                         file_path: fileData.file_path,
                         updated_at: fileData.updated_at,
+                        view_at: new Date().toISOString(),
                         cached_at: new Date().toISOString()
                     }));
                     console.log('💾 파일을 로컬 캐시에 저장:', fileName);
+
+                    // 4. Supabase에서 view_at 업데이트
+                    try {
+                        const { error: updateError } = await supabase
+                            .from('study_materials')
+                            .update({ view_at: new Date().toISOString() })
+                            .eq('id', fileId);
+
+                        if (updateError) {
+                            console.error('view_at 업데이트 오류:', updateError);
+                        } else {
+                            console.log('✅ view_at 업데이트 완료:', fileId);
+                        }
+                    } catch (e) {
+                        console.error('view_at 업데이트 중 예외 발생:', e);
+                    }
 
                     parseLyrics(content);
                     console.log('✅ Supabase 파일 로드 완료:', fileName);
@@ -5076,7 +5324,7 @@
                     // 클립보드에 복사
                     await navigator.clipboard.writeText(shareUrl);
 
-                    alert(`✅ 공유 링크가 복사되었습니다!\n\n${shareUrl}`);
+                    alert(`✅ 공유 링크가 클립보드에 복사되었습니다!\n\nSNS,e-mail 등으로 복사내용을 붙여 보내시고, 받으신 분은 공유받은 링크를 클릭하시면 받은 문서를 실행하실 수 있고, 상단의 가져오기 버튼을 눌러 마이 파일에 저장하실 수 있습니다.\n\n${shareUrl}`);
                     console.log('공유 링크:', shareUrl);
                 } catch (error) {
                     console.error('공유 오류:', error);
@@ -5125,11 +5373,101 @@
                     // 클립보드에 복사
                     await navigator.clipboard.writeText(testUrl);
 
-                    alert(`✅ 테스트 공유 링크가 복사되었습니다!\n\n${testUrl}\n\n이 링크를 통해 접속한 사람은 테스트를 진행할 수 있습니다.`);
+                    alert(`✅ 테스트 공유 링크가 클립보드에 복사되었습니다!\n\nSNS,e-mail 등으로 복사내용을 붙여 보내시고, 받으신 분이 공유받은 링크를 클릭하시면 시험을 치실 수 있습니다. 공유받으신 분은 첫화면에서 본인의 이름을 입력하고, 시험을 치시면 됩니다. 테스트를 공유하신 분은 마이페이지 시험 파일 성적 조회에서 성적을 조회하실 수 있습니다.\n\n${testUrl}\n\n이 링크를 통해 접속한 사람은 테스트를 진행할 수 있습니다.`);
                     console.log('테스트 공유 링크:', testUrl);
                 } catch (error) {
                     console.error('테스트 공유 오류:', error);
                     alert('테스트 공유 중 오류가 발생했습니다.');
+                }
+            });
+
+            // 파일 내용 보이기 버튼 이벤트 리스너 - 모든 정답 표시 (한 번만 사용, 파일별 구분)
+            document.getElementById('show-file-btn').addEventListener('click', () => {
+                console.log('👁️ 모든 정답 표시 버튼 클릭됨');
+
+                // 모든 word-input 필드 찾기
+                const inputs = document.querySelectorAll('.word-input');
+
+                if (inputs.length === 0) {
+                    alert('입력 필드가 없습니다.');
+                    return;
+                }
+
+                if (!answersShown) {
+                    // 정답 표시 (처음 클릭)
+                    console.log('정답 표시 중...');
+                    originalValues = []; // 초기화
+
+                    inputs.forEach((input, idx) => {
+                        // 원본 값 저장
+                        originalValues[idx] = {
+                            value: input.value,
+                            placeholder: input.placeholder,
+                            backgroundImage: input.style.backgroundImage,
+                            classList: input.className
+                        };
+
+                        let answer = input.dataset.answer || '';
+
+                        // data-answer가 없으면 lyrics 배열에서 가져오기
+                        if (!answer && typeof lyrics !== 'undefined') {
+                            const dataIndex = parseInt(input.dataset.index);
+                            if (dataIndex >= 0 && dataIndex < lyrics.length) {
+                                answer = lyrics[dataIndex];
+                            }
+                        }
+
+                        if (answer && !input.disabled) {
+                            // 정답을 입력 필드에 표시
+                            input.value = answer;
+                            input.placeholder = answer;
+
+                            // 정답 표시 스타일 적용
+                            input.style.backgroundImage = 'linear-gradient(to right, rgba(82, 196, 26, 0.3) 0%, rgba(82, 196, 26, 0.3) 100%)';
+                            input.classList.add('correct');
+                            input.classList.remove('wrong', 'partial-correct');
+
+                            console.log(`✓ 정답 표시: ${answer}`);
+                        }
+                    });
+
+                    answersShown = true;
+                    console.log('정답이 표시되었습니다.');
+
+                    // alert 표시
+                    alert('1회만 정답이 노출되는 버튼입니다. 버튼을 다시 누르면 빈칸으로 돌아가 게임을 진행하실 수 있습니다.');
+                } else {
+                    // 정답 숨기기 (두 번째 클릭) - 버튼 숨기고 localStorage 저장
+                    console.log('정답 숨기는 중...');
+
+                    inputs.forEach((input, idx) => {
+                        if (originalValues[idx]) {
+                            // 원본 값 복원
+                            input.value = originalValues[idx].value;
+                            input.placeholder = originalValues[idx].placeholder;
+                            input.style.backgroundImage = originalValues[idx].backgroundImage;
+                            input.className = originalValues[idx].classList;
+                        }
+                    });
+
+                    answersShown = false;
+
+                    console.log('📝 정답 숨기기 실행 - currentGameFileName:', currentGameFileName);
+
+                    // 파일명을 기준으로 localStorage에 저장 (로컬/Supabase 구분 안 함)
+                    const showFileBtnKey = `show_file_btn_used_${currentGameFileName}`;
+                    localStorage.setItem(showFileBtnKey, 'true');
+
+                    console.log('✅ show_file_btn 상태 저장 완료:', {
+                        파일명: currentGameFileName,
+                        키: showFileBtnKey,
+                        값: 'true'
+                    });
+
+                    // 버튼 숨기기
+                    document.getElementById('show-file-btn').style.display = 'none';
+
+                    console.log('🔒 정답이 숨겨졌습니다. 버튼이 숨겨졌습니다.');
                 }
             });
 
@@ -5208,7 +5546,7 @@
                     if (dbError) {
                         // 중복 파일명 에러 처리
                         if (dbError.code === '23505' || dbError.message.includes('unique')) {
-                            throw new Error('같은 이름의 파일이 이미 존재합니다. 다른 이름으로 저장해주세요.');
+                            throw new Error('같은 이름의 파일이 마이 파일에 이미 존재합니다. 다른 이름으로 저장해주세요.');
                         } else {
                             throw new Error(`파일 정보 저장에 실패했습니다: ${dbError.message}`);
                         }
@@ -5473,6 +5811,8 @@
         // Hint tracking: { inputElementId: { revealedCount: 0 } }
         let hintProgress = {};
         let lastSelectedInput = null; // 마지막으로 선택된 입력필드 추적
+        let answersShown = false; // show-file-btn 정답 표시 상태 추적
+        let originalValues = []; // show-file-btn 원본 값 저장
 
         // Difficulty settings
         const difficultySettings = {
@@ -5567,6 +5907,26 @@
             return true;
         }
 
+        // 게임 시작 시 이전에 사용했으면 버튼 숨기기 (파일명 기준)
+        function checkShowFileButtonUsed() {
+            const showFileBtnKey = `show_file_btn_used_${currentGameFileName}`;
+            const isUsed = localStorage.getItem(showFileBtnKey) === 'true';
+
+            console.log('📋 show-file-btn 상태 확인:', {
+                currentGameFileName: currentGameFileName,
+                showFileBtnKey: showFileBtnKey,
+                showFileBtnUsed: isUsed
+            });
+
+            if (isUsed) {
+                document.getElementById('show-file-btn').style.display = 'none';
+                console.log('🔒 show-file-btn이 이미 사용되었습니다. (파일명:', currentGameFileName, ')');
+            } else {
+                document.getElementById('show-file-btn').style.display = 'block';
+                console.log('👁️ show-file-btn이 표시됩니다. (파일명:', currentGameFileName, ')');
+            }
+        }
+
         // Start game
         function startGame(wrongOnly = false) {
             console.log('🎮 startGame 호출됨 - wrongOnly:', wrongOnly);
@@ -5578,6 +5938,11 @@
             hintProgress = {}; // 힌트 진행상황 초기화
             italicWords = []; // Italic 단어 초기화 (인덱스)
             italicWordValues = []; // Italic 단어 초기화 (값)
+            answersShown = false; // 정답 표시 상태 초기화
+            originalValues = []; // 원본 값 초기화
+
+            // 게임 시작 시 show-file-btn 상태 확인 (파일별로 독립적 관리)
+            checkShowFileButtonUsed();
 
             // 게임 시작 시 현재 사용자 포인트 표시 (supabaseClient.js의 getCurrentPoints 사용)
             const currentPoints = typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0;
@@ -5726,6 +6091,7 @@
                                     inputEl.className = 'word-input';
                                     inputEl.dataset.index = wordIndex;
                                     inputEl.dataset.order = blankOrder;
+                                    inputEl.dataset.answer = word;
                                     inputEl.placeholder = '';
                                     inputEl.autocomplete = 'off';
                                     inputEl.setAttribute('autocomplete', 'off');
@@ -5821,6 +6187,7 @@
                                             inputEl.className = 'word-input';
                                             inputEl.dataset.index = wordIndex;
                                             inputEl.dataset.order = blankOrder;
+                                            inputEl.dataset.answer = word;
                                             inputEl.placeholder = '';
                                             inputEl.autocomplete = 'off';
                                             inputEl.setAttribute('autocomplete', 'off');
@@ -5940,6 +6307,52 @@
 
             testDisplay.innerHTML = '';
 
+            // TTC 설정 체크박스 및 텍스트 추가
+            const ttcSettingContainer = document.createElement('div');
+            ttcSettingContainer.style.display = 'flex';
+            ttcSettingContainer.style.alignItems = 'center';
+            ttcSettingContainer.style.gap = '8px';
+            ttcSettingContainer.style.marginBottom = '16px';
+            ttcSettingContainer.style.padding = '8px 12px';
+            ttcSettingContainer.style.backgroundColor = 'var(--surface-dim)';
+            ttcSettingContainer.style.borderRadius = '6px';
+
+            const ttcCheckbox = document.createElement('input');
+            ttcCheckbox.type = 'checkbox';
+            ttcCheckbox.id = 'ttc-default-checkbox';
+            ttcCheckbox.style.cursor = 'pointer';
+            ttcCheckbox.checked = false; // 기본값: 미체크
+
+            const ttcLabel = document.createElement('label');
+            ttcLabel.htmlFor = 'ttc-default-checkbox';
+            ttcLabel.style.cursor = 'pointer';
+            ttcLabel.style.flex = '1';
+            ttcLabel.style.margin = '0';
+            ttcLabel.style.fontSize = '13px';
+            ttcLabel.style.color = 'var(--text-primary)';
+
+            // 기본값 설정 (미체크)
+            ttcLabel.textContent = "정답 입력 시 우측 Check Box를 UnCheck 상태('TTC 미제거') 로 기본설정합니다. Unchecked후 제출시 향후 학습대상으로 나타납니다.";
+
+            // 체크박스 변경 이벤트
+            ttcCheckbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    ttcLabel.textContent = "정답 입력 시 우측 Check Box를 Check 상태('TTC 제거') 로 기본설정합니다. checked후 제출시 향후 학습대상으로 나타나지 않습니다.";
+                } else {
+                    ttcLabel.textContent = "정답 입력 시 우측 Check Box를 UnCheck 상태('TTC 미제거') 로 기본설정합니다. Unchecked후 제출시 향후학습대상으로 나타납니다.";
+                }
+
+                // italic-checkbox들을 동기화
+                const italicCheckboxes = document.querySelectorAll('.italic-checkbox');
+                italicCheckboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                });
+            });
+
+            ttcSettingContainer.appendChild(ttcCheckbox);
+            ttcSettingContainer.appendChild(ttcLabel);
+            testDisplay.appendChild(ttcSettingContainer);
+
             console.log('🎮 updateUI 호출됨');
             console.log('originalMarkdown:', originalMarkdown ? originalMarkdown.substring(0, 100) + '...' : 'NULL');
             console.log('lyrics 길이:', lyrics.length);
@@ -5971,6 +6384,7 @@
                         inputEl.className = 'word-input';
                         inputEl.dataset.index = index;
                         inputEl.dataset.order = blankOrder;
+                        inputEl.dataset.answer = word;
                         inputEl.placeholder = '';
                         inputEl.autocomplete = 'off';
                         inputEl.setAttribute('autocomplete', 'off');
@@ -6241,8 +6655,9 @@
             document.querySelectorAll('.word-input').forEach((input, index) => {
                 const blankIndex = parseInt(input.dataset.index);
 
-                input.addEventListener('input', (e) => {
-                    const userInput = e.target.value.trim();
+                // 정답 체크 함수 (input과 keypress에서 재사용)
+                const checkAnswer = () => {
+                    const userInput = input.value.trim();
                     const correctWord = lyrics[blankIndex];
 
                     // 글자 단위 색상 표시 함수
@@ -6256,7 +6671,10 @@
                             input.classList.remove('wrong', 'partial-correct');
                             input.classList.add('correct');
                             input.style.backgroundImage = 'none';
-                            input.disabled = true;
+                            // iOS에서는 Enter 키를 누를 수 있도록 disabled 하지 않음
+                            if (!isIOS()) {
+                                input.disabled = true;
+                            }
 
 
                             // correctAnswers에 추가
@@ -6275,8 +6693,8 @@
                             } else {
                                 // 힌트를 사용하지 않은 경우: 초록색으로 표시하고 맞은 갯수에 포함
                                 correctCount++;
-                                // 정답(초록색)일 때만 체크박스 표시 (TTV 모드에서만)
-                                if (gameMode === 'bold') {
+                                // iOS에서는 Enter 키 후에 체크박스 표시, 비iOS는 즉시 표시
+                                if (gameMode === 'bold' && !isIOS()) {
                                     const checkbox = document.querySelector(`.italic-checkbox[data-blank-index="${blankIndex}"]`);
                                     if (checkbox) {
                                         checkbox.style.display = 'inline-block';
@@ -6292,10 +6710,16 @@
                             if (correctCount === blanks.length) {
                                 setTimeout(() => endGame(), 500);
                             } else {
-                                const currentOrder = parseInt(input.dataset.order);
-                                const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
-                                if (nextInput && !nextInput.disabled) {
-                                    setTimeout(() => nextInput.focus(), 100);
+                                // iOS가 아닌 경우만 정답 입력 시 자동으로 다음 필드로 이동
+                                // iOS는 Enter 키를 쳐야 다음 필드로 이동
+                                if (!isIOS()) {
+                                    setTimeout(() => {
+                                        const currentOrder = parseInt(input.dataset.order);
+                                        const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
+                                        if (nextInput && !nextInput.disabled) {
+                                            nextInput.focus();
+                                        }
+                                    }, 100);
                                 }
                             }
                         } else {
@@ -6324,17 +6748,29 @@
                     }
 
                     updateCharacterColors();
+                };
+
+                // 모든 디바이스: input 이벤트에서 실시간으로 정답 체크 (색상 표시만 함)
+                input.addEventListener('input', (e) => {
+                    checkAnswer();
                 });
 
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        const currentOrder = parseInt(input.dataset.order);
-                        const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
-                        if (nextInput && !nextInput.disabled) {
-                            nextInput.focus();
+                // 모든 디바이스: Enter 키 입력 시 정답 체크 및 다음 필드로 이동
+                // iOS인 경우: Enter 키 입력 시 정답 체크 및 체크박스 표시
+                if (isIOS()) {
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            checkAnswer();
+                            // 정답이 맞은 경우에만 체크박스 표시
+                            if (input.classList.contains('correct') && gameMode === 'bold') {
+                                const checkbox = document.querySelector(`.italic-checkbox[data-blank-index="${blankIndex}"]`);
+                                if (checkbox) {
+                                    checkbox.style.display = 'inline-block';
+                                }
+                            }
                         }
-                    }
-                });
+                    });
+                }
             });
 
             // 모든 입력필드에 focus 이벤트 리스너 추가
@@ -6359,6 +6795,13 @@
         // Submit game
         function submitGame() {
                 // Canvas를 사용한 글자 너비 측정 함수
+
+            // show-file-btn 상태 확인 (정답이 표시되어 있으면 채점 진행 안 함)
+            if (answersShown) {
+                alert('정답보이기 버튼을 눌렀을 경우는 채점이 진행되지 않습니다. 정답보이기 버튼을 다시 한 번 눌러주세요.');
+                console.log('⚠️ 정답이 표시된 상태에서 제출 시도됨');
+                return;
+            }
 
             const inputs = document.querySelectorAll('.word-input');
             let totalCorrect = 0;
@@ -6989,7 +7432,8 @@
                 if (gameInfoRow) gameInfoRow.style.display = 'flex';
                 if (progressBar) progressBar.style.display = 'block';
                 // 로그인 사용자이고 파일이 있으면 가져오기 버튼 표시
-                if (window.currentUser && currentGameFileId) {
+                // 단, 마이 파일에서 시작한 경우에는 import-btn 숨김
+                if (window.currentUser && currentGameFileId && currentGameFileSource !== 'myfile') {
                     importBtn.style.display = 'flex';
                 } else {
                     importBtn.style.display = 'none';
@@ -7157,7 +7601,10 @@
 
                 selectedInput.classList.remove('wrong', 'partial-correct');
                 selectedInput.style.backgroundImage = 'none'; // 배경 그래디언트 제거
-                selectedInput.disabled = true; // 입력 불가능하게 설정
+                // iOS에서는 Enter 키를 누를 수 있도록 disabled 하지 않음
+                if (!isIOS()) {
+                    selectedInput.disabled = true; // 입력 불가능하게 설정
+                }
 
                 // 힌트 사용 여부 확인
                 const usedHint = hintProgress[dataIndex] && hintProgress[dataIndex].usedHint;
@@ -7183,16 +7630,21 @@
                     correctAnswers.push(blankIndex);
                 }
 
-                // 다음 필드로 이동
-                const currentOrder = parseInt(selectedInput.dataset.order);
-                const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
-                if (nextInput && !nextInput.disabled) {
-                    nextInput.focus();
-                    lastSelectedInput = nextInput; // 마지막 선택된 필드 업데이트
-                    console.log('➡️ 다음 필드로 이동:', currentOrder + 1);
-                } else if (!nextInput) {
-                    console.log('✅ 마지막 필드 완성! 게임 종료');
-                    setTimeout(() => endGame(), 500);
+                // 다음 필드로 이동 (iOS가 아닌 경우만)
+                if (!isIOS()) {
+                    const currentOrder = parseInt(selectedInput.dataset.order);
+                    const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
+                    if (nextInput && !nextInput.disabled) {
+                        nextInput.focus();
+                        lastSelectedInput = nextInput; // 마지막 선택된 필드 업데이트
+                        console.log('➡️ 다음 필드로 이동:', currentOrder + 1);
+                    } else if (!nextInput) {
+                        console.log('✅ 마지막 필드 완성! 게임 종료');
+                        setTimeout(() => endGame(), 500);
+                    }
+                } else {
+                    // iOS는 Hint 후에도 자동으로 다음 필드로 이동하지 않음
+                    console.log('📱 iOS에서는 자동 이동 없음 - Enter 키를 눌러주세요');
                 }
             } else {
                 // 힌트 사용 후 입력필드로 포커스 복원
@@ -7357,6 +7809,61 @@
             }
         });
 
+        // 파일 섹션 접혔다/펼쳤다 기능
+        function initMenuSectionToggle() {
+            console.log('🔍 메뉴 섹션 초기화 시작');
+
+            const headers = document.querySelectorAll('.menu-section-header[data-section]');
+            console.log('찾은 헤더 개수:', headers.length);
+
+            headers.forEach(header => {
+                const section = header.getAttribute('data-section');
+                console.log(`📌 헤더 발견: ${section}`);
+
+                header.addEventListener('click', function(e) {
+                    console.log(`🖱️ ${section} 섹션 클릭됨`);
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const fileList = this.nextElementSibling;
+
+                    if (!fileList) {
+                        console.log('❌ fileList를 찾을 수 없음');
+                        return;
+                    }
+
+                    // 현재 섹션 토글
+                    this.classList.toggle('collapsed');
+                    fileList.classList.toggle('collapsed');
+
+                    // localStorage에 상태 저장
+                    const isCollapsed = this.classList.contains('collapsed');
+                    localStorage.setItem(`menu-section-collapsed-${section}`, isCollapsed);
+
+                    console.log(`📁 ${section} 섹션:`, isCollapsed ? '접음 ▶️' : '펼침 ▼');
+                });
+
+                // 초기 상태 복원
+                const isCollapsed = localStorage.getItem(`menu-section-collapsed-${section}`) === 'true';
+
+                if (isCollapsed) {
+                    header.classList.add('collapsed');
+                    const fileList = header.nextElementSibling;
+                    if (fileList) {
+                        fileList.classList.add('collapsed');
+                    }
+                    console.log(`📁 ${section}: 초기 상태 - 접혀있음`);
+                }
+            });
+        }
+
+        // DOM이 완전히 로드된 후 실행
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMenuSectionToggle);
+        } else {
+            initMenuSectionToggle();
+        }
+
     </script>
 
     <!-- 테스트 이름 입력 팝업 -->
@@ -7478,9 +7985,10 @@
         <div class="menu-sections-wrapper">
         <!-- 로컬 파일 섹션 -->
         <div class="menu-section">
-            <div class="menu-section-header">
+            <div class="menu-section-header" data-section="local">
                 <span class="material-icons">storage</span>
                 <span>로컬 파일</span>
+                <span class="material-icons arrow-icon">keyboard_arrow_down</span>
             </div>
             <div class="menu-file-list" id="local-files">
                 <input type="file" id="local-file-input" accept=".md" style="display: none;" multiple>
@@ -7494,9 +8002,10 @@
 
         <!-- 마이 파일 섹션 (Supabase) -->
         <div class="menu-section">
-            <div class="menu-section-header">
+            <div class="menu-section-header" data-section="my">
                 <span class="material-icons">cloud</span>
                 <span>마이 파일</span>
+                <span class="material-icons arrow-icon">keyboard_arrow_down</span>
             </div>
             <div class="menu-file-list" id="my-files">
                 <!-- 동적으로 Supabase 파일 추가됨 -->
@@ -7505,9 +8014,10 @@
 
         <!-- 공개 파일 섹션 -->
         <div class="menu-section">
-            <div class="menu-section-header">
+            <div class="menu-section-header" data-section="public">
                 <span class="material-icons">public</span>
                 <span>공개 파일</span>
+                <span class="material-icons arrow-icon">keyboard_arrow_down</span>
             </div>
             <div class="menu-file-list" id="public-files">
                 <!-- 동적으로 공개 파일 추가됨 -->
