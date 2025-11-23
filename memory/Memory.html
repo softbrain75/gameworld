@@ -2810,6 +2810,9 @@
                         <div class="header-top">
                             <h1 id="game-title">Memories</h1>
                             <div class="title-buttons">
+                                <button class="share-btn" id="ttvedit-btn" title="TTV편집" >
+                                    <span class="material-symbols-outlined">edit_document</span>
+                                </button>                                
                                 <button class="share-btn" id="show-file-btn" title="보이기" style="display: none;">
                                     <span class="material-symbols-outlined">table_eye</span>
                                 </button>                                
@@ -2894,7 +2897,7 @@
                             <div id="public-setting-container" style="padding: 12px 16px; display: flex; align-items: center; gap: 12px; background: var(--surface-dim); border-radius: 8px; margin-top: 12px;">
                                 <input type="checkbox" id="file-public-checkbox" style="width: 20px; height: 20px; cursor: pointer;">
                                 <label for="file-public-checkbox" style="cursor: pointer; font-size: 14px; color: var(--text-primary); flex: 1; margin: 0;">
-                                    공개 설정(체크하면 다른 사용자도 이 파일을 볼 수 있습니다)
+                                    공개 설정(체크하면 파일이 공개됩니다), 저작권 보호 대상 콘텐츠의 업로드 및 공유 시 책임은 사용자에게 있으며, 무단 사용에 주의해 주세요.
                                 </label>
                             </div>
                         </div>
@@ -5296,6 +5299,12 @@
             });
 
             // Share button click event
+            // 게임 화면 - TTV 편집 버튼 이벤트 리스너
+            document.getElementById('ttvedit-btn').addEventListener('click', () => {
+                console.log('📝 TTV편집 버튼 클릭됨:', currentGameFileId);
+                editFile(currentGameFileId);
+            });
+
             document.getElementById('share-btn').addEventListener('click', async () => {
                 console.log('📤 공유 버튼 클릭됨');
                 console.log('currentGameFileId:', currentGameFileId);
