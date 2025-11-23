@@ -4480,7 +4480,9 @@
                         if (savedFiles.length > 0) {
                             // 처음 10개만 표시
                             const pageSize = 10;
-                            let currentLocalIndex = pageSize;
+                            // localStorage에서 저장된 인덱스 읽기
+                            const savedLocalIndex = parseInt(localStorage.getItem('localfiles_current_index') || '0');
+                            let currentLocalIndex = Math.max(savedLocalIndex, pageSize);
 
                             const renderLocalFileItems = (files) => {
                                 return files.map((file, index) => `
@@ -4497,10 +4499,11 @@
                                 `).join('');
                             };
 
-                            localFilesContainer.innerHTML = renderLocalFileItems(savedFiles.slice(0, pageSize));
+                            // localStorage에 저장된 인덱스만큼 표시
+                            localFilesContainer.innerHTML = renderLocalFileItems(savedFiles.slice(0, currentLocalIndex));
 
-                            // More 버튼 표시 (10개 이상일 때)
-                            if (savedFiles.length > pageSize) {
+                            // More 버튼 표시 (저장된 인덱스보다 파일이 더 있을 때)
+                            if (currentLocalIndex < savedFiles.length) {
                                 const createLocalMoreBtn = () => {
                                     const moreBtn = document.createElement('button');
                                     moreBtn.className = 'menu-more-btn';
@@ -4531,6 +4534,9 @@
                                         localFilesContainer.innerHTML = localFilesContainer.innerHTML.replace(moreBtn.outerHTML, additionalHTML);
 
                                         currentLocalIndex += pageSize;
+
+                                        // localStorage에 현재 인덱스 저장
+                                        localStorage.setItem('localfiles_current_index', currentLocalIndex.toString());
 
                                         // 남은 파일이 있으면 More 버튼 다시 추가
                                         if (currentLocalIndex < savedFiles.length) {
@@ -4586,7 +4592,9 @@
 
                         // 처음 10개만 표시
                         const pageSize = 10;
-                        let currentIndex = pageSize;
+                        // localStorage에서 저장된 인덱스 읽기
+                        const savedIndex = parseInt(localStorage.getItem('myfiles_current_index') || '0');
+                        let currentIndex = Math.max(savedIndex, pageSize);
 
                         const renderFileItems = (files) => {
                             return files.map(file => `
@@ -4603,10 +4611,11 @@
                             `).join('');
                         };
 
-                        myFilesContainer.innerHTML = renderFileItems(data.slice(0, pageSize));
+                        // localStorage에 저장된 인덱스만큼 표시
+                        myFilesContainer.innerHTML = renderFileItems(data.slice(0, currentIndex));
 
-                        // More 버튼 표시 (10개 이상일 때)
-                        if (data.length > pageSize) {
+                        // More 버튼 표시 (저장된 인덱스보다 파일이 더 있을 때)
+                        if (currentIndex < data.length) {
                             const createMoreBtn = () => {
                                 const moreBtn = document.createElement('button');
                                 moreBtn.className = 'menu-more-btn';
@@ -4637,6 +4646,9 @@
                                     myFilesContainer.innerHTML = myFilesContainer.innerHTML.replace(moreBtn.outerHTML, additionalHTML);
 
                                     currentIndex += pageSize;
+
+                                    // localStorage에 현재 인덱스 저장
+                                    localStorage.setItem('myfiles_current_index', currentIndex.toString());
 
                                     // 남은 파일이 있으면 More 버튼 다시 추가
                                     if (currentIndex < data.length) {
@@ -4682,7 +4694,9 @@
 
                     // 처음 10개만 표시
                     const pageSize = 10;
-                    let currentPublicIndex = pageSize;
+                    // localStorage에서 저장된 인덱스 읽기
+                    const savedPublicIndex = parseInt(localStorage.getItem('publicfiles_current_index') || '0');
+                    let currentPublicIndex = Math.max(savedPublicIndex, pageSize);
 
                     const renderPublicFileItems = (files) => {
                         return files.map((file, index) => `
@@ -4695,10 +4709,11 @@
                         `).join('');
                     };
 
-                    publicFilesContainer.innerHTML = renderPublicFileItems(data.slice(0, pageSize));
+                    // localStorage에 저장된 인덱스만큼 표시
+                    publicFilesContainer.innerHTML = renderPublicFileItems(data.slice(0, currentPublicIndex));
 
-                    // More 버튼 표시 (10개 이상일 때)
-                    if (data.length > pageSize) {
+                    // More 버튼 표시 (저장된 인덱스보다 파일이 더 있을 때)
+                    if (currentPublicIndex < data.length) {
                         const createPublicMoreBtn = () => {
                             const moreBtn = document.createElement('button');
                             moreBtn.className = 'menu-more-btn';
@@ -4729,6 +4744,9 @@
                                 publicFilesContainer.innerHTML = publicFilesContainer.innerHTML.replace(moreBtn.outerHTML, additionalHTML);
 
                                 currentPublicIndex += pageSize;
+
+                                // localStorage에 현재 인덱스 저장
+                                localStorage.setItem('publicfiles_current_index', currentPublicIndex.toString());
 
                                 // 남은 파일이 있으면 More 버튼 다시 추가
                                 if (currentPublicIndex < data.length) {
