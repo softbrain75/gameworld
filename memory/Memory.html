@@ -4484,8 +4484,8 @@
 
                             const renderLocalFileItems = (files) => {
                                 return files.map((file, index) => `
-                                    <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
-                                        <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
+                                    <div class="menu-file-item" style="width: 100%; justify-content: space-between;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
+                                        <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                                             <span class="file-name">${escapeHtml(file.name)}</span>
                                         </div>
                                         <div class="file-actions" style="opacity: 1;">
@@ -4590,8 +4590,8 @@
 
                         const renderFileItems = (files) => {
                             return files.map(file => `
-                                <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
-                                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                                <div class="menu-file-item" style="width: 100%; justify-content: space-between;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                                    <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                                         <span class="file-name">${escapeHtml(file.title)}</span>
                                     </div>
                                     <div class="file-actions" style="opacity: 1;">
@@ -4686,8 +4686,8 @@
 
                     const renderPublicFileItems = (files) => {
                         return files.map((file, index) => `
-                            <div class="menu-file-item" style="width: 100%; justify-content: flex-start;">
-                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                            <div class="menu-file-item" style="width: 100%; justify-content: flex-start;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                                     <span class="file-name">${escapeHtml(file.title)}</span>
                                     <span style="margin-left: auto; font-size: 12px; color: var(--text-secondary); white-space: nowrap;">👁️ ${file.view_count || 0}</span>
                                 </div>
