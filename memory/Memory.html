@@ -6755,11 +6755,11 @@
                     checkAnswer();
                 });
 
-                // 모든 디바이스: Enter 키 입력 시 정답 체크 및 다음 필드로 이동
-                // iOS인 경우: Enter 키 입력 시 정답 체크 및 체크박스 표시
+                // iOS인 경우: Enter 키 입력 시 정답 체크 및 다음 필드로 이동
                 if (isIOS()) {
                     input.addEventListener('keypress', (e) => {
                         if (e.key === 'Enter') {
+                            e.preventDefault();
                             checkAnswer();
                             // 정답이 맞은 경우에만 체크박스 표시
                             if (input.classList.contains('correct') && gameMode === 'bold') {
@@ -6767,6 +6767,20 @@
                                 if (checkbox) {
                                     checkbox.style.display = 'inline-block';
                                 }
+                            }
+
+                            // Enter 키 후 다음 필드로 이동
+                            if (input.classList.contains('correct')) {
+                                setTimeout(() => {
+                                    const currentOrder = parseInt(input.dataset.order);
+                                    const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
+                                    if (nextInput && !nextInput.disabled) {
+                                        nextInput.focus();
+                                    } else if (!nextInput) {
+                                        console.log('✅ 마지막 필드 완성! 게임 종료');
+                                        setTimeout(() => endGame(), 500);
+                                    }
+                                }, 100);
                             }
                         }
                     });
