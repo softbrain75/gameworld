@@ -3191,23 +3191,28 @@
                 return;
             }
 
-            const selectedText = text.substring(start, end).trim();
+            const selectedText = text.substring(start, end);
 
-            if (selectedText.startsWith('*') && selectedText.endsWith('*')) {
+            // 선택된 텍스트의 바로 왼쪽과 바로 오른쪽에 *이 있는지 확인
+            const leftChar = start > 0 ? text[start - 1] : '';
+            const rightChar = end < text.length ? text[end] : '';
+            const hasLeftAsterisk = leftChar === '*';
+            const hasRightAsterisk = rightChar === '*';
+
+            if (hasLeftAsterisk && hasRightAsterisk) {
                 // 양옆에 *이 있으면 제거
-                const newText = text.substring(0, start) + selectedText.slice(1, -1) + text.substring(end);
+                const newText = text.substring(0, start - 1) + selectedText + text.substring(end + 1);
                 editor.value = newText;
                 updatePreview();
-                editor.selectionStart = start;
-                editor.selectionEnd = start + selectedText.length - 2;
+                editor.selectionStart = start - 1;
+                editor.selectionEnd = end - 1;
             } else {
                 // 양옆에 *이 없으면 ** 추가
-                const boldText = '**' + selectedText + '**';
-                const newText = text.substring(0, start) + boldText + text.substring(end);
+                const newText = text.substring(0, start) + '**' + selectedText + '**' + text.substring(end);
                 editor.value = newText;
                 updatePreview();
                 editor.selectionStart = start;
-                editor.selectionEnd = start + boldText.length;
+                editor.selectionEnd = end + 4;
             }
 
             editor.focus();
