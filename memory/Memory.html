@@ -3194,12 +3194,23 @@
             const selectedText = text.substring(start, end).trim();
 
             if (selectedText.startsWith('**') && selectedText.endsWith('**')) {
+                // 이미 bold면 제거
                 const newText = text.substring(0, start) + selectedText.slice(2, -2) + text.substring(end);
                 editor.value = newText;
                 updatePreview();
                 editor.selectionStart = start;
                 editor.selectionEnd = start + selectedText.length - 4;
+            } else if (selectedText.startsWith('*') && selectedText.endsWith('*') && !selectedText.startsWith('**')) {
+                // Italic이면 bold로 변경 (*text* -> **text**)
+                const innerText = selectedText.slice(1, -1);
+                const boldText = '**' + innerText + '**';
+                const newText = text.substring(0, start) + boldText + text.substring(end);
+                editor.value = newText;
+                updatePreview();
+                editor.selectionStart = start;
+                editor.selectionEnd = start + boldText.length;
             } else {
+                // 일반 텍스트면 bold 추가
                 const boldText = '**' + selectedText + '**';
                 const newText = text.substring(0, start) + boldText + text.substring(end);
                 editor.value = newText;
