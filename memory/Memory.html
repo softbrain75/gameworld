@@ -6443,13 +6443,13 @@
                     ttcLabel.textContent = "정답 입력 시 우측 Check Box를 UnCheck 상태('TTC 미제거') 로 기본설정합니다. Unchecked후 제출시 향후학습대상으로 나타납니다.";
                 }
 
-                // Italic 체크박스들을 UI상만 동기화 + 표시/숨김 제어
+                // Italic 체크박스들의 checked 상태만 동기화 (display는 정답 입력 시에만 변경)
                 const italicCheckboxes = document.querySelectorAll('.italic-checkbox');
                 italicCheckboxes.forEach(checkbox => {
                     if (e.target.checked) {
-                        // TTC checked: italic 체크박스 표시
+                        // TTC checked: italic 체크박스는 숨김 상태 유지 (정답 입력 시에만 표시)
                         checkbox.checked = true;
-                        checkbox.style.display = 'inline-block';
+                        // display는 변경하지 않음 (정답 입력 시에만 보임)
                     } else {
                         // TTC unchecked: italic 체크박스 완전히 숨김
                         checkbox.checked = false;
