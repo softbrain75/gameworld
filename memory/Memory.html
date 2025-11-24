@@ -6431,39 +6431,6 @@
                 } else {
                     ttcLabel.textContent = "정답 입력 시 우측 Check Box를 UnCheck 상태('TTC 미제거') 로 기본설정합니다. Unchecked후 제출시 향후학습대상으로 나타납니다.";
                 }
-
-                // italic-checkbox들을 동기화 (UI + 데이터)
-                const italicCheckboxes = document.querySelectorAll('.italic-checkbox');
-                italicCheckboxes.forEach(checkbox => {
-                    checkbox.checked = e.target.checked;
-
-                    // 데이터도 함께 업데이트
-                    const blankIndex = parseInt(checkbox.getAttribute('data-blank-index'));
-                    const correspondingInput = document.querySelector(`.word-input[data-index="${blankIndex}"]`);
-
-                    if (correspondingInput) {
-                        const wordValue = correspondingInput.placeholder || lyrics[blankIndex];
-
-                        if (e.target.checked) {
-                            // 체크되면 배열에 추가
-                            if (!italicWords.includes(blankIndex)) {
-                                italicWords.push(blankIndex);
-                                italicWords.sort((a, b) => a - b);
-                            }
-                            if (!italicWordValues.includes(wordValue)) {
-                                italicWordValues.push(wordValue);
-                            }
-                            correspondingInput.classList.add('italic-marked');
-                        } else {
-                            // 언체크되면 배열에서 제거
-                            italicWords = italicWords.filter(i => i !== blankIndex);
-                            italicWordValues = italicWordValues.filter(w => w !== wordValue);
-                            correspondingInput.classList.remove('italic-marked');
-                        }
-                    }
-                });
-
-                console.log('✅ TTC 동기화 완료 - italicWords:', italicWords, 'italicWordValues:', italicWordValues);
             });
 
             ttcSettingContainer.appendChild(ttcCheckbox);
@@ -6904,6 +6871,25 @@
             // 제출 시 correctAnswers와 hintUsedAnswers 초기화
             correctAnswers = [];
             hintUsedAnswers = [];
+
+            // Italic 체크박스의 현재 상태를 읽어서 italicWords, italicWordValues 업데이트
+            italicWords = [];
+            italicWordValues = [];
+            const italicCheckboxes = document.querySelectorAll('.italic-checkbox');
+            italicCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const blankIndex = parseInt(checkbox.getAttribute('data-blank-index'));
+                    if (blankIndex >= 0 && !italicWords.includes(blankIndex)) {
+                        italicWords.push(blankIndex);
+                        const wordValue = lyrics[blankIndex];
+                        if (wordValue && !italicWordValues.includes(wordValue)) {
+                            italicWordValues.push(wordValue);
+                        }
+                    }
+                }
+            });
+            italicWords.sort((a, b) => a - b);
+            console.log('✅ Submit 시 italic 체크박스 상태 반영 - italicWords:', italicWords, 'italicWordValues:', italicWordValues);
 
             inputs.forEach((input, index) => {
                 const blankIndex = blanks[index];
