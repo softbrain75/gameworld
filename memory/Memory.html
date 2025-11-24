@@ -7763,10 +7763,20 @@
                 }
                 updateScore();
 
-                // correctAnswers에 추가 (정확히 입력한 경우)
+                // 정답 배열에 추가 (힌트 사용 여부에 따라)
                 const blankIndex = parseInt(selectedInput.dataset.index);
-                if (!correctAnswers.includes(blankIndex)) {
-                    correctAnswers.push(blankIndex);
+                if (usedHint) {
+                    // 힌트로 완성한 경우: hintUsedAnswers에만 추가
+                    if (!hintUsedAnswers.includes(blankIndex)) {
+                        hintUsedAnswers.push(blankIndex);
+                        console.log('✅ 힌트 사용으로 완성 - hintUsedAnswers에 추가:', blankIndex);
+                    }
+                } else {
+                    // 정확하게 입력한 경우: correctAnswers에만 추가
+                    if (!correctAnswers.includes(blankIndex)) {
+                        correctAnswers.push(blankIndex);
+                        console.log('✅ 정확하게 입력 - correctAnswers에 추가:', blankIndex);
+                    }
                 }
 
                 // 다음 필드로 이동
