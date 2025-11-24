@@ -3499,6 +3499,11 @@
                                 console.log('✅ 새 파일이 생성됨:', fileName);
                                 previousFileName = fileName;
                                 await loadMyFiles();
+
+                                // 게임 화면으로 돌아가기 (파일명 변경 시)
+                                console.log('🎮 게임 화면으로 돌아가기:', fileId);
+                                currentGameFileId = fileId; // 새 파일 ID로 업데이트
+                                await playGame(fileId, fileName);
                             }
                         } else {
                             // 기존 파일 업데이트 (공개 여부 포함)
@@ -3523,6 +3528,12 @@
                                 await loadMyFiles();
                                 // 공개 파일 목록도 업데이트
                                 loadPublicFiles();
+
+                                // 게임 화면이 열려있으면 새로 로드
+                                if (currentGameFileId === existingFileId) {
+                                    console.log('🎮 게임 화면 업데이트:', currentGameFileId);
+                                    await playGame(currentGameFileId, fileName);
+                                }
                             }
                         }
                     } else {
