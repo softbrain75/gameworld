@@ -7601,11 +7601,20 @@
             showHint();
         });
 
-        // Ctrl+H 단축키 - 힌트 보기
+        // Enter 키 단축키 - 힌트 보기 (게임 화면에서만)
         document.addEventListener('keydown', function(event) {
-            if (event.ctrlKey && (event.key === 'h' || event.key === 'H')) {
-                event.preventDefault();
-                showHint();
+            // Enter 키를 누르면
+            if (event.key === 'Enter') {
+                // 게임 화면에서만 작동
+                if (gameState === 'playing') {
+                    // 입력필드에 포커스가 없으면 힌트 표시
+                    // (입력필드에 포커스가 있으면 Enter는 정상 입력으로 동작)
+                    if (document.activeElement.tagName !== 'INPUT' &&
+                        document.activeElement.className !== 'word-input') {
+                        event.preventDefault();
+                        showHint();
+                    }
+                }
             }
         });
 
