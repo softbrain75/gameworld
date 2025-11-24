@@ -3304,9 +3304,12 @@
                     user = currentUser;
                 }
 
-                // 로그인하지 않은 경우: 로컬 저장소에 저장
-                if (!user) {
-                    // local_md_files 배열에 저장
+                // 로컬 파일 저장 조건 확인
+                const fileIdElement = document.getElementById('editor-file-id').textContent;
+                const isLocalFile = !user || fileIdElement === 'local';
+
+                if (isLocalFile) {
+                    // 로컬 파일로 저장 (로그인 여부 상관없음)
                     let localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
 
                     // 같은 이름의 파일이 있으면 업데이트, 없으면 추가
@@ -3327,51 +3330,7 @@
                     // 토스트 메시지 표시
                     showToast('로컬 파일에 저장되었습니다');
 
-                    // loadLocalFiles() 호출로 메뉴 갱신 (파일 추가 버튼 포함)
-                    loadLocalFiles();
-
-                    const originalText = saveBtn.textContent;
-                    saveBtn.textContent = '✓ 저장됨';
-                    saveBtn.style.background = 'var(--success)';
-
-                    // 로컬 파일 저장 후 게임 화면으로 자동 이동
-                    setTimeout(() => {
-                        saveBtn.textContent = originalText;
-                        saveBtn.style.background = '';
-
-                        // 저장된 파일 인덱스 찾기
-                        const localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
-                        const fileIndex = localFiles.findIndex(f => f.name === fileName);
-                        if (fileIndex > -1) {
-                            playLocalGame(fileIndex, fileName);
-                        }
-                    }, 1500);
-                    return;
-                }
-
-                // "파일 추가" 버튼으로 생성한 파일: 로그인 후에도 로컬 파일로 저장
-                const fileIdElement = document.getElementById('editor-file-id').textContent;
-                if (fileIdElement === 'local') {
-                    // 로컬 파일로 저장 (로그인 상태에서도)
-                    let localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
-                    const existingIndex = localFiles.findIndex(f => f.name === fileName);
-                    if (existingIndex > -1) {
-                        localFiles[existingIndex].content = content;
-                    } else {
-                        localFiles.push({
-                            name: fileName,
-                            content: content,
-                            created_at: new Date().toISOString()
-                        });
-                    }
-
-                    localStorage.setItem('local_md_files', JSON.stringify(localFiles));
-                    console.log('✅ 로컬 파일에 저장됨 (로그인 상태):', fileName);
-
-                    // 토스트 메시지 표시
-                    showToast('로컬 파일에 저장되었습니다');
-
-                    // loadLocalFiles() 호출로 메뉴 갱신 (파일 추가 버튼 포함)
+                    // loadLocalFiles() 호출로 메뉴 갱신
                     loadLocalFiles();
 
                     const originalText = saveBtn.textContent;
