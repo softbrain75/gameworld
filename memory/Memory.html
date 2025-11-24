@@ -6443,10 +6443,18 @@
                     ttcLabel.textContent = "정답 입력 시 우측 Check Box를 UnCheck 상태('TTC 미제거') 로 기본설정합니다. Unchecked후 제출시 향후학습대상으로 나타납니다.";
                 }
 
-                // Italic 체크박스들을 UI상만 동기화 (시각적 편의, 데이터는 미변경)
+                // Italic 체크박스들을 UI상만 동기화 + 표시/숨김 제어
                 const italicCheckboxes = document.querySelectorAll('.italic-checkbox');
                 italicCheckboxes.forEach(checkbox => {
-                    checkbox.checked = e.target.checked;
+                    if (e.target.checked) {
+                        // TTC checked: italic 체크박스 표시
+                        checkbox.checked = true;
+                        checkbox.style.display = 'inline-block';
+                    } else {
+                        // TTC unchecked: italic 체크박스 완전히 숨김
+                        checkbox.checked = false;
+                        checkbox.style.display = 'none';
+                    }
                     // UI만 변경, change 이벤트는 발동하지 않음 (데이터 미반영)
                 });
             });
