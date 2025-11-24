@@ -7175,7 +7175,11 @@
             originalMarkdown = updatedMarkdown;
 
             // 로컬 파일인지 Supabase 파일인지 확인
-            const fileId = document.getElementById('editor-file-id').textContent;
+            // 게임 화면에서는 game-file-id, 편집 화면에서는 editor-file-id 사용
+            let fileId = document.getElementById('game-file-id')?.textContent ||
+                         document.getElementById('editor-file-id')?.textContent ||
+                         '';
+            console.log('🔍 updateMarkdownWithItalic - fileId:', fileId, 'currentGameFileId:', currentGameFileId);
 
             if (!fileId || fileId === 'local') {
                 // 로컬 파일: localStorage에 저장
