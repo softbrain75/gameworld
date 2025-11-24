@@ -2835,6 +2835,15 @@
 
                         <div class="test-display" id="test-display"></div>
 
+                        <!-- Debug Log Display for Mobile -->
+                        <div id="debug-log-display" style="display: none; margin-top: 16px; padding: 12px; background: var(--surface-dim); border-radius: 8px; max-height: 200px; overflow-y: auto; font-size: 12px; font-family: monospace; color: var(--text-secondary); border: 1px solid var(--border);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <div style="font-weight: bold; cursor: pointer;" onclick="document.getElementById('debug-log-content').parentElement.parentElement.style.display = 'none';">⌨️ 키보드 이벤트 로그: [닫기]</div>
+                                <button onclick="document.getElementById('debug-log-content').innerHTML = ''" style="padding: 2px 8px; font-size: 11px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">Clear</button>
+                            </div>
+                            <div id="debug-log-content"></div>
+                        </div>
+
                         <!-- Game Screen Stats -->
                         <div style="display: flex; gap: 16px; padding-top: 16px; border-top: 1px solid var(--border); margin-top: 16px;">
                             <div class="stat">
@@ -6226,6 +6235,7 @@
                                     });
 
                                     container.appendChild(inputEl);
+                                    setupHintShortcutForInput(inputEl);
                                     container.appendChild(checkbox);
                                     wordEl.appendChild(container);
                                 } else {
@@ -6321,6 +6331,7 @@
                                             });
 
                                             container.appendChild(inputEl);
+                                            setupHintShortcutForInput(inputEl);
                                             container.appendChild(checkbox);
                                             wordEl.appendChild(container);
                                         } else {
@@ -6490,6 +6501,7 @@
                         blankOrder++;
 
                         container.appendChild(inputEl);
+                        setupHintShortcutForInput(inputEl);
                         wordEl.appendChild(container);
                     } else {
                         const wordSpan = document.createElement('span');
@@ -6615,6 +6627,7 @@
                                 });
 
                                 container.appendChild(inputEl);
+                                setupHintShortcutForInput(inputEl);
                                 container.appendChild(checkbox);
                                 wordEl.appendChild(container);
                             } else {
@@ -6712,6 +6725,7 @@
                                         });
 
                                         container.appendChild(inputEl);
+                                        setupHintShortcutForInput(inputEl);
                                         container.appendChild(checkbox);
                                         wordEl.appendChild(container);
                                     } else {
@@ -7626,8 +7640,45 @@
 
         // Android IME의 "완료", "다음" 등 액션 감지
         // 게임 시작 후 word-input 요소를 관찰해서 새로 생기는 요소도 감지
+        // 디버그 로그 함수 - 게임 화면에 키보드 이벤트 표시
+        const addDebugLog = (message) => {
+            const debugContent = document.getElementById('debug-log-content');
+            if (!debugContent) return;
+
+            const logDiv = document.getElementById('debug-log-display');
+            if (logDiv) logDiv.style.display = 'block';
+
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.style.marginBottom = '4px';
+            entry.style.padding = '4px';
+            entry.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+            entry.style.borderRadius = '4px';
+            entry.style.wordBreak = 'break-all';
+
+            // 메시지가 Enter나 next와 관련이 있으면 색상으로 강조
+            if (message.includes('Enter') || message.includes('next') || message.includes('✅')) {
+                entry.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                entry.style.color = '#4CAF50';
+            }
+
+            entry.innerHTML = `<span style="opacity: 0.6; font-size: 10px;">[${timestamp}]</span> ${message}`;
+            debugContent.appendChild(entry);
+
+            // 최근 항목이 보이도록 스크롤
+            debugContent.parentElement.scrollTop = debugContent.parentElement.scrollHeight;
+
+            // 로그 개수 제한 (최대 30개)
+            const entries = debugContent.querySelectorAll('div');
+            if (entries.length > 30) {
+                entries[0].remove();
+            }
+        };
+
         const setupHintShortcutForInput = (input) => {
             input.addEventListener('keydown', function(event) {
+                const logMsg = `keydown: key="${event.key}" code="${event.code}" keyCode=${event.keyCode}`;
+                addDebugLog(logMsg);
                 console.log('⌨️ 입력필드 keydown:', {
                     key: event.key,
                     keyCode: event.keyCode,
@@ -7635,16 +7686,23 @@
                     gameState: gameState
                 });
 
-                // Enter/Return 키 또는 Android IME 액션
+                // Enter/Return 키
                 if ((event.key === 'Enter' || event.keyCode === 13) && gameState === 'playing') {
+                    addDebugLog('✅ Enter key detected - showing hint');
                     console.log('✅ 입력필드에서 Enter - 힌트 표시');
                     event.preventDefault();
                     showHint();
                 }
             });
 
+            input.addEventListener('keypress', function(event) {
+                const logMsg = `keypress: key="${event.key}" code="${event.code}" keyCode=${event.keyCode}`;
+                addDebugLog(logMsg);
+            });
+
             // Android IME에서 "다음" 버튼 감지 (editorAction)
             input.addEventListener('change', function(event) {
+                addDebugLog(`change event: value="${this.value.substring(0, 20)}..."`);
                 console.log('⌨️ 입력필드 change:', this.value);
             });
         };
@@ -7652,6 +7710,16 @@
         // 기존 word-input 요소에 적용
         const allInputs = document.querySelectorAll('.word-input');
         allInputs.forEach(setupHintShortcutForInput);
+
+        // 게임 중 모든 키보드 이벤트 캡처 (Android IME 버튼 감지용)
+        if (gameState === 'playing') {
+            document.addEventListener('keydown', function(event) {
+                // 특수 키 감지
+                if (event.key !== 'Unidentified') {
+                    addDebugLog(`global keydown: key="${event.key}" code="${event.code}" keyCode=${event.keyCode}`);
+                }
+            }, true); // Capture phase 사용
+        }
 
         // Ctrl+S 단축키 - 저장하기
         document.addEventListener('keydown', function(event) {
