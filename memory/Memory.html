@@ -7606,22 +7606,36 @@
         });
 
         // Enter 키 단축키 - 힌트 보기 (게임 화면에서만, 입력필드 포커스 관계없이)
+        // 데스크톱/모바일의 Enter 키, Android IME의 "다음" 버튼 포함
         function handleEnterForHint(event) {
-            console.log('⌨️ Enter 관련 이벤트:', event.type, 'key:', event.key, 'keyCode:', event.keyCode);
+            console.log('⌨️ 입력 이벤트:', event.type, 'key:', event.key, 'keyCode:', event.keyCode);
             if (event.key === 'Enter' || event.keyCode === 13) {
                 // 게임 화면에서만 작동
                 if (gameState === 'playing') {
-                    console.log('✅ 게임 중 Enter - 힌트 표시');
+                    console.log('✅ 게임 중 Enter/다음 버튼 - 힌트 표시');
                     event.preventDefault();
                     showHint();
                 }
             }
         }
 
-        // keydown 이벤트 (데스크톱/안드로이드)
+        // keydown 이벤트 (데스크톱/안드로이드 Enter, "다음" 버튼)
         document.addEventListener('keydown', handleEnterForHint);
         // keypress 이벤트 (iOS 대응)
         document.addEventListener('keypress', handleEnterForHint);
+
+        // Android IME의 "완료", "다음" 등 액션 감지
+        const allInputs = document.querySelectorAll('.word-input');
+        allInputs.forEach(input => {
+            input.addEventListener('keydown', function(event) {
+                // Enter/Return 키 또는 Android IME 액션
+                if ((event.key === 'Enter' || event.keyCode === 13 || event.keyCode === 66) && gameState === 'playing') {
+                    console.log('✅ 입력필드에서 Enter/IME 액션 - 힌트 표시');
+                    event.preventDefault();
+                    showHint();
+                }
+            });
+        });
 
         // Ctrl+S 단축키 - 저장하기
         document.addEventListener('keydown', function(event) {
