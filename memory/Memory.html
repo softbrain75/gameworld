@@ -7158,16 +7158,47 @@
 
             let updatedMarkdown = originalMarkdown;
 
-            // italicWords 배열의 각 단어를 처리
-            for (const wordIndex of italicWords) {
-                if (wordIndex < lyrics.length) {
-                    const word = lyrics[wordIndex];
-                    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // italicWords를 역순으로 처리 (뒤에서부터) - 인덱스 변화 방지
+            const sortedIndices = [...italicWords].sort((a, b) => b - a);
 
-                    // **단어** 형식을 찾아서 *단어*로 변경
-                    // (TTV 모드에서는 bold 형식만 변환)
-                    const boldPattern = new RegExp(`\\*\\*${escapedWord}\\*\\*`, 'g');
-                    updatedMarkdown = updatedMarkdown.replace(boldPattern, `*${word}*`);
+            // 마크다운에서 bold 패턴을 찾아서 순서대로 처리
+            const boldMatches = [];
+            let match;
+            const boldRegex = /\*\*([^*]+)\*\*/g;
+            while ((match = boldRegex.exec(originalMarkdown)) !== null) {
+                boldMatches.push({
+                    index: match.index,
+                    fullMatch: match[0],
+                    word: match[1],
+                    lyricsIndex: null
+                });
+            }
+
+            // 각 bold 매치를 lyrics 인덱스와 매칭
+            let currentLyricsIndex = 0;
+            for (let i = 0; i < boldMatches.length; i++) {
+                // blanks 배열에서 해당 순서의 인덱스 찾기
+                if (i < blanks.length) {
+                    boldMatches[i].lyricsIndex = blanks[i];
+                }
+            }
+
+            console.log('🔍 updateMarkdownWithItalic 상세 로그:');
+            console.log('  italicWords:', italicWords);
+            console.log('  blanks:', blanks);
+            console.log('  boldMatches:', boldMatches);
+
+            // italic으로 변경할 인덱스들에 대해서만 변경
+            for (let i = boldMatches.length - 1; i >= 0; i--) {
+                const match = boldMatches[i];
+                if (italicWords.includes(match.lyricsIndex)) {
+                    // 뒤에서부터 변경 (앞의 인덱스가 변하지 않도록)
+                    const boldText = match.fullMatch;
+                    const italicText = `*${match.word}*`;
+                    updatedMarkdown = updatedMarkdown.substring(0, match.index) +
+                                     italicText +
+                                     updatedMarkdown.substring(match.index + boldText.length);
+                    console.log(`  ✅ [${i}] 변경: ${boldText} → ${italicText} (lyricsIndex: ${match.lyricsIndex})`);
                 }
             }
 
