@@ -5063,6 +5063,7 @@
 
             // Edit file
             window.editFile = async function(fileId) {
+                console.log('📝 editFile 호출됨 - fileId:', fileId, 'type:', typeof fileId);
                 try {
                     // Supabase에서 파일 메타데이터 로드
                     const { data: fileData, error: fileError } = await supabase
@@ -5070,6 +5071,7 @@
                         .select('*')
                         .eq('id', fileId)
                         .single();
+                    console.log('📝 Supabase 조회 결과 - fileData:', fileData, 'error:', fileError);
 
                     if (fileError) throw fileError;
                     if (!fileData) {
@@ -5131,8 +5133,12 @@
 
                     // 편집 화면에 파일 ID 표시
                     const editorFileIdElement = document.getElementById('editor-file-id');
+                    console.log('🔍 editorFileIdElement:', editorFileIdElement);
                     if (editorFileIdElement) {
                         editorFileIdElement.textContent = `ID: ${fileId}`;
+                        console.log('✅ ID 설정 완료:', `ID: ${fileId}`, 'textContent:', editorFileIdElement.textContent);
+                    } else {
+                        console.warn('⚠️ editor-file-id 요소를 찾을 수 없습니다');
                     }
 
                     switchMode('edit', fileData.title);
