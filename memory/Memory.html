@@ -6432,10 +6432,12 @@
                     ttcLabel.textContent = "정답 입력 시 우측 Check Box를 UnCheck 상태('TTC 미제거') 로 기본설정합니다. Unchecked후 제출시 향후학습대상으로 나타납니다.";
                 }
 
-                // Italic 체크박스들을 UI상 동기화 (데이터는 submit 시 반영)
+                // Italic 체크박스들을 동기화 (checked 속성 변경 + change 이벤트 발동)
                 const italicCheckboxes = document.querySelectorAll('.italic-checkbox');
                 italicCheckboxes.forEach(checkbox => {
                     checkbox.checked = e.target.checked;
+                    // change 이벤트를 수동으로 발동시켜야 이벤트 리스너가 실행됨
+                    checkbox.dispatchEvent(new Event('change', { bubbles: true }));
                 });
             });
 
