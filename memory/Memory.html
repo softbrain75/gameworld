@@ -3327,6 +3327,11 @@
                     localStorage.setItem('local_md_files', JSON.stringify(localFiles));
                     console.log('✅ 로컬 파일에 저장됨:', fileName);
 
+                    // 로딩 오버레이 제거
+                    if (loadingOverlay) {
+                        loadingOverlay.classList.remove('active');
+                    }
+
                     // 토스트 메시지 표시
                     showToast('로컬 파일에 저장되었습니다');
 
