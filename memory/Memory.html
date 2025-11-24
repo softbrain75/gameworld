@@ -7688,6 +7688,9 @@
 
                 // Enter/Return 키
                 if ((event.key === 'Enter' || event.keyCode === 13) && gameState === 'playing') {
+                    // 현재 입력필드를 lastSelectedInput으로 설정
+                    lastSelectedInput = input;
+
                     addDebugLog('✅ Enter key detected - showing hint');
                     console.log('✅ 입력필드에서 Enter - 힌트 표시');
                     event.preventDefault();
