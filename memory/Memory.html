@@ -6905,6 +6905,7 @@
 
                     // 힌트 사용 여부 확인
                     const usedHint = hintProgress[blankIndex] && hintProgress[blankIndex].usedHint;
+                    console.log(`🔍 Submit - blankIndex: ${blankIndex}, hintProgress[${blankIndex}]:`, hintProgress[blankIndex], 'usedHint:', usedHint);
 
                     if (usedHint) {
                         // 힌트를 사용한 경우: 황색으로 표시하고 맞은 갯수에 포함 안 함
@@ -6914,12 +6915,14 @@
                         totalCorrect--;
                         // hintUsedAnswers에만 추가 (correctAnswers에는 추가 안 함)
                         hintUsedAnswers.push(blankIndex);
+                        console.log(`  ✅ 힌트 사용 - hintUsedAnswers에 ${blankIndex} 추가됨`);
                     } else {
                         // 힌트를 사용하지 않은 경우: 초록색으로 표시
                         input.classList.add('correct');
                         input.classList.remove('hint-used');
                         // correctAnswers에만 추가
                         correctAnswers.push(blankIndex);
+                        console.log(`  ❌ 힌트 미사용 - correctAnswers에 ${blankIndex} 추가됨`);
                     }
                 } else {
                     input.classList.add('wrong');
@@ -6934,6 +6937,7 @@
             // Italic 배열 정렬
             italicWords.sort((a, b) => a - b);
             console.log('✅ Submit 시 정답 맞춘 항목의 italic 체크만 반영 - italicWords:', italicWords, 'italicWordValues:', italicWordValues);
+            console.log('📊 Submit 최종 결과 - correctAnswers:', correctAnswers, 'hintUsedAnswers:', hintUsedAnswers, 'totalCorrect:', totalCorrect);
 
             const finalScore = Math.round((totalCorrect / inputs.length) * 100);
             endGame(finalScore);
