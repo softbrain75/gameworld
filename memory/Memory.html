@@ -7141,8 +7141,12 @@
             }
 
             // Italic 단어들이 있으면 MD 파일 업데이트 (TTV 모드에서만)
+            console.log('🔍 endGame - updateMarkdownWithItalic 호출 확인 - italicWords.length:', italicWords.length, 'gameMode:', gameMode);
             if (italicWords.length > 0 && gameMode === 'bold') {
+                console.log('✅ updateMarkdownWithItalic() 호출됨');
                 await updateMarkdownWithItalic();
+            } else {
+                console.log('❌ updateMarkdownWithItalic() 호출 안 됨 - italicWords.length:', italicWords.length, 'gameMode:', gameMode, '조건:', 'length>0?', italicWords.length > 0, 'gameMode===bold?', gameMode === 'bold');
             }
 
             showGameScreen('gameover'); // 게임 컨트롤(Hint + Submit) 자동 숨김
