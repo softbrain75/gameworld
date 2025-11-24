@@ -6803,11 +6803,14 @@
                             } else {
                                 // 힌트를 사용하지 않은 경우: 초록색으로 표시하고 맞은 갯수에 포함
                                 correctCount++;
-                                // 체크박스 표시
+                                // 체크박스 표시 (TTC 체크박스가 checked일 때만)
                                 if (gameMode === 'bold') {
-                                    const checkbox = document.querySelector(`.italic-checkbox[data-blank-index="${blankIndex}"]`);
-                                    if (checkbox) {
-                                        checkbox.style.display = 'inline-block';
+                                    const ttcCheckbox = document.getElementById('ttc-default-checkbox');
+                                    if (ttcCheckbox && ttcCheckbox.checked) {
+                                        const checkbox = document.querySelector(`.italic-checkbox[data-blank-index="${blankIndex}"]`);
+                                        if (checkbox) {
+                                            checkbox.style.display = 'inline-block';
+                                        }
                                     }
                                 }
                             }
