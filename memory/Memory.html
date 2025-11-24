@@ -3374,18 +3374,31 @@
 
                 // 1. edit 모드인 경우
                 if (currentMode === 'edit' && existingFileId) {
+                    // 편집 권한 검증: 파일 소유자(user_id)가 현재 사용자와 일치해야 함
+                    const { data: fileToEdit } = await supabase
+                        .from('study_materials')
+                        .select('user_id, file_path')
+                        .eq('id', existingFileId)
+                        .single();
+
+                    if (fileToEdit && fileToEdit.user_id !== user.id) {
+                        console.error('❌ 편집 권한 없음 - fileToEdit.user_id:', fileToEdit.user_id, 'user.id:', user.id);
+                        alert('이 파일을 편집할 권한이 없습니다.');
+                        if (loadingOverlay) {
+                            loadingOverlay.classList.remove('active');
+                        }
+                        return;
+                    }
+                    console.log('✅ 편집 권한 확인됨 - fileId:', existingFileId);
+
                     const isFileNameChanged = fileName !== previousFileName;
 
                     if (isFileNameChanged) {
                         // 파일명 변경: 기존 파일 삭제 후 새 파일 생성
                         console.log(`📝 파일명 변경 감지: "${previousFileName}" → "${fileName}"`);
 
-                        // 기존 파일 정보 조회
-                        const { data: existingFile } = await supabase
-                            .from('study_materials')
-                            .select('file_path')
-                            .eq('id', existingFileId)
-                            .single();
+                        // 기존 파일 경로 사용
+                        const existingFile = fileToEdit;
 
                         if (existingFile && existingFile.file_path) {
                             // 기존 Storage 파일 삭제
@@ -3408,18 +3421,15 @@
                         filePath = `${userId}/${fileId}.md`;
                     } else {
                         // 파일명 미변경: 기존 파일 경로 사용 (덮어쓰기)
-                        const { data: existingFile } = await supabase
-                            .from('study_materials')
-                            .select('file_path')
-                            .eq('id', existingFileId)
-                            .single();
-
-                        if (!existingFile || !existingFile.file_path) {
+                        if (!fileToEdit || !fileToEdit.file_path) {
                             console.error('파일 경로를 찾을 수 없습니다');
                             alert('파일을 찾을 수 없습니다');
+                            if (loadingOverlay) {
+                                loadingOverlay.classList.remove('active');
+                            }
                             return;
                         }
-                        filePath = existingFile.file_path;
+                        filePath = fileToEdit.file_path;
                     }
                 } else {
                     // 2. create 모드: 새 파일 생성
@@ -5084,6 +5094,15 @@
                         alert('파일을 찾을 수 없습니다.');
                         return;
                     }
+
+                    // 편집 권한 검증: 파일 소유자(user_id)가 현재 사용자와 일치해야 함
+                    const { data: { user: currentUser } } = await supabase.auth.getUser();
+                    if (!currentUser || fileData.user_id !== currentUser.id) {
+                        console.error('❌ 편집 권한 없음 - fileData.user_id:', fileData.user_id, 'currentUser.id:', currentUser?.id);
+                        alert('이 파일을 편집할 권한이 없습니다.');
+                        return;
+                    }
+                    console.log('✅ 편집 권한 확인됨 - fileId:', fileId);
 
                     // 현재 편집 파일 데이터 저장 (공개 여부 포함)
                     currentEditFileData = fileData;
