@@ -5124,8 +5124,8 @@
                         // editor에 내용 로드하고 edit 모드로 전환
                         editor.value = fileData.content;
                         updatePreview();
-                        // 로컬 파일은 id 없음
-                        document.getElementById('editor-file-id').textContent = '';
+                        // 로컬 파일 표시 (저장할 때 로컬 저장 여부 판단에 사용)
+                        document.getElementById('editor-file-id').textContent = 'local';
                         // Track original filename for change detection
                         previousFileName = fileData.name;
                         // 로컬 파일이므로 공개 설정 숨김
