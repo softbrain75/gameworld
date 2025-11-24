@@ -7625,17 +7625,33 @@
         document.addEventListener('keypress', handleEnterForHint);
 
         // Android IME의 "완료", "다음" 등 액션 감지
-        const allInputs = document.querySelectorAll('.word-input');
-        allInputs.forEach(input => {
+        // 게임 시작 후 word-input 요소를 관찰해서 새로 생기는 요소도 감지
+        const setupHintShortcutForInput = (input) => {
             input.addEventListener('keydown', function(event) {
+                console.log('⌨️ 입력필드 keydown:', {
+                    key: event.key,
+                    keyCode: event.keyCode,
+                    code: event.code,
+                    gameState: gameState
+                });
+
                 // Enter/Return 키 또는 Android IME 액션
-                if ((event.key === 'Enter' || event.keyCode === 13 || event.keyCode === 66) && gameState === 'playing') {
-                    console.log('✅ 입력필드에서 Enter/IME 액션 - 힌트 표시');
+                if ((event.key === 'Enter' || event.keyCode === 13) && gameState === 'playing') {
+                    console.log('✅ 입력필드에서 Enter - 힌트 표시');
                     event.preventDefault();
                     showHint();
                 }
             });
-        });
+
+            // Android IME에서 "다음" 버튼 감지 (editorAction)
+            input.addEventListener('change', function(event) {
+                console.log('⌨️ 입력필드 change:', this.value);
+            });
+        };
+
+        // 기존 word-input 요소에 적용
+        const allInputs = document.querySelectorAll('.word-input');
+        allInputs.forEach(setupHintShortcutForInput);
 
         // Ctrl+S 단축키 - 저장하기
         document.addEventListener('keydown', function(event) {
