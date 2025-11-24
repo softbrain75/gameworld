@@ -5057,6 +5057,20 @@
             window.editFile = async function(fileId) {
                 console.log('📝 editFile 호출됨 - fileId:', fileId, 'type:', typeof fileId);
                 try {
+                    // 로컬 파일 편집인 경우 (fileId가 "local_인덱스" 형태)
+                    if (typeof fileId === 'string' && fileId.startsWith('local_')) {
+                        console.log('📝 로컬 파일 편집으로 리다이렉트:', fileId);
+                        const index = parseInt(fileId.replace('local_', ''));
+                        const savedFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                        if (savedFiles[index]) {
+                            editLocalFile(index, savedFiles[index].name);
+                            return;
+                        } else {
+                            alert('로컬 파일을 찾을 수 없습니다.');
+                            return;
+                        }
+                    }
+
                     // Supabase에서 파일 메타데이터 로드
                     const { data: fileData, error: fileError } = await supabase
                         .from('study_materials')
@@ -5183,6 +5197,12 @@
                         parseLyrics(fileData.content);
                         console.log('✅ 로컬 파일 로드 완료:', fileData.name);
                         console.log('parseLyrics 후 - lyrics.length:', lyrics.length);
+
+                        // 로컬 파일 정보 저장 (게임 중 편집 버튼 클릭 시 사용)
+                        currentGameFileId = `local_${index}`; // 로컬 파일은 "local_인덱스" 형태로 저장
+                        currentGameFileName = fileData.name;
+                        currentGameFileSource = 'localfile';
+                        console.log('💾 로컬 파일 정보 설정됨 - currentGameFileId:', currentGameFileId);
 
                         // Switch to game mode and start game
                         switchMode('game', fileData.name);
