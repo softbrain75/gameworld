@@ -6882,9 +6882,15 @@
             italicWords = [];
             italicWordValues = [];
             const italicCheckboxes = document.querySelectorAll('.italic-checkbox');
-            italicCheckboxes.forEach(checkbox => {
+            console.log('🔍 Submit 시 찾은 italic 체크박스 개수:', italicCheckboxes.length);
+
+            italicCheckboxes.forEach((checkbox, idx) => {
+                console.log(`🔍 [${idx}] 체크박스 상태: checked=${checkbox.checked}, data-blank-index=${checkbox.getAttribute('data-blank-index')}`);
+
                 if (checkbox.checked) {
                     const blankIndex = parseInt(checkbox.getAttribute('data-blank-index'));
+                    console.log(`  ✓ 체크됨 - blankIndex:${blankIndex}, lyrics[${blankIndex}]:${lyrics[blankIndex]}`);
+
                     if (blankIndex >= 0 && !italicWords.includes(blankIndex)) {
                         italicWords.push(blankIndex);
                         const wordValue = lyrics[blankIndex];
@@ -6895,7 +6901,7 @@
                 }
             });
             italicWords.sort((a, b) => a - b);
-            console.log('✅ Submit 시 italic 체크박스 상태 반영 - italicWords:', italicWords, 'italicWordValues:', italicWordValues);
+            console.log('✅ Submit 시 italic 체크박스 상태 반영 완료 - italicWords:', italicWords, 'italicWordValues:', italicWordValues);
 
             inputs.forEach((input, index) => {
                 const blankIndex = blanks[index];
