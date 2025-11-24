@@ -3628,9 +3628,9 @@
                     user = currentUser;
                 }
 
-                // 로컬 파일 확인: editor-file-id가 비어있으면 로컬 파일
+                // 로컬 파일 확인: editor-file-id가 'local'이면 로컬 파일
                 const fileId = document.getElementById('editor-file-id').textContent;
-                const isLocalFile = !fileId;
+                const isLocalFile = fileId === 'local';
 
                 // 로컬 파일인 경우: 로컬 저장소에서 삭제
                 if (isLocalFile) {
