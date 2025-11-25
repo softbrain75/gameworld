@@ -2680,6 +2680,50 @@
             font-weight: 600;
         }
 
+        /* 풀팝업 공통 헤더 스타일 */
+        .modal-header-common {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid var(--outline-variant);
+            flex-shrink: 0;
+            height: 60px;
+        }
+
+        .modal-header-common h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .modal-header-common .material-icons {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .modal-close-btn-common {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn-common:hover {
+            background: var(--surface-dim);
+        }
+
     </style>
 
     <!-- Supabase -->
@@ -3222,7 +3266,10 @@
             if (results.local.length > 0) {
                 html += `
                     <div style="margin-bottom: 24px;">
-                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px;">로컬 파일</h4>
+                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="font-size: 18px;">storage</span>
+                            <span>로컬 파일</span>
+                        </h4>
                         <div>
                             ${results.local.map(file => `
                                 <div class="menu-file-item" onclick="playLocalGame(${savedLocalFiles.indexOf(file)}, '${file.name.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
@@ -3238,7 +3285,10 @@
             if (results.myfiles.length > 0) {
                 html += `
                     <div style="margin-bottom: 24px;">
-                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px;">마이 파일</h4>
+                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="font-size: 18px;">cloud</span>
+                            <span>마이 파일</span>
+                        </h4>
                         <div>
                             ${results.myfiles.map(file => `
                                 <div class="menu-file-item" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
@@ -3254,7 +3304,10 @@
             if (results.public.length > 0) {
                 html += `
                     <div style="margin-bottom: 24px;">
-                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px;">공개 파일</h4>
+                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px; display: flex; align-items: center; gap: 8px;">
+                            <span class="material-icons" style="font-size: 18px;">public</span>
+                            <span>공개 파일</span>
+                        </h4>
                         <div>
                             ${results.public.map(file => `
                                 <div class="menu-file-item" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
@@ -8416,16 +8469,14 @@
     <!-- 시험 성적 조회 풀팝업 모달 -->
     <div id="test-results-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
         <!-- 헤더 -->
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--outline-variant); flex-shrink: 0; height: 60px;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex: 1;">
-                <span class="material-icons" style="font-size: 24px; color: var(--primary);">assessment</span>
+        <div class="modal-header-common">
+            <h3>
+                <span class="material-icons">assessment</span>
                 <span id="test-file-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">시험 성적 조회</span>
             </h3>
-            <div style="display: flex; gap: 8px; flex-shrink: 0;">
-                <button id="test-results-close-btn" style="background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
-                    <span class="material-icons" style="font-size: 24px;">close</span>
-                </button>
-            </div>
+            <button id="test-results-close-btn" class="modal-close-btn-common">
+                <span class="material-icons">close</span>
+            </button>
         </div>
 
         <!-- 본문 - 아코디언 형태 -->
@@ -8439,13 +8490,13 @@
     <!-- 파일 검색 결과 모달 -->
     <div id="search-results-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
         <!-- 헤더 -->
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--outline-variant); flex-shrink: 0; height: 60px;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex: 1;">
-                <span class="material-icons" style="font-size: 24px; color: var(--primary);">search</span>
+        <div class="modal-header-common">
+            <h3>
+                <span class="material-icons">search</span>
                 <span>파일 검색 결과</span>
             </h3>
-            <button id="search-results-close-btn" style="background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
-                <span class="material-icons" style="font-size: 24px;">close</span>
+            <button id="search-results-close-btn" class="modal-close-btn-common">
+                <span class="material-icons">close</span>
             </button>
         </div>
 
@@ -8459,14 +8510,13 @@
 
     <!-- 공개 파일 설정 모달 -->
     <div id="public-files-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
-        <!-- 헤더 -->
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--outline-variant); flex-shrink: 0; height: 60px;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex: 1;">
-                <span class="material-icons" style="font-size: 24px; color: var(--primary);">public</span>
+        <div class="modal-header-common">
+            <h3>
+                <span class="material-icons">public</span>
                 <span>공개 파일 설정</span>
             </h3>
-            <button id="public-files-close-btn" style="background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
-                <span class="material-icons" style="font-size: 24px;">close</span>
+            <button id="public-files-close-btn" class="modal-close-btn-common">
+                <span class="material-icons">close</span>
             </button>
         </div>
 
@@ -8480,14 +8530,13 @@
 
     <!-- 공유 파일 설정 모달 -->
     <div id="shared-files-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
-        <!-- 헤더 -->
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--outline-variant); flex-shrink: 0; height: 60px;">
-            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex: 1;">
-                <span class="material-icons" style="font-size: 24px; color: var(--primary);">share</span>
+        <div class="modal-header-common">
+            <h3>
+                <span class="material-icons">share</span>
                 <span>공유 파일 설정</span>
             </h3>
-            <button id="shared-files-close-btn" style="background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
-                <span class="material-icons" style="font-size: 24px;">close</span>
+            <button id="shared-files-close-btn" class="modal-close-btn-common">
+                <span class="material-icons">close</span>
             </button>
         </div>
 
