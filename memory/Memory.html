@@ -421,6 +421,11 @@
             opacity: 1; /* 모바일 drawer에서도 hover 시 보임 */
         }
 
+        /* 검색 결과 모달에서 file-name 표시 */
+        #search-results-modal .menu-file-item .file-name {
+            opacity: 1; /* 검색 결과에서는 항상 보임 */
+        }
+
         .file-action-btn {
             width: 28px;
             height: 28px;
@@ -3220,7 +3225,7 @@
                         <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px;">로컬 파일</h4>
                         <div>
                             ${results.local.map(file => `
-                                <div class="menu-file-item" style="width: 100%; padding: 12px 8px; cursor: pointer;" onclick="playLocalGame(${savedLocalFiles.indexOf(file)}, '${file.name.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
+                                <div class="menu-file-item" onclick="playLocalGame(${savedLocalFiles.indexOf(file)}, '${file.name.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
                                     <span class="file-name">${escapeHtml(file.name)}</span>
                                 </div>
                             `).join('')}
@@ -3236,7 +3241,7 @@
                         <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px;">마이 파일</h4>
                         <div>
                             ${results.myfiles.map(file => `
-                                <div class="menu-file-item" style="width: 100%; padding: 12px 8px; cursor: pointer;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
+                                <div class="menu-file-item" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
                                     <span class="file-name">${escapeHtml(file.title)}</span>
                                 </div>
                             `).join('')}
@@ -3252,7 +3257,7 @@
                         <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px;">공개 파일</h4>
                         <div>
                             ${results.public.map(file => `
-                                <div class="menu-file-item" style="width: 100%; padding: 12px 8px; cursor: pointer;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
+                                <div class="menu-file-item" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
                                     <span class="file-name">${escapeHtml(file.title)}</span>
                                 </div>
                             `).join('')}
