@@ -3237,12 +3237,12 @@
                 editor.selectionStart = start - 2;
                 editor.selectionEnd = end - 2;
             } else if (hasLeftAsterisk && hasRightAsterisk) {
-                // 바깥쪽에 *이 있으면 제거
-                const newText = text.substring(0, start - 1) + selectedText + text.substring(end + 1);
+                // 바깥쪽에 *이 있으면 **로 변경
+                const newText = text.substring(0, start) + '*' +selectedText + '*' + text.substring(end);
                 editor.value = newText;
                 updateCharAndBoldCount();
-                editor.selectionStart = start - 1;
-                editor.selectionEnd = end - 1;
+                editor.selectionStart = start + 1;
+                editor.selectionEnd = end + 1;
             } else {
                 // 바깥쪽에 아무것도 없으면 ** 추가
                 const newText = text.substring(0, start) + '**' + selectedText + '**' + text.substring(end);
@@ -3290,14 +3290,9 @@
                     // 원본 배열에서의 인덱스 계산 (역순이므로)
                     const originalIndex = savedFiles.length - 1 - displayIndex;
                     return `
-                        <div class="menu-file-item" style="width: 100%; justify-content: space-between;">
+                        <div class="menu-file-item" style="width: 100%;">
                             <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;" onclick="playLocalGame(${originalIndex}, '${file.name.replace(/'/g, "\\'")}')">
                                 <span class="file-name">${escapeHtml(file.name)}</span>
-                            </div>
-                            <div class="file-actions" style="opacity: 1;">
-                                <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${originalIndex})" title="편집">
-                                    <span class="material-icons">edit</span>
-                                </button>
                             </div>
                         </div>
                     `;
@@ -4528,14 +4523,9 @@
 
                             const renderLocalFileItems = (files) => {
                                 return files.map((file, index) => `
-                                    <div class="menu-file-item" style="width: 100%; justify-content: space-between;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
+                                    <div class="menu-file-item" style="width: 100%;" onclick="playLocalGame(${index}, '${file.name.replace(/'/g, "\\'")}')">
                                         <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                                             <span class="file-name">${escapeHtml(file.name)}</span>
-                                        </div>
-                                        <div class="file-actions" style="opacity: 1;">
-                                            <button class="file-action-btn" onclick="event.stopPropagation(); editLocalFile(${index})" title="편집">
-                                                <span class="material-icons">edit</span>
-                                            </button>
                                         </div>
                                     </div>
                                 `).join('');
@@ -4640,14 +4630,9 @@
 
                         const renderFileItems = (files) => {
                             return files.map(file => `
-                                <div class="menu-file-item" style="width: 100%; justify-content: space-between;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
+                                <div class="menu-file-item" style="width: 100%;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}')">
                                     <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
                                         <span class="file-name">${escapeHtml(file.title)}</span>
-                                    </div>
-                                    <div class="file-actions" style="opacity: 1;">
-                                        <button class="file-action-btn" onclick="event.stopPropagation(); editFile('${file.id}')" title="편집">
-                                            <span class="material-icons">edit</span>
-                                        </button>
                                     </div>
                                 </div>
                             `).join('');
