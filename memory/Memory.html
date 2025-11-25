@@ -7815,24 +7815,7 @@
             showHint();
         });
 
-        // Enter 키 단축키 - 힌트 보기 (게임 화면에서만, 입력필드 포커스 관계없이)
-        // 데스크톱/모바일의 Enter 키, Android IME의 "다음" 버튼 포함
-        function handleEnterForHint(event) {
-            console.log('⌨️ 입력 이벤트:', event.type, 'key:', event.key, 'keyCode:', event.keyCode);
-            if (event.key === 'Enter' || event.keyCode === 13) {
-                // 게임 화면에서만 작동
-                if (gameState === 'playing') {
-                    console.log('✅ 게임 중 Enter/다음 버튼 - 힌트 표시');
-                    event.preventDefault();
-                    showHint();
-                }
-            }
-        }
-
-        // keydown 이벤트 (데스크톱/안드로이드 Enter, "다음" 버튼)
-        document.addEventListener('keydown', handleEnterForHint);
-        // keypress 이벤트 (iOS 대응)
-        document.addEventListener('keypress', handleEnterForHint);
+        // 입력필드 레벨에서만 Enter 키 처리 (중복 실행 방지)
 
         // Android IME의 "완료", "다음" 등 액션 감지
         // 게임 시작 후 word-input 요소를 관찰해서 새로 생기는 요소도 감지
@@ -8026,8 +8009,7 @@
                     lastSelectedInput = nextInput; // 마지막 선택된 필드 업데이트
                     console.log('➡️ 다음 필드로 이동:', currentOrder + 1);
                 } else if (!nextInput) {
-                    console.log('✅ 마지막 필드 완성! 게임 종료');
-                    setTimeout(() => endGame(), 500);
+                    alert('수고하셨습니다. 제출 버튼을 눌러주세요'); 
                 }
             } else {
                 // 힌트 사용 후 입력필드로 포커스 복원
