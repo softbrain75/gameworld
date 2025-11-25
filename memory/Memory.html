@@ -3181,6 +3181,95 @@
             }
         }
 
+        // 파일 검색 함수
+        function performFileSearch(searchQuery) {
+            const lowerQuery = searchQuery.toLowerCase();
+            const results = {
+                local: [],
+                myfiles: [],
+                public: []
+            };
+
+            // 1. 로컬 파일 검색
+            const savedLocalFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+            results.local = savedLocalFiles.filter(file => file.name.toLowerCase().includes(lowerQuery));
+
+            // 2. 마이 파일 검색
+            const myFilesData = window.myFilesData || [];
+            results.myfiles = myFilesData.filter(file => file.title.toLowerCase().includes(lowerQuery));
+
+            // 3. 공개 파일 검색
+            const publicFilesData = window.publicFilesData || [];
+            results.public = publicFilesData.filter(file => file.title.toLowerCase().includes(lowerQuery));
+
+            // 검색 결과 화면에 표시
+            displaySearchResults(results, searchQuery, savedLocalFiles);
+        }
+
+        // 검색 결과 표시 함수
+        function displaySearchResults(results, searchQuery, savedLocalFiles) {
+            const searchResultsModal = document.getElementById('search-results-modal');
+            const searchResultsContent = document.getElementById('search-results-content');
+
+            let html = '';
+
+            // 로컬 파일 섹션
+            if (results.local.length > 0) {
+                html += `
+                    <div style="margin-bottom: 24px;">
+                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px;">로컬 파일</h4>
+                        <div>
+                            ${results.local.map(file => `
+                                <div class="menu-file-item" style="width: 100%; padding: 12px 8px; cursor: pointer;" onclick="playLocalGame(${savedLocalFiles.indexOf(file)}, '${file.name.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
+                                    <span class="file-name">${escapeHtml(file.name)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 마이 파일 섹션
+            if (results.myfiles.length > 0) {
+                html += `
+                    <div style="margin-bottom: 24px;">
+                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px;">마이 파일</h4>
+                        <div>
+                            ${results.myfiles.map(file => `
+                                <div class="menu-file-item" style="width: 100%; padding: 12px 8px; cursor: pointer;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
+                                    <span class="file-name">${escapeHtml(file.title)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 공개 파일 섹션
+            if (results.public.length > 0) {
+                html += `
+                    <div style="margin-bottom: 24px;">
+                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; padding: 0 8px;">공개 파일</h4>
+                        <div>
+                            ${results.public.map(file => `
+                                <div class="menu-file-item" style="width: 100%; padding: 12px 8px; cursor: pointer;" onclick="playGame('${file.id}', '${file.title.replace(/'/g, "\\'")}'); document.getElementById('search-results-close-btn').click();">
+                                    <span class="file-name">${escapeHtml(file.title)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 검색 결과가 없으면 메시지 표시
+            if (results.local.length === 0 && results.myfiles.length === 0 && results.public.length === 0) {
+                html = `<div style="padding: 24px; color: var(--text-secondary); text-align: center;">"${searchQuery}"에 대한 검색 결과가 없습니다.</div>`;
+            }
+
+            searchResultsContent.innerHTML = html;
+            searchResultsModal.style.display = 'flex';
+        }
+
         // charCount와 boldCount 업데이트 (adjustEditorHeight 없음)
         function updateCharAndBoldCount() {
             const text = editor.value;
@@ -3895,6 +3984,11 @@
                 });
             }
 
+            // 파일 검색 결과 모달 닫기
+            document.getElementById('search-results-close-btn').addEventListener('click', () => {
+                document.getElementById('search-results-modal').style.display = 'none';
+            });
+
             // 공개 파일 모달 닫기
             document.getElementById('public-files-close-btn').addEventListener('click', () => {
                 document.getElementById('public-files-modal').style.display = 'none';
@@ -4608,7 +4702,8 @@
                             return timeB - timeA; // 내림차순 (최신순)
                         });
 
-                        // Supabase 파일을 로컬 캐시에 저장
+                        // Supabase 파일을 로컬 캐시에 저장 및 전역 변수에 저장
+                        window.myFilesData = data; // 검색 기능을 위한 전역 변수 저장
                         data.forEach(file => {
                             const cacheKey = `supabase_file_${file.id}`;
                             const metaKey = `supabase_file_meta_${file.id}`;
@@ -4713,6 +4808,9 @@
                         .order('view_count', { ascending: false });
 
                     if (error) throw error;
+
+                    // 검색 기능을 위한 전역 변수 저장
+                    window.publicFilesData = data || [];
 
                     if (!data || data.length === 0) {
                         publicFilesContainer.innerHTML = '<div style="padding: 8px 12px; font-size: 12px; color: var(--text-secondary);">공개된 파일이 없습니다</div>';
@@ -5315,9 +5413,12 @@
                 switchMode('create');
             });
 
-            // Search file button (placeholder)
+            // Search file button
             document.getElementById('search-file-btn').addEventListener('click', () => {
-                alert('파일 검색 기능은 곧 추가됩니다!');
+                const searchQuery = prompt('검색할 파일명을 입력하세요:');
+                if (searchQuery && searchQuery.trim()) {
+                    performFileSearch(searchQuery.trim());
+                }
             });
 
             // Update difficulty UI based on selected mode
@@ -8326,6 +8427,27 @@
         <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
             <div id="test-accordion-container" style="padding: 8px;">
                 <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 파일 검색 결과 모달 -->
+    <div id="search-results-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
+        <!-- 헤더 -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--outline-variant); flex-shrink: 0; height: 60px;">
+            <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; flex: 1;">
+                <span class="material-icons" style="font-size: 24px; color: var(--primary);">search</span>
+                <span>파일 검색 결과</span>
+            </h3>
+            <button id="search-results-close-btn" style="background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 8px; color: var(--text-primary); display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                <span class="material-icons" style="font-size: 24px;">close</span>
+            </button>
+        </div>
+
+        <!-- 본문 - 검색 결과 -->
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+            <div id="search-results-content" style="padding: 16px;">
+                <div style="padding: 12px; color: var(--text-secondary); text-align: center;">검색 중...</div>
             </div>
         </div>
     </div>
