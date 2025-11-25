@@ -3203,19 +3203,25 @@
                 // 양옆에 *이 있으면 제거
                 const newText = text.substring(0, start - 1) + selectedText + text.substring(end + 1);
                 editor.value = newText;
-                updatePreview();
+                // updatePreview 대신 필요한 부분만 직접 처리 (adjustEditorHeight 호출 안 함)
+                const text2 = editor.value;
+                charCount.textContent = text2.length;
+                const boldMatches = text2.match(/\*\*[^*]+\*\*/g) || [];
+                boldCount.textContent = boldMatches.length;
                 editor.selectionStart = start - 1;
                 editor.selectionEnd = end - 1;
             } else {
                 // 양옆에 *이 없으면 ** 추가
                 const newText = text.substring(0, start) + '**' + selectedText + '**' + text.substring(end);
                 editor.value = newText;
-                updatePreview();
+                // updatePreview 대신 필요한 부분만 직접 처리 (adjustEditorHeight 호출 안 함)
+                const text2 = editor.value;
+                charCount.textContent = text2.length;
+                const boldMatches = text2.match(/\*\*[^*]+\*\*/g) || [];
+                boldCount.textContent = boldMatches.length;
                 editor.selectionStart = start;
                 editor.selectionEnd = end + 4;
             }
-
-            editor.focus();
         }
 
         function updatePreview() {
