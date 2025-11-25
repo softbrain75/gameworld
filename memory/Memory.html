@@ -5154,22 +5154,45 @@
                                 gameFileIdElement.textContent = fileId;
                             }
 
-                            // Supabase 파일은 공유 버튼 표시
+                            // 캐시의 메타데이터에서 owner 정보 확인
+                            const ttveditBtn = document.getElementById('ttvedit-btn');
                             const shareBtn = document.getElementById('share-btn');
                             const testShareBtn = document.getElementById('test-share-btn');
                             const importBtn = document.getElementById('import-btn');
 
-                            if (shareBtn) {
-                                shareBtn.style.display = 'block';
-                            }
-                            if (testShareBtn) {
-                                testShareBtn.style.display = 'block';
+                            // 메타데이터 불러오기
+                            const metaKey = `supabase_file_meta_${fileId}`;
+                            const cachedMetaStr = localStorage.getItem(metaKey);
+                            let fileOwnerUserId = null;
+
+                            if (cachedMetaStr) {
+                                try {
+                                    const cachedMeta = JSON.parse(cachedMetaStr);
+                                    fileOwnerUserId = cachedMeta.user_id;
+                                } catch (e) {
+                                    console.error('캐시 메타데이터 파싱 오류:', e);
+                                }
                             }
 
-                            // 캐시에서는 import-btn을 숨김 (다른 로그인 사용자 대비)
-                            // Supabase 재조회 시 owner 확인 후 표시 결정
+                            // owner 확인
+                            const isOwner = window.currentUser && fileOwnerUserId && fileOwnerUserId === window.currentUser.id;
+
+                            // ttvedit-btn: owner만 표시
+                            if (ttveditBtn) {
+                                ttveditBtn.style.display = isOwner ? 'block' : 'none';
+                            }
+
+                            // share-btn, test-share-btn: owner만 표시
+                            if (shareBtn) {
+                                shareBtn.style.display = isOwner ? 'block' : 'none';
+                            }
+                            if (testShareBtn) {
+                                testShareBtn.style.display = isOwner ? 'block' : 'none';
+                            }
+
+                            // import-btn: owner가 아닌 경우만 표시
                             if (importBtn) {
-                                importBtn.style.display = 'none';
+                                importBtn.style.display = !isOwner && window.currentUser && fileOwnerUserId ? 'flex' : 'none';
                             }
 
                             if (lyrics.length > 0) {
@@ -5262,27 +5285,31 @@
                         gameFileIdElement.textContent = fileId;
                     }
 
-                    // Supabase 파일은 공유 버튼 표시
+                    // Supabase 파일 버튼들 - owner 확인 후 표시
+                    const ttveditBtn = document.getElementById('ttvedit-btn');
                     const shareBtn = document.getElementById('share-btn');
                     const testShareBtn = document.getElementById('test-share-btn');
                     const importBtn = document.getElementById('import-btn');
 
-                    if (shareBtn) {
-                        shareBtn.style.display = 'block';
-                    }
-                    if (testShareBtn) {
-                        testShareBtn.style.display = 'block';
+                    // owner가 현재 사용자인지 확인
+                    const isOwner = window.currentUser && fileData.user_id === window.currentUser.id;
+
+                    // ttvedit-btn: owner만 표시 (자신의 파일만 편집 가능)
+                    if (ttveditBtn) {
+                        ttveditBtn.style.display = isOwner ? 'block' : 'none';
                     }
 
-                    // import-btn은 다른 사람의 파일인 경우만 표시
+                    // share-btn, test-share-btn: owner만 표시 (자신의 파일만 공유 가능)
+                    if (shareBtn) {
+                        shareBtn.style.display = isOwner ? 'block' : 'none';
+                    }
+                    if (testShareBtn) {
+                        testShareBtn.style.display = isOwner ? 'block' : 'none';
+                    }
+
+                    // import-btn: owner가 아닌 경우만 표시 (다른 사람의 파일만 import 가능)
                     if (importBtn) {
-                        if (window.currentUser && fileData.user_id !== window.currentUser.id) {
-                            // 다른 사람의 파일이므로 import 버튼 표시
-                            importBtn.style.display = 'flex';
-                        } else {
-                            // 자신의 파일이므로 import 버튼 숨김
-                            importBtn.style.display = 'none';
-                        }
+                        importBtn.style.display = !isOwner && window.currentUser ? 'flex' : 'none';
                     }
 
                     if (lyrics.length > 0) {
