@@ -2724,6 +2724,19 @@
             background: var(--surface-dim);
         }
 
+        /* 풀팝업 모달 공통 스타일 */
+        .test-results-fullmodal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 11000;
+            flex-direction: column;
+        }
+
     </style>
 
     <!-- Supabase -->
@@ -8467,7 +8480,7 @@
     </div>
 
     <!-- 시험 성적 조회 풀팝업 모달 -->
-    <div id="test-results-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
+    <div id="test-results-modal" class="test-results-fullmodal">
         <!-- 헤더 -->
         <div class="modal-header-common">
             <h3>
@@ -8488,7 +8501,7 @@
     </div>
 
     <!-- 파일 검색 결과 모달 -->
-    <div id="search-results-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
+    <div id="search-results-modal" class="test-results-fullmodal">
         <!-- 헤더 -->
         <div class="modal-header-common">
             <h3>
@@ -8509,7 +8522,7 @@
     </div>
 
     <!-- 공개 파일 설정 모달 -->
-    <div id="public-files-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
+    <div id="public-files-modal" class="test-results-fullmodal">
         <div class="modal-header-common">
             <h3>
                 <span class="material-icons">public</span>
@@ -8529,7 +8542,7 @@
     </div>
 
     <!-- 공유 파일 설정 모달 -->
-    <div id="shared-files-modal" class="test-results-fullmodal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 3001; flex-direction: column;">
+    <div id="shared-files-modal" class="test-results-fullmodal">
         <div class="modal-header-common">
             <h3>
                 <span class="material-icons">share</span>
