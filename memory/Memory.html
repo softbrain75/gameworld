@@ -3629,16 +3629,24 @@
                     filePath = `${userId}/${fileId}.md`;
                 }
 
-                // 로컬 캐시에 즉시 저장 (편집 파일만, create 모드는 제외)
-                // 신규 파일은 user_id가 없으므로 localStorage에 저장하지 않음
+                // 로컬 캐시에 즉시 저장
                 // 게임 로드와 편집 로드에서 사용하는 캐시 키와 통일
-                if (currentMode === 'edit' && existingFileId) {
-                    const cacheKey = `markdown_${fileName}`;
-                    localStorage.setItem(cacheKey, content);
-                    console.log('💾 localStorage 캐시에 즉시 저장됨:', cacheKey);
-                } else {
-                    console.log('⏭️ 신규 파일은 Supabase만 사용 (localStorage 캐시 생략)');
-                }
+                const cacheKey = `markdown_${fileName}`;
+                localStorage.setItem(cacheKey, content);
+                console.log('💾 localStorage 캐시에 즉시 저장됨:', cacheKey);
+
+                // 메타데이터 저장 (신규 파일도 포함)
+                // owner 확인이 필요하므로 user_id는 필수
+                localStorage.setItem(`supabase_file_meta_${fileId}`, JSON.stringify({
+                    id: fileId,
+                    title: fileName,
+                    file_path: filePath,
+                    updated_at: new Date().toISOString(),
+                    user_id: user.id,
+                    view_at: new Date().toISOString(),
+                    cached_at: new Date().toISOString()
+                }));
+                console.log('💾 메타데이터 캐시에 저장됨:', fileId);
 
                 // Supabase Storage에 파일 업로드 (백그라운드 진행, await 하지 않음)
                 // 에러는 콘솔에만 기록
