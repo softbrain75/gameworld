@@ -5571,6 +5571,34 @@
                 }
 
                 try {
+                    // 로컬 파일 확인
+                    if (typeof currentGameFileId === 'string' && currentGameFileId.startsWith('local_')) {
+                        // 로컬 파일은 항상 공유 가능
+                        console.log('✅ 로컬 파일이므로 공유 권한 확인 불필요');
+                    } else {
+                        // Supabase 파일 - 소유권 확인
+                        const { data: fileData, error: fileError } = await supabase
+                            .from('study_materials')
+                            .select('user_id')
+                            .eq('id', currentGameFileId)
+                            .single();
+
+                        if (fileError || !fileData) {
+                            alert('파일 정보를 확인할 수 없습니다.');
+                            return;
+                        }
+
+                        // 파일 소유자와 현재 사용자 비교
+                        const { data: { user: currentUser } } = await supabase.auth.getUser();
+                        if (!currentUser || fileData.user_id !== currentUser.id) {
+                            console.error('❌ 공유 권한 없음 - fileData.user_id:', fileData.user_id, 'currentUser.id:', currentUser?.id);
+                            alert('이 파일에 대한 권한이 없습니다.');
+                            return;
+                        }
+                        console.log('✅ 공유 권한 확인됨 - fileId:', currentGameFileId);
+                    }
+
+                    // 공유 로직 시작
                     // UUID 생성 (앞 8자)
                     const shareToken = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
                         .replace(/[xy]/g, function(c) {
@@ -5621,6 +5649,34 @@
                 }
 
                 try {
+                    // 로컬 파일 확인
+                    if (typeof currentGameFileId === 'string' && currentGameFileId.startsWith('local_')) {
+                        // 로컬 파일은 항상 공유 가능
+                        console.log('✅ 로컬 파일이므로 공유 권한 확인 불필요');
+                    } else {
+                        // Supabase 파일 - 소유권 확인
+                        const { data: fileData, error: fileError } = await supabase
+                            .from('study_materials')
+                            .select('user_id')
+                            .eq('id', currentGameFileId)
+                            .single();
+
+                        if (fileError || !fileData) {
+                            alert('파일 정보를 확인할 수 없습니다.');
+                            return;
+                        }
+
+                        // 파일 소유자와 현재 사용자 비교
+                        const { data: { user: currentUser } } = await supabase.auth.getUser();
+                        if (!currentUser || fileData.user_id !== currentUser.id) {
+                            console.error('❌ 테스트 공유 권한 없음 - fileData.user_id:', fileData.user_id, 'currentUser.id:', currentUser?.id);
+                            alert('이 파일에 대한 권한이 없습니다.');
+                            return;
+                        }
+                        console.log('✅ 테스트 공유 권한 확인됨 - fileId:', currentGameFileId);
+                    }
+
+                    // 테스트 공유 로직 시작
                     // UUID 생성 (앞 8자)
                     const testToken = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
                         .replace(/[xy]/g, function(c) {
