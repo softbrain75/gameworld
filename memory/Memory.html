@@ -3217,32 +3217,34 @@
                 selectedText = text.substring(start, end);
             }
 
+            // 선택된 텍스트의 바로 왼쪽과 바로 오른쪽에 **이 있는지 확인
+            const leftTwoChars = start > 1 ? text.substring(start - 2, start) : '';
+            const rightTwoChars = end + 2 <= text.length ? text.substring(end, end + 2) : '';
+            const hasLeftDoubleAsterisk = leftTwoChars === '**';
+            const hasRightDoubleAsterisk = rightTwoChars === '**';
+
             // 선택된 텍스트의 바로 왼쪽과 바로 오른쪽에 *이 있는지 확인
             const leftChar = start > 0 ? text[start - 1] : '';
             const rightChar = end < text.length ? text[end] : '';
             const hasLeftAsterisk = leftChar === '*';
             const hasRightAsterisk = rightChar === '*';
 
-            // selectedText 양쪽에 **이 있는지 확인
-            const hasLeftDoubleAsterisk = selectedText.startsWith('**');
-            const hasRightDoubleAsterisk = selectedText.endsWith('**');
-
-            if (hasLeftDoubleAsterisk && hasRightDoubleAsterisk && selectedText.length > 4) {
-                // selectedText 양쪽에 **이 있으면 제거
-                const newText = text.substring(0, start) + selectedText.substring(2, selectedText.length - 2) + text.substring(end);
+            if (hasLeftDoubleAsterisk && hasRightDoubleAsterisk) {
+                // 바깥쪽에 **이 있으면 제거
+                const newText = text.substring(0, start - 2) + selectedText + text.substring(end + 2);
                 editor.value = newText;
                 updateCharAndBoldCount();
-                editor.selectionStart = start;
-                editor.selectionEnd = end - 4;
+                editor.selectionStart = start - 2;
+                editor.selectionEnd = end - 2;
             } else if (hasLeftAsterisk && hasRightAsterisk) {
-                // 양옆에 *이 있으면 제거
+                // 바깥쪽에 *이 있으면 제거
                 const newText = text.substring(0, start - 1) + selectedText + text.substring(end + 1);
                 editor.value = newText;
                 updateCharAndBoldCount();
                 editor.selectionStart = start - 1;
                 editor.selectionEnd = end - 1;
             } else {
-                // 양옆에 *이 없으면 ** 추가
+                // 바깥쪽에 아무것도 없으면 ** 추가
                 const newText = text.substring(0, start) + '**' + selectedText + '**' + text.substring(end);
                 editor.value = newText;
                 updateCharAndBoldCount();
