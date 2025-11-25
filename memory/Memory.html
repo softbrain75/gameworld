@@ -4493,7 +4493,7 @@
                             // 처음 10개만 표시
                             const pageSize = 10;
                             // localStorage에서 저장된 인덱스 읽기
-                            const savedLocalIndex = parseInt(localStorage.getItem('localfiles_current_index') || '0');
+                            const savedLocalIndex = parseInt(sessionStorage.getItem('localfiles_current_index') || '0');
                             let currentLocalIndex = Math.max(savedLocalIndex, pageSize);
 
                             const renderLocalFileItems = (files) => {
@@ -4547,8 +4547,8 @@
 
                                         currentLocalIndex += pageSize;
 
-                                        // localStorage에 현재 인덱스 저장
-                                        localStorage.setItem('localfiles_current_index', currentLocalIndex.toString());
+                                        // sessionStorage에 현재 인덱스 저장
+                                        sessionStorage.setItem('localfiles_current_index', currentLocalIndex.toString());
 
                                         // 남은 파일이 있으면 More 버튼 다시 추가
                                         if (currentLocalIndex < savedFiles.length) {
@@ -4605,7 +4605,7 @@
                         // 처음 10개만 표시
                         const pageSize = 10;
                         // localStorage에서 저장된 인덱스 읽기
-                        const savedIndex = parseInt(localStorage.getItem('myfiles_current_index') || '0');
+                        const savedIndex = parseInt(sessionStorage.getItem('myfiles_current_index') || '0');
                         let currentIndex = Math.max(savedIndex, pageSize);
 
                         const renderFileItems = (files) => {
@@ -4660,7 +4660,7 @@
                                     currentIndex += pageSize;
 
                                     // localStorage에 현재 인덱스 저장
-                                    localStorage.setItem('myfiles_current_index', currentIndex.toString());
+                                    sessionStorage.setItem('myfiles_current_index', currentIndex.toString());
 
                                     // 남은 파일이 있으면 More 버튼 다시 추가
                                     if (currentIndex < data.length) {
@@ -4707,7 +4707,7 @@
                     // 처음 10개만 표시
                     const pageSize = 10;
                     // localStorage에서 저장된 인덱스 읽기
-                    const savedPublicIndex = parseInt(localStorage.getItem('publicfiles_current_index') || '0');
+                    const savedPublicIndex = parseInt(sessionStorage.getItem('publicfiles_current_index') || '0');
                     let currentPublicIndex = Math.max(savedPublicIndex, pageSize);
 
                     const renderPublicFileItems = (files) => {
@@ -4758,7 +4758,7 @@
                                 currentPublicIndex += pageSize;
 
                                 // localStorage에 현재 인덱스 저장
-                                localStorage.setItem('publicfiles_current_index', currentPublicIndex.toString());
+                                sessionStorage.setItem('publicfiles_current_index', currentPublicIndex.toString());
 
                                 // 남은 파일이 있으면 More 버튼 다시 추가
                                 if (currentPublicIndex < data.length) {
