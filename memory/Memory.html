@@ -5235,11 +5235,24 @@
                     // Supabase 파일은 공유 버튼 표시
                     const shareBtn = document.getElementById('share-btn');
                     const testShareBtn = document.getElementById('test-share-btn');
+                    const importBtn = document.getElementById('import-btn');
+
                     if (shareBtn) {
                         shareBtn.style.display = 'block';
                     }
                     if (testShareBtn) {
                         testShareBtn.style.display = 'block';
+                    }
+
+                    // import-btn은 다른 사람의 파일인 경우만 표시
+                    if (importBtn) {
+                        if (window.currentUser && fileData.user_id !== window.currentUser.id) {
+                            // 다른 사람의 파일이므로 import 버튼 표시
+                            importBtn.style.display = 'flex';
+                        } else {
+                            // 자신의 파일이므로 import 버튼 숨김
+                            importBtn.style.display = 'none';
+                        }
                     }
 
                     if (lyrics.length > 0) {
@@ -7844,13 +7857,7 @@
                 const progressBar = document.querySelector('.progress-bar');
                 if (gameInfoRow) gameInfoRow.style.display = 'flex';
                 if (progressBar) progressBar.style.display = 'block';
-                // import-btn 표시 조건: 로그인 사용자 AND Supabase 파일 (로컬 파일 아님)
-                // 실제 owner 확인은 클릭 시에 수행 (share-btn, test-share-btn과 동일 방식)
-                if (window.currentUser && currentGameFileId && !(typeof currentGameFileId === 'string' && currentGameFileId.startsWith('local_'))) {
-                    importBtn.style.display = 'flex';
-                } else {
-                    importBtn.style.display = 'none';
-                }
+                // import-btn 표시는 playGame에서 처리 (owner 확인 후 표시/숨김)
             } else if (screenType === 'gameover') {
                 playingScreen.classList.remove('active');
                 gameoverScreen.classList.add('active');
