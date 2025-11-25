@@ -5821,6 +5821,13 @@
                 }
 
                 try {
+                    // 로컬 파일 확인
+                    if (typeof currentGameFileId === 'string' && currentGameFileId.startsWith('local_')) {
+                        // 로컬 파일은 import 불가능
+                        alert('로컬 파일은 가져올 수 없습니다.');
+                        return;
+                    }
+
                     // 원본 파일 데이터 조회
                     const { data: originalFile, error: fileError } = await supabase
                         .from('study_materials')
@@ -5831,6 +5838,14 @@
                     if (fileError || !originalFile) {
                         throw new Error('파일 정보를 찾을 수 없습니다.');
                     }
+
+                    // 파일 owner와 현재 사용자 비교 - owner가 다른 경우만 import 가능
+                    if (originalFile.user_id === window.currentUser.id) {
+                        console.error('❌ import 권한 없음 - 자신의 파일입니다');
+                        alert('이 파일에 대한 권한이 없습니다.');
+                        return;
+                    }
+                    console.log('✅ import 권한 확인됨 - 다른 사람의 파일이므로 import 가능');
 
                     // Storage에서 파일 내용 다운로드
                     const { data: storageData, error: storageError } = await supabase
@@ -7829,9 +7844,9 @@
                 const progressBar = document.querySelector('.progress-bar');
                 if (gameInfoRow) gameInfoRow.style.display = 'flex';
                 if (progressBar) progressBar.style.display = 'block';
-                // 로그인 사용자이고 파일이 있으면 가져오기 버튼 표시
-                // 단, 마이 파일에서 시작한 경우에는 import-btn 숨김
-                if (window.currentUser && currentGameFileId && currentGameFileSource !== 'myfile') {
+                // import-btn 표시 조건: 로그인 사용자 AND Supabase 파일 (로컬 파일 아님)
+                // 실제 owner 확인은 클릭 시에 수행 (share-btn, test-share-btn과 동일 방식)
+                if (window.currentUser && currentGameFileId && !(typeof currentGameFileId === 'string' && currentGameFileId.startsWith('local_'))) {
                     importBtn.style.display = 'flex';
                 } else {
                     importBtn.style.display = 'none';
