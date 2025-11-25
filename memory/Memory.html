@@ -3181,9 +3181,17 @@
             }
         }
 
+        // charCount와 boldCount 업데이트 (adjustEditorHeight 없음)
+        function updateCharAndBoldCount() {
+            const text = editor.value;
+            charCount.textContent = text.length;
+            const boldMatches = text.match(/\*\*[^*]+\*\*/g) || [];
+            boldCount.textContent = boldMatches.length;
+        }
+
         function makeBold() {
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
+            let start = editor.selectionStart;
+            let end = editor.selectionEnd;
             const text = editor.value;
 
             if (start === end) {
@@ -3191,7 +3199,23 @@
                 return;
             }
 
-            const selectedText = text.substring(start, end);
+            let selectedText = text.substring(start, end);
+
+            // selectedText 안쪽 처리:
+            // 1. 우측에 공백이 있으면 선택 범위에서 제외
+            let trimmedSelectedText = selectedText.trimEnd();
+            const rightSpaceCount = selectedText.length - trimmedSelectedText.length;
+            end -= rightSpaceCount;
+
+            // selectedText 재정의 (공백 제외 후)
+            selectedText = text.substring(start, end);
+
+            // 2. 양쪽에 **가 있으면 삭제
+            if (selectedText.startsWith('**') && selectedText.endsWith('**') && selectedText.length > 4) {
+                start += 2;
+                end -= 2;
+                selectedText = text.substring(start, end);
+            }
 
             // 선택된 텍스트의 바로 왼쪽과 바로 오른쪽에 *이 있는지 확인
             const leftChar = start > 0 ? text[start - 1] : '';
@@ -3199,38 +3223,36 @@
             const hasLeftAsterisk = leftChar === '*';
             const hasRightAsterisk = rightChar === '*';
 
-            if (hasLeftAsterisk && hasRightAsterisk) {
+            // selectedText 양쪽에 **이 있는지 확인
+            const hasLeftDoubleAsterisk = selectedText.startsWith('**');
+            const hasRightDoubleAsterisk = selectedText.endsWith('**');
+
+            if (hasLeftDoubleAsterisk && hasRightDoubleAsterisk && selectedText.length > 4) {
+                // selectedText 양쪽에 **이 있으면 제거
+                const newText = text.substring(0, start) + selectedText.substring(2, selectedText.length - 2) + text.substring(end);
+                editor.value = newText;
+                updateCharAndBoldCount();
+                editor.selectionStart = start;
+                editor.selectionEnd = end - 4;
+            } else if (hasLeftAsterisk && hasRightAsterisk) {
                 // 양옆에 *이 있으면 제거
                 const newText = text.substring(0, start - 1) + selectedText + text.substring(end + 1);
                 editor.value = newText;
-                // updatePreview 대신 필요한 부분만 직접 처리 (adjustEditorHeight 호출 안 함)
-                const text2 = editor.value;
-                charCount.textContent = text2.length;
-                const boldMatches = text2.match(/\*\*[^*]+\*\*/g) || [];
-                boldCount.textContent = boldMatches.length;
+                updateCharAndBoldCount();
                 editor.selectionStart = start - 1;
                 editor.selectionEnd = end - 1;
             } else {
                 // 양옆에 *이 없으면 ** 추가
                 const newText = text.substring(0, start) + '**' + selectedText + '**' + text.substring(end);
                 editor.value = newText;
-                // updatePreview 대신 필요한 부분만 직접 처리 (adjustEditorHeight 호출 안 함)
-                const text2 = editor.value;
-                charCount.textContent = text2.length;
-                const boldMatches = text2.match(/\*\*[^*]+\*\*/g) || [];
-                boldCount.textContent = boldMatches.length;
-                editor.selectionStart = start;
-                editor.selectionEnd = end + 4;
+                updateCharAndBoldCount();
+                editor.selectionStart = start + 2;
+                editor.selectionEnd = end + 2;
             }
         }
 
         function updatePreview() {
-            const text = editor.value;
-            charCount.textContent = text.length;
-
-            const boldMatches = text.match(/\*\*[^*]+\*\*/g) || [];
-            boldCount.textContent = boldMatches.length;
-
+            updateCharAndBoldCount();
             adjustEditorHeight();
         }
 
