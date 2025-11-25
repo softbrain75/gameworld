@@ -5180,6 +5180,7 @@
                             return;
                         }
 
+                    // 캐시가 사용되지 않으면 Supabase에서 가져오기
                     // 2. 캐시가 없으면 Supabase에서 가져오기 (로딩 표시)
                     const loadingOverlay = document.getElementById('loadingOverlay');
                     loadingOverlay.classList.add('active');
@@ -5234,19 +5235,15 @@
                     console.log('💾 파일을 로컬 캐시에 저장:', fileName);
 
                     // 4. Supabase에서 view_at 업데이트
-                    try {
-                        const { error: updateError } = await supabase
-                            .from('study_materials')
-                            .update({ view_at: new Date().toISOString() })
-                            .eq('id', fileId);
+                    const { error: updateError } = await supabase
+                        .from('study_materials')
+                        .update({ view_at: new Date().toISOString() })
+                        .eq('id', fileId);
 
-                        if (updateError) {
-                            console.error('view_at 업데이트 오류:', updateError);
-                        } else {
-                            console.log('✅ view_at 업데이트 완료:', fileId);
-                        }
-                    } catch (e) {
-                        console.error('view_at 업데이트 중 예외 발생:', e);
+                    if (updateError) {
+                        console.error('view_at 업데이트 오류:', updateError);
+                    } else {
+                        console.log('✅ view_at 업데이트 완료:', fileId);
                     }
 
                     parseLyrics(content);
