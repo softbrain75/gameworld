@@ -5119,35 +5119,66 @@
                     let fileDataForViewCount = null;
 
                     if (cachedContent) {
-                        console.log('✅ localStorage 캐시에서 파일 로드:', fileName);
-                        parseLyrics(cachedContent);
+                        // 메타데이터 확인 - user_id가 다르면 캐시 삭제
+                        const metaKey = `supabase_file_meta_${fileId}`;
+                        const cachedMeta = localStorage.getItem(metaKey);
+                        let shouldUseCachedContent = true;
 
-                        // 게임 화면으로 전환 및 게임 시작
-                        switchMode('game', fileName);
+                        if (cachedMeta) {
+                            try {
+                                const meta = JSON.parse(cachedMeta);
+                                const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-                        // 게임 화면에 파일 ID 표시
-                        const gameFileIdElement = document.getElementById('game-file-id');
-                        if (gameFileIdElement) {
-                            gameFileIdElement.textContent = fileId;
+                                // 메타데이터의 user_id와 현재 로그인 사용자가 다르면 캐시 삭제
+                                if (currentUser && meta.user_id && meta.user_id !== currentUser.id) {
+                                    console.log('⚠️ 다른 사용자의 캐시입니다. 캐시 삭제:', fileId);
+                                    localStorage.removeItem(cacheKey);
+                                    localStorage.removeItem(metaKey);
+                                    shouldUseCachedContent = false;
+                                }
+                            } catch (err) {
+                                console.error('메타데이터 확인 중 오류:', err);
+                            }
                         }
 
-                        // Supabase 파일은 공유 버튼 표시
-                        const shareBtn = document.getElementById('share-btn');
-                        const testShareBtn = document.getElementById('test-share-btn');
-                        if (shareBtn) {
-                            shareBtn.style.display = 'block';
-                        }
-                        if (testShareBtn) {
-                            testShareBtn.style.display = 'block';
-                        }
+                        if (shouldUseCachedContent) {
+                            console.log('✅ localStorage 캐시에서 파일 로드:', fileName);
+                            parseLyrics(cachedContent);
 
-                        if (lyrics.length > 0) {
-                            correctAnswers = []; // Reset correct answers
-                            startGame(false);
-                        }
+                            // 게임 화면으로 전환 및 게임 시작
+                            switchMode('game', fileName);
 
-                        return;
-                    }
+                            // 게임 화면에 파일 ID 표시
+                            const gameFileIdElement = document.getElementById('game-file-id');
+                            if (gameFileIdElement) {
+                                gameFileIdElement.textContent = fileId;
+                            }
+
+                            // Supabase 파일은 공유 버튼 표시
+                            const shareBtn = document.getElementById('share-btn');
+                            const testShareBtn = document.getElementById('test-share-btn');
+                            const importBtn = document.getElementById('import-btn');
+
+                            if (shareBtn) {
+                                shareBtn.style.display = 'block';
+                            }
+                            if (testShareBtn) {
+                                testShareBtn.style.display = 'block';
+                            }
+
+                            // 캐시에서는 import-btn을 숨김 (다른 로그인 사용자 대비)
+                            // Supabase 재조회 시 owner 확인 후 표시 결정
+                            if (importBtn) {
+                                importBtn.style.display = 'none';
+                            }
+
+                            if (lyrics.length > 0) {
+                                correctAnswers = []; // Reset correct answers
+                                startGame(false);
+                            }
+
+                            return;
+                        }
 
                     // 2. 캐시가 없으면 Supabase에서 가져오기 (로딩 표시)
                     const loadingOverlay = document.getElementById('loadingOverlay');
@@ -5196,6 +5227,7 @@
                         title: fileName,
                         file_path: fileData.file_path,
                         updated_at: fileData.updated_at,
+                        user_id: fileData.user_id,
                         view_at: new Date().toISOString(),
                         cached_at: new Date().toISOString()
                     }));
