@@ -6765,6 +6765,15 @@
                                     const wordSpan = document.createElement('span');
                                     wordSpan.className = 'word-visible';
                                     wordSpan.textContent = word;
+
+                                    // 섹션 모드에서 비활성 TTV 텍스트 스타일 (italic)
+                                    const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
+                                    if (!isActiveTTV && learningMode === 'section') {
+                                        wordSpan.style.fontSize = '0.1em';
+                                        wordSpan.style.opacity = '0.1';
+                                        console.log('✅ 비활성 테이블 italic 텍스트(span) 처리됨:', wordIndex);
+                                    }
+
                                     wordEl.appendChild(wordSpan);
                                 }
 
@@ -6785,6 +6794,15 @@
                                 wordSpan.textContent = word;
                                 wordSpan.style.fontStyle = 'italic';
                                 wordSpan.style.opacity = '0.7';
+
+                                // 섹션 모드에서 비활성 TTV italic 텍스트 스타일
+                                const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
+                                if (!isActiveTTV && learningMode === 'section') {
+                                    wordSpan.style.fontSize = '0.1em';
+                                    wordSpan.style.opacity = '0.1';
+                                    console.log('✅ 비활성 테이블 italic TTV 텍스트(span) 처리됨:', wordIndex);
+                                }
+
                                 wordEl.appendChild(wordSpan);
 
                                 td.appendChild(wordEl);
@@ -6875,6 +6893,15 @@
                                             const wordSpan = document.createElement('span');
                                             wordSpan.className = 'word-visible';
                                             wordSpan.textContent = word;
+
+                                            // 섹션 모드에서 비활성 TTV 텍스트 스타일
+                                            const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
+                                            if (!isActiveTTV && learningMode === 'section') {
+                                                wordSpan.style.fontSize = '0.1em';
+                                                wordSpan.style.opacity = '0.1';
+                                                console.log('✅ 비활성 테이블 텍스트(span) 처리됨:', wordIndex);
+                                            }
+
                                             wordEl.appendChild(wordSpan);
                                         }
 
@@ -7059,6 +7086,15 @@
                         const wordSpan = document.createElement('span');
                         wordSpan.className = 'word-visible';
                         wordSpan.textContent = word;
+
+                        // 섹션 모드에서 비활성 TTV 텍스트 스타일 (인라인 일반)
+                        const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
+                        if (!isActiveTTV && learningMode === 'section') {
+                            wordSpan.style.fontSize = '0.1em';
+                            wordSpan.style.opacity = '0.1';
+                            console.log('✅ 비활성 인라인 일반 텍스트(span) 처리됨:', wordIndex);
+                        }
+
                         wordEl.appendChild(wordSpan);
                     }
 
@@ -7294,6 +7330,15 @@
                                 const wordSpan = document.createElement('span');
                                 wordSpan.className = 'word-visible';
                                 wordSpan.textContent = word;
+
+                                // 섹션 모드에서 비활성 TTV 텍스트 스타일 (인라인 italic 일반)
+                                const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
+                                if (!isActiveTTV && learningMode === 'section') {
+                                    wordSpan.style.fontSize = '0.1em';
+                                    wordSpan.style.opacity = '0.1';
+                                    console.log('✅ 비활성 인라인 italic 일반 텍스트(span) 처리됨:', wordIndex);
+                                }
+
                                 wordEl.appendChild(wordSpan);
                             }
 
@@ -7314,6 +7359,14 @@
                             wordSpan.className = 'word-visible';
                             wordSpan.textContent = word;
                             wordSpan.style.fontStyle = 'italic';
+
+                            // 섹션 모드에서 비활성 TTV italic 텍스트 스타일 (인라인)
+                            const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
+                            if (!isActiveTTV && learningMode === 'section') {
+                                wordSpan.style.fontSize = '0.1em';
+                                wordSpan.style.opacity = '0.1';
+                                console.log('✅ 비활성 인라인 italic TTV 텍스트(span) 처리됨:', wordIndex);
+                            }
                             wordSpan.style.opacity = '0.7';
                             wordEl.appendChild(wordSpan);
 
