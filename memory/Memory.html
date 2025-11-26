@@ -8746,8 +8746,24 @@
                 const endTTVIndex = Math.min((i + 1) * sectionSize, totalTTVWords);
 
                 // boldWords 배열의 실제 값 (단어의 인덱스)
-                const startWordIndex = boldWords[startTTVIndex];
-                const endWordIndex = boldWords[endTTVIndex - 1];
+                let startWordIndex, endWordIndex;
+
+                // 섹션 시작: TTV 단어 이전의 비TTV 단어부터 (또는 처음부터)
+                if (startTTVIndex === 0) {
+                    startWordIndex = 0; // 첫 섹션은 처음부터
+                } else {
+                    // 이전 섹션의 마지막 TTV 단어 다음부터
+                    startWordIndex = boldWords[startTTVIndex - 1] + 1;
+                }
+
+                // 섹션 끝: TTV 단어 다음의 비TTV 단어까지 (또는 끝까지)
+                const lastTTVIndex = boldWords[endTTVIndex - 1];
+                if (endTTVIndex === totalTTVWords) {
+                    endWordIndex = lyrics.length - 1; // 마지막 섹션은 끝까지
+                } else {
+                    // 다음 섹션의 첫 TTV 단어 이전까지
+                    endWordIndex = boldWords[endTTVIndex] - 1;
+                }
 
                 const btn = document.createElement('button');
                 btn.className = 'section-btn';
@@ -8771,14 +8787,15 @@
                 }
 
                 sectionList.appendChild(btn);
+                console.log(`📍 섹션 ${i + 1}: TTV ${startTTVIndex + 1}-${endTTVIndex}개, 단어 범위 ${startWordIndex}-${endWordIndex}`);
             }
         }
 
         // 섹션 선택
         function selectSection(start, end, btnElement) {
             selectedSectionRange = { start, end };
-            // start와 end는 이제 실제 단어 인덱스
-            console.log('✅ TTV 섹션 선택됨:', start, '-', end, '(단어 인덱스 범위)');
+            // start와 end는 문맥을 포함한 단어 인덱스 범위
+            console.log('✅ TTV 섹션 선택됨: 단어', start, '-', end, '(문맥 포함)');
 
             // 다른 버튼의 스타일 제거
             document.querySelectorAll('.section-btn').forEach(btn => {
