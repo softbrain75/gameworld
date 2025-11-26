@@ -3651,22 +3651,8 @@
                 console.log('💾 메타데이터 캐시에 저장됨:', metaKey, metaData);
                 console.log('📋 저장된 메타데이터 확인:', JSON.parse(localStorage.getItem(metaKey)));
 
-                // Supabase Storage에 파일 업로드 (백그라운드 진행, await 하지 않음)
-                // 에러는 콘솔에만 기록
-                supabase
-                    .storage
-                    .from('study_materials')
-                    .upload(filePath, new Blob([content], { type: 'text/plain' }), {
-                        upsert: true  // 파일이 이미 있으면 덮어쓰기
-                    })
-                    .then(({ error }) => {
-                        if (error) {
-                            console.error('Storage 업로드 실패 (백그라운드):', error);
-                        } else {
-                            console.log('✅ Storage에 파일 업로드됨 (백그라운드):', filePath);
-                        }
-                    })
-                    .catch(err => console.error('Storage 업로드 중 오류 (백그라운드):', err));
+                // ✅ 변경: Storage 대신 contents 필드에 직접 저장
+                console.log('💾 파일 내용을 contents 필드에 저장할 준비:', filePath);
 
                 // DB 저장/업데이트 (Storage 업로드와 병렬로 진행)
                 try {
@@ -3682,6 +3668,7 @@
                                     user_id: user.id,
                                     title: fileName,
                                     file_path: filePath,
+                                    contents: content,  // ✅ contents 필드에 MD 내용 저장
                                     created_at: new Date().toISOString(),
                                     updated_at: new Date().toISOString()
                                 });
@@ -3713,6 +3700,7 @@
                                 .from('study_materials')
                                 .update({
                                     title: fileName,
+                                    contents: content,  // ✅ contents 필드도 함께 업데이트
                                     is_public: isPublic,
                                     updated_at: new Date().toISOString(),
                                     view_at: new Date().toISOString()  // updated_at과 동일하게 설정
@@ -3747,6 +3735,7 @@
                                 user_id: user.id,
                                 title: fileName,
                                 file_path: filePath,
+                                contents: content,  // ✅ contents 필드에 MD 내용 저장
                                 is_public: isPublic,
                                 view_count: 0,
                                 created_at: new Date().toISOString(),
@@ -3923,18 +3912,21 @@
                     console.log('✅ localStorage 캐시에서 불러옴:', fileName);
                 }
 
-                // 2. Supabase에서 시도 (캐시에 없으면)
+                // 2. Supabase contents 필드에서 시도 (캐시에 없으면)
+                // ✅ 변경: Storage 대신 contents 필드에서 직접 로드
                 if (!content && filePath && typeof supabase !== 'undefined') {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (user) {
                         const { data, error } = await supabase
-                            .storage
                             .from('study_materials')
-                            .download(filePath);
+                            .select('contents')
+                            .eq('user_id', user.id)
+                            .like('file_path', `%${fileName}%`)
+                            .single();
 
-                        if (!error && data) {
-                            content = await data.text();
-                            console.log('✅ Supabase에서 불러옴:', fileName);
+                        if (!error && data && data.contents) {
+                            content = data.contents;
+                            console.log('✅ Supabase contents에서 불러옴:', fileName);
                             // Supabase에서 불러온 내용을 캐시에 저장
                             localStorage.setItem(`markdown_${fileName}`, content);
                         }
@@ -5258,19 +5250,21 @@
                         loadingOverlay.classList.remove('active');
                         return;
                     }
-                    const { data: storageData, error: storageError } = await supabase
-                        .storage
+                    // ✅ 변경: Storage 대신 contents 필드에서 직접 로드
+                    const { data: dbData, error: dbError } = await supabase
                         .from('study_materials')
-                        .download(storagePath);
+                        .select('contents')
+                        .eq('id', fileId)
+                        .single();
 
-                    if (storageError) {
-                        console.error('Storage 다운로드 오류:', storageError);
-                        alert('파일을 다운로드할 수 없습니다.');
+                    if (dbError || !dbData) {
+                        console.error('Supabase contents 로드 오류:', dbError);
+                        alert('파일을 로드할 수 없습니다.');
                         loadingOverlay.classList.remove('active');
                         return;
                     }
 
-                    const content = await storageData.text();
+                    const content = dbData.contents;
 
                     // 3. 로컬 캐시에 저장 (파일 내용 + 메타데이터)
                     localStorage.setItem(cacheKey, content);
@@ -5404,25 +5398,25 @@
                         content = cachedContent;
                         console.log('✅ localStorage 캐시에서 파일 로드:', fileData.title);
                     } else {
-                        // 2. Storage에서 파일 내용 다운로드 (캐시에 없으면)
-                        const { data: storageData, error: storageError } = await supabase
-                            .storage
+                        // 2. Supabase contents 필드에서 파일 내용 로드 (캐시에 없으면)
+                        // ✅ 변경: Storage 대신 contents 필드에서 직접 로드
+                        const { data: contentsData, error: contentsError } = await supabase
                             .from('study_materials')
-                            .download(fileData.file_path);
+                            .select('contents')
+                            .eq('id', fileId)
+                            .single();
 
-                        if (storageError) {
-                            console.error('파일 다운로드 오류:', storageError);
-                            console.error('파일 경로:', fileData.file_path);
+                        if (contentsError || !contentsData) {
+                            console.error('파일 로드 오류:', contentsError);
                             console.error('파일 ID:', fileId);
-                            alert('파일을 다운로드할 수 없습니다. 파일이 삭제되었거나 경로가 잘못되었을 수 있습니다.');
+                            alert('파일을 로드할 수 없습니다. 파일이 삭제되었거나 경로가 잘못되었을 수 있습니다.');
                             return;
                         }
 
-                        // Blob을 텍스트로 변환
-                        content = await storageData.text();
-                        console.log('✅ Storage에서 파일 로드:', fileData.title);
+                        content = contentsData.contents;
+                        console.log('✅ Supabase contents에서 파일 로드:', fileData.title);
 
-                        // Storage에서 가져온 내용을 캐시에 저장
+                        // contents에서 가져온 내용을 캐시에 저장
                         localStorage.setItem(cacheKey, content);
                     }
 
