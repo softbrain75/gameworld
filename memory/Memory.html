@@ -8865,14 +8865,38 @@
             updateSettingsUI();
         }
 
+        function setGameMode(mode) {
+            // 라디오 버튼 값 설정
+            document.querySelector(`input[name="game-mode"][value="${mode}"]`).checked = true;
+
+            // 시각적 선택 표시 업데이트
+            const randomBtn = document.querySelector('.game-mode-random');
+            const boldBtn = document.querySelector('.game-mode-bold');
+
+            if (mode === 'random') {
+                if (randomBtn) randomBtn.style.borderColor = '#4f46e5';
+                if (randomBtn) randomBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                if (boldBtn) boldBtn.style.borderColor = 'var(--outline-variant)';
+                if (boldBtn) boldBtn.style.backgroundColor = 'transparent';
+            } else {
+                if (boldBtn) boldBtn.style.borderColor = '#4f46e5';
+                if (boldBtn) boldBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                if (randomBtn) randomBtn.style.borderColor = 'var(--outline-variant)';
+                if (randomBtn) randomBtn.style.backgroundColor = 'transparent';
+            }
+
+            // 설정 UI 업데이트
+            updateSettingsUI();
+        }
+
         function updateSettingsUI() {
             const selectedMode = document.querySelector('input[name="learning-mode-setting"]:checked').value;
 
-            // 게임 모드 라디오 버튼 및 레이블
+            // 게임 모드 라디오 버튼 및 버튼 요소
             const randomModeRadio = document.querySelector('input[name="game-mode"][value="random"]');
             const boldModeRadio = document.querySelector('input[name="game-mode"][value="bold"]');
-            const randomModeLabel = randomModeRadio?.parentElement;
-            const boldModeLabel = boldModeRadio?.parentElement;
+            const randomModeBtn = document.querySelector('.game-mode-random');
+            const boldModeBtn = document.querySelector('.game-mode-bold');
 
             // 출제비율 슬라이더
             const difficultySlider = document.getElementById('difficulty-slider');
@@ -8882,16 +8906,24 @@
                 // 무작위 모드: 비활성화 (선택 불가, 희미하게 표시)
                 if (randomModeRadio) {
                     randomModeRadio.disabled = true;
-                    if (randomModeLabel) randomModeLabel.style.opacity = '0.5';
-                    if (randomModeLabel) randomModeLabel.style.cursor = 'not-allowed';
+                }
+                if (randomModeBtn) {
+                    randomModeBtn.style.opacity = '0.5';
+                    randomModeBtn.style.cursor = 'not-allowed';
+                    randomModeBtn.style.pointerEvents = 'none';
                 }
 
                 // TTV 모드: 자동 선택 및 활성화
                 if (boldModeRadio) {
                     boldModeRadio.disabled = false;
                     boldModeRadio.checked = true;
-                    if (boldModeLabel) boldModeLabel.style.opacity = '1';
-                    if (boldModeLabel) boldModeLabel.style.cursor = 'pointer';
+                }
+                if (boldModeBtn) {
+                    boldModeBtn.style.opacity = '1';
+                    boldModeBtn.style.cursor = 'pointer';
+                    boldModeBtn.style.pointerEvents = 'auto';
+                    boldModeBtn.style.borderColor = '#4f46e5';
+                    boldModeBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
                 }
 
                 // 출제비율: 100%로 고정 (슬라이더 비활성화)
@@ -8907,14 +8939,30 @@
                 // 모든 게임 모드: 활성화
                 if (randomModeRadio) {
                     randomModeRadio.disabled = false;
-                    if (randomModeLabel) randomModeLabel.style.opacity = '1';
-                    if (randomModeLabel) randomModeLabel.style.cursor = 'pointer';
+                }
+                if (randomModeBtn) {
+                    randomModeBtn.style.opacity = '1';
+                    randomModeBtn.style.cursor = 'pointer';
+                    randomModeBtn.style.pointerEvents = 'auto';
+                    // 현재 선택 상태 유지
+                    if (randomModeRadio?.checked) {
+                        randomModeBtn.style.borderColor = '#4f46e5';
+                        randomModeBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                    }
                 }
 
                 if (boldModeRadio) {
                     boldModeRadio.disabled = false;
-                    if (boldModeLabel) boldModeLabel.style.opacity = '1';
-                    if (boldModeLabel) boldModeLabel.style.cursor = 'pointer';
+                }
+                if (boldModeBtn) {
+                    boldModeBtn.style.opacity = '1';
+                    boldModeBtn.style.cursor = 'pointer';
+                    boldModeBtn.style.pointerEvents = 'auto';
+                    // 현재 선택 상태 유지
+                    if (boldModeRadio?.checked) {
+                        boldModeBtn.style.borderColor = '#4f46e5';
+                        boldModeBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                    }
                 }
 
                 // 출제비율: 활성화 (슬라이더 사용 가능)
@@ -9419,17 +9467,23 @@
                 <!-- 게임 모드 선택 -->
                 <div class="setting-group">
                     <label class="setting-label">게임 모드</label>
-                    <div class="radio-group">
-                        <label class="radio-option">
-                            <input type="radio" name="game-mode" value="random" checked onchange="updateSettingsUI()">
-                            <span>무작위 모드</span>
-                            <p class="radio-description">저빈도 단어 중심으로 출제</p>
-                        </label>
-                        <label class="radio-option">
-                            <input type="radio" name="game-mode" value="bold" onchange="updateSettingsUI()">
-                            <span>TTV 모드</span>
-                            <p class="radio-description">굵게 표시된 단어만 출제</p>
-                        </label>
+                    <div class="radio-group" style="display: flex; flex-direction: row; gap: 12px;">
+                        <input type="radio" name="game-mode" value="random" checked onchange="updateSettingsUI()" style="display: none;">
+                        <input type="radio" name="game-mode" value="bold" onchange="updateSettingsUI()" style="display: none;">
+
+                        <div class="game-mode-random" style="flex: 1; padding: 12px; border: 2px solid #4f46e5; border-radius: 8px; cursor: pointer; background-color: rgba(79, 70, 229, 0.1); transition: all 0.2s ease;" onclick="setGameMode('random')">
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-weight: bold;">무작위 모드</span>
+                                <p class="radio-description" style="margin: 0;">저빈도 단어 중심으로 출제</p>
+                            </div>
+                        </div>
+
+                        <div class="game-mode-bold" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onclick="setGameMode('bold')">
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-weight: bold;">TTV 모드</span>
+                                <p class="radio-description" style="margin: 0;">굵게 표시된 단어만 출제</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
