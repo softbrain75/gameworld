@@ -4053,6 +4053,17 @@
                 });
             }
 
+            // 파일 관리
+            const fileManagementBtn = document.getElementById('mypage-file-management-btn');
+            if (fileManagementBtn) {
+                fileManagementBtn.addEventListener('click', async () => {
+                    console.log('📁 파일 관리');
+                    closeMypagePopup();
+                    await loadFileManagementList();
+                    document.getElementById('file-management-modal').style.display = 'flex';
+                });
+            }
+
             // 공유 파일 설정
             if (sharedFilesBtn) {
                 sharedFilesBtn.addEventListener('click', async () => {
@@ -4076,6 +4087,31 @@
             // 공유 파일 모달 닫기
             document.getElementById('shared-files-close-btn').addEventListener('click', () => {
                 document.getElementById('shared-files-modal').style.display = 'none';
+            });
+
+            // 파일 관리 모달 닫기
+            document.getElementById('file-management-close-btn').addEventListener('click', () => {
+                document.getElementById('file-management-modal').style.display = 'none';
+            });
+
+            // 파일 관리 모달 취소 버튼
+            document.getElementById('file-management-cancel-btn').addEventListener('click', () => {
+                document.getElementById('file-management-modal').style.display = 'none';
+                // 체크박스 초기화
+                document.querySelectorAll('.file-management-checkbox').forEach(cb => cb.checked = false);
+                updateDeleteButtonState();
+            });
+
+            // 파일 관리 모달 삭제 버튼
+            document.getElementById('file-management-delete-btn').addEventListener('click', async () => {
+                await deleteSelectedFiles();
+            });
+
+            // 파일 관리 모달에서 체크박스 변화 감지
+            document.addEventListener('change', (e) => {
+                if (e.target.classList.contains('file-management-checkbox')) {
+                    updateDeleteButtonState();
+                }
             });
 
             // 시험 파일 성적 조회
@@ -5108,6 +5144,89 @@
                     alert('파일 설정 변경에 실패했습니다.');
                 }
             };
+
+            // 파일 관리 목록 로드
+            window.loadFileManagementList = async function() {
+                const fileManagementList = document.getElementById('file-management-list');
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        fileManagementList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">로그인이 필요합니다</div>';
+                        return;
+                    }
+
+                    const { data, error } = await supabase
+                        .from('study_materials')
+                        .select('id, title')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    if (!data || data.length === 0) {
+                        fileManagementList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">파일이 없습니다</div>';
+                        return;
+                    }
+
+                    // 파일 목록 표시 (체크박스 포함)
+                    fileManagementList.innerHTML = data.map(file => `
+                        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--outline-variant);">
+                            <input type="checkbox" class="file-management-checkbox" data-file-id="${file.id}" style="cursor: pointer; width: 18px; height: 18px;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 500; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-wrap: break-word;">${escapeHtml(file.title)}</div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    console.log('✅ 파일 관리 목록 로드 완료:', data.length + '개');
+                } catch (error) {
+                    console.error('파일 관리 목록 로드 실패:', error);
+                    fileManagementList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">파일 로드 실패</div>';
+                }
+            };
+
+            // 삭제 버튼 상태 업데이트
+            function updateDeleteButtonState() {
+                const checkedCount = document.querySelectorAll('.file-management-checkbox:checked').length;
+                const deleteBtn = document.getElementById('file-management-delete-btn');
+                deleteBtn.disabled = checkedCount === 0;
+                deleteBtn.textContent = checkedCount > 0 ? `선택한 파일 삭제 (${checkedCount})` : '선택한 파일 삭제';
+            }
+
+            // 선택된 파일 삭제
+            async function deleteSelectedFiles() {
+                const checkedBoxes = document.querySelectorAll('.file-management-checkbox:checked');
+                if (checkedBoxes.length === 0) {
+                    alert('삭제할 파일을 선택해주세요.');
+                    return;
+                }
+
+                if (!confirm(`${checkedBoxes.length}개의 파일을 삭제하시겠습니까?`)) {
+                    return;
+                }
+
+                try {
+                    const fileIds = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-file-id'));
+
+                    // 각 파일 삭제
+                    for (const fileId of fileIds) {
+                        const { error } = await supabase
+                            .from('study_materials')
+                            .delete()
+                            .eq('id', fileId);
+
+                        if (error) throw error;
+                        console.log('✅ 파일 삭제됨:', fileId);
+                    }
+
+                    alert(`${fileIds.length}개의 파일이 삭제되었습니다.`);
+                    document.getElementById('file-management-modal').style.display = 'none';
+                    await loadMyFiles(); // 파일 목록 새로고침
+                } catch (error) {
+                    console.error('파일 삭제 실패:', error);
+                    alert('파일 삭제 중 오류가 발생했습니다.');
+                }
+            }
 
             // Play game with Supabase file
             window.playGame = async function(fileId, fileName) {
@@ -9585,6 +9704,11 @@
                     <span>시험 파일 성적 조회</span>
                 </button>
 
+                <button class="mypage-menu-item" id="mypage-file-management-btn">
+                    <span class="material-icons">folder_open</span>
+                    <span>파일 관리</span>
+                </button>
+
                 <button class="mypage-menu-item" id="mypage-clear-cache-btn">
                     <span class="material-icons">delete_sweep</span>
                     <span>캐시파일삭제</span>
@@ -9679,6 +9803,32 @@
             <div id="shared-files-list" style="padding: 8px;">
                 <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
             </div>
+        </div>
+    </div>
+
+    <!-- 파일 관리 모달 -->
+    <div id="file-management-modal" class="test-results-fullmodal" style="display: none;">
+        <div class="modal-header-common">
+            <h3>
+                <span class="material-icons">folder_open</span>
+                <span>파일 관리</span>
+            </h3>
+            <button id="file-management-close-btn" class="modal-close-btn-common">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+
+        <!-- 본문 - 파일 목록 + 체크박스 -->
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+            <div id="file-management-list" style="padding: 8px;">
+                <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
+            </div>
+        </div>
+
+        <!-- 삭제 버튼 -->
+        <div style="padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px;">
+            <button id="file-management-cancel-btn" style="flex: 1; padding: 10px; background-color: var(--surface-secondary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s ease;">취소</button>
+            <button id="file-management-delete-btn" style="flex: 1; padding: 10px; background-color: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s ease;" disabled>선택한 파일 삭제</button>
         </div>
     </div>
 
