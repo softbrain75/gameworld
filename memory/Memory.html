@@ -7800,11 +7800,28 @@
 
                 // Supabase에도 저장 (로컬 파일이 아닐 때만)
                 if (typeof supabase !== 'undefined' && currentGameFileId && !currentGameFileId.startsWith('local_')) {
+                    console.log('🔍 Supabase 저장 시도:', {
+                        currentGameFileId,
+                        learningMode,
+                        finalScore,
+                        selectedSectionRange
+                    });
                     try {
                         const { data: { user } } = await supabase.auth.getUser();
+                        console.log('👤 현재 사용자:', user ? `${user.id}` : '없음');
+
                         if (user) {
+                            console.log('📝 Supabase upsert 데이터:', {
+                                user_id: user.id,
+                                file_id: currentGameFileId,
+                                section_start: selectedSectionRange.start,
+                                section_end: selectedSectionRange.end,
+                                status: 'completed',
+                                score: finalScore
+                            });
+
                             // 학습 진행 상황 테이블에 저장
-                            const { error } = await supabase
+                            const { data, error } = await supabase
                                 .from('learning_progress')
                                 .upsert({
                                     user_id: user.id,
@@ -7819,18 +7836,30 @@
                                 });
 
                             if (error) {
-                                console.error('❌ Supabase 섹션 수료 저장 실패:', error);
+                                console.error('❌ Supabase 섹션 수료 저장 실패 - 에러:', error);
+                                console.error('❌ 에러 코드:', error.code);
+                                console.error('❌ 에러 메시지:', error.message);
+                                console.error('❌ 에러 상세:', error.details);
                             } else {
                                 console.log('✅ 섹션 수료 저장 (Supabase):', sectionKey, 'Score:', finalScore);
+                                console.log('✅ Supabase 응답:', data);
                             }
                         } else {
                             console.log('ℹ️ 게스트 모드 - Supabase에 저장하지 않음 (localStorage만 사용)');
                         }
                     } catch (err) {
-                        console.error('⚠️ Supabase 저장 중 오류:', err);
+                        console.error('⚠️ Supabase 저장 중 예외 발생:', err);
+                        console.error('⚠️ 에러 메시지:', err.message);
+                        console.error('⚠️ 에러 스택:', err.stack);
                     }
                 } else if (currentGameFileId && currentGameFileId.startsWith('local_')) {
                     console.log('ℹ️ 로컬 파일 - Supabase에 저장하지 않음 (localStorage만 사용)');
+                } else {
+                    console.log('🚫 Supabase 저장 조건 불만족:', {
+                        supabaseDefined: typeof supabase !== 'undefined',
+                        currentGameFileIdExists: !!currentGameFileId,
+                        isNotLocalFile: !currentGameFileId?.startsWith('local_')
+                    });
                 }
             }
 
