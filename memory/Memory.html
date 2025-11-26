@@ -9084,6 +9084,33 @@
         }
 
         // 섹션 선택 및 게임 즉시 시작
+        function resetSectionProgress() {
+            // 확인 메시지
+            if (!confirm('학습 단계 진행 상황을 초기화하시겠습니까?\n모든 수료 기록이 삭제됩니다.')) {
+                return;
+            }
+
+            // localStorage에서 섹션 관련 항목 삭제
+            const keys = Object.keys(localStorage);
+            let deletedCount = 0;
+
+            keys.forEach(key => {
+                if (key.startsWith('section_')) {
+                    localStorage.removeItem(key);
+                    deletedCount++;
+                    console.log('🗑️ 삭제됨:', key);
+                }
+            });
+
+            console.log('✅ 섹션 초기화 완료 - 삭제된 항목:', deletedCount);
+
+            // 섹션 목록 재생성 (버튼 상태 초기화)
+            generateSectionList();
+
+            // 알림 메시지
+            alert('✅ 학습 단계 진행 상황이 초기화되었습니다.');
+        }
+
         function selectSection(start, end, btnElement) {
             selectedSectionRange = { start, end };
             // start와 end는 문맥을 포함한 단어 인덱스 범위
@@ -9424,7 +9451,10 @@
                 </button>
             </div>
             <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
-                <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">학습할 단계를 선택하세요</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="font-size: 14px; font-weight: bold;">학습할 단계를 선택하세요</div>
+                    <button id="reset-section-btn" style="padding: 6px 12px; background-color: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#dc2626'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='#ef4444'; this.style.transform='scale(1)'" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1.05)'" onclick="resetSectionProgress()">초기화</button>
+                </div>
                 <div id="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; padding: 12px 12px;">
                     <!-- 동적으로 생성됨 -->
                 </div>
@@ -9450,15 +9480,15 @@
 
                         <div class="learning-mode-all" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onclick="setLearningMode('all')">
                             <div style="display: flex; flex-direction: column; gap: 4px;">
-                                <span style="font-weight: bold;">전체풀기</span>
+                                <span style="font-weight: bold;">Full Test</span>
                                 <p class="radio-description" style="margin: 0;">모든 문제를 한 번에</p>
                             </div>
                         </div>
 
                         <div class="learning-mode-section" style="flex: 1; padding: 12px; border: 2px solid #4f46e5; border-radius: 8px; cursor: pointer; background-color: rgba(79, 70, 229, 0.1); transition: all 0.2s ease;" onclick="setLearningMode('section')">
                             <div style="display: flex; flex-direction: column; gap: 4px;">
-                                <span style="font-weight: bold;">5개씩풀기</span>
-                                <p class="radio-description" style="margin: 0;">섹션별로 나눠서</p>
+                                <span style="font-weight: bold;">Part Test</span>
+                                <p class="radio-description" style="margin: 0;">5문제씩 나눠서</p>
                             </div>
                         </div>
                     </div>
