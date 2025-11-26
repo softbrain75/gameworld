@@ -9344,16 +9344,16 @@
 
     <!-- 학습단계 선택 모달 (5개씩 풀기) -->
     <div class="modal-overlay" id="game-mode-selection-modal" style="display: none; z-index: 10000;">
-        <div class="modal-content" style="max-width: 500px; overflow: visible;">
+        <div class="modal-content" style="max-width: 500px; max-height: 85vh; display: flex; flex-direction: column;">
             <div class="modal-header-common">
                 <h3>학습 단계 선택</h3>
                 <button class="modal-close-btn" onclick="closeGameModeModal()">
                     <span class="material-icons">close</span>
                 </button>
             </div>
-            <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; overflow: visible;">
+            <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
                 <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">학습할 단계를 선택하세요</div>
-                <div id="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; overflow: visible;">
+                <div id="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0;">
                     <!-- 동적으로 생성됨 -->
                 </div>
             </div>
