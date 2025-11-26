@@ -7091,7 +7091,7 @@
                     continue;
                 }
 
-                // 표 감지 (|로 시작하는 줄)
+                // 표 감지 (|로 시작하는 줄) - 섹션 범위 체크보다 먼저 처리
                 if (line.trim().startsWith('|')) {
                     // 표 시작
                     const tableLines = [];
@@ -7105,6 +7105,7 @@
                     testDisplay.appendChild(result.element);
                     wordIndex = result.wordIndex;
                     blankOrder = result.blankOrder;
+                    console.log('📊 표 렌더링 완료 - 새로운 wordIndex:', wordIndex);
                     continue;
                 }
 
