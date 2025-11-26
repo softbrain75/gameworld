@@ -7796,7 +7796,40 @@
             if (learningMode === 'section' && finalScore === 100 && selectedSectionRange) {
                 const sectionKey = `section_${currentGameFileId}_${selectedSectionRange.start}_${selectedSectionRange.end}`;
                 localStorage.setItem(sectionKey, JSON.stringify({ status: 'completed', score: finalScore })); // 수료 표시 + 점수 저장
-                console.log('✅ 섹션 수료 저장:', sectionKey, 'Score:', finalScore);
+                console.log('✅ 섹션 수료 저장 (localStorage):', sectionKey, 'Score:', finalScore);
+
+                // Supabase에도 저장
+                if (typeof supabase !== 'undefined') {
+                    try {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (user) {
+                            // 학습 진행 상황 테이블에 저장
+                            const { error } = await supabase
+                                .from('learning_progress')
+                                .upsert({
+                                    user_id: user.id,
+                                    file_id: currentGameFileId,
+                                    section_start: selectedSectionRange.start,
+                                    section_end: selectedSectionRange.end,
+                                    status: 'completed',
+                                    score: finalScore,
+                                    completed_at: new Date().toISOString()
+                                }, {
+                                    onConflict: 'user_id,file_id,section_start,section_end'
+                                });
+
+                            if (error) {
+                                console.error('❌ Supabase 섹션 수료 저장 실패:', error);
+                            } else {
+                                console.log('✅ 섹션 수료 저장 (Supabase):', sectionKey, 'Score:', finalScore);
+                            }
+                        } else {
+                            console.log('ℹ️ 게스트 모드 - Supabase에 저장하지 않음 (localStorage만 사용)');
+                        }
+                    } catch (err) {
+                        console.error('⚠️ Supabase 저장 중 오류:', err);
+                    }
+                }
             }
 
             // 총 포인트 업데이트 함수
@@ -8974,8 +9007,8 @@
             }
         }
 
-        // 섹션 목록 생성
-        function generateSectionList() {
+        // 섹션 목록 생성 (Supabase 데이터와 localStorage 동기화)
+        async function generateSectionList() {
             const sectionList = document.getElementById('section-list');
             sectionList.innerHTML = '';
 
@@ -8984,6 +9017,35 @@
             const totalSections = Math.ceil(totalTTVWords / sectionSize);
 
             console.log('📊 TTV 기준 섹션 생성 - 전체 TTV 단어:', totalTTVWords, '섹션수:', totalSections);
+
+            // Supabase에서 섹션 수료 정보 불러오기
+            let supabaseSectionData = {};
+            if (typeof supabase !== 'undefined') {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        const { data, error } = await supabase
+                            .from('learning_progress')
+                            .select('section_start, section_end, status, score')
+                            .eq('user_id', user.id)
+                            .eq('file_id', currentGameFileId)
+                            .eq('status', 'completed');
+
+                        if (!error && data) {
+                            data.forEach(item => {
+                                const key = `${item.section_start}_${item.section_end}`;
+                                supabaseSectionData[key] = {
+                                    status: item.status,
+                                    score: item.score
+                                };
+                            });
+                            console.log('📊 Supabase에서 섹션 수료 정보 불러옴:', Object.keys(supabaseSectionData).length, '개');
+                        }
+                    }
+                } catch (err) {
+                    console.error('⚠️ Supabase 섹션 데이터 조회 중 오류:', err);
+                }
+            }
 
             for (let i = 0; i < totalSections; i++) {
                 const startTTVIndex = i * sectionSize; // TTV 배열 인덱스
@@ -9012,12 +9074,14 @@
                 const btn = document.createElement('button');
                 btn.className = 'section-btn';
 
-                // 섹션 수료 상태 확인
+                // 섹션 수료 상태 확인 (localStorage 우선, 없으면 Supabase)
                 const sectionKey = `section_${currentGameFileId}_${startWordIndex}_${endWordIndex}`;
-                const sectionData = localStorage.getItem(sectionKey);
+                const supabaseKey = `${startWordIndex}_${endWordIndex}`;
                 let isCompleted = false;
                 let completionScore = 0;
 
+                // localStorage에서 먼저 확인
+                const sectionData = localStorage.getItem(sectionKey);
                 if (sectionData) {
                     try {
                         const parsed = JSON.parse(sectionData);
@@ -9028,6 +9092,14 @@
                         isCompleted = sectionData === 'completed';
                         completionScore = 100;
                     }
+                } else if (supabaseSectionData[supabaseKey]) {
+                    // localStorage에 없으면 Supabase 데이터 사용
+                    const supabaseData = supabaseSectionData[supabaseKey];
+                    isCompleted = supabaseData.status === 'completed';
+                    completionScore = supabaseData.score || 0;
+                    // localStorage에도 동기화
+                    localStorage.setItem(sectionKey, JSON.stringify({ status: supabaseData.status, score: supabaseData.score }));
+                    console.log('📝 Supabase 데이터 localStorage에 동기화:', sectionKey);
                 }
 
                 // 수료/미수료 상태 텍스트 추가
@@ -9084,7 +9156,7 @@
         }
 
         // 섹션 선택 및 게임 즉시 시작
-        function resetSectionProgress() {
+        async function resetSectionProgress() {
             // 확인 메시지
             if (!confirm('학습 단계 진행 상황을 초기화하시겠습니까?\n모든 수료 기록이 삭제됩니다.')) {
                 return;
@@ -9098,14 +9170,37 @@
                 if (key.startsWith('section_')) {
                     localStorage.removeItem(key);
                     deletedCount++;
-                    console.log('🗑️ 삭제됨:', key);
+                    console.log('🗑️ 삭제됨 (localStorage):', key);
                 }
             });
+
+            // Supabase에서도 삭제
+            if (typeof supabase !== 'undefined') {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        const { error } = await supabase
+                            .from('learning_progress')
+                            .delete()
+                            .eq('user_id', user.id)
+                            .eq('file_id', currentGameFileId)
+                            .eq('status', 'completed');
+
+                        if (error) {
+                            console.error('❌ Supabase 섹션 삭제 실패:', error);
+                        } else {
+                            console.log('🗑️ Supabase 섹션 초기화 완료');
+                        }
+                    }
+                } catch (err) {
+                    console.error('⚠️ Supabase 삭제 중 오류:', err);
+                }
+            }
 
             console.log('✅ 섹션 초기화 완료 - 삭제된 항목:', deletedCount);
 
             // 섹션 목록 재생성 (버튼 상태 초기화)
-            generateSectionList();
+            await generateSectionList();
 
             // 알림 메시지
             alert('✅ 학습 단계 진행 상황이 초기화되었습니다.');
