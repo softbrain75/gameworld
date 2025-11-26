@@ -4099,6 +4099,8 @@
                 document.getElementById('file-management-modal').style.display = 'none';
                 // 체크박스 초기화
                 document.querySelectorAll('.file-management-checkbox').forEach(cb => cb.checked = false);
+                document.getElementById('file-management-select-all').checked = false;
+                document.getElementById('file-management-select-all').indeterminate = false;
                 updateDeleteButtonState();
             });
 
@@ -4110,6 +4112,16 @@
             // 파일 관리 모달에서 체크박스 변화 감지
             document.addEventListener('change', (e) => {
                 if (e.target.classList.contains('file-management-checkbox')) {
+                    updateDeleteButtonState();
+                    // 개별 체크박스 변경시 전체선택 상태 업데이트
+                    updateSelectAllCheckbox();
+                }
+                // 전체선택 체크박스
+                if (e.target.id === 'file-management-select-all') {
+                    const isChecked = e.target.checked;
+                    document.querySelectorAll('.file-management-checkbox').forEach(cb => {
+                        cb.checked = isChecked;
+                    });
                     updateDeleteButtonState();
                 }
             });
@@ -5184,6 +5196,31 @@
                     fileManagementList.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">파일 로드 실패</div>';
                 }
             };
+
+            // 전체선택 체크박스 상태 업데이트
+            function updateSelectAllCheckbox() {
+                const allCheckboxes = document.querySelectorAll('.file-management-checkbox');
+                const checkedCheckboxes = document.querySelectorAll('.file-management-checkbox:checked');
+                const selectAllCheckbox = document.getElementById('file-management-select-all');
+
+                if (allCheckboxes.length === 0) return;
+
+                // 모두 선택되었으면 전체선택 체크
+                if (allCheckboxes.length === checkedCheckboxes.length) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.indeterminate = false;
+                }
+                // 일부만 선택되었으면 부분 체크 (indeterminate)
+                else if (checkedCheckboxes.length > 0) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = true;
+                }
+                // 아무것도 선택 안 됨
+                else {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                }
+            }
 
             // 삭제 버튼 상태 업데이트
             function updateDeleteButtonState() {
@@ -9819,8 +9856,15 @@
         </div>
 
         <!-- 본문 - 파일 목록 + 체크박스 -->
-        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
-            <div id="file-management-list" style="padding: 8px;">
+        <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+            <!-- 전체선택 헤더 -->
+            <div style="padding: 12px 8px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; background-color: var(--surface-secondary);">
+                <input type="checkbox" id="file-management-select-all" style="cursor: pointer; width: 18px; height: 18px;">
+                <label for="file-management-select-all" style="flex: 1; cursor: pointer; font-weight: 500; color: var(--text-primary);">전체선택</label>
+            </div>
+
+            <!-- 파일 목록 -->
+            <div id="file-management-list" style="flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px;">
                 <div style="padding: 12px; color: var(--text-secondary); text-align: center;">로드 중...</div>
             </div>
         </div>
