@@ -7783,8 +7783,8 @@
             // 5개씩 풀기에서 100점(완벽한 정답)이면 섹션을 '수료'로 표시
             if (learningMode === 'section' && finalScore === 100 && selectedSectionRange) {
                 const sectionKey = `section_${currentGameFileId}_${selectedSectionRange.start}_${selectedSectionRange.end}`;
-                localStorage.setItem(sectionKey, 'completed'); // 수료 표시
-                console.log('✅ 섹션 수료 저장:', sectionKey);
+                localStorage.setItem(sectionKey, JSON.stringify({ status: 'completed', score: finalScore })); // 수료 표시 + 점수 저장
+                console.log('✅ 섹션 수료 저장:', sectionKey, 'Score:', finalScore);
             }
 
             // 총 포인트 업데이트 함수
@@ -8933,11 +8933,30 @@
 
                 // 섹션 수료 상태 확인
                 const sectionKey = `section_${currentGameFileId}_${startWordIndex}_${endWordIndex}`;
-                const isCompleted = localStorage.getItem(sectionKey) === 'completed';
+                const sectionData = localStorage.getItem(sectionKey);
+                let isCompleted = false;
+                let completionScore = 0;
+
+                if (sectionData) {
+                    try {
+                        const parsed = JSON.parse(sectionData);
+                        isCompleted = parsed.status === 'completed';
+                        completionScore = parsed.score || 0;
+                    } catch (e) {
+                        // 이전 형식 호환성 처리
+                        isCompleted = sectionData === 'completed';
+                        completionScore = 100;
+                    }
+                }
 
                 // 수료/미수료 상태 텍스트 추가
-                const statusText = isCompleted ? '수료' : '미수료';
-                btn.textContent = `${i + 1}단계  ${statusText}`;
+                let btnText = `${i + 1}단계`;
+                if (isCompleted) {
+                    btnText = `✓ ${i + 1}단계 수료(${completionScore}점)`;
+                } else {
+                    btnText += ` 미수료`;
+                }
+                btn.textContent = btnText;
 
                 btn.style.cssText = `
                     padding: 8px 12px;
@@ -8954,14 +8973,6 @@
                     gap: 8px;
                 `;
 
-                // 수료 상태면 버튼 색상을 완료 색상으로 변경
-                if (isCompleted) {
-                    btn.style.background = 'var(--primary)';
-                    btn.style.borderColor = 'var(--primary)';
-                    btn.style.color = 'white';
-                    btn.style.fontWeight = 'bold';
-                }
-
                 btn.addEventListener('click', () => selectSection(startWordIndex, endWordIndex, btn));
 
                 // 첫 번째 섹션 기본 선택
@@ -8970,7 +8981,7 @@
                 }
 
                 sectionList.appendChild(btn);
-                console.log(`📍 섹션 ${i + 1}단계: 단어 범위 ${startWordIndex}-${endWordIndex}, 상태: ${statusText}`);
+                console.log(`📍 섹션 ${i + 1}단계: 단어 범위 ${startWordIndex}-${endWordIndex}, 상태: ${isCompleted ? `수료(${completionScore}점)` : '미수료'}`);
             }
         }
 
