@@ -3637,7 +3637,7 @@
 
                 // 메타데이터 저장 (신규 파일도 포함)
                 // owner 확인이 필요하므로 user_id는 필수
-                localStorage.setItem(`supabase_file_meta_${fileId}`, JSON.stringify({
+                const metaData = {
                     id: fileId,
                     title: fileName,
                     file_path: filePath,
@@ -3645,8 +3645,11 @@
                     user_id: user.id,
                     view_at: new Date().toISOString(),
                     cached_at: new Date().toISOString()
-                }));
-                console.log('💾 메타데이터 캐시에 저장됨:', fileId);
+                };
+                const metaKey = `supabase_file_meta_${fileId}`;
+                localStorage.setItem(metaKey, JSON.stringify(metaData));
+                console.log('💾 메타데이터 캐시에 저장됨:', metaKey, metaData);
+                console.log('📋 저장된 메타데이터 확인:', JSON.parse(localStorage.getItem(metaKey)));
 
                 // Supabase Storage에 파일 업로드 (백그라운드 진행, await 하지 않음)
                 // 에러는 콘솔에만 기록
@@ -4472,7 +4475,7 @@
         }
 
         // Hamburger Menu Logic - Responsive
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             const hamburgerBtn = document.getElementById('hamburger-btn-mobile');
             const sideMenu = document.getElementById('side-menu');
             const container = document.querySelector('.container');
@@ -4797,7 +4800,9 @@
                                 title: file.title,
                                 file_path: file.file_path,
                                 updated_at: file.updated_at,
-                                view_at: file.view_at
+                                view_at: file.view_at,
+                                user_id: file.user_id,
+                                cached_at: new Date().toISOString()
                             }));
                         });
 
@@ -5178,17 +5183,26 @@
                             const cachedMetaStr = localStorage.getItem(metaKey);
                             let fileOwnerUserId = null;
 
+                            console.log('🔍 캐시 메타데이터 조회:', metaKey);
+                            console.log('📦 캐시에서 찾은 값:', cachedMetaStr);
+
                             if (cachedMetaStr) {
                                 try {
                                     const cachedMeta = JSON.parse(cachedMetaStr);
                                     fileOwnerUserId = cachedMeta.user_id;
+                                    console.log('✅ 캐시 메타데이터 파싱 성공, user_id:', fileOwnerUserId);
                                 } catch (e) {
                                     console.error('캐시 메타데이터 파싱 오류:', e);
                                 }
+                            } else {
+                                console.log('❌ 캐시 메타데이터를 찾을 수 없음, fileId:', fileId);
                             }
 
                             // owner 확인
+                            console.log('👤 현재 사용자:', window.currentUser?.id);
+                            console.log('📝 파일 소유자:', fileOwnerUserId);
                             const isOwner = window.currentUser && fileOwnerUserId && fileOwnerUserId === window.currentUser.id;
+                            console.log('🔐 owner 확인 결과:', isOwner);
 
                             // ttvedit-btn: owner만 표시
                             if (ttveditBtn) {
@@ -5210,7 +5224,7 @@
 
                             if (lyrics.length > 0) {
                                 correctAnswers = []; // Reset correct answers
-                                startGame(false);
+                                showGameModeModal();
                             }
 
                             return;
@@ -5327,7 +5341,7 @@
 
                     if (lyrics.length > 0) {
                         correctAnswers = []; // Reset correct answers
-                        startGame(false);
+                        showGameModeModal();
                     }
                 } catch (error) {
                     console.error('게임 시작 오류:', error);
@@ -5509,14 +5523,18 @@
 
                         // 로컬 파일은 공유 버튼 숨김
                         const shareBtn = document.getElementById('share-btn');
+                        const testShareBtn = document.getElementById('test-share-btn');
                         if (shareBtn) {
                             shareBtn.style.display = 'none';
+                        }
+                        if (testShareBtn) {
+                            testShareBtn.style.display = 'none';
                         }
 
                         if (lyrics.length > 0) {
                             console.log('startGame 호출 조건 만족 - lyrics.length > 0');
                             correctAnswers = []; // Reset correct answers
-                            startGame(false);
+                            showGameModeModal();
                         } else {
                             console.warn('⚠️ startGame 호출 안 함 - lyrics.length:', lyrics.length);
                         }
@@ -6191,12 +6209,31 @@
                 }
             });
 
+            // 초기 사용자 정보 로드
+            if (typeof supabase !== 'undefined') {
+                const { data: { user: initialUser } } = await supabase.auth.getUser();
+                if (initialUser) {
+                    window.currentUser = initialUser;
+                    console.log('✅ 초기 window.currentUser 설정됨:', window.currentUser.id);
+                }
+            }
+
             // Supabase 인증 상태 변경 감지
             // onAuthStateChange는 페이지 로드 시 자동으로 호출되므로,
             // 여기서만 loadMyFiles()를 호출하면 초기 로드와 상태 변경 시 한 번에 처리됨
             if (typeof supabase !== 'undefined') {
                 supabase.auth.onAuthStateChange((event, session) => {
-                    console.log('Auth state changed:', event);
+                    console.log('Auth state changed:', event, 'session:', session);
+
+                    // window.currentUser 업데이트 (게임 화면에서 owner 확인에 필요)
+                    if (session && session.user) {
+                        window.currentUser = session.user;
+                        console.log('✅ window.currentUser 설정됨:', window.currentUser.id);
+                    } else {
+                        window.currentUser = null;
+                        console.log('❌ window.currentUser 해제됨');
+                    }
+
                     updateAuthButton();
                     loadMyFiles(); // 로그인/로그아웃 시 파일 목록 새로고침
                 });
@@ -6230,7 +6267,11 @@
         let italicWords = []; // Italic으로 표시된 단어 추적 (게임 중 사용자가 체크한 단어의 인덱스)
         let italicWordValues = []; // Italic 단어 값만 추적 (renderTable 등에서 인덱스 불일치 해결)
         let parsedItalicWordIndices = []; // 파일 파싱 시 발견된 italic 단어의 인덱스 (게임 로드 시 복원용)
+        let imageMetadata = []; // 이미지 메타데이터 저장 {wordIndex, url, alt}
         let currentBlankIndex = -1;
+        let learningMode = 'all'; // 'all' = 전체 풀기, 'section' = 5개씩 풀기
+        let selectedSectionRange = null; // {start: 0, end: 4} 형식
+        let sectionSize = 5; // 5개씩
         let correctCount = 0;
         let score = 0;
         let totalBlanks = 0;
@@ -6278,6 +6319,7 @@
             lyrics = [];  // 직접 배열에 저장 (fullText 중간 단계 제거)
             boldWords = [];
             parsedItalicWordIndices = []; // 파일에서 발견된 italic 단어 초기화
+            imageMetadata = []; // 이미지 메타데이터 초기화
             let wordIndex = 0;
 
             lines.forEach(line => {
@@ -6287,15 +6329,35 @@
                 // 표 구분선 제외 (|---|---|)
                 if (line.trim().match(/^\|[\s\-:]+\|/)) return;
 
-                // **bold** 및 *italic* 패턴 찾기
+                // 수평 구분선 제외 (---, ***, ___)
+                if (line.trim().match(/^(\-{3,}|\*{3,}|_{3,})$/)) return;
+
+                // ![alt](url), **bold** 및 *italic* 패턴 찾기
                 let remaining = line;
                 while (remaining.length > 0) {
-                    // bold 패턴 (**word**)를 먼저 찾기
+                    // 이미지 패턴 ![alt](url)을 먼저 찾기
+                    const imageMatch = remaining.match(/^\s*!\[([^\]]+)\]\(([^)]+)\)/);
+                    // bold 패턴 (**word**)를 찾기
                     const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
                     // italic 패턴 (*word*)을 찾기
                     const italicMatch = remaining.match(/^\s*\*([^*]+)\*/);
 
-                    if (boldMatch) {
+                    if (imageMatch) {
+                        // 이미지 찾음
+                        const altText = imageMatch[1].trim();
+                        const imageUrl = imageMatch[2].trim();
+                        if (altText && imageUrl) {
+                            lyrics.push(`[IMAGE: ${altText}]`); // 이미지 마커 저장
+                            // 이미지 메타데이터 저장
+                            imageMetadata.push({
+                                wordIndex: wordIndex,
+                                url: imageUrl,
+                                alt: altText
+                            });
+                            wordIndex++;
+                        }
+                        remaining = remaining.substring(imageMatch[0].length);
+                    } else if (boldMatch) {
                         // Bold를 찾음
                         const boldContent = boldMatch[1].trim();
                         if (boldContent) {
@@ -6316,8 +6378,8 @@
                         }
                         remaining = remaining.substring(italicMatch[0].length);
                     } else {
-                        // bold/italic이 아닌 부분 찾기
-                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|\*|$)/);
+                        // bold/italic/image이 아닌 부분 찾기
+                        const nonBoldMatch = remaining.match(/^([^*![]+?)(?=\*\*|\*|!\[|$)/);
                         if (nonBoldMatch && nonBoldMatch[1].trim()) {
                             // |는 표의 구분자이므로 제거
                             const text = nonBoldMatch[1].replace(/\|/g, ' ');
@@ -6386,7 +6448,15 @@
                 return;
             }
 
-            console.log('📊 blanks 계산 중 - gameMode:', gameMode);
+            console.log('📊 blanks 계산 중 - gameMode:', gameMode, 'learningMode:', learningMode, 'selectedSection:', selectedSectionRange);
+
+            // 5개씩 풀기 모드: boldWords를 섹션으로 필터링
+            let sectionBoldWords = boldWords;
+            if (learningMode === 'section' && selectedSectionRange) {
+                sectionBoldWords = boldWords.filter(idx => idx >= selectedSectionRange.start && idx < selectedSectionRange.end);
+                console.log('📍 섹션 필터링 - 원본:', boldWords.length, '필터됨:', sectionBoldWords.length, '범위:', selectedSectionRange);
+            }
+
             if (wrongOnly) {
                 // 이전 게임의 blanks에서 correctAnswers에 포함되지 않은 것만 다시
                 // blanks는 이미 이전 게임에서 설정되어 있으므로 필터링만 함
@@ -6398,26 +6468,42 @@
             } else if (gameMode === 'bold') {
                 // TTV 모드: 난이도 설정 적용
                 const boldDifficulty = parseInt(localStorage.getItem('memory_bold_difficulty') || '100');
-                const numBlanks = Math.ceil(boldWords.length * (boldDifficulty / 100));
+                const numBlanks = Math.ceil(sectionBoldWords.length * (boldDifficulty / 100));
 
                 // 무작위로 선택
-                const shuffledBoldWords = boldWords.slice().sort(() => Math.random() - 0.5);
+                const shuffledBoldWords = sectionBoldWords.slice().sort(() => Math.random() - 0.5);
                 blanks = shuffledBoldWords.slice(0, numBlanks).sort((a, b) => a - b);
                 hintCount = 3;
 
-                console.log('🎯 TTV 모드:', { boldDifficulty, totalBoldWords: boldWords.length, numBlanks, blanks });
+                console.log('🎯 TTV 모드:', { boldDifficulty, totalBoldWords: sectionBoldWords.length, numBlanks, blanks });
             } else {
                 // 무작위 모드: 난이도 설정 적용
                 blanks = [];
                 const randomDifficulty = parseInt(localStorage.getItem('memory_random_difficulty') || '100');
                 const blankPercentage = randomDifficulty / 100;
-                const numBlanks = Math.ceil(lyrics.length * blankPercentage);
+
+                // 섹션 모드인 경우 섹션 범위 내 단어만 고려
+                let wordsToConsider = lyrics.length;
+                let sectionIndices = null;
+                if (learningMode === 'section' && selectedSectionRange) {
+                    wordsToConsider = selectedSectionRange.end - selectedSectionRange.start;
+                    sectionIndices = new Set();
+                    for (let idx = selectedSectionRange.start; idx < selectedSectionRange.end; idx++) {
+                        sectionIndices.add(idx);
+                    }
+                }
+
+                const numBlanks = Math.ceil(wordsToConsider * blankPercentage);
                 hintCount = 3;
 
                 const lowFreqIndices = [];
                 const highFreqIndices = [];
 
                 lyrics.forEach((word, index) => {
+                    // 섹션 모드일 때는 섹션 범위 내 단어만 고려
+                    if (sectionIndices && !sectionIndices.has(index)) {
+                        return;
+                    }
                     if (highFrequencyWords.has(word)) {
                         highFreqIndices.push(index);
                     } else {
@@ -6440,8 +6526,12 @@
 
                 blanks = Array.from(indices).sort((a, b) => a - b);
 
-                console.log('🎲 무작위 모드:', { randomDifficulty, blankPercentage, numBlanks, blanks });
+                console.log('🎲 무작위 모드:', { randomDifficulty, blankPercentage, numBlanks, sectionMode: !!sectionIndices, blanks });
             }
+
+            // 이미지 인덱스를 blanks에서 제외 (이미지는 빈칸이 될 수 없음)
+            const imageIndices = new Set(imageMetadata.map(img => img.wordIndex));
+            blanks = blanks.filter(b => !imageIndices.has(b));
 
             totalBlanks = blanks.length;
             // 틀린 것만 다시 할 때를 제외하고 원래 전체 문제 개수 설정
@@ -6449,6 +6539,7 @@
                 originalTotalBlanks = blanks.length;
             }
             console.log('✅ blanks 계산 완료 - blanks:', blanks, 'originalTotalBlanks:', originalTotalBlanks);
+            console.log('🖼️ 이미지 인덱스 제외됨 - imageIndices:', Array.from(imageIndices));
             console.log('updateUI 호출 직전');
             updateUI();
             console.log('updateUI 호출 직후');
@@ -6500,15 +6591,79 @@
                         td.style.fontWeight = 'bold';
                     }
 
-                    // 셀 내용 파싱 (**bold** 및 *italic* 포함)
+                    // 셀 내용 파싱 (![alt](url), **bold** 및 *italic* 포함)
                     let remaining = cell.trim();
                     while (remaining.length > 0) {
+                        const imageMatch = remaining.match(/^\s*!\[([^\]]+)\]\(([^)]+)\)/);
                         const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
                         const italicMatch = remaining.match(/^\s*\*([^*]+)\*/);
 
-                        if (boldMatch) {
+                        if (imageMatch) {
+                            // 표의 셀에서 이미지 렌더링
+                            const altText = imageMatch[1].trim();
+                            const imageUrl = imageMatch[2].trim();
+                            if (altText && imageUrl && wordIndex < lyrics.length) {
+                                // 섹션 모드에서 범위 벗어난 이미지 스킵
+                                if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
+                                    wordIndex++;
+                                    remaining = remaining.substring(imageMatch[0].length);
+                                    return; // forEach 다음 셀로 (continue와 동일)
+                                }
+
+                                const imgEl = document.createElement('img');
+                                imgEl.src = imageUrl;
+                                imgEl.alt = altText;
+                                imgEl.style.maxWidth = '60px';
+                                imgEl.style.maxHeight = '60px';
+                                imgEl.style.borderRadius = '4px';
+                                imgEl.style.border = '1px solid var(--outline-variant)';
+                                imgEl.style.margin = '0 4px';
+                                imgEl.style.display = 'inline-block';
+                                td.appendChild(imgEl);
+
+                                // 입력 필드 (블랭크인 경우)
+                                if (blanks.includes(wordIndex)) {
+                                    const container = document.createElement('span');
+                                    container.className = 'word-blank-container';
+                                    container.style.display = 'inline-block';
+                                    container.style.margin = '0 4px';
+
+                                    const inputEl = document.createElement('input');
+                                    inputEl.type = 'text';
+                                    inputEl.className = 'word-input';
+                                    inputEl.dataset.index = wordIndex;
+                                    inputEl.dataset.order = blankOrder;
+                                    inputEl.dataset.answer = altText;
+                                    inputEl.placeholder = '';
+                                    inputEl.style.padding = '2px 4px';
+                                    inputEl.style.fontSize = '11px';
+                                    inputEl.autocomplete = 'off';
+                                    inputEl.setAttribute('autocomplete', 'off');
+                                    inputEl.setAttribute('autocorrect', 'off');
+                                    inputEl.setAttribute('autocapitalize', 'off');
+                                    inputEl.spellcheck = 'false';
+
+                                    setInputWidth(inputEl, altText);
+                                    blankOrder++;
+
+                                    container.appendChild(inputEl);
+                                    setupHintShortcutForInput(inputEl);
+                                    td.appendChild(container);
+                                }
+
+                                wordIndex++;
+                            }
+                            remaining = remaining.substring(imageMatch[0].length);
+                        } else if (boldMatch) {
                             const word = boldMatch[1].trim();
                             if (word && wordIndex < lyrics.length) {
+                                // 섹션 모드에서 범위 벗어난 단어 스킵
+                                if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
+                                    wordIndex++;
+                                    remaining = remaining.substring(boldMatch[0].length);
+                                    return; // forEach 다음 셀로
+                                }
+
                                 const wordEl = document.createElement('span');
                                 wordEl.style.display = 'inline-block';
                                 wordEl.style.margin = '0 4px';
@@ -6585,6 +6740,13 @@
                             // Italic 단어 (blank에 포함되지 않음 - 표시만 함)
                             const word = italicMatch[1].trim();
                             if (word && wordIndex < lyrics.length) {
+                                // 섹션 모드에서 범위 벗어난 단어 스킵
+                                if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
+                                    wordIndex++;
+                                    remaining = remaining.substring(italicMatch[0].length);
+                                    return; // forEach 다음 셀로
+                                }
+
                                 const wordEl = document.createElement('span');
                                 wordEl.style.display = 'inline-block';
                                 wordEl.style.margin = '0 4px';
@@ -6601,11 +6763,17 @@
                             }
                             remaining = remaining.substring(italicMatch[0].length);
                         } else {
-                            const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|\*|$)/);
+                            const nonBoldMatch = remaining.match(/^([^*![]+?)(?=\*\*|\*|!\[|$)/);
                             if (nonBoldMatch && nonBoldMatch[1].trim()) {
                                 const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
                                 words.forEach(word => {
                                     if (wordIndex < lyrics.length) {
+                                        // 섹션 모드에서 범위 벗어난 단어 스킵
+                                        if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
+                                            wordIndex++;
+                                            return; // forEach 다음 반복으로
+                                        }
+
                                         const wordEl = document.createElement('span');
                                         wordEl.style.display = 'inline-block';
                                         wordEl.style.margin = '0 4px';
@@ -6869,6 +7037,27 @@
             let blankOrder = 0;
             let wordIndex = 0;
 
+            // 섹션 필터링을 위한 설정
+            let renderStartIndex = 0;
+            let renderEndIndex = lyrics.length;
+            let sectionLyricsIndices = new Set(); // 렌더링할 lyrics 인덱스들
+
+            if (learningMode === 'section' && selectedSectionRange) {
+                renderStartIndex = selectedSectionRange.start;
+                renderEndIndex = selectedSectionRange.end;
+                // 렌더링할 인덱스 범위 설정
+                for (let idx = renderStartIndex; idx < renderEndIndex; idx++) {
+                    sectionLyricsIndices.add(idx);
+                }
+                console.log('📍 섹션 렌더링 범위:', renderStartIndex, '-', renderEndIndex, '개수:', sectionLyricsIndices.size, 'blanks 필터링:', blanks);
+            } else {
+                // 전체 풀기: 모든 인덱스 포함
+                for (let idx = 0; idx < lyrics.length; idx++) {
+                    sectionLyricsIndices.add(idx);
+                }
+                console.log('📍 전체 풀기 모드: 전체', lyrics.length, '개 단어');
+            }
+
             // 원본 마크다운을 줄별로 처리
             const lines = originalMarkdown.split('\n');
 
@@ -6878,6 +7067,17 @@
 
                 // 제목과 빈 줄 건너뛰기
                 if (line.startsWith('#') || line.trim() === '') {
+                    i++;
+                    continue;
+                }
+
+                // 수평 구분선 처리 (---, ***, ___)
+                if (line.trim().match(/^(\-{3,}|\*{3,}|_{3,})$/)) {
+                    const hr = document.createElement('hr');
+                    hr.style.border = 'none';
+                    hr.style.borderTop = '2px solid var(--outline-variant)';
+                    hr.style.margin = '16px 0';
+                    testDisplay.appendChild(hr);
                     i++;
                     continue;
                 }
@@ -6899,6 +7099,13 @@
                     continue;
                 }
 
+                // 섹션 범위 벗어나면 렌더링 중단
+                if (learningMode === 'section' && wordIndex >= renderEndIndex) {
+                    console.log('📊 섹션 렌더링 완료 - wordIndex:', wordIndex, 'renderEndIndex:', renderEndIndex);
+                    i++;
+                    continue;
+                }
+
                 // 일반 줄 처리
                 const lineDiv = document.createElement('div');
                 lineDiv.style.marginBottom = '8px';
@@ -6910,13 +7117,83 @@
 
                 let remaining = line;
                 while (remaining.length > 0) {
+                    const imageMatch = remaining.match(/^\s*!\[([^\]]+)\]\(([^)]+)\)/);
                     const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
                     const italicMatch = remaining.match(/^\s*\*([^*]+)\*/);
 
-                    if (boldMatch) {
+                    if (imageMatch) {
+                        // 이미지 렌더링
+                        const altText = imageMatch[1].trim();
+                        const imageUrl = imageMatch[2].trim();
+                        if (altText && imageUrl && wordIndex < lyrics.length) {
+                            // 섹션 모드에서 범위 벗어난 이미지 스킵
+                            if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
+                                wordIndex++;
+                                remaining = remaining.substring(imageMatch[0].length);
+                                continue;
+                            }
+
+                            const imageContainer = document.createElement('div');
+                            imageContainer.style.display = 'flex';
+                            imageContainer.style.flexDirection = 'column';
+                            imageContainer.style.alignItems = 'center';
+                            imageContainer.style.margin = '8px 4px';
+                            imageContainer.style.gap = '8px';
+
+                            // 이미지 요소
+                            const img = document.createElement('img');
+                            img.src = imageUrl;
+                            img.alt = altText;
+                            img.style.maxWidth = '80px';
+                            img.style.maxHeight = '80px';
+                            img.style.borderRadius = '4px';
+                            img.style.border = '1px solid var(--outline-variant)';
+                            img.style.cursor = 'pointer';
+                            imageContainer.appendChild(img);
+
+                            // 입력 필드 (블랭크인 경우)
+                            if (blanks.includes(wordIndex)) {
+                                const container = document.createElement('span');
+                                container.className = 'word-blank-container';
+
+                                const inputEl = document.createElement('input');
+                                inputEl.type = 'text';
+                                inputEl.className = 'word-input';
+                                inputEl.dataset.index = wordIndex;
+                                inputEl.dataset.order = blankOrder;
+                                inputEl.dataset.answer = altText;
+                                inputEl.placeholder = '';
+                                inputEl.style.padding = '4px 8px';
+                                inputEl.style.fontSize = '12px';
+                                inputEl.autocomplete = 'off';
+                                inputEl.setAttribute('autocomplete', 'off');
+                                inputEl.setAttribute('autocorrect', 'off');
+                                inputEl.setAttribute('autocapitalize', 'off');
+                                inputEl.spellcheck = 'false';
+
+                                setInputWidth(inputEl, altText);
+                                blankOrder++;
+
+                                container.appendChild(inputEl);
+                                setupHintShortcutForInput(inputEl);
+                                imageContainer.appendChild(container);
+                            }
+
+                            lineDiv.appendChild(imageContainer);
+                            wordIndex++;
+                        }
+                        remaining = remaining.substring(imageMatch[0].length);
+                    } else if (boldMatch) {
                         // Bold 단어
                         const word = boldMatch[1].trim();
                         if (word && wordIndex < lyrics.length) {
+                            // 섹션 모드에서 범위 벗어난 단어 스킵
+                            if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
+                                wordIndex++;
+                                remaining = remaining.substring(boldMatch[0].length);
+                                continue;
+                            }
+
                             const wordEl = document.createElement('span');
                             wordEl.className = 'lyric-word';
                             wordEl.style.display = 'inline-block';
@@ -6992,6 +7269,13 @@
                         // Italic 단어 (blank에 포함되지 않음 - 표시만 함)
                         const word = italicMatch[1].trim();
                         if (word && wordIndex < lyrics.length) {
+                            // 섹션 모드에서 범위 벗어난 단어 스킵
+                            if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
+                                wordIndex++;
+                                remaining = remaining.substring(italicMatch[0].length);
+                                continue;
+                            }
+
                             const wordEl = document.createElement('span');
                             wordEl.className = 'lyric-word';
                             wordEl.style.display = 'inline-block';
@@ -7009,12 +7293,18 @@
                         }
                         remaining = remaining.substring(italicMatch[0].length);
                     } else {
-                        const nonBoldMatch = remaining.match(/^([^*]+?)(?=\*\*|\*|$)/);
+                        const nonBoldMatch = remaining.match(/^([^*![]+?)(?=\*\*|\*|!\[|$)/);
                         if (nonBoldMatch && nonBoldMatch[1].trim()) {
                             const text = nonBoldMatch[1];
                             const words = text.split(/[\s]+/).filter(w => w.length > 0);
                             words.forEach(word => {
                                 if (wordIndex < lyrics.length) {
+                                    // 섹션 모드에서 범위 벗어난 단어 스킵
+                                    if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
+                                        wordIndex++;
+                                        return; // forEach 다음 반복으로 (continue와 동일)
+                                    }
+
                                     const wordEl = document.createElement('span');
                                     wordEl.className = 'lyric-word';
                                     wordEl.style.display = 'inline-block';
@@ -7406,26 +7696,35 @@
                 let totalPoints = 0;
                 if (typeof getCurrentPoints === 'function') {
                     totalPoints = getCurrentPoints();
+                    console.log('📊 Supabase에서 포인트 조회:', totalPoints);
                 } else {
                     totalPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
+                    console.log('📊 localStorage에서 포인트 조회:', totalPoints);
                 }
-                document.getElementById('total-points-value').textContent = totalPoints.toLocaleString('ko-KR');
-                console.log('📊 총 포인트 표시:', totalPoints);
+                const totalPointsElement = document.getElementById('total-points-value');
+                if (totalPointsElement) {
+                    totalPointsElement.textContent = totalPoints.toLocaleString('ko-KR');
+                    console.log('✅ 총 포인트 표시됨:', totalPoints.toLocaleString('ko-KR'));
+                } else {
+                    console.error('❌ total-points-value 요소를 찾을 수 없음');
+                }
             }
 
             if (incorrectCount > 0) {
+                console.log('⚠️ 부분 정답 - 틀린 개수:', incorrectCount);
                 document.getElementById('wrong-retry-btn').style.display = 'inline-block';
                 // 부분 정답일 때는 포인트 표시 안 함
                 document.getElementById('final-points').style.display = 'none';
                 // 부분 정답일 때도 총 포인트 표시
                 updateTotalPointsDisplay();
             } else {
+                console.log('✅ 완벽한 정답!');
                 document.getElementById('wrong-retry-btn').style.display = 'none';
 
                 // 모든 문제를 다 맞은 경우: 보너스 포인트 추가 + 축하 애니메이션
                 // 보너스 = 원래 전체 문제 개수 * 100
                 bonusPoints = originalTotalBlanks * 100;
-                console.log('🎉 완벽한 정답! 보너스 포인트:', bonusPoints, '(originalTotalBlanks:', originalTotalBlanks, ')');
+                console.log('🎉 보너스 포인트 계산 - originalTotalBlanks:', originalTotalBlanks, '보너스:', bonusPoints);
 
                 // 최종 점수 화면에 포인트 표시
                 document.getElementById('final-points').textContent = `+${bonusPoints.toLocaleString('ko-KR')} 포인트`;
@@ -7436,20 +7735,25 @@
 
                 if (typeof addPoints === 'function' && window.currentUser) {
                     // 로그인 사용자: Supabase에서 포인트 추가
+                    console.log('💾 포인트 저장 시작 (Supabase) - bonusPoints:', bonusPoints, 'userId:', window.currentUser.id);
                     addPoints(bonusPoints);
-                    console.log('✅ 보너스 포인트 추가 (Supabase):', bonusPoints);
+                    console.log('✅ 보너스 포인트 추가 요청 (Supabase):', bonusPoints);
                     // Supabase 비동기 작업 완료 후 업데이트
                     setTimeout(() => {
+                        console.log('🔄 300ms 후 포인트 업데이트 시작');
                         updateTotalPointsDisplay();
                     }, 300); // Supabase 업데이트 완료를 기다림
                 } else if (!window.currentUser) {
                     // 비로그인 사용자: localStorage에서 추가
                     const currentPoints = parseInt(localStorage.getItem('guest_total_points') || '0');
                     const newPoints = currentPoints + bonusPoints;
+                    console.log('💾 포인트 저장 (게스트) - 현재:', currentPoints, '추가:', bonusPoints, '합계:', newPoints);
                     localStorage.setItem('guest_total_points', newPoints.toString());
                     console.log('✅ 보너스 포인트 추가 (게스트):', bonusPoints);
                     // localStorage는 동기 작업이므로 즉시 업데이트
                     updateTotalPointsDisplay();
+                } else {
+                    console.warn('⚠️ 포인트 저장 안 됨 - addPoints 함수 없음 또는 currentUser 없음');
                 }
             }
 
@@ -8377,6 +8681,113 @@
             initMenuSectionToggle();
         }
 
+        // ========================================
+        // 5개씩 풀기 기능
+        // ========================================
+
+        // 게임 모드 선택 모달 표시
+        function showGameModeModal() {
+            console.log('🎮 게임 모드 선택 모달 표시');
+            const modal = document.getElementById('game-mode-selection-modal');
+            modal.style.display = 'flex';
+
+            // 섹션 목록 생성
+            generateSectionList();
+        }
+
+        // 게임 모드 선택 모달 닫기
+        function closeGameModeModal() {
+            console.log('❌ 게임 모드 선택 모달 닫기');
+            const modal = document.getElementById('game-mode-selection-modal');
+            modal.style.display = 'none';
+        }
+
+        // 게임 모드 UI 업데이트
+        function updateGameModeUI() {
+            const selectedMode = document.querySelector('input[name="learning-mode"]:checked').value;
+            const sectionListContainer = document.getElementById('section-list-container');
+
+            if (selectedMode === 'section') {
+                sectionListContainer.style.display = 'block';
+                // 첫 섹션을 기본으로 선택
+                const firstSectionBtn = document.querySelector('.section-btn');
+                if (firstSectionBtn) {
+                    firstSectionBtn.click();
+                }
+            } else {
+                sectionListContainer.style.display = 'none';
+                selectedSectionRange = null;
+            }
+        }
+
+        // 섹션 목록 생성
+        function generateSectionList() {
+            const sectionList = document.getElementById('section-list');
+            sectionList.innerHTML = '';
+
+            const totalBlanksForModal = boldWords.length; // 현재 게임의 전체 문제 수
+            const totalSections = Math.ceil(totalBlanksForModal / sectionSize);
+
+            console.log('📊 섹션 생성 - 전체 문제:', totalBlanksForModal, '섹션수:', totalSections);
+
+            for (let i = 0; i < totalSections; i++) {
+                const start = i * sectionSize;
+                const end = Math.min((i + 1) * sectionSize, totalBlanksForModal);
+
+                const btn = document.createElement('button');
+                btn.className = 'section-btn';
+                btn.textContent = `${start + 1}-${end}번`;
+                btn.style.cssText = `
+                    padding: 8px 12px;
+                    border: 1px solid var(--outline-variant);
+                    border-radius: 6px;
+                    background: var(--surface);
+                    color: var(--text-primary);
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    font-size: 13px;
+                `;
+
+                btn.addEventListener('click', () => selectSection(start, end, btn));
+
+                // 첫 번째 섹션 기본 선택
+                if (i === 0) {
+                    btn.click();
+                }
+
+                sectionList.appendChild(btn);
+            }
+        }
+
+        // 섹션 선택
+        function selectSection(start, end, btnElement) {
+            selectedSectionRange = { start, end };
+            console.log('✅ 섹션 선택됨:', start + 1, '-', end, '번');
+
+            // 다른 버튼의 스타일 제거
+            document.querySelectorAll('.section-btn').forEach(btn => {
+                btn.style.background = 'var(--surface)';
+                btn.style.borderColor = 'var(--outline-variant)';
+                btn.style.color = 'var(--text-primary)';
+            });
+
+            // 선택된 버튼 스타일
+            btnElement.style.background = 'var(--primary)';
+            btnElement.style.borderColor = 'var(--primary)';
+            btnElement.style.color = 'white';
+        }
+
+        // 선택된 모드로 게임 시작
+        function startGameWithMode() {
+            learningMode = document.querySelector('input[name="learning-mode"]:checked').value;
+            console.log('🎮 게임 시작 - 모드:', learningMode, '선택섹션:', selectedSectionRange);
+
+            closeGameModeModal();
+
+            // 게임 시작
+            startGame(false);
+        }
+
     </script>
 
     <!-- 테스트 이름 입력 팝업 -->
@@ -8692,6 +9103,51 @@
     </div>
 
     <!-- 설정 모달 -->
+    <!-- Game Mode Selection Modal (5개씩 풀기) -->
+    <div class="modal-overlay" id="game-mode-selection-modal" style="display: none; z-index: 10000;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header-common">
+                <h3>학습 방식 선택</h3>
+                <button class="modal-close-btn" onclick="closeGameModeModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- 전체 풀기 옵션 -->
+                    <label class="radio-option" style="padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="learning-mode" value="all" checked onchange="updateGameModeUI()">
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                            <span style="font-weight: bold;">전체 풀기</span>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">모든 문제를 한 번에 풀고 점수를 획득합니다</p>
+                        </div>
+                    </label>
+
+                    <!-- 5개씩 풀기 옵션 -->
+                    <label class="radio-option" style="padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer;">
+                        <input type="radio" name="learning-mode" value="section" onchange="updateGameModeUI()">
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                            <span style="font-weight: bold;">5개씩 풀기</span>
+                            <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">문제를 나눠서 풀어 꾸준한 학습을 유도합니다</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- 5개씩 풀기 선택 시: 섹션 목록 -->
+                <div id="section-list-container" style="display: none; margin-top: 20px;">
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">학습 섹션 선택</div>
+                    <div id="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 300px; overflow-y: auto;">
+                        <!-- 동적으로 생성됨 -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 16px; border-top: 1px solid var(--outline-variant);">
+                <button class="modal-btn modal-btn-cancel" onclick="closeGameModeModal()">취소</button>
+                <button class="modal-btn modal-btn-primary" id="start-game-with-mode-btn" onclick="startGameWithMode()">시작하기</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-content">
             <div class="modal-header">
