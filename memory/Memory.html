@@ -9056,6 +9056,13 @@
             }
         }
 
+        // 페이지 로드 시 설정 UI 초기화
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateSettingsUI);
+        } else {
+            updateSettingsUI();
+        }
+
         // 섹션 목록 생성 (Supabase 데이터와 localStorage 동기화)
         async function generateSectionList() {
             const sectionList = document.getElementById('section-list');
