@@ -5648,8 +5648,8 @@
             document.getElementById('settings-btn').addEventListener('click', () => {
                 document.getElementById('settings-modal').classList.add('active');
 
-                // 저장된 학습 방식 불러오기 (기본값: 전체풀기)
-                const savedLearningMode = localStorage.getItem('memory_learning_mode') || 'all';
+                // 저장된 학습 방식 불러오기 (기본값: 5개씩풀기)
+                const savedLearningMode = localStorage.getItem('memory_learning_mode') || 'section';
                 document.querySelector(`input[name="learning-mode-setting"][value="${savedLearningMode}"]`).checked = true;
 
                 // Load current settings (Default: TTV mode with 100% difficulty)
@@ -9445,17 +9445,17 @@
                 <div class="setting-group">
                     <label class="setting-label">학습 방식</label>
                     <div class="radio-group" style="display: flex; flex-direction: row; gap: 12px;">
-                        <input type="radio" name="learning-mode-setting" value="all" checked onchange="updateSettingsUI()" style="display: none;">
-                        <input type="radio" name="learning-mode-setting" value="section" onchange="updateSettingsUI()" style="display: none;">
+                        <input type="radio" name="learning-mode-setting" value="all" onchange="updateSettingsUI()" style="display: none;">
+                        <input type="radio" name="learning-mode-setting" value="section" checked onchange="updateSettingsUI()" style="display: none;">
 
-                        <div class="learning-mode-all" style="flex: 1; padding: 12px; border: 2px solid #4f46e5; border-radius: 8px; cursor: pointer; background-color: rgba(79, 70, 229, 0.1); transition: all 0.2s ease;" onclick="setLearningMode('all')">
+                        <div class="learning-mode-all" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onclick="setLearningMode('all')">
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <span style="font-weight: bold;">전체풀기</span>
                                 <p class="radio-description" style="margin: 0;">모든 문제를 한 번에</p>
                             </div>
                         </div>
 
-                        <div class="learning-mode-section" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onclick="setLearningMode('section')">
+                        <div class="learning-mode-section" style="flex: 1; padding: 12px; border: 2px solid #4f46e5; border-radius: 8px; cursor: pointer; background-color: rgba(79, 70, 229, 0.1); transition: all 0.2s ease;" onclick="setLearningMode('section')">
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <span style="font-weight: bold;">5개씩풀기</span>
                                 <p class="radio-description" style="margin: 0;">섹션별로 나눠서</p>
@@ -9468,17 +9468,17 @@
                 <div class="setting-group">
                     <label class="setting-label">게임 모드</label>
                     <div class="radio-group" style="display: flex; flex-direction: row; gap: 12px;">
-                        <input type="radio" name="game-mode" value="random" checked onchange="updateSettingsUI()" style="display: none;">
-                        <input type="radio" name="game-mode" value="bold" onchange="updateSettingsUI()" style="display: none;">
+                        <input type="radio" name="game-mode" value="random" onchange="updateSettingsUI()" style="display: none;">
+                        <input type="radio" name="game-mode" value="bold" checked onchange="updateSettingsUI()" style="display: none;">
 
-                        <div class="game-mode-random" style="flex: 1; padding: 12px; border: 2px solid #4f46e5; border-radius: 8px; cursor: pointer; background-color: rgba(79, 70, 229, 0.1); transition: all 0.2s ease;" onclick="setGameMode('random')">
+                        <div class="game-mode-random" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onclick="setGameMode('random')">
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <span style="font-weight: bold;">무작위 모드</span>
                                 <p class="radio-description" style="margin: 0;">저빈도 단어 중심으로 출제</p>
                             </div>
                         </div>
 
-                        <div class="game-mode-bold" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onclick="setGameMode('bold')">
+                        <div class="game-mode-bold" style="flex: 1; padding: 12px; border: 2px solid #4f46e5; border-radius: 8px; cursor: pointer; background-color: rgba(79, 70, 229, 0.1); transition: all 0.2s ease;" onclick="setGameMode('bold')">
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <span style="font-weight: bold;">TTV 모드</span>
                                 <p class="radio-description" style="margin: 0;">굵게 표시된 단어만 출제</p>
