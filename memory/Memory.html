@@ -9058,10 +9058,23 @@
 
         // 페이지 로드 시 설정 UI 초기화
         function initializeSettingsUI() {
-            // localStorage에서 저장된 설정값 복원
+            // localStorage에서 저장된 설정값 복원 (또는 기본값)
+            const savedLearningMode = localStorage.getItem('memory_learning_mode') || 'section';
             const savedGameMode = localStorage.getItem('memory_game_mode') || 'bold';
             // 게임 모드별로 다른 키에 저장되므로 둘 다 확인
             const savedDifficulty = localStorage.getItem(`memory_${savedGameMode}_difficulty`) || '100';
+
+            // 학습 방식 라디오 버튼 설정
+            const learningModeSectionRadio = document.querySelector('input[name="learning-mode-setting"][value="section"]');
+            const learningModeAllRadio = document.querySelector('input[name="learning-mode-setting"][value="all"]');
+
+            if (savedLearningMode === 'all' && learningModeAllRadio) {
+                learningModeAllRadio.checked = true;
+                learningModeSectionRadio.checked = false;
+            } else if (savedLearningMode === 'section' && learningModeSectionRadio) {
+                learningModeSectionRadio.checked = true;
+                learningModeAllRadio.checked = false;
+            }
 
             // 게임 모드 라디오 버튼 설정
             const gameModeBoldRadio = document.querySelector('input[name="game-mode"][value="bold"]');
@@ -9082,7 +9095,7 @@
                 document.getElementById('difficulty-percent').textContent = savedDifficulty;
             }
 
-            // UI 상태 업데이트
+            // UI 상태 업데이트 (이 함수가 section 모드일 때 무작위 모드와 슬라이더 비활성화)
             updateSettingsUI();
         }
 
