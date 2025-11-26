@@ -6612,13 +6612,6 @@
                             const altText = imageMatch[1].trim();
                             const imageUrl = imageMatch[2].trim();
                             if (altText && imageUrl && wordIndex < lyrics.length) {
-                                // 섹션 모드에서 범위 벗어난 이미지 스킵
-                                if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
-                                    wordIndex++;
-                                    remaining = remaining.substring(imageMatch[0].length);
-                                    return; // forEach 다음 셀로 (continue와 동일)
-                                }
-
                                 const imgEl = document.createElement('img');
                                 imgEl.src = imageUrl;
                                 imgEl.alt = altText;
@@ -6637,6 +6630,9 @@
                                     container.style.display = 'inline-block';
                                     container.style.margin = '0 4px';
 
+                                    // TTV 단어가 활성화되었는지 확인
+                                    const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
+
                                     const inputEl = document.createElement('input');
                                     inputEl.type = 'text';
                                     inputEl.className = 'word-input';
@@ -6652,6 +6648,15 @@
                                     inputEl.setAttribute('autocapitalize', 'off');
                                     inputEl.spellcheck = 'false';
 
+                                    // 비활성 TTV는 입력 불가, 어두운 배경
+                                    if (!isActiveTTV && learningMode === 'section') {
+                                        inputEl.disabled = true;
+                                        inputEl.style.backgroundColor = '#f0f0f0';
+                                        inputEl.style.color = '#999';
+                                        inputEl.style.cursor = 'not-allowed';
+                                        inputEl.style.borderColor = '#ddd';
+                                    }
+
                                     setInputWidth(inputEl, altText);
                                     blankOrder++;
 
@@ -6666,13 +6671,6 @@
                         } else if (boldMatch) {
                             const word = boldMatch[1].trim();
                             if (word && wordIndex < lyrics.length) {
-                                // 섹션 모드에서 범위 벗어난 단어 스킵
-                                if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
-                                    wordIndex++;
-                                    remaining = remaining.substring(boldMatch[0].length);
-                                    return; // forEach 다음 셀로
-                                }
-
                                 const wordEl = document.createElement('span');
                                 wordEl.style.display = 'inline-block';
                                 wordEl.style.margin = '0 4px';
@@ -6680,6 +6678,9 @@
                                 if (blanks.includes(wordIndex)) {
                                     const container = document.createElement('span');
                                     container.className = 'word-blank-container';
+
+                                    // TTV 단어가 활성화되었는지 확인
+                                    const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
 
                                     const inputEl = document.createElement('input');
                                     inputEl.type = 'text';
@@ -6693,6 +6694,15 @@
                                     inputEl.setAttribute('autocorrect', 'off');
                                     inputEl.setAttribute('autocapitalize', 'off');
                                     inputEl.spellcheck = 'false';
+
+                                    // 비활성 TTV는 입력 불가, 어두운 배경
+                                    if (!isActiveTTV && learningMode === 'section') {
+                                        inputEl.disabled = true;
+                                        inputEl.style.backgroundColor = '#f0f0f0';
+                                        inputEl.style.color = '#999';
+                                        inputEl.style.cursor = 'not-allowed';
+                                        inputEl.style.borderColor = '#ddd';
+                                    }
 
                                     // 단어 길이에 따라 입력 필드 너비 조정
                                     const wordLength = word.length;
@@ -6749,13 +6759,6 @@
                             // Italic 단어 (blank에 포함되지 않음 - 표시만 함)
                             const word = italicMatch[1].trim();
                             if (word && wordIndex < lyrics.length) {
-                                // 섹션 모드에서 범위 벗어난 단어 스킵
-                                if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
-                                    wordIndex++;
-                                    remaining = remaining.substring(italicMatch[0].length);
-                                    return; // forEach 다음 셀로
-                                }
-
                                 const wordEl = document.createElement('span');
                                 wordEl.style.display = 'inline-block';
                                 wordEl.style.margin = '0 4px';
@@ -6777,12 +6780,6 @@
                                 const words = nonBoldMatch[1].split(/[\s]+/).filter(w => w.length > 0);
                                 words.forEach(word => {
                                     if (wordIndex < lyrics.length) {
-                                        // 섹션 모드에서 범위 벗어난 단어 스킵
-                                        if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
-                                            wordIndex++;
-                                            return; // forEach 다음 반복으로
-                                        }
-
                                         const wordEl = document.createElement('span');
                                         wordEl.style.display = 'inline-block';
                                         wordEl.style.margin = '0 4px';
@@ -6790,6 +6787,9 @@
                                         if (blanks.includes(wordIndex)) {
                                             const container = document.createElement('span');
                                             container.className = 'word-blank-container';
+
+                                            // TTV 단어가 활성화되었는지 확인
+                                            const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
 
                                             const inputEl = document.createElement('input');
                                             inputEl.type = 'text';
@@ -6803,6 +6803,15 @@
                                             inputEl.setAttribute('autocorrect', 'off');
                                             inputEl.setAttribute('autocapitalize', 'off');
                                             inputEl.spellcheck = 'false';
+
+                                            // 비활성 TTV는 입력 불가, 어두운 배경
+                                            if (!isActiveTTV && learningMode === 'section') {
+                                                inputEl.disabled = true;
+                                                inputEl.style.backgroundColor = '#f0f0f0';
+                                                inputEl.style.color = '#999';
+                                                inputEl.style.cursor = 'not-allowed';
+                                                inputEl.style.borderColor = '#ddd';
+                                            }
 
                                             // 단어 길이에 따라 입력 필드 너비 조정
                                             const wordLength = word.length;
