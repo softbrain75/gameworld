@@ -7776,6 +7776,17 @@
             gameState = 'gameover';
             document.getElementById('final-score').textContent = `${finalScore}점`;
 
+            // 디버깅: 섹션 수료 저장 조건 확인
+            console.log('📋 endGame 함수 시작 - 조건 확인:', {
+                learningMode,
+                finalScore,
+                selectedSectionRange,
+                condition1_learningMode: learningMode === 'section',
+                condition2_finalScore: finalScore === 100,
+                condition3_selectedSectionRange: !!selectedSectionRange,
+                allConditionsMet: learningMode === 'section' && finalScore === 100 && selectedSectionRange
+            });
+
             // 입력하지 않은 빈칸들은 correctAnswers에서 제거 (미입력=오답)
             blanks.forEach(blankIndex => {
                 const input = document.querySelector(`.word-input[data-blank-index="${blankIndex}"]`);
