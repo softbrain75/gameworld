@@ -4104,11 +4104,6 @@
                 updateDeleteButtonState();
             });
 
-            // 파일 관리 모달 삭제 버튼
-            document.getElementById('file-management-delete-btn').addEventListener('click', async () => {
-                await deleteSelectedFiles();
-            });
-
             // 시험 파일 성적 조회
             if (testResultsBtn) {
                 testResultsBtn.addEventListener('click', () => {
@@ -5263,6 +5258,11 @@
                     });
                     updateDeleteButtonState();
                 }
+            });
+
+            // 파일 관리 모달 삭제 버튼 (함수 정의 후에 호출)
+            document.getElementById('file-management-delete-btn').addEventListener('click', async () => {
+                await deleteSelectedFiles();
             });
 
             // Play game with Supabase file
