@@ -5647,12 +5647,17 @@
             // Settings button
             document.getElementById('settings-btn').addEventListener('click', () => {
                 document.getElementById('settings-modal').classList.add('active');
+
+                // 저장된 학습 방식 불러오기 (기본값: 전체풀기)
+                const savedLearningMode = localStorage.getItem('memory_learning_mode') || 'all';
+                document.querySelector(`input[name="learning-mode-setting"][value="${savedLearningMode}"]`).checked = true;
+
                 // Load current settings (Default: TTV mode with 100% difficulty)
                 const currentMode = localStorage.getItem('memory_game_mode') || 'bold';
                 document.querySelector(`input[name="game-mode"][value="${currentMode}"]`).checked = true;
 
-                // Update difficulty UI to show current mode's difficulty
-                updateDifficultyUI();
+                // 설정 모달 UI 업데이트 (학습 방식에 따른 게임 모드/출제비율 조정)
+                updateSettingsUI();
             });
 
             // 로그인 버튼 클릭 이벤트
@@ -6027,13 +6032,18 @@
 
             // Save settings
             document.getElementById('save-settings-btn').addEventListener('click', () => {
-                const selectedMode = document.querySelector('input[name="game-mode"]:checked').value;
+                const selectedLearningMode = document.querySelector('input[name="learning-mode-setting"]:checked').value;
+                const selectedGameMode = document.querySelector('input[name="game-mode"]:checked').value;
                 const difficulty = parseInt(document.getElementById('difficulty-slider').value);
 
-                localStorage.setItem('memory_game_mode', selectedMode);
+                // 학습 방식 저장 (전체풀기 또는 5개씩풀기)
+                localStorage.setItem('memory_learning_mode', selectedLearningMode);
 
-                // Save difficulty for the selected mode
-                if (selectedMode === 'random') {
+                // 게임 모드 저장
+                localStorage.setItem('memory_game_mode', selectedGameMode);
+
+                // 출제비율 저장
+                if (selectedGameMode === 'random') {
                     localStorage.setItem('memory_random_difficulty', difficulty);
                 } else {
                     localStorage.setItem('memory_bold_difficulty', difficulty);
@@ -8781,21 +8791,147 @@
             modal.style.display = 'none';
         }
 
+        // 모달 내 난이도 슬라이더 레이블 업데이트
+        function updateModalDifficultyLabel() {
+            const slider = document.getElementById('modal-difficulty-slider');
+            const label = document.getElementById('modal-difficulty-percent');
+            if (slider && label) {
+                label.textContent = slider.value;
+            }
+        }
+
         // 게임 모드 UI 업데이트
         function updateGameModeUI() {
             const selectedMode = document.querySelector('input[name="learning-mode"]:checked').value;
             const sectionListContainer = document.getElementById('section-list-container');
 
+            // 게임 모드 선택지
+            const randomModeRadio = document.querySelector('input[name="game-mode-in-modal"][value="random"]');
+            const boldModeRadio = document.querySelector('input[name="game-mode-in-modal"][value="bold"]');
+            const randomModeLabel = randomModeRadio?.parentElement;
+            const boldModeLabel = boldModeRadio?.parentElement;
+
+            // 출제비율 슬라이더
+            const difficultySlider = document.getElementById('modal-difficulty-slider');
+            const difficultyLabel = document.querySelector('label[style*="margin-bottom: 8px"]');
+
             if (selectedMode === 'section') {
+                // 5개씩 풀기 선택
                 sectionListContainer.style.display = 'block';
+
+                // 무작위 모드 비활성화
+                if (randomModeRadio) {
+                    randomModeRadio.disabled = true;
+                    if (randomModeLabel) randomModeLabel.style.opacity = '0.5';
+                    if (randomModeLabel) randomModeLabel.style.cursor = 'not-allowed';
+                }
+
+                // TTV 모드 활성화 및 자동 선택
+                if (boldModeRadio) {
+                    boldModeRadio.disabled = false;
+                    boldModeRadio.checked = true;
+                    if (boldModeLabel) boldModeLabel.style.opacity = '1';
+                    if (boldModeLabel) boldModeLabel.style.cursor = 'pointer';
+                }
+
+                // 출제비율 100%로 고정
+                if (difficultySlider) {
+                    difficultySlider.value = '100';
+                    difficultySlider.disabled = true;
+                    difficultySlider.style.opacity = '0.5';
+                    document.getElementById('modal-difficulty-percent').textContent = '100';
+                }
+
                 // 첫 섹션을 기본으로 선택
                 const firstSectionBtn = document.querySelector('.section-btn');
                 if (firstSectionBtn) {
                     firstSectionBtn.click();
                 }
             } else {
+                // 전체풀기 선택
                 sectionListContainer.style.display = 'none';
                 selectedSectionRange = null;
+
+                // 모든 게임 모드 활성화
+                if (randomModeRadio) {
+                    randomModeRadio.disabled = false;
+                    if (randomModeLabel) randomModeLabel.style.opacity = '1';
+                    if (randomModeLabel) randomModeLabel.style.cursor = 'pointer';
+                }
+
+                if (boldModeRadio) {
+                    boldModeRadio.disabled = false;
+                    if (boldModeLabel) boldModeLabel.style.opacity = '1';
+                    if (boldModeLabel) boldModeLabel.style.cursor = 'pointer';
+                }
+
+                // 출제비율 활성화
+                if (difficultySlider) {
+                    difficultySlider.disabled = false;
+                    difficultySlider.style.opacity = '1';
+                }
+            }
+        }
+
+        // 설정 모달 UI 업데이트 (학습 방식 선택에 따른 게임 모드 및 출제비율 조정)
+        function updateSettingsUI() {
+            const selectedMode = document.querySelector('input[name="learning-mode-setting"]:checked').value;
+
+            // 게임 모드 라디오 버튼 및 레이블
+            const randomModeRadio = document.querySelector('input[name="game-mode"][value="random"]');
+            const boldModeRadio = document.querySelector('input[name="game-mode"][value="bold"]');
+            const randomModeLabel = randomModeRadio?.parentElement;
+            const boldModeLabel = boldModeRadio?.parentElement;
+
+            // 출제비율 슬라이더
+            const difficultySlider = document.getElementById('difficulty-slider');
+
+            if (selectedMode === 'section') {
+                // 5개씩 풀기 모드일 때의 설정
+                // 무작위 모드: 비활성화 (선택 불가, 희미하게 표시)
+                if (randomModeRadio) {
+                    randomModeRadio.disabled = true;
+                    if (randomModeLabel) randomModeLabel.style.opacity = '0.5';
+                    if (randomModeLabel) randomModeLabel.style.cursor = 'not-allowed';
+                }
+
+                // TTV 모드: 자동 선택 및 활성화
+                if (boldModeRadio) {
+                    boldModeRadio.disabled = false;
+                    boldModeRadio.checked = true;
+                    if (boldModeLabel) boldModeLabel.style.opacity = '1';
+                    if (boldModeLabel) boldModeLabel.style.cursor = 'pointer';
+                }
+
+                // 출제비율: 100%로 고정 (슬라이더 비활성화)
+                if (difficultySlider) {
+                    difficultySlider.value = '100';
+                    difficultySlider.disabled = true;
+                    difficultySlider.style.opacity = '0.5';
+                    difficultySlider.style.cursor = 'not-allowed';
+                    document.getElementById('difficulty-percent').textContent = '100';
+                }
+            } else {
+                // 전체풀기 모드일 때의 설정
+                // 모든 게임 모드: 활성화
+                if (randomModeRadio) {
+                    randomModeRadio.disabled = false;
+                    if (randomModeLabel) randomModeLabel.style.opacity = '1';
+                    if (randomModeLabel) randomModeLabel.style.cursor = 'pointer';
+                }
+
+                if (boldModeRadio) {
+                    boldModeRadio.disabled = false;
+                    if (boldModeLabel) boldModeLabel.style.opacity = '1';
+                    if (boldModeLabel) boldModeLabel.style.cursor = 'pointer';
+                }
+
+                // 출제비율: 활성화 (슬라이더 사용 가능)
+                if (difficultySlider) {
+                    difficultySlider.disabled = false;
+                    difficultySlider.style.opacity = '1';
+                    difficultySlider.style.cursor = 'pointer';
+                }
             }
         }
 
@@ -8881,7 +9017,14 @@
 
         // 선택된 모드로 게임 시작
         function startGameWithMode() {
+            // 설정 모달에서 선택한 학습 방식 불러오기
             learningMode = document.querySelector('input[name="learning-mode"]:checked').value;
+
+            // 게임 모드 선택 모달이 있으면 거기서, 없으면 저장된 설정에서 불러오기
+            if (!document.querySelector('input[name="learning-mode"]:checked')) {
+                learningMode = localStorage.getItem('memory_learning_mode') || 'all';
+            }
+
             console.log('🎮 게임 시작 - 모드:', learningMode, '선택섹션:', selectedSectionRange);
 
             closeGameModeModal();
@@ -9216,30 +9359,63 @@
             </div>
             <div class="modal-body" style="padding: 20px;">
                 <div style="display: flex; flex-direction: column; gap: 16px;">
-                    <!-- 전체 풀기 옵션 -->
-                    <label class="radio-option" style="padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer;">
-                        <input type="radio" name="learning-mode" value="all" checked onchange="updateGameModeUI()">
-                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
-                            <span style="font-weight: bold;">전체 풀기</span>
-                            <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">모든 문제를 한 번에 풀고 점수를 획득합니다</p>
-                        </div>
-                    </label>
+                    <!-- 학습 방식 선택 -->
+                    <div>
+                        <label style="font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block;">학습 방식</label>
+                        <div style="display: flex; gap: 12px;">
+                            <!-- 전체 풀기 옵션 -->
+                            <label class="radio-option" style="padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer; flex: 1;">
+                                <input type="radio" name="learning-mode" value="all" checked onchange="updateGameModeUI()">
+                                <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                                    <span style="font-weight: bold;">전체 풀기</span>
+                                    <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">모든 문제를 한 번에</p>
+                                </div>
+                            </label>
 
-                    <!-- 5개씩 풀기 옵션 -->
-                    <label class="radio-option" style="padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer;">
-                        <input type="radio" name="learning-mode" value="section" onchange="updateGameModeUI()">
-                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
-                            <span style="font-weight: bold;">5개씩 풀기</span>
-                            <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">문제를 나눠서 풀어 꾸준한 학습을 유도합니다</p>
+                            <!-- 5개씩 풀기 옵션 -->
+                            <label class="radio-option" style="padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer; flex: 1;">
+                                <input type="radio" name="learning-mode" value="section" onchange="updateGameModeUI()">
+                                <div style="display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                                    <span style="font-weight: bold;">5개씩 풀기</span>
+                                    <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">섹션별로 나눠서</p>
+                                </div>
+                            </label>
                         </div>
-                    </label>
-                </div>
+                    </div>
 
-                <!-- 5개씩 풀기 선택 시: 섹션 목록 -->
-                <div id="section-list-container" style="display: none; margin-top: 20px;">
-                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">학습 섹션 선택</div>
-                    <div id="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 300px; overflow-y: auto;">
-                        <!-- 동적으로 생성됨 -->
+                    <!-- 게임 모드 선택 -->
+                    <div>
+                        <label style="font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block;">게임 모드</label>
+                        <div class="radio-group" style="display: flex; flex-direction: column; gap: 8px;">
+                            <label class="radio-option" style="padding: 10px; cursor: pointer;">
+                                <input type="radio" name="game-mode-in-modal" value="random" checked onchange="updateGameModeUI()">
+                                <span style="font-weight: 500;">무작위 모드</span>
+                            </label>
+                            <label class="radio-option" style="padding: 10px; cursor: pointer;">
+                                <input type="radio" name="game-mode-in-modal" value="bold" onchange="updateGameModeUI()">
+                                <span style="font-weight: 500;">TTV 모드</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 출제비율 슬라이더 -->
+                    <div>
+                        <label style="font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block;">출제비율: <span id="modal-difficulty-percent">100</span>%</label>
+                        <div class="slider-container">
+                            <input type="range" id="modal-difficulty-slider" class="difficulty-slider" min="33" max="100" value="100" step="1" onchange="updateModalDifficultyLabel()">
+                            <div class="slider-labels" style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px;">
+                                <span>쉬움</span>
+                                <span>어려움</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5개씩 풀기 선택 시: 섹션 목록 -->
+                    <div id="section-list-container" style="display: none; margin-top: 20px;">
+                        <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">학습 섹션 선택</div>
+                        <div id="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 300px; overflow-y: auto;">
+                            <!-- 동적으로 생성됨 -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -9259,16 +9435,38 @@
                 </button>
             </div>
             <div class="modal-body">
+                <!-- 학습 방식 선택 -->
+                <div class="setting-group">
+                    <label class="setting-label">학습 방식</label>
+                    <div class="radio-group" style="display: flex; gap: 12px;">
+                        <label class="radio-option" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px;">
+                            <input type="radio" name="learning-mode-setting" value="all" checked onchange="updateSettingsUI()">
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-weight: bold;">전체 풀기</span>
+                                <p class="radio-description" style="margin: 0;">모든 문제를 한 번에</p>
+                            </div>
+                        </label>
+                        <label class="radio-option" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px;">
+                            <input type="radio" name="learning-mode-setting" value="section" onchange="updateSettingsUI()">
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <span style="font-weight: bold;">5개씩 풀기</span>
+                                <p class="radio-description" style="margin: 0;">섹션별로 나눠서</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 게임 모드 선택 -->
                 <div class="setting-group">
                     <label class="setting-label">게임 모드</label>
                     <div class="radio-group">
                         <label class="radio-option">
-                            <input type="radio" name="game-mode" value="random" checked onchange="updateDifficultyUI()">
+                            <input type="radio" name="game-mode" value="random" checked onchange="updateSettingsUI()">
                             <span>무작위 모드</span>
                             <p class="radio-description">저빈도 단어 중심으로 출제</p>
                         </label>
                         <label class="radio-option">
-                            <input type="radio" name="game-mode" value="bold" onchange="updateDifficultyUI()">
+                            <input type="radio" name="game-mode" value="bold" onchange="updateSettingsUI()">
                             <span>TTV 모드</span>
                             <p class="radio-description">굵게 표시된 단어만 출제</p>
                         </label>
@@ -9282,7 +9480,7 @@
                         <span class="difficulty-hint" id="difficulty-hint"></span>
                     </div>
                     <div class="slider-container">
-                        <input type="range" id="difficulty-slider" class="difficulty-slider" min="33" max="100" value="100" step="1">
+                        <input type="range" id="difficulty-slider" class="difficulty-slider" min="33" max="100" value="100" step="1" onchange="document.getElementById('difficulty-percent').textContent = this.value;">
                         <div class="slider-labels">
                             <span>쉬움</span>
                             <span>어려움</span>
