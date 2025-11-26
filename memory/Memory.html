@@ -8987,37 +8987,17 @@
 
                 btn.addEventListener('click', () => selectSection(startWordIndex, endWordIndex, btn));
 
-                // 첫 번째 섹션 기본 선택
-                if (i === 0) {
-                    btn.click();
-                }
-
                 sectionList.appendChild(btn);
                 console.log(`📍 섹션 ${i + 1}단계: 단어 범위 ${startWordIndex}-${endWordIndex}, 상태: ${isCompleted ? `수료(${completionScore}점)` : '미수료'}`);
             }
         }
 
-        // 섹션 선택
+        // 섹션 선택 및 게임 즉시 시작
         function selectSection(start, end, btnElement) {
             selectedSectionRange = { start, end };
             // start와 end는 문맥을 포함한 단어 인덱스 범위
             console.log('✅ TTV 섹션 선택됨: 단어', start, '-', end, '(문맥 포함)');
 
-            // 다른 버튼의 스타일 제거
-            document.querySelectorAll('.section-btn').forEach(btn => {
-                btn.style.background = 'var(--surface)';
-                btn.style.borderColor = 'var(--outline-variant)';
-                btn.style.color = 'var(--text-primary)';
-            });
-
-            // 선택된 버튼 스타일
-            btnElement.style.background = 'var(--primary)';
-            btnElement.style.borderColor = 'var(--primary)';
-            btnElement.style.color = 'white';
-        }
-
-        // 선택된 모드로 게임 시작
-        function startGameWithMode() {
             // 저장된 학습 방식 불러오기 (이 함수는 5개씩풀기일 때만 호출되므로 'section' 고정)
             learningMode = 'section';
 
@@ -9343,27 +9323,23 @@
         </div>
     </div>
 
-    <!-- 섹션 선택 모달 (5개씩 풀기) -->
+    <!-- 학습단계 선택 모달 (5개씩 풀기) -->
     <div class="modal-overlay" id="game-mode-selection-modal" style="display: none; z-index: 10000;">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header-common">
-                <h3>학습 섹션 선택</h3>
+                <h3>학습 단계 선택</h3>
                 <button class="modal-close-btn" onclick="closeGameModeModal()">
                     <span class="material-icons">close</span>
                 </button>
             </div>
             <div class="modal-body" style="padding: 20px;">
-                <!-- 섹션 목록 -->
+                <!-- 학습단계 목록 -->
                 <div>
-                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">학습할 섹션을 선택하세요</div>
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 12px;">학습할 단계를 선택하세요</div>
                     <div id="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 400px; overflow-y: auto;">
                         <!-- 동적으로 생성됨 -->
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer" style="padding: 16px; border-top: 1px solid var(--outline-variant);">
-                <button class="modal-btn modal-btn-cancel" onclick="closeGameModeModal()">취소</button>
-                <button class="modal-btn modal-btn-primary" id="start-game-with-mode-btn" onclick="startGameWithMode()">시작하기</button>
             </div>
         </div>
     </div>
