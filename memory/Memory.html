@@ -6453,8 +6453,9 @@
             // 5개씩 풀기 모드: boldWords를 섹션으로 필터링
             let sectionBoldWords = boldWords;
             if (learningMode === 'section' && selectedSectionRange) {
-                sectionBoldWords = boldWords.filter(idx => idx >= selectedSectionRange.start && idx < selectedSectionRange.end);
-                console.log('📍 섹션 필터링 - 원본:', boldWords.length, '필터됨:', sectionBoldWords.length, '범위:', selectedSectionRange);
+                // selectedSectionRange는 실제 단어 인덱스 범위 (start, end 포함)
+                sectionBoldWords = boldWords.filter(idx => idx >= selectedSectionRange.start && idx <= selectedSectionRange.end);
+                console.log('📍 TTV 섹션 필터링 - 원본:', boldWords.length, '필터됨:', sectionBoldWords.length, '범위:', selectedSectionRange);
             }
 
             if (wrongOnly) {
@@ -6466,8 +6467,15 @@
                 console.log('wrongOnly 실행 후 - blanks:', blanks);
                 hintCount = 3;
             } else if (gameMode === 'bold') {
-                // TTV 모드: 난이도 설정 적용
-                const boldDifficulty = parseInt(localStorage.getItem('memory_bold_difficulty') || '100');
+                // TTV 모드: 섹션 모드일 때는 100% 출제, 아니면 난이도 설정 적용
+                let boldDifficulty = parseInt(localStorage.getItem('memory_bold_difficulty') || '100');
+
+                // 섹션 모드에서는 항상 100% 출제
+                if (learningMode === 'section') {
+                    boldDifficulty = 100;
+                    console.log('📍 섹션 모드: TTV 100% 출제 강제 적용');
+                }
+
                 const numBlanks = Math.ceil(sectionBoldWords.length * (boldDifficulty / 100));
 
                 // 무작위로 선택
@@ -6475,7 +6483,7 @@
                 blanks = shuffledBoldWords.slice(0, numBlanks).sort((a, b) => a - b);
                 hintCount = 3;
 
-                console.log('🎯 TTV 모드:', { boldDifficulty, totalBoldWords: sectionBoldWords.length, numBlanks, blanks });
+                console.log('🎯 TTV 모드:', { boldDifficulty, totalBoldWords: sectionBoldWords.length, numBlanks, isSectionMode: learningMode === 'section', blanks });
             } else {
                 // 무작위 모드: 난이도 설정 적용
                 blanks = [];
@@ -7043,13 +7051,14 @@
             let sectionLyricsIndices = new Set(); // 렌더링할 lyrics 인덱스들
 
             if (learningMode === 'section' && selectedSectionRange) {
+                // 섹션 모드: selectedSectionRange는 실제 단어 인덱스 범위
                 renderStartIndex = selectedSectionRange.start;
-                renderEndIndex = selectedSectionRange.end;
-                // 렌더링할 인덱스 범위 설정
-                for (let idx = renderStartIndex; idx < renderEndIndex; idx++) {
+                renderEndIndex = selectedSectionRange.end + 1; // end는 포함되므로 +1
+                // 렌더링할 인덱스 범위 설정 (selectedSectionRange 내의 모든 boldWords 인덱스)
+                for (let idx = renderStartIndex; idx <= selectedSectionRange.end; idx++) {
                     sectionLyricsIndices.add(idx);
                 }
-                console.log('📍 섹션 렌더링 범위:', renderStartIndex, '-', renderEndIndex, '개수:', sectionLyricsIndices.size, 'blanks 필터링:', blanks);
+                console.log('📍 TTV 섹션 렌더링 범위:', renderStartIndex, '-', selectedSectionRange.end, '개수:', sectionLyricsIndices.size, 'blanks:', blanks);
             } else {
                 // 전체 풀기: 모든 인덱스 포함
                 for (let idx = 0; idx < lyrics.length; idx++) {
@@ -8725,18 +8734,23 @@
             const sectionList = document.getElementById('section-list');
             sectionList.innerHTML = '';
 
-            const totalBlanksForModal = boldWords.length; // 현재 게임의 전체 문제 수
-            const totalSections = Math.ceil(totalBlanksForModal / sectionSize);
+            // TTV 단어 기준으로 섹션 나누기
+            const totalTTVWords = boldWords.length; // TTV 단어 개수
+            const totalSections = Math.ceil(totalTTVWords / sectionSize);
 
-            console.log('📊 섹션 생성 - 전체 문제:', totalBlanksForModal, '섹션수:', totalSections);
+            console.log('📊 TTV 기준 섹션 생성 - 전체 TTV 단어:', totalTTVWords, '섹션수:', totalSections);
 
             for (let i = 0; i < totalSections; i++) {
-                const start = i * sectionSize;
-                const end = Math.min((i + 1) * sectionSize, totalBlanksForModal);
+                const startTTVIndex = i * sectionSize; // TTV 배열 인덱스
+                const endTTVIndex = Math.min((i + 1) * sectionSize, totalTTVWords);
+
+                // boldWords 배열의 실제 값 (단어의 인덱스)
+                const startWordIndex = boldWords[startTTVIndex];
+                const endWordIndex = boldWords[endTTVIndex - 1];
 
                 const btn = document.createElement('button');
                 btn.className = 'section-btn';
-                btn.textContent = `${start + 1}-${end}번`;
+                btn.textContent = `TTV ${startTTVIndex + 1}-${endTTVIndex}개`;
                 btn.style.cssText = `
                     padding: 8px 12px;
                     border: 1px solid var(--outline-variant);
@@ -8748,7 +8762,7 @@
                     font-size: 13px;
                 `;
 
-                btn.addEventListener('click', () => selectSection(start, end, btn));
+                btn.addEventListener('click', () => selectSection(startWordIndex, endWordIndex, btn));
 
                 // 첫 번째 섹션 기본 선택
                 if (i === 0) {
@@ -8762,7 +8776,8 @@
         // 섹션 선택
         function selectSection(start, end, btnElement) {
             selectedSectionRange = { start, end };
-            console.log('✅ 섹션 선택됨:', start + 1, '-', end, '번');
+            // start와 end는 이제 실제 단어 인덱스
+            console.log('✅ TTV 섹션 선택됨:', start, '-', end, '(단어 인덱스 범위)');
 
             // 다른 버튼의 스타일 제거
             document.querySelectorAll('.section-btn').forEach(btn => {
