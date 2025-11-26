@@ -9057,10 +9057,39 @@
         }
 
         // 페이지 로드 시 설정 UI 초기화
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', updateSettingsUI);
-        } else {
+        function initializeSettingsUI() {
+            // localStorage에서 저장된 설정값 복원
+            const savedGameMode = localStorage.getItem('memory_game_mode') || 'bold';
+            // 게임 모드별로 다른 키에 저장되므로 둘 다 확인
+            const savedDifficulty = localStorage.getItem(`memory_${savedGameMode}_difficulty`) || '100';
+
+            // 게임 모드 라디오 버튼 설정
+            const gameModeBoldRadio = document.querySelector('input[name="game-mode"][value="bold"]');
+            const gameModeRandomRadio = document.querySelector('input[name="game-mode"][value="random"]');
+
+            if (savedGameMode === 'random' && gameModeRandomRadio) {
+                gameModeRandomRadio.checked = true;
+                gameModeBoldRadio.checked = false;
+            } else if (savedGameMode === 'bold' && gameModeBoldRadio) {
+                gameModeBoldRadio.checked = true;
+                gameModeRandomRadio.checked = false;
+            }
+
+            // 출제비율 슬라이더 설정
+            const difficultySlider = document.getElementById('difficulty-slider');
+            if (difficultySlider) {
+                difficultySlider.value = savedDifficulty;
+                document.getElementById('difficulty-percent').textContent = savedDifficulty;
+            }
+
+            // UI 상태 업데이트
             updateSettingsUI();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeSettingsUI);
+        } else {
+            initializeSettingsUI();
         }
 
         // 섹션 목록 생성 (Supabase 데이터와 localStorage 동기화)
