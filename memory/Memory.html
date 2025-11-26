@@ -7627,7 +7627,11 @@
                 return;
             }
 
-            const inputs = document.querySelectorAll('.word-input');
+            // 현재 게임 섹션의 입력 필드만 선택 (이전 게임의 입력 필드 제외)
+            const gameSection = document.getElementById('game-section');
+            const inputs = gameSection ? gameSection.querySelectorAll('.word-input') : document.querySelectorAll('.word-input');
+            console.log('📝 submitGame - 현재 입력 필드 개수:', inputs.length, 'blanks 개수:', blanks.length);
+
             let totalCorrect = 0;
 
             // 제출 시 correctAnswers와 hintUsedAnswers 초기화
