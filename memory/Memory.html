@@ -6280,7 +6280,7 @@
         // Game State
         let gameState = 'menu';
         let difficulty = 'medium';
-        let gameMode = 'random'; // 'random' or 'bold'
+        let gameMode = 'bold'; // 'random' or 'bold' (기본값: TTV 모드)
         let lyrics = [];
         let boldWords = [];
         let originalMarkdown = '';
@@ -6292,7 +6292,7 @@
         let parsedItalicWordIndices = []; // 파일 파싱 시 발견된 italic 단어의 인덱스 (게임 로드 시 복원용)
         let imageMetadata = []; // 이미지 메타데이터 저장 {wordIndex, url, alt}
         let currentBlankIndex = -1;
-        let learningMode = 'all'; // 'all' = 전체 풀기, 'section' = 5개씩 풀기
+        let learningMode = 'section'; // 'all' = 전체 풀기, 'section' = 5개씩 풀기 (기본값: 5개씩풀기)
         let selectedSectionRange = null; // {start: 0, end: 4} 형식
         let sectionSize = 5; // 5개씩
         let correctCount = 0;
