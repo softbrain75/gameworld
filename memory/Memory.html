@@ -8973,6 +8973,7 @@
 
         function updateSettingsUI() {
             const selectedMode = document.querySelector('input[name="learning-mode-setting"]:checked').value;
+            console.log('🎨 updateSettingsUI - Learning Mode:', selectedMode);
 
             // 게임 모드 라디오 버튼 및 버튼 요소
             const randomModeRadio = document.querySelector('input[name="game-mode"][value="random"]');
@@ -8980,11 +8981,28 @@
             const randomModeBtn = document.querySelector('.game-mode-random');
             const boldModeBtn = document.querySelector('.game-mode-bold');
 
+            // 학습 방식 버튼
+            const learningModeAllBtn = document.querySelector('.learning-mode-all');
+            const learningModeSectionBtn = document.querySelector('.learning-mode-section');
+
             // 출제비율 슬라이더
             const difficultySlider = document.getElementById('difficulty-slider');
 
             if (selectedMode === 'section') {
-                // 5개씩 풀기 모드일 때의 설정
+                console.log('📋 Section Mode: 무작위 모드 비활성화, 출제비율 고정');
+
+                // 학습 방식 버튼 스타일 업데이트
+                if (learningModeAllBtn) {
+                    learningModeAllBtn.style.borderColor = 'var(--outline-variant)';
+                    learningModeAllBtn.style.backgroundColor = 'transparent';
+                    learningModeAllBtn.style.opacity = '1';
+                }
+                if (learningModeSectionBtn) {
+                    learningModeSectionBtn.style.borderColor = '#4f46e5';
+                    learningModeSectionBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                    learningModeSectionBtn.style.opacity = '1';
+                }
+
                 // 무작위 모드: 비활성화 (선택 불가, 희미하게 표시)
                 if (randomModeRadio) {
                     randomModeRadio.disabled = true;
@@ -8993,6 +9011,9 @@
                     randomModeBtn.style.opacity = '0.5';
                     randomModeBtn.style.cursor = 'not-allowed';
                     randomModeBtn.style.pointerEvents = 'none';
+                    randomModeBtn.style.borderColor = 'var(--outline-variant)';
+                    randomModeBtn.style.backgroundColor = 'transparent';
+                    console.log('❌ 무작위 모드: 비활성화 처리 완료');
                 }
 
                 // TTV 모드: 자동 선택 및 활성화
@@ -9006,6 +9027,7 @@
                     boldModeBtn.style.pointerEvents = 'auto';
                     boldModeBtn.style.borderColor = '#4f46e5';
                     boldModeBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                    console.log('✅ TTV 모드: 활성화 처리 완료');
                 }
 
                 // 출제비율: 100%로 고정 (슬라이더 비활성화)
@@ -9015,8 +9037,23 @@
                     difficultySlider.style.opacity = '0.5';
                     difficultySlider.style.cursor = 'not-allowed';
                     document.getElementById('difficulty-percent').textContent = '100';
+                    console.log('🔒 출제비율: 100% 고정, 슬라이더 비활성화');
                 }
             } else {
+                console.log('📋 Full Test Mode: 모든 모드 활성화, 출제비율 슬라이더 활성화');
+
+                // 학습 방식 버튼 스타일 업데이트
+                if (learningModeAllBtn) {
+                    learningModeAllBtn.style.borderColor = '#4f46e5';
+                    learningModeAllBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                    learningModeAllBtn.style.opacity = '1';
+                }
+                if (learningModeSectionBtn) {
+                    learningModeSectionBtn.style.borderColor = 'var(--outline-variant)';
+                    learningModeSectionBtn.style.backgroundColor = 'transparent';
+                    learningModeSectionBtn.style.opacity = '1';
+                }
+
                 // 전체풀기 모드일 때의 설정
                 // 모든 게임 모드: 활성화
                 if (randomModeRadio) {
@@ -9030,6 +9067,11 @@
                     if (randomModeRadio?.checked) {
                         randomModeBtn.style.borderColor = '#4f46e5';
                         randomModeBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                        console.log('✅ 무작위 모드: 활성화 (선택됨)');
+                    } else {
+                        randomModeBtn.style.borderColor = 'var(--outline-variant)';
+                        randomModeBtn.style.backgroundColor = 'transparent';
+                        console.log('⚪ 무작위 모드: 활성화 (미선택)');
                     }
                 }
 
@@ -9044,6 +9086,11 @@
                     if (boldModeRadio?.checked) {
                         boldModeBtn.style.borderColor = '#4f46e5';
                         boldModeBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                        console.log('✅ TTV 모드: 활성화 (선택됨)');
+                    } else {
+                        boldModeBtn.style.borderColor = 'var(--outline-variant)';
+                        boldModeBtn.style.backgroundColor = 'transparent';
+                        console.log('⚪ TTV 모드: 활성화 (미선택)');
                     }
                 }
 
@@ -9052,6 +9099,7 @@
                     difficultySlider.disabled = false;
                     difficultySlider.style.opacity = '1';
                     difficultySlider.style.cursor = 'pointer';
+                    console.log('🔓 출제비율: 활성화 (슬라이더 사용 가능)');
                 }
             }
         }
