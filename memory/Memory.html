@@ -8975,13 +8975,34 @@
                     border-color: ${isCompleted ? '#10b981' : 'var(--outline-variant)'};
                     color: ${isCompleted ? 'white' : 'var(--text-primary)'};
                     cursor: pointer;
-                    transition: all 0.2s ease;
+                    transition: all 0.15s ease;
                     font-size: 13px;
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
                     gap: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                 `;
+
+                // Hover 효과
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.transform = 'scale(1.05)';
+                    btn.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+                });
+
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'scale(1)';
+                    btn.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+                });
+
+                // 클릭 효과
+                btn.addEventListener('mousedown', () => {
+                    btn.style.transform = 'scale(0.98)';
+                });
+
+                btn.addEventListener('mouseup', () => {
+                    btn.style.transform = 'scale(1.05)';
+                });
 
                 btn.addEventListener('click', () => selectSection(startWordIndex, endWordIndex, btn));
 
