@@ -6450,12 +6450,13 @@
 
             console.log('📊 blanks 계산 중 - gameMode:', gameMode, 'learningMode:', learningMode, 'selectedSection:', selectedSectionRange);
 
-            // 5개씩 풀기 모드: boldWords를 섹션으로 필터링
-            let sectionBoldWords = boldWords;
+            // 섹션 모드: 섹션 범위에 속하는 TTV만 문제로 출제
+            // 전체 콘텐츠는 렌더링하되, 섹션 외의 TTV는 비활성화
+            let activeTTVWords = boldWords;
             if (learningMode === 'section' && selectedSectionRange) {
-                // selectedSectionRange는 실제 단어 인덱스 범위 (start, end 포함)
-                sectionBoldWords = boldWords.filter(idx => idx >= selectedSectionRange.start && idx <= selectedSectionRange.end);
-                console.log('📍 TTV 섹션 필터링 - 원본:', boldWords.length, '필터됨:', sectionBoldWords.length, '범위:', selectedSectionRange);
+                // 섹션 범위 내의 TTV만 활성화
+                activeTTVWords = boldWords.filter(idx => idx >= selectedSectionRange.start && idx <= selectedSectionRange.end);
+                console.log('📍 섹션 모드 - 활성 TTV:', activeTTVWords.length, '전체 TTV:', boldWords.length, '범위:', selectedSectionRange);
             }
 
             if (wrongOnly) {
@@ -6476,14 +6477,14 @@
                     console.log('📍 섹션 모드: TTV 100% 출제 강제 적용');
                 }
 
-                const numBlanks = Math.ceil(sectionBoldWords.length * (boldDifficulty / 100));
+                const numBlanks = Math.ceil(activeTTVWords.length * (boldDifficulty / 100));
 
                 // 무작위로 선택
-                const shuffledBoldWords = sectionBoldWords.slice().sort(() => Math.random() - 0.5);
-                blanks = shuffledBoldWords.slice(0, numBlanks).sort((a, b) => a - b);
+                const shuffledActiveTTVWords = activeTTVWords.slice().sort(() => Math.random() - 0.5);
+                blanks = shuffledActiveTTVWords.slice(0, numBlanks).sort((a, b) => a - b);
                 hintCount = 3;
 
-                console.log('🎯 TTV 모드:', { boldDifficulty, totalBoldWords: sectionBoldWords.length, numBlanks, isSectionMode: learningMode === 'section', blanks });
+                console.log('🎯 TTV 모드:', { boldDifficulty, activeTTVWords: activeTTVWords.length, totalBoldWords: boldWords.length, numBlanks, isSectionMode: learningMode === 'section', blanks });
             } else {
                 // 무작위 모드: 난이도 설정 적용
                 blanks = [];
@@ -7045,26 +7046,17 @@
             let blankOrder = 0;
             let wordIndex = 0;
 
-            // 섹션 필터링을 위한 설정 - renderTable 함수보다 먼저 정의
-            let renderStartIndex = 0;
-            let renderEndIndex = lyrics.length;
-            let sectionLyricsIndices = new Set(); // 렌더링할 lyrics 인덱스들
+            // 섹션 모드에서 활성화된 TTV 단어들
+            let activeTTVIndices = new Set(boldWords);
 
             if (learningMode === 'section' && selectedSectionRange) {
-                // 섹션 모드: selectedSectionRange는 실제 단어 인덱스 범위
-                renderStartIndex = selectedSectionRange.start;
-                renderEndIndex = selectedSectionRange.end + 1; // end는 포함되므로 +1
-                // 렌더링할 인덱스 범위 설정 (selectedSectionRange 내의 모든 boldWords 인덱스)
-                for (let idx = renderStartIndex; idx <= selectedSectionRange.end; idx++) {
-                    sectionLyricsIndices.add(idx);
-                }
-                console.log('📍 TTV 섹션 렌더링 범위:', renderStartIndex, '-', selectedSectionRange.end, '개수:', sectionLyricsIndices.size, 'blanks:', blanks);
+                // 섹션 범위에 속하는 TTV만 활성화
+                activeTTVIndices = new Set(
+                    boldWords.filter(idx => idx >= selectedSectionRange.start && idx <= selectedSectionRange.end)
+                );
+                console.log('📍 섹션 모드 - 활성 TTV:', Array.from(activeTTVIndices), '비활성 TTV:', boldWords.filter(idx => !activeTTVIndices.has(idx)));
             } else {
-                // 전체 풀기: 모든 인덱스 포함
-                for (let idx = 0; idx < lyrics.length; idx++) {
-                    sectionLyricsIndices.add(idx);
-                }
-                console.log('📍 전체 풀기 모드: 전체', lyrics.length, '개 단어');
+                console.log('📍 전체 풀기 모드: 모든 TTV 활성화');
             }
 
             // 원본 마크다운을 줄별로 처리
@@ -7100,19 +7092,12 @@
                         i++;
                     }
 
-                    // 표 렌더링
-                    const result = renderTable(tableLines, wordIndex, blankOrder, sectionLyricsIndices, learningMode, selectedSectionRange);
+                    // 표 렌더링 (전체 콘텐츠 렌더링)
+                    const result = renderTable(tableLines, wordIndex, blankOrder, activeTTVIndices, learningMode, selectedSectionRange);
                     testDisplay.appendChild(result.element);
                     wordIndex = result.wordIndex;
                     blankOrder = result.blankOrder;
                     console.log('📊 표 렌더링 완료 - 새로운 wordIndex:', wordIndex);
-                    continue;
-                }
-
-                // 섹션 범위 벗어나면 렌더링 중단
-                if (learningMode === 'section' && wordIndex >= renderEndIndex) {
-                    console.log('📊 섹션 렌더링 완료 - wordIndex:', wordIndex, 'renderEndIndex:', renderEndIndex);
-                    i++;
                     continue;
                 }
 
@@ -7136,13 +7121,6 @@
                         const altText = imageMatch[1].trim();
                         const imageUrl = imageMatch[2].trim();
                         if (altText && imageUrl && wordIndex < lyrics.length) {
-                            // 섹션 모드에서 범위 벗어난 이미지 스킵
-                            if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
-                                wordIndex++;
-                                remaining = remaining.substring(imageMatch[0].length);
-                                continue;
-                            }
-
                             const imageContainer = document.createElement('div');
                             imageContainer.style.display = 'flex';
                             imageContainer.style.flexDirection = 'column';
@@ -7166,6 +7144,9 @@
                                 const container = document.createElement('span');
                                 container.className = 'word-blank-container';
 
+                                // TTV 단어가 활성화되었는지 확인
+                                const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
+
                                 const inputEl = document.createElement('input');
                                 inputEl.type = 'text';
                                 inputEl.className = 'word-input';
@@ -7180,6 +7161,15 @@
                                 inputEl.setAttribute('autocorrect', 'off');
                                 inputEl.setAttribute('autocapitalize', 'off');
                                 inputEl.spellcheck = 'false';
+
+                                // 비활성 TTV는 입력 불가, 어두운 배경
+                                if (!isActiveTTV && learningMode === 'section') {
+                                    inputEl.disabled = true;
+                                    inputEl.style.backgroundColor = '#f0f0f0';
+                                    inputEl.style.color = '#999';
+                                    inputEl.style.cursor = 'not-allowed';
+                                    inputEl.style.borderColor = '#ddd';
+                                }
 
                                 setInputWidth(inputEl, altText);
                                 blankOrder++;
@@ -7197,13 +7187,6 @@
                         // Bold 단어
                         const word = boldMatch[1].trim();
                         if (word && wordIndex < lyrics.length) {
-                            // 섹션 모드에서 범위 벗어난 단어 스킵
-                            if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
-                                wordIndex++;
-                                remaining = remaining.substring(boldMatch[0].length);
-                                continue;
-                            }
-
                             const wordEl = document.createElement('span');
                             wordEl.className = 'lyric-word';
                             wordEl.style.display = 'inline-block';
@@ -7212,6 +7195,9 @@
                             if (blanks.includes(wordIndex)) {
                                 const container = document.createElement('span');
                                 container.className = 'word-blank-container';
+
+                                // TTV 단어가 활성화되었는지 확인
+                                const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
 
                                 const inputEl = document.createElement('input');
                                 inputEl.type = 'text';
@@ -7224,6 +7210,15 @@
                                 inputEl.setAttribute('autocorrect', 'off');
                                 inputEl.setAttribute('autocapitalize', 'off');
                                 inputEl.spellcheck = 'false';
+
+                                // 비활성 TTV는 입력 불가, 어두운 배경
+                                if (!isActiveTTV && learningMode === 'section') {
+                                    inputEl.disabled = true;
+                                    inputEl.style.backgroundColor = '#f0f0f0';
+                                    inputEl.style.color = '#999';
+                                    inputEl.style.cursor = 'not-allowed';
+                                    inputEl.style.borderColor = '#ddd';
+                                }
 
                                 // 단어 길이에 따라 입력 필드 너비 조정
                                 const wordLength = word.length;
@@ -7279,13 +7274,6 @@
                         // Italic 단어 (blank에 포함되지 않음 - 표시만 함)
                         const word = italicMatch[1].trim();
                         if (word && wordIndex < lyrics.length) {
-                            // 섹션 모드에서 범위 벗어난 단어 스킵
-                            if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
-                                wordIndex++;
-                                remaining = remaining.substring(italicMatch[0].length);
-                                continue;
-                            }
-
                             const wordEl = document.createElement('span');
                             wordEl.className = 'lyric-word';
                             wordEl.style.display = 'inline-block';
@@ -7309,12 +7297,6 @@
                             const words = text.split(/[\s]+/).filter(w => w.length > 0);
                             words.forEach(word => {
                                 if (wordIndex < lyrics.length) {
-                                    // 섹션 모드에서 범위 벗어난 단어 스킵
-                                    if (learningMode === 'section' && !sectionLyricsIndices.has(wordIndex)) {
-                                        wordIndex++;
-                                        return; // forEach 다음 반복으로 (continue와 동일)
-                                    }
-
                                     const wordEl = document.createElement('span');
                                     wordEl.className = 'lyric-word';
                                     wordEl.style.display = 'inline-block';
@@ -7323,6 +7305,9 @@
                                     if (blanks.includes(wordIndex)) {
                                         const container = document.createElement('span');
                                         container.className = 'word-blank-container';
+
+                                        // TTV 단어가 활성화되었는지 확인
+                                        const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
 
                                         const inputEl = document.createElement('input');
                                         inputEl.type = 'text';
@@ -7335,6 +7320,15 @@
                                         inputEl.setAttribute('autocorrect', 'off');
                                         inputEl.setAttribute('autocapitalize', 'off');
                                         inputEl.spellcheck = 'false';
+
+                                        // 비활성 TTV는 입력 불가, 어두운 배경
+                                        if (!isActiveTTV && learningMode === 'section') {
+                                            inputEl.disabled = true;
+                                            inputEl.style.backgroundColor = '#f0f0f0';
+                                            inputEl.style.color = '#999';
+                                            inputEl.style.cursor = 'not-allowed';
+                                            inputEl.style.borderColor = '#ddd';
+                                        }
 
                                         // 단어 길이에 따라 입력 필드 너비 조정
                                         const wordLength = word.length;
