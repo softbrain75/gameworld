@@ -8937,7 +8937,7 @@
 
                 // 수료/미수료 상태 텍스트 추가
                 const statusText = isCompleted ? '수료' : '미수료';
-                btn.textContent = `TTV ${startTTVIndex + 1}-${endTTVIndex}개  ${statusText}`;
+                btn.textContent = `${i + 1}단계  ${statusText}`;
 
                 btn.style.cssText = `
                     padding: 8px 12px;
@@ -8954,9 +8954,11 @@
                     gap: 8px;
                 `;
 
-                // 수료 상태면 텍스트 색상 변경
+                // 수료 상태면 버튼 색상을 완료 색상으로 변경
                 if (isCompleted) {
-                    btn.style.color = 'var(--primary)';
+                    btn.style.background = 'var(--primary)';
+                    btn.style.borderColor = 'var(--primary)';
+                    btn.style.color = 'white';
                     btn.style.fontWeight = 'bold';
                 }
 
@@ -8968,7 +8970,7 @@
                 }
 
                 sectionList.appendChild(btn);
-                console.log(`📍 섹션 ${i + 1}: TTV ${startTTVIndex + 1}-${endTTVIndex}개, 단어 범위 ${startWordIndex}-${endWordIndex}, 상태: ${statusText}`);
+                console.log(`📍 섹션 ${i + 1}단계: 단어 범위 ${startWordIndex}-${endWordIndex}, 상태: ${statusText}`);
             }
         }
 
