@@ -7798,8 +7798,8 @@
                 localStorage.setItem(sectionKey, JSON.stringify({ status: 'completed', score: finalScore })); // 수료 표시 + 점수 저장
                 console.log('✅ 섹션 수료 저장 (localStorage):', sectionKey, 'Score:', finalScore);
 
-                // Supabase에도 저장
-                if (typeof supabase !== 'undefined') {
+                // Supabase에도 저장 (로컬 파일이 아닐 때만)
+                if (typeof supabase !== 'undefined' && currentGameFileId && !currentGameFileId.startsWith('local_')) {
                     try {
                         const { data: { user } } = await supabase.auth.getUser();
                         if (user) {
@@ -7829,6 +7829,8 @@
                     } catch (err) {
                         console.error('⚠️ Supabase 저장 중 오류:', err);
                     }
+                } else if (currentGameFileId && currentGameFileId.startsWith('local_')) {
+                    console.log('ℹ️ 로컬 파일 - Supabase에 저장하지 않음 (localStorage만 사용)');
                 }
             }
 
@@ -9018,9 +9020,9 @@
 
             console.log('📊 TTV 기준 섹션 생성 - 전체 TTV 단어:', totalTTVWords, '섹션수:', totalSections);
 
-            // Supabase에서 섹션 수료 정보 불러오기
+            // Supabase에서 섹션 수료 정보 불러오기 (로컬 파일이 아닐 때만)
             let supabaseSectionData = {};
-            if (typeof supabase !== 'undefined') {
+            if (typeof supabase !== 'undefined' && currentGameFileId && !currentGameFileId.startsWith('local_')) {
                 try {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (user) {
@@ -9040,11 +9042,15 @@
                                 };
                             });
                             console.log('📊 Supabase에서 섹션 수료 정보 불러옴:', Object.keys(supabaseSectionData).length, '개');
+                        } else if (error) {
+                            console.error('⚠️ Supabase 섹션 데이터 조회 오류:', error);
                         }
                     }
                 } catch (err) {
                     console.error('⚠️ Supabase 섹션 데이터 조회 중 오류:', err);
                 }
+            } else if (currentGameFileId && currentGameFileId.startsWith('local_')) {
+                console.log('ℹ️ 로컬 파일 - Supabase 조회 생략 (localStorage만 사용)');
             }
 
             for (let i = 0; i < totalSections; i++) {
@@ -9174,8 +9180,8 @@
                 }
             });
 
-            // Supabase에서도 삭제
-            if (typeof supabase !== 'undefined') {
+            // Supabase에서도 삭제 (로컬 파일이 아닐 때만)
+            if (typeof supabase !== 'undefined' && currentGameFileId && !currentGameFileId.startsWith('local_')) {
                 try {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (user) {
@@ -9195,6 +9201,8 @@
                 } catch (err) {
                     console.error('⚠️ Supabase 삭제 중 오류:', err);
                 }
+            } else if (currentGameFileId && currentGameFileId.startsWith('local_')) {
+                console.log('ℹ️ 로컬 파일 - Supabase 삭제 생략 (localStorage만 사용)');
             }
 
             console.log('✅ 섹션 초기화 완료 - 삭제된 항목:', deletedCount);
