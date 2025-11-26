@@ -4109,23 +4109,6 @@
                 await deleteSelectedFiles();
             });
 
-            // 파일 관리 모달에서 체크박스 변화 감지
-            document.addEventListener('change', (e) => {
-                if (e.target.classList.contains('file-management-checkbox')) {
-                    updateDeleteButtonState();
-                    // 개별 체크박스 변경시 전체선택 상태 업데이트
-                    updateSelectAllCheckbox();
-                }
-                // 전체선택 체크박스
-                if (e.target.id === 'file-management-select-all') {
-                    const isChecked = e.target.checked;
-                    document.querySelectorAll('.file-management-checkbox').forEach(cb => {
-                        cb.checked = isChecked;
-                    });
-                    updateDeleteButtonState();
-                }
-            });
-
             // 시험 파일 성적 조회
             if (testResultsBtn) {
                 testResultsBtn.addEventListener('click', () => {
@@ -5264,6 +5247,23 @@
                     alert('파일 삭제 중 오류가 발생했습니다.');
                 }
             }
+
+            // 파일 관리 모달에서 체크박스 변화 감지 (함수 정의 후에 호출)
+            document.addEventListener('change', (e) => {
+                if (e.target.classList.contains('file-management-checkbox')) {
+                    updateDeleteButtonState();
+                    // 개별 체크박스 변경시 전체선택 상태 업데이트
+                    updateSelectAllCheckbox();
+                }
+                // 전체선택 체크박스
+                if (e.target.id === 'file-management-select-all') {
+                    const isChecked = e.target.checked;
+                    document.querySelectorAll('.file-management-checkbox').forEach(cb => {
+                        cb.checked = isChecked;
+                    });
+                    updateDeleteButtonState();
+                }
+            });
 
             // Play game with Supabase file
             window.playGame = async function(fileId, fileName) {
@@ -9858,7 +9858,7 @@
         <!-- 본문 - 파일 목록 + 체크박스 -->
         <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
             <!-- 전체선택 헤더 -->
-            <div style="padding: 12px 8px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; background-color: var(--surface-secondary);">
+            <div style="padding: 12px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; background-color: var(--surface-secondary);">
                 <input type="checkbox" id="file-management-select-all" style="cursor: pointer; width: 18px; height: 18px;">
                 <label for="file-management-select-all" style="flex: 1; cursor: pointer; font-weight: 500; color: var(--text-primary);">전체선택</label>
             </div>
