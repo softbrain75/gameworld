@@ -8841,6 +8841,30 @@
         }
 
         // 설정 모달 UI 업데이트 (학습 방식 선택에 따른 게임 모드 및 출제비율 조정)
+        function setLearningMode(mode) {
+            // 라디오 버튼 값 설정
+            document.querySelector(`input[name="learning-mode-setting"][value="${mode}"]`).checked = true;
+
+            // 시각적 선택 표시 업데이트
+            const allBtn = document.querySelector('.learning-mode-all');
+            const sectionBtn = document.querySelector('.learning-mode-section');
+
+            if (mode === 'all') {
+                if (allBtn) allBtn.style.borderColor = '#4f46e5';
+                if (allBtn) allBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                if (sectionBtn) sectionBtn.style.borderColor = 'var(--outline-variant)';
+                if (sectionBtn) sectionBtn.style.backgroundColor = 'transparent';
+            } else {
+                if (sectionBtn) sectionBtn.style.borderColor = '#4f46e5';
+                if (sectionBtn) sectionBtn.style.backgroundColor = 'rgba(79, 70, 229, 0.1)';
+                if (allBtn) allBtn.style.borderColor = 'var(--outline-variant)';
+                if (allBtn) allBtn.style.backgroundColor = 'transparent';
+            }
+
+            // 설정 UI 업데이트
+            updateSettingsUI();
+        }
+
         function updateSettingsUI() {
             const selectedMode = document.querySelector('input[name="learning-mode-setting"]:checked').value;
 
@@ -9373,20 +9397,22 @@
                 <div class="setting-group">
                     <label class="setting-label">학습 방식</label>
                     <div class="radio-group" style="display: flex; flex-direction: row; gap: 12px;">
-                        <label class="radio-option" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer;">
-                            <input type="radio" name="learning-mode-setting" value="all" checked onchange="updateSettingsUI()">
+                        <input type="radio" name="learning-mode-setting" value="all" checked onchange="updateSettingsUI()" style="display: none;">
+                        <input type="radio" name="learning-mode-setting" value="section" onchange="updateSettingsUI()" style="display: none;">
+
+                        <div class="learning-mode-all" style="flex: 1; padding: 12px; border: 2px solid #4f46e5; border-radius: 8px; cursor: pointer; background-color: rgba(79, 70, 229, 0.1); transition: all 0.2s ease;" onclick="setLearningMode('all')">
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <span style="font-weight: bold;">전체풀기</span>
                                 <p class="radio-description" style="margin: 0;">모든 문제를 한 번에</p>
                             </div>
-                        </label>
-                        <label class="radio-option" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer;">
-                            <input type="radio" name="learning-mode-setting" value="section" onchange="updateSettingsUI()">
+                        </div>
+
+                        <div class="learning-mode-section" style="flex: 1; padding: 12px; border: 2px solid var(--outline-variant); border-radius: 8px; cursor: pointer; transition: all 0.2s ease;" onclick="setLearningMode('section')">
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <span style="font-weight: bold;">5개씩풀기</span>
                                 <p class="radio-description" style="margin: 0;">섹션별로 나눠서</p>
                             </div>
-                        </label>
+                        </div>
                     </div>
                 </div>
 
