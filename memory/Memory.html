@@ -7780,6 +7780,13 @@
             const incorrectCount = blanks.filter(b => !correctAnswers.includes(b)).length;
             let bonusPoints = 0;
 
+            // 5개씩 풀기에서 100점(완벽한 정답)이면 섹션을 '수료'로 표시
+            if (learningMode === 'section' && finalScore === 100 && selectedSectionRange) {
+                const sectionKey = `section_${currentGameFileId}_${selectedSectionRange.start}_${selectedSectionRange.end}`;
+                localStorage.setItem(sectionKey, 'completed'); // 수료 표시
+                console.log('✅ 섹션 수료 저장:', sectionKey);
+            }
+
             // 총 포인트 업데이트 함수
             function updateTotalPointsDisplay() {
                 let totalPoints = 0;
@@ -8923,7 +8930,15 @@
 
                 const btn = document.createElement('button');
                 btn.className = 'section-btn';
-                btn.textContent = `TTV ${startTTVIndex + 1}-${endTTVIndex}개`;
+
+                // 섹션 수료 상태 확인
+                const sectionKey = `section_${currentGameFileId}_${startWordIndex}_${endWordIndex}`;
+                const isCompleted = localStorage.getItem(sectionKey) === 'completed';
+
+                // 수료/미수료 상태 텍스트 추가
+                const statusText = isCompleted ? '수료' : '미수료';
+                btn.textContent = `TTV ${startTTVIndex + 1}-${endTTVIndex}개  ${statusText}`;
+
                 btn.style.cssText = `
                     padding: 8px 12px;
                     border: 1px solid var(--outline-variant);
@@ -8933,7 +8948,17 @@
                     cursor: pointer;
                     transition: all 0.2s ease;
                     font-size: 13px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 8px;
                 `;
+
+                // 수료 상태면 텍스트 색상 변경
+                if (isCompleted) {
+                    btn.style.color = 'var(--primary)';
+                    btn.style.fontWeight = 'bold';
+                }
 
                 btn.addEventListener('click', () => selectSection(startWordIndex, endWordIndex, btn));
 
@@ -8943,7 +8968,7 @@
                 }
 
                 sectionList.appendChild(btn);
-                console.log(`📍 섹션 ${i + 1}: TTV ${startTTVIndex + 1}-${endTTVIndex}개, 단어 범위 ${startWordIndex}-${endWordIndex}`);
+                console.log(`📍 섹션 ${i + 1}: TTV ${startTTVIndex + 1}-${endTTVIndex}개, 단어 범위 ${startWordIndex}-${endWordIndex}, 상태: ${statusText}`);
             }
         }
 
