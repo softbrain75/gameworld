@@ -6775,8 +6775,10 @@
                                     wordSpan.textContent = word;
 
                                     // 섹션 모드에서 비활성 TTV 텍스트 스타일 (italic)
-                                    const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
-                                    if (!isActiveTTV && learningMode === 'section') {
+                                    // TTV 단어이면서 비활성일 때만 opacity 적용
+                                    const isTTVWord = boldWords.includes(wordIndex);
+                                    const isActiveTTV = isTTVWord && activeTTVIndices.has(wordIndex);
+                                    if (isTTVWord && !isActiveTTV && learningMode === 'section') {
                                         wordSpan.style.opacity = '0.1';
                                         console.log('✅ 비활성 테이블 italic 텍스트(span) 처리됨:', wordIndex);
                                     }
@@ -6900,8 +6902,10 @@
                                             wordSpan.textContent = word;
 
                                             // 섹션 모드에서 비활성 TTV 텍스트 스타일
-                                            const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
-                                            if (!isActiveTTV && learningMode === 'section') {
+                                            // TTV 단어이면서 비활성일 때만 opacity 적용
+                                            const isTTVWord = boldWords.includes(wordIndex);
+                                            const isActiveTTV = isTTVWord && activeTTVIndices.has(wordIndex);
+                                            if (isTTVWord && !isActiveTTV && learningMode === 'section') {
                                                 wordSpan.style.opacity = '0.1';
                                                 console.log('✅ 비활성 테이블 텍스트(span) 처리됨:', wordIndex);
                                             }
@@ -7092,8 +7096,10 @@
                         wordSpan.textContent = word;
 
                         // 섹션 모드에서 비활성 TTV 텍스트 스타일 (인라인 일반)
-                        const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
-                        if (!isActiveTTV && learningMode === 'section') {
+                        // TTV 단어이면서 비활성일 때만 opacity 적용
+                        const isTTVWord = boldWords.includes(wordIndex);
+                        const isActiveTTV = isTTVWord && activeTTVIndices.has(wordIndex);
+                        if (isTTVWord && !isActiveTTV && learningMode === 'section') {
                             wordSpan.style.opacity = '0.1';
                             console.log('✅ 비활성 인라인 일반 텍스트(span) 처리됨:', wordIndex);
                         }
@@ -7334,8 +7340,10 @@
                                 wordSpan.textContent = word;
 
                                 // 섹션 모드에서 비활성 TTV 텍스트 스타일 (인라인 italic 일반)
-                                const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
-                                if (!isActiveTTV && learningMode === 'section') {
+                                // TTV 단어이면서 비활성일 때만 opacity 적용
+                                const isTTVWord = boldWords.includes(wordIndex);
+                                const isActiveTTV = isTTVWord && activeTTVIndices.has(wordIndex);
+                                if (isTTVWord && !isActiveTTV && learningMode === 'section') {
                                     wordSpan.style.opacity = '0.1';
                                     console.log('✅ 비활성 인라인 italic 일반 텍스트(span) 처리됨:', wordIndex);
                                 }
@@ -7362,12 +7370,16 @@
                             wordSpan.style.fontStyle = 'italic';
 
                             // 섹션 모드에서 비활성 TTV italic 텍스트 스타일 (인라인)
-                            const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
-                            if (!isActiveTTV && learningMode === 'section') {
+                            // TTV 단어이면서 비활성일 때만 opacity 0.1 적용
+                            const isTTVWord = boldWords.includes(wordIndex);
+                            const isActiveTTV = isTTVWord && activeTTVIndices.has(wordIndex);
+                            if (isTTVWord && !isActiveTTV && learningMode === 'section') {
                                 wordSpan.style.opacity = '0.1';
                                 console.log('✅ 비활성 인라인 italic TTV 텍스트(span) 처리됨:', wordIndex);
+                            } else {
+                                // 활성 또는 비TTV 단어: 기본 opacity 0.7
+                                wordSpan.style.opacity = '0.7';
                             }
-                            wordSpan.style.opacity = '0.7';
                             wordEl.appendChild(wordSpan);
 
                             lineDiv.appendChild(wordEl);
