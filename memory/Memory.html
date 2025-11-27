@@ -2750,17 +2750,34 @@
         // content_script.js 에러 억제 (VSCode 확장 프로그램 에러)
         // 모든 에러를 catch하고 content_script 관련만 필터링
         window.addEventListener('error', (event) => {
-            // 콘솔에 에러를 출력하지 않음
-            if (event.filename && event.filename.includes('content_script')) {
-                event.preventDefault();
-                event.stopPropagation();
-                return false;
-            }
-            // 메시지 기반 필터링
-            if (event.message && event.message.includes('control')) {
-                event.preventDefault();
-                event.stopPropagation();
-                return false;
+            try {
+                let shouldSuppress = false;
+
+                // filename 확인
+                if (event.filename && event.filename.includes('content_script')) {
+                    shouldSuppress = true;
+                }
+
+                // 메시지 확인
+                if (event.message && (event.message.includes('control') || event.message.includes('Cannot read properties'))) {
+                    shouldSuppress = true;
+                }
+
+                // stack trace 확인 (error 이벤트에도 있을 수 있음)
+                if (event.error && event.error.stack) {
+                    const stack = String(event.error.stack);
+                    if (stack.includes('content_script') || stack.includes('shouldOfferCompletionListForField')) {
+                        shouldSuppress = true;
+                    }
+                }
+
+                if (shouldSuppress) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return false;
+                }
+            } catch (e) {
+                // 필터링 중 발생한 에러 무시
             }
         }, true);
 
