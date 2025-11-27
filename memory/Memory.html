@@ -6811,6 +6811,74 @@
             }, 100);
         }
 
+        // 테이블의 빈칸(blank) input 요소 생성 - 공통 함수
+        function createTableBlankInput(word, wordIndex, blankOrder, activeTTVIndices, learningMode, isImage = false) {
+            const container = document.createElement('span');
+            container.className = 'word-blank-container';
+
+            // TTV 단어가 활성화되었는지 확인
+            const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
+
+            const inputEl = document.createElement('input');
+            inputEl.type = 'text';
+            inputEl.className = 'word-input';
+            inputEl.dataset.index = wordIndex;
+            inputEl.dataset.order = blankOrder;
+            inputEl.dataset.answer = word;
+            inputEl.placeholder = '';
+            inputEl.autocomplete = 'off';
+            inputEl.setAttribute('autocomplete', 'off');
+            inputEl.setAttribute('autocorrect', 'off');
+            inputEl.setAttribute('autocapitalize', 'off');
+            inputEl.spellcheck = 'false';
+
+            // 비활성 TTV는 입력 불가, 거의 투명하게 처리
+            if (!isActiveTTV && learningMode === 'section') {
+                inputEl.disabled = true;
+                inputEl.style.setProperty('color', 'rgba(0, 0, 0, 0.1)', 'important');
+                inputEl.style.setProperty('background-color', 'transparent', 'important');
+                inputEl.style.setProperty('border-color', 'transparent', 'important');
+                inputEl.style.cursor = 'not-allowed';
+            }
+
+            setInputWidth(inputEl, word);
+            container.appendChild(inputEl);
+            setupHintShortcutForInput(inputEl);
+
+            // Italic 체크박스 추가 (이미지 제외)
+            if (!isImage) {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'italic-checkbox';
+                checkbox.title = 'Italic으로 표시';
+                checkbox.style.display = 'none';
+                checkbox.setAttribute('data-blank-index', wordIndex);
+                checkbox.addEventListener('change', (e) => {
+                    const idx = parseInt(inputEl.dataset.index);
+                    const wordValue = lyrics[idx];
+                    if (e.target.checked) {
+                        inputEl.classList.add('italic-marked');
+                        if (!italicWords.includes(idx)) {
+                            italicWords.push(idx);
+                            italicWords.sort((a, b) => a - b);
+                        }
+                        if (!italicWordValues.includes(wordValue)) {
+                            italicWordValues.push(wordValue);
+                        }
+                        showToast('✓ 체크하신 TTC는 시험 종료후 원본에서 italic으로 표시되고, 향후 시험에 나오지 않습니다');
+                    } else {
+                        inputEl.classList.remove('italic-marked');
+                        italicWords = italicWords.filter(i => i !== idx);
+                        italicWordValues = italicWordValues.filter(w => w !== wordValue);
+                    }
+                    console.log('✅ Italic 체크:', { idx, word: wordValue, italicWords, italicWordValues });
+                });
+                container.appendChild(checkbox);
+            }
+
+            return { container, inputEl, blankOrder: blankOrder + 1 };
+        }
+
         // Render table with proper formatting
         function renderTable(tableLines, startWordIndex, startBlankOrder, activeTTVIndices, learningMode, selectedSectionRange) {
             console.log(`🎯 renderTable() 호출됨 - startWordIndex=${startWordIndex}, startBlankOrder=${startBlankOrder}, tableLines=${tableLines.length}줄`);
@@ -7341,7 +7409,7 @@
 
                 testDisplay.appendChild(lineDiv);
                 updateScore();
-                setupWordInputListeners();
+                // setupWordInputListeners(); // 중복 제거 - updateUI() 마지막에서 호출됨
                 return;
             }
 
@@ -7402,7 +7470,7 @@
                     blankOrder = result.blankOrder;
                     console.log('📊 표 렌더링 완료 - 새로운 wordIndex:', wordIndex);
                     // 표의 input 요소들에 이벤트 리스너 설정
-                    setupWordInputListeners();
+                    // setupWordInputListeners(); // 중복 제거 - updateUI() 마지막에서 한 번만 호출됨
                     continue;
                 }
 
