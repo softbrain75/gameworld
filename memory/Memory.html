@@ -7916,16 +7916,13 @@
                     const eventValue = e.target.value;
                     const inputValue = input.value;
 
-                    // 빈 값("")은 무시 (한글 IME 조합 중간 단계)
+                    // 빈 값("")도 처리 (updateCharacterColors() 호출해야 화면 업데이트됨)
                     if (inputValue === '') {
-                        console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: checkAnswer() 호출 안 함`);
-                        console.log(`   e.target="${eventValue}", input.value="${inputValue}"`);
-                        console.log(`   input 요소 상태: style.width="${input.style.width}", classList="${input.className}", display="${input.style.display}"`);
-                        console.log(`   input의 prevSibling=${input.previousSibling ? input.previousSibling.textContent : 'null'}`);
-                        return;
+                        console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: checkAnswer() 호출`);
+                    } else {
+                        console.log(`📝 input 이벤트 발생 [${location}] index=${inputId}: input.value="${inputValue}" - checkAnswer() 호출`);
                     }
 
-                    console.log(`📝 input 이벤트 발생 [${location}] index=${inputId}: input.value="${inputValue}" - checkAnswer() 호출`);
                     checkAnswer();
                 });
 
