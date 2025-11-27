@@ -7815,6 +7815,11 @@
 
                     // 글자 단위 색상 표시 함수
                     function updateCharacterColors() {
+                        if (userInput === '') {
+                            console.log(`  🎨 updateCharacterColors: 빈 값 처리 - wrong 클래스 추가`);
+                        } else {
+                            console.log(`  🎨 updateCharacterColors: userInput="${userInput}", correctWord="${correctWord}"`);
+                        }
 
                         if (userInput === '') {
                             input.classList.remove('correct', 'partial-correct');
