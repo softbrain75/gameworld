@@ -7867,7 +7867,15 @@
             allInputs.forEach(input => {
                 input.addEventListener('focus', function() {
                     lastSelectedInput = this; // 선택된 입력필드 저장
-                    console.log('📝 입력필드 선택됨:', this.dataset.index);
+                    const inTable = this.closest('table') !== null;
+                    const location = inTable ? '테이블' : '일반';
+                    console.log(`🎯 input focus [${location}] index=${this.dataset.index}: value="${this.value}"`);
+                });
+
+                input.addEventListener('blur', function() {
+                    const inTable = this.closest('table') !== null;
+                    const location = inTable ? '테이블' : '일반';
+                    console.log(`❌ input blur [${location}] index=${this.dataset.index}: value="${this.value}"`);
                 });
 
                 // 리스너 등록 완료 마킹
