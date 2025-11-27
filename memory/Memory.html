@@ -7346,6 +7346,8 @@
                     wordIndex = result.wordIndex;
                     blankOrder = result.blankOrder;
                     console.log('📊 표 렌더링 완료 - 새로운 wordIndex:', wordIndex);
+                    // 표의 input 요소들에 이벤트 리스너 설정
+                    setupWordInputListeners();
                     continue;
                 }
 
