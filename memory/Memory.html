@@ -7920,8 +7920,8 @@
                     if (inputValue === '') {
                         console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: checkAnswer() 호출 안 함`);
                         console.log(`   e.target="${eventValue}", input.value="${inputValue}"`);
-                        // 혹시 모르니 input이 정말 같은 객체인지 확인
-                        console.log(`   input === e.target: ${input === e.target}`);
+                        console.log(`   input 요소 상태: style.width="${input.style.width}", classList="${input.className}", display="${input.style.display}"`);
+                        console.log(`   input의 prevSibling=${input.previousSibling ? input.previousSibling.textContent : 'null'}`);
                         return;
                     }
 
