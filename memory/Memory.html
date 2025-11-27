@@ -7712,13 +7712,18 @@
 
         // Setup input listeners
         function setupWordInputListeners() {
-            document.querySelectorAll('.word-input').forEach((input, index) => {
+            // 중복 등록 방지를 위해 현재 이벤트 리스너가 있는 요소는 스킵
+            const inputs = document.querySelectorAll('.word-input');
+            console.log('🔧 setupWordInputListeners 호출 - 입력 필드 개수:', inputs.length);
+
+            inputs.forEach((input, index) => {
                 const blankIndex = parseInt(input.dataset.index);
 
-                // 기존 이벤트 리스너 제거 (중복 등록 방지)
-                const newInput = input.cloneNode(true);
-                input.parentNode.replaceChild(newInput, input);
-                input = newInput;
+                // 이미 리스너가 등록되었는지 확인 (data 속성으로 마킹)
+                if (input.dataset.listenersInitialized === 'true') {
+                    console.log(`⏭️  입력필드 ${blankIndex} 이미 초기화됨 - 스킵`);
+                    return;
+                }
 
                 // 정답 체크 함수 (input과 keypress에서 재사용)
                 const checkAnswer = () => {
@@ -7783,10 +7788,12 @@
                                 setTimeout(() => {
                                     const currentOrder = parseInt(input.dataset.order);
                                     const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
+                                    console.log(`➡️ 다음 필드로 이동 시도: currentOrder=${currentOrder}, nextInput=${nextInput ? '있음' : '없음'}, disabled=${nextInput ? nextInput.disabled : 'N/A'}`);
                                     if (nextInput && !nextInput.disabled) {
                                         nextInput.focus();
+                                        console.log(`✅ 다음 필드로 이동 완료: ${nextInput.dataset.index}`);
                                     }
-                                }, 100);
+                                }, 200);
                             }
                         } else {
                             // 부분적으로 맞은 경우 - 글자 단위 색상 표시
@@ -7846,6 +7853,9 @@
                     lastSelectedInput = this; // 선택된 입력필드 저장
                     console.log('📝 입력필드 선택됨:', this.dataset.index);
                 });
+
+                // 리스너 등록 완료 마킹
+                input.dataset.listenersInitialized = 'true';
             });
         }
 
