@@ -7840,7 +7840,11 @@
 
                 // input 이벤트에서 정답 체크 (한글, 영어 모두 처리)
                 input.addEventListener('input', (e) => {
-                    console.log(`📝 input 이벤트 발생: input.value="${input.value}", e.target.value="${e.target.value}"`);                    
+                    // 테이블인지 일반인지 확인
+                    const inTable = input.closest('table') !== null;
+                    const location = inTable ? '테이블' : '일반';
+
+                    console.log(`📝 input 이벤트 발생 [${location}]: input.value="${input.value}", e.target.value="${e.target.value}"`);
                     checkAnswer();
                 });
 
