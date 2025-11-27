@@ -7808,9 +7808,6 @@
                     return;
                 }
 
-                // IME 조합 상태 추적 (한글 입력 중인지 확인)
-                let isComposing = false;
-
                 // 정답 체크 함수 (input과 keypress에서 재사용)
                 const checkAnswer = () => {
                     const userInput = input.value;
@@ -7914,39 +7911,18 @@
                     updateCharacterColors();
                 };
 
-                // composition 이벤트: 한글 입력 시작
-                input.addEventListener('compositionstart', () => {
-                    isComposing = true;
-                    console.log(`🎌 composition start - index=${blankIndex}`);
-                });
-
-                // composition 이벤트: 한글 입력 완료
-                input.addEventListener('compositionend', () => {
-                    isComposing = false;
-                    console.log(`🎌 composition end - index=${blankIndex}, value="${input.value}"`);
-                    // 조합 완료 후 정답 체크
-                    checkAnswer();
-                });
-
                 // input 이벤트에서 정답 체크 (한글, 영어 모두 처리)
-                console.log(`🎧 input 리스너 등록: index=${blankIndex}`);
                 input.addEventListener('input', (e) => {
-                    const inTable = input.closest('table') !== null;
-                    const location = inTable ? '테이블' : '일반';
-                    const inputId = input.dataset.index;
                     const inputValue = input.value;
 
-                    // 한글 조합 중이 아닐 때만 checkAnswer() 호출
-                    if (!isComposing) {
-                        if (inputValue === '') {
-                            console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: checkAnswer() 호출`);
-                        } else {
-                            console.log(`📝 input 이벤트 [${location}] index=${inputId}: "${inputValue}" - checkAnswer() 호출`);
-                        }
-                        checkAnswer();
-                    } else {
-                        console.log(`⏸️  한글 조합 중 - index=${inputId}, value="${inputValue}" - checkAnswer() 스킵`);
+                    // 빈 값("")만 무시 - 한글 IME 중간 단계의 빈 값 스킵
+                    if (inputValue === '') {
+                        console.log(`⏭️  빈 값 무시 - index=${blankIndex}`);
+                        return;
                     }
+
+                    console.log(`📝 input: index=${blankIndex}, value="${inputValue}"`);
+                    checkAnswer();
                 });
 
             });
