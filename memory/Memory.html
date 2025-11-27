@@ -7808,6 +7808,9 @@
                     return;
                 }
 
+                // IME 조합 상태 추적 (한글 입력 중인지 확인)
+                let isComposing = false;
+
                 // 정답 체크 함수 (input과 keypress에서 재사용)
                 const checkAnswer = () => {
                     const userInput = input.value;
@@ -7911,25 +7914,39 @@
                     updateCharacterColors();
                 };
 
+                // composition 이벤트: 한글 입력 시작
+                input.addEventListener('compositionstart', () => {
+                    isComposing = true;
+                    console.log(`🎌 composition start - index=${blankIndex}`);
+                });
+
+                // composition 이벤트: 한글 입력 완료
+                input.addEventListener('compositionend', () => {
+                    isComposing = false;
+                    console.log(`🎌 composition end - index=${blankIndex}, value="${input.value}"`);
+                    // 조합 완료 후 정답 체크
+                    checkAnswer();
+                });
+
                 // input 이벤트에서 정답 체크 (한글, 영어 모두 처리)
                 console.log(`🎧 input 리스너 등록: index=${blankIndex}`);
                 input.addEventListener('input', (e) => {
-                    // 테이블인지 일반인지 확인
                     const inTable = input.closest('table') !== null;
                     const location = inTable ? '테이블' : '일반';
                     const inputId = input.dataset.index;
-                    const isInDOM = document.body.contains(input);
-                    const eventValue = e.target.value;
                     const inputValue = input.value;
 
-                    // 빈 값("")도 처리 (updateCharacterColors() 호출해야 화면 업데이트됨)
-                    if (inputValue === '') {
-                        console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: checkAnswer() 호출`);
+                    // 한글 조합 중이 아닐 때만 checkAnswer() 호출
+                    if (!isComposing) {
+                        if (inputValue === '') {
+                            console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: checkAnswer() 호출`);
+                        } else {
+                            console.log(`📝 input 이벤트 [${location}] index=${inputId}: "${inputValue}" - checkAnswer() 호출`);
+                        }
+                        checkAnswer();
                     } else {
-                        console.log(`📝 input 이벤트 발생 [${location}] index=${inputId}: input.value="${inputValue}" - checkAnswer() 호출`);
+                        console.log(`⏸️  한글 조합 중 - index=${inputId}, value="${inputValue}" - checkAnswer() 스킵`);
                     }
-
-                    checkAnswer();
                 });
 
             });
