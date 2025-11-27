@@ -2767,11 +2767,26 @@
         // unhandledrejection도 억제
         window.addEventListener('unhandledrejection', (event) => {
             try {
+                let shouldPrevent = false;
+
+                // stack trace 확인
+                if (event.reason && event.reason.stack) {
+                    const stack = String(event.reason.stack);
+                    if (stack.includes('content_script') || stack.includes('shouldOfferCompletionListForField')) {
+                        shouldPrevent = true;
+                    }
+                }
+
+                // 메시지 확인
                 if (event.reason) {
                     const message = (event.reason && event.reason.message) ? event.reason.message : String(event.reason);
-                    if (message && (message.includes('control') || message.includes('content_script'))) {
-                        event.preventDefault();
+                    if (message && (message.includes('control') || message.includes('content_script') || message.includes('Cannot read properties'))) {
+                        shouldPrevent = true;
                     }
+                }
+
+                if (shouldPrevent) {
+                    event.preventDefault();
                 }
             } catch (e) {
                 // 에러 처리 중 발생한 에러 무시
