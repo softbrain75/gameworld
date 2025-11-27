@@ -2744,6 +2744,15 @@
     <script src="../js/supabaseClient.js"></script>
 </head>
 <body>
+    <script>
+        // content_script.js 에러 억제 (VSCode 확장 프로그램 에러)
+        window.addEventListener('error', (event) => {
+            if (event.message && event.message.includes("Cannot read properties of undefined (reading 'control')")) {
+                event.preventDefault();
+            }
+        }, true);
+    </script>
+
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner">
