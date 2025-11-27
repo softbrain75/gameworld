@@ -2749,10 +2749,20 @@
     <script>
         // content_script.js 에러 억제 (VSCode 확장 프로그램 에러)
         window.addEventListener('error', (event) => {
-            if (event.message && event.message.includes("Cannot read properties of undefined (reading 'control')")) {
+            if (event.message && (
+                event.message.includes("Cannot read properties of undefined (reading 'control')") ||
+                event.filename && event.filename.includes('content_script')
+            )) {
                 event.preventDefault();
             }
         }, true);
+
+        // unhandledrejection도 억제
+        window.addEventListener('unhandledrejection', (event) => {
+            if (event.reason && event.reason.message && event.reason.message.includes("Cannot read properties of undefined")) {
+                event.preventDefault();
+            }
+        });
     </script>
 
     <!-- Loading Overlay -->
@@ -3580,7 +3590,7 @@
                     // 편집 권한 검증: 파일 소유자(user_id)가 현재 사용자와 일치해야 함
                     const { data: fileToEdit } = await supabase
                         .from('study_materials')
-                        .select('user_id, file_path')
+                        .select('user_id, id, title')
                         .eq('id', existingFileId)
                         .single();
 
@@ -3600,18 +3610,6 @@
                         // 파일명 변경: 기존 파일 삭제 후 새 파일 생성
                         console.log(`📝 파일명 변경 감지: "${previousFileName}" → "${fileName}"`);
 
-                        // 기존 파일 경로 사용
-                        const existingFile = fileToEdit;
-
-                        if (existingFile && existingFile.file_path) {
-                            // 기존 Storage 파일 삭제
-                            await supabase
-                                .storage
-                                .from('study_materials')
-                                .remove([existingFile.file_path]);
-                            console.log('🗑️ 이전 Storage 파일 삭제:', existingFile.file_path);
-                        }
-
                         // 기존 DB 레코드 삭제
                         await supabase
                             .from('study_materials')
@@ -3623,9 +3621,9 @@
                         fileId = crypto.randomUUID();
                         filePath = `${userId}/${fileId}.md`;
                     } else {
-                        // 파일명 미변경: 기존 파일 경로 사용 (덮어쓰기)
-                        if (!fileToEdit || !fileToEdit.file_path) {
-                            console.error('파일 경로를 찾을 수 없습니다');
+                        // 파일명 미변경: 기존 파일 ID 사용 (contents 필드 덮어쓰기)
+                        if (!fileToEdit) {
+                            console.error('파일을 찾을 수 없습니다');
                             alert('파일을 찾을 수 없습니다');
                             if (loadingOverlay) {
                                 loadingOverlay.classList.remove('active');
@@ -3678,7 +3676,6 @@
                                     id: fileId,
                                     user_id: user.id,
                                     title: fileName,
-                                    file_path: filePath,
                                     contents: content,  // ✅ contents 필드에 MD 내용 저장
                                     created_at: new Date().toISOString(),
                                     updated_at: new Date().toISOString()
