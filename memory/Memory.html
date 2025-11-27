@@ -7912,6 +7912,7 @@
                 };
 
                 // input 이벤트에서 정답 체크 (한글, 영어 모두 처리)
+                console.log(`🎧 input 리스너 등록: index=${blankIndex}`);
                 input.addEventListener('input', (e) => {
                     // 테이블인지 일반인지 확인
                     const inTable = input.closest('table') !== null;
