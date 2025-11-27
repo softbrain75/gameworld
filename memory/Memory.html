@@ -7850,12 +7850,14 @@
 
                     // 빈 값("")은 무시 (한글 IME 조합 중간 단계)
                     if (inputValue === '') {
-                        console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: e.target="${eventValue}", input.value="${inputValue}", DOM=${isInDOM}`);
-                        console.log(`   현재 시간: ${new Date().toLocaleTimeString()}, setter 사용 여부: ${Object.getOwnPropertyDescriptor(input, 'value')}`);
+                        console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: checkAnswer() 호출 안 함`);
+                        console.log(`   e.target="${eventValue}", input.value="${inputValue}"`);
+                        // 혹시 모르니 input이 정말 같은 객체인지 확인
+                        console.log(`   input === e.target: ${input === e.target}`);
                         return;
                     }
 
-                    console.log(`📝 input 이벤트 발생 [${location}] index=${inputId}: input.value="${inputValue}"`);
+                    console.log(`📝 input 이벤트 발생 [${location}] index=${inputId}: input.value="${inputValue}" - checkAnswer() 호출`);
                     checkAnswer();
                 });
 
