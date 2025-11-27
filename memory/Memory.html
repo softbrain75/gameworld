@@ -8830,8 +8830,9 @@
         };
 
         // 기존 word-input 요소에 적용
-        const allInputs = document.querySelectorAll('.word-input');
-        allInputs.forEach(setupHintShortcutForInput);
+        // 주석: renderTable()에서 이미 setupHintShortcutForInput()이 호출되므로 중복 등록 방지
+        // const allInputs = document.querySelectorAll('.word-input');
+        // allInputs.forEach(setupHintShortcutForInput);
 
 
         // Ctrl+S 단축키 - 저장하기
