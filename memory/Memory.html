@@ -6813,8 +6813,11 @@
 
         // Render table with proper formatting
         function renderTable(tableLines, startWordIndex, startBlankOrder, activeTTVIndices, learningMode, selectedSectionRange) {
+            console.log(`🎯 renderTable() 호출됨 - startWordIndex=${startWordIndex}, startBlankOrder=${startBlankOrder}, tableLines=${tableLines.length}줄`);
+
             let wordIndex = startWordIndex;
             let blankOrder = startBlankOrder;
+            let tableInputCount = 0;  // 테이블 내 생성된 input 개수 추적
 
             const table = document.createElement('table');
             table.style.width = '100%';
@@ -6898,6 +6901,9 @@
 
                                     setInputWidth(inputEl, altText);
                                     blankOrder++;
+                                    tableInputCount++;
+
+                                    console.log(`  📝 테이블 input 생성 (이미지): wordIndex=${wordIndex}, order=${blankOrder-1}, answer="${altText}"`);
 
                                     container.appendChild(inputEl);
                                     setupHintShortcutForInput(inputEl);
@@ -6950,6 +6956,9 @@
                                     setInputWidth(inputEl, word);
 
                                     blankOrder++;
+                                    tableInputCount++;
+
+                                    console.log(`  📝 테이블 input 생성 (bold): wordIndex=${wordIndex}, order=${blankOrder-1}, answer="${word}"`);
 
                                     // Italic 체크박스 추가 (초기에는 숨김)
                                     const checkbox = document.createElement('input');
@@ -7078,6 +7087,9 @@
                                             setInputWidth(inputEl, word);
 
                                             blankOrder++;
+                                            tableInputCount++;
+
+                                            console.log(`  📝 테이블 input 생성 (일반): wordIndex=${wordIndex}, order=${blankOrder-1}, answer="${word}"`);
 
                                             // Italic 체크박스 추가 (초기에는 숨김)
                                             const checkbox = document.createElement('input');
@@ -7142,6 +7154,8 @@
 
                 table.appendChild(row);
             });
+
+            console.log(`✅ renderTable() 완료 - 생성된 input=${tableInputCount}개, 다음 wordIndex=${wordIndex}, 다음 blankOrder=${blankOrder}`);
 
             return {
                 element: table,
@@ -7381,6 +7395,7 @@
                     }
 
                     // 표 렌더링 (전체 콘텐츠 렌더링)
+                    console.log(`\n🎬 [게임 중] renderTable 호출 - gameState=${gameState}`);
                     const result = renderTable(tableLines, wordIndex, blankOrder, activeTTVIndices, learningMode, selectedSectionRange);
                     testDisplay.appendChild(result.element);
                     wordIndex = result.wordIndex;
@@ -7825,6 +7840,7 @@
 
                 // input 이벤트에서 정답 체크 (한글, 영어 모두 처리)
                 input.addEventListener('input', (e) => {
+                    console.log(`📝 input 이벤트 발생: input.value="${input.value}", e.target.value="${e.target.value}"`);                    
                     checkAnswer();
                 });
 
@@ -8466,6 +8482,7 @@
                         }
 
                         // 표 렌더링 (정오표 표시에서는 섹션 필터링 미적용, null 전달)
+                        console.log(`\n🎬 [게임 후] renderTable 호출 - gameState=${gameState}`);
                         const result = renderTable(tableLines, wordIndex, blankOrder, new Set(), 'all', null);
 
                         // 표의 각 셀에서 blank 단어들에 색상 적용 및 값 채우기
