@@ -7815,9 +7815,24 @@
                     updateCharacterColors();
                 };
 
-                // 모든 디바이스: input 이벤트에서 실시간으로 정답 체크 (색상 표시만 함)
-                input.addEventListener('input', (e) => {
+                // 한글 IME 처리: composition 이벤트로 완성된 글자만 체크
+                let isComposing = false;
+
+                input.addEventListener('compositionstart', () => {
+                    isComposing = true;
+                });
+
+                input.addEventListener('compositionend', () => {
+                    isComposing = false;
                     checkAnswer();
+                });
+
+                // 모든 디바이스: input 이벤트에서 실시간으로 정답 체크 (색상 표시만 함)
+                // 단, composition 중에는 체크하지 않음 (IME 조합 중)
+                input.addEventListener('input', (e) => {
+                    if (!isComposing) {
+                        checkAnswer();
+                    }
                 });
 
             });
