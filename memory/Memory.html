@@ -7844,12 +7844,13 @@
                     const inTable = input.closest('table') !== null;
                     const location = inTable ? '테이블' : '일반';
 
+                    // 빈 값("")은 무시 (한글 IME 조합 중간 단계 - 앞의 글자가 지워지는 것 방지)
                     if (input.value === '') {
-                        console.log(`⏭️  input 이벤트 [${location}] 빈 값: input.value=""`);
-                    } else {
-                        console.log(`📝 input 이벤트 발생 [${location}]: input.value="${input.value}", e.target.value="${e.target.value}"`);
+                        console.log(`⏭️  input 이벤트 [${location}] 빈 값 무시 (글자 지워짐 방지): input.value=""`);
+                        return;
                     }
 
+                    console.log(`📝 input 이벤트 발생 [${location}]: input.value="${input.value}", e.target.value="${e.target.value}"`);
                     checkAnswer();
                 });
 
