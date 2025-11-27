@@ -7825,6 +7825,13 @@
 
                 // input 이벤트에서 정답 체크 (한글, 영어 모두 처리)
                 input.addEventListener('input', (e) => {
+                    // 한글 IME 조합 중에는 처리하지 않음 (e.isComposing === true인 경우 스킵)
+                    if (e.isComposing) {
+                        console.log(`⏭️  한글 입력 중 (isComposing=true): value="${input.value}" - checkAnswer() 스킵`);
+                        return;
+                    }
+
+                    console.log(`📝 input 이벤트 발생: input.value="${input.value}", e.target.value="${e.target.value}"`);
                     checkAnswer();
                 });
 
