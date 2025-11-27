@@ -2748,21 +2748,40 @@
 <body>
     <script>
         // content_script.js 에러 억제 (VSCode 확장 프로그램 에러)
+        // 모든 에러를 catch하고 content_script 관련만 필터링
         window.addEventListener('error', (event) => {
-            if (event.message && (
-                event.message.includes("Cannot read properties of undefined (reading 'control')") ||
-                event.filename && event.filename.includes('content_script')
-            )) {
+            // 콘솔에 에러를 출력하지 않음
+            if (event.filename && event.filename.includes('content_script')) {
                 event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
+            // 메시지 기반 필터링
+            if (event.message && event.message.includes('control')) {
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
             }
         }, true);
 
         // unhandledrejection도 억제
         window.addEventListener('unhandledrejection', (event) => {
-            if (event.reason && event.reason.message && event.reason.message.includes("Cannot read properties of undefined")) {
-                event.preventDefault();
+            if (event.reason) {
+                const message = event.reason.message || String(event.reason);
+                if (message.includes('control') || message.includes('content_script')) {
+                    event.preventDefault();
+                }
             }
         });
+
+        // console.error를 임시로 오버라이드하여 VSCode 에러 필터링
+        const originalError = console.error;
+        console.error = function(...args) {
+            const errorStr = args.map(a => String(a)).join(' ');
+            if (!errorStr.includes('content_script') && !errorStr.includes('control')) {
+                originalError.apply(console, args);
+            }
+        };
     </script>
 
     <!-- Loading Overlay -->
