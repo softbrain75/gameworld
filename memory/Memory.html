@@ -7845,14 +7845,17 @@
                     const location = inTable ? '테이블' : '일반';
                     const inputId = input.dataset.index;
                     const isInDOM = document.body.contains(input);
+                    const eventValue = e.target.value;
+                    const inputValue = input.value;
 
                     // 빈 값("")은 무시 (한글 IME 조합 중간 단계)
-                    if (input.value === '') {
-                        console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: input.value="", DOM에 있나? ${isInDOM}`);
+                    if (inputValue === '') {
+                        console.log(`⏭️  input 이벤트 [${location}] index=${inputId} 빈 값: e.target="${eventValue}", input.value="${inputValue}", DOM=${isInDOM}`);
+                        console.log(`   현재 시간: ${new Date().toLocaleTimeString()}, setter 사용 여부: ${Object.getOwnPropertyDescriptor(input, 'value')}`);
                         return;
                     }
 
-                    console.log(`📝 input 이벤트 발생 [${location}] index=${inputId}: input.value="${input.value}"`);
+                    console.log(`📝 input 이벤트 발생 [${location}] index=${inputId}: input.value="${inputValue}"`);
                     checkAnswer();
                 });
 
