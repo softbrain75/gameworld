@@ -2766,20 +2766,28 @@
 
         // unhandledrejection도 억제
         window.addEventListener('unhandledrejection', (event) => {
-            if (event.reason) {
-                const message = event.reason.message || String(event.reason);
-                if (message.includes('control') || message.includes('content_script')) {
-                    event.preventDefault();
+            try {
+                if (event.reason) {
+                    const message = (event.reason && event.reason.message) ? event.reason.message : String(event.reason);
+                    if (message && (message.includes('control') || message.includes('content_script'))) {
+                        event.preventDefault();
+                    }
                 }
+            } catch (e) {
+                // 에러 처리 중 발생한 에러 무시
             }
         });
 
         // console.error를 임시로 오버라이드하여 VSCode 에러 필터링
         const originalError = console.error;
         console.error = function(...args) {
-            const errorStr = args.map(a => String(a)).join(' ');
-            if (!errorStr.includes('content_script') && !errorStr.includes('control')) {
-                originalError.apply(console, args);
+            try {
+                const errorStr = args.map(a => String(a)).join(' ');
+                if (!errorStr.includes('content_script') && !errorStr.includes('control') && !errorStr.includes('Cannot read properties')) {
+                    originalError.apply(console, args);
+                }
+            } catch (e) {
+                // 에러 필터링 중 발생한 에러 무시
             }
         };
     </script>
