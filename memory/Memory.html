@@ -9119,13 +9119,12 @@
                     correctAnswers.push(blankIndex);
                 }
 
-                // 다음 필드로 이동
+                // 다음 필드로 이동 (포커스 없음 - 모바일 키보드 안 나타남)
                 const currentOrder = parseInt(selectedInput.dataset.order);
                 const nextInput = document.querySelector(`.word-input[data-order="${currentOrder + 1}"]`);
                 if (nextInput && !nextInput.disabled) {
-                    nextInput.focus();
-                    lastSelectedInput = nextInput; // 마지막 선택된 필드 업데이트
-                    console.log('➡️ 다음 필드로 이동:', currentOrder + 1);
+                    lastSelectedInput = nextInput; // 마지막 선택된 필드만 업데이트 (포커스 안 함)
+                    console.log('➡️ 다음 필드로 이동 (포커스 없음):', currentOrder + 1);
                 } else if (!nextInput) {
                     if (confirm('수고하셨습니다. 제출하시겠습니까?')) {
                         // 확인 버튼 클릭 시 제출
