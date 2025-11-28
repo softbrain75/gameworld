@@ -966,6 +966,7 @@
         #list-section {
             display: none;
             flex: 1;
+            margin-top: 50px; /* fixed header 높이만큼 여백 - 헤더 밑에서 시작 */
             overflow-y: auto;
             overflow-x: hidden; /* 좌우 스크롤 방지 */
             scrollbar-width: thin;
@@ -989,6 +990,7 @@
             display: flex;
             flex-direction: column;
         }
+
 
         .file-manager {
             background: var(--surface);
@@ -3273,10 +3275,42 @@
             // Game controls (Hint + Submit) - only show during game playing
             const hintBtn = document.getElementById('hint-btn');
             const submitBtn = document.getElementById('submit-btn');
+            const infoCards = document.querySelectorAll('.info-card');
+            const headerButtons = document.querySelector('.header-buttons');
+
+            console.log(`🎮 switchMode 호출됨 - mode: ${mode}`);
+            console.log(`hint-btn: ${hintBtn ? 'found' : 'not found'}, submit-btn: ${submitBtn ? 'found' : 'not found'}`);
+            console.log(`info-cards 개수: ${infoCards.length}, header-buttons: ${headerButtons ? 'found' : 'not found'}`);
+
             if (hintBtn && submitBtn) {
                 const shouldShow = mode === 'game';
+                console.log(`버튼 표시/숨김 - shouldShow: ${shouldShow}`);
                 hintBtn.style.display = shouldShow ? 'flex' : 'none';
                 submitBtn.style.display = shouldShow ? 'flex' : 'none';
+            }
+            // info-card 중 포인트만 표시 (게임/list에서), 정답 개수는 게임에서만 표시
+            infoCards.forEach((card, index) => {
+                const isPointsCard = card.querySelector('#game-points');
+                const correctCountCard = card.querySelector('#correct-count');
+
+                if (isPointsCard) {
+                    // 포인트: list/game 모드에서 표시
+                    const shouldShow = mode === 'list' || mode === 'game';
+                    console.log(`info-card[${index}] (포인트) - mode: ${mode}, shouldShow: ${shouldShow}`);
+                    card.style.display = shouldShow ? 'flex' : 'none';
+                } else if (correctCountCard) {
+                    // 정답 개수: game 모드에서만 표시
+                    const shouldShow = mode === 'game';
+                    console.log(`info-card[${index}] (정답) - mode: ${mode}, shouldShow: ${shouldShow}`);
+                    card.style.display = shouldShow ? 'flex' : 'none';
+                }
+            });
+
+            // header-buttons (hint/submit)은 게임 모드에서만 표시
+            if (headerButtons) {
+                const shouldShow = mode === 'game';
+                console.log(`header-buttons - mode: ${mode}, shouldShow: ${shouldShow}`);
+                headerButtons.style.display = shouldShow ? 'flex' : 'none';
             }
 
             // Update game title
@@ -4615,6 +4649,71 @@
 
         // Hamburger Menu Logic - Responsive
         document.addEventListener('DOMContentLoaded', async function() {
+            // 초기 화면 헤더 버튼 초기화 (list-section이 active 상태)
+            const hintBtn = document.getElementById('hint-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const infoCards = document.querySelectorAll('.info-card');
+            const gamePointsCard = document.querySelector('.info-card:has(#game-points)');
+            const headerButtons = document.querySelector('.header-buttons');
+
+            console.log(`📄 DOMContentLoaded - 초기 헤더 버튼 초기화`);
+            console.log(`hint-btn: ${hintBtn ? 'found' : 'not found'}, submit-btn: ${submitBtn ? 'found' : 'not found'}`);
+            console.log(`info-cards 개수: ${infoCards.length}, header-buttons: ${headerButtons ? 'found' : 'not found'}`);
+
+            // list-section이 active이므로 hint/submit 버튼 숨김
+            if (hintBtn) hintBtn.style.display = 'none';
+            if (submitBtn) submitBtn.style.display = 'none';
+
+            // info-card 중 포인트만 표시, 정답 개수는 숨김
+            infoCards.forEach((card, index) => {
+                const isPointsCard = card.querySelector('#game-points');
+                if (isPointsCard) {
+                    console.log(`info-card[${index}] (포인트) 초기화 - display: flex`);
+                    card.style.display = 'flex';
+                } else {
+                    console.log(`info-card[${index}] (정답) 초기화 - display: none`);
+                    card.style.display = 'none';
+                }
+            });
+
+            if (headerButtons) {
+                console.log(`header-buttons 초기화 - display: none`);
+                headerButtons.style.display = 'none';
+            }
+
+            // 초기 화면에서 포인트 가져오기 (Supabase 초기화 대기)
+            function updateInitialPoints() {
+                try {
+                    if (typeof getCurrentPoints === 'function') {
+                        const currentPoints = getCurrentPoints();
+                        console.log(`🔍 getCurrentPoints 호출 결과: ${currentPoints}`);
+
+                        // 0이면 아직 Supabase가 초기화되지 않은 상태 - 재시도
+                        if (currentPoints === 0) {
+                            console.log(`⏳ Supabase가 아직 초기화 중입니다. 재시도 중...`);
+                            setTimeout(updateInitialPoints, 1000);
+                            return;
+                        }
+
+                        const gamePointsElement = document.getElementById('game-points');
+                        if (gamePointsElement) {
+                            const formattedPoints = currentPoints.toLocaleString('ko-KR');
+                            gamePointsElement.textContent = formattedPoints;
+                            console.log(`💰 초기 포인트 업데이트 성공: ${formattedPoints}`);
+                        }
+                    } else {
+                        console.log(`⚠️ getCurrentPoints 함수를 찾을 수 없습니다. 재시도 중...`);
+                        setTimeout(updateInitialPoints, 1000);
+                    }
+                } catch (error) {
+                    console.error(`❌ 포인트 로드 오류:`, error);
+                    setTimeout(updateInitialPoints, 1000);
+                }
+            }
+
+            // 2초 후 포인트 업데이트 (supabase 초기화 충분한 시간 확보)
+            setTimeout(updateInitialPoints, 2000);
+
             const hamburgerBtn = document.getElementById('hamburger-btn-mobile');
             const sideMenu = document.getElementById('side-menu');
             const container = document.querySelector('.container');
@@ -9186,8 +9285,73 @@
                     }
 
                     console.log('✅ 공유 파일 찾음:', sharedFile.title);
+                    console.log('공유 파일 소유자:', sharedFile.user_id);
 
-                    // 파일 자동 로드
+                    // 파일 소유자의 username 가져오기 (profiles 테이블)
+                    let ownerName = '누군가';
+                    if (sharedFile.user_id) {
+                        const { data: profileData, error: profileError } = await supabase
+                            .from('profiles')
+                            .select('username')
+                            .eq('id', sharedFile.user_id)
+                            .single();
+
+                        if (profileData && profileData.username) {
+                            ownerName = profileData.username;
+                            console.log('✅ 소유자 username:', ownerName);
+                        } else {
+                            console.log('⚠️ username을 찾을 수 없습니다:', profileError);
+                        }
+                    }
+
+                    // 저장 여부 확인 Alert
+                    const shouldSave = confirm(`${ownerName} 님께서 "${sharedFile.title}"을 공유해 주셨습니다. 저장하시겠습니까?`);
+
+                    if (shouldSave) {
+                        // 현재 사용자 정보 확인
+                        const { data: { user } } = await supabase.auth.getUser();
+
+                        if (user) {
+                            // 로그인 상태: 마이 파일에 저장
+                            console.log('📁 마이 파일에 저장 중...');
+                            const { error: insertError } = await supabase
+                                .from('study_materials')
+                                .insert([{
+                                    title: `${sharedFile.title} (공유)`,
+                                    content: sharedFile.content,
+                                    owner_id: user.id,
+                                    is_shared: false,
+                                    created_at: new Date().toISOString()
+                                }]);
+
+                            if (insertError) {
+                                console.error('마이 파일 저장 오류:', insertError);
+                                alert('파일 저장에 실패했습니다.');
+                            } else {
+                                alert('마이 파일에 저장되었습니다!');
+                                console.log('✅ 마이 파일에 저장 완료');
+                            }
+                        } else {
+                            // 비로그인 상태: 로컬 파일에 저장
+                            console.log('💾 로컬 파일에 저장 중...');
+                            const localFiles = JSON.parse(localStorage.getItem('localFiles') || '[]');
+                            localFiles.push({
+                                id: 'local_' + Date.now(),
+                                title: `${sharedFile.title} (공유)`,
+                                content: sharedFile.content,
+                                created_at: new Date().toISOString(),
+                                is_local: true
+                            });
+                            localStorage.setItem('localFiles', JSON.stringify(localFiles));
+                            alert('로컬 파일에 저장되었습니다!');
+                            console.log('✅ 로컬 파일에 저장 완료');
+                        }
+                    } else {
+                        // 닫기 클릭: 그냥 파일 열기 (저장 안 함)
+                        console.log('❌ 저장 안 함 - 파일만 열기');
+                    }
+
+                    // 파일 자동 로드 (저장 여부와 관계없이)
                     await window.playGame(sharedFile.id, sharedFile.title);
                 } catch (error) {
                     console.error('공유 파일 로드 중 오류:', error);
