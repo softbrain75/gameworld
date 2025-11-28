@@ -9912,6 +9912,29 @@
             alert('✅ 학습 단계 진행 상황이 초기화되었습니다.');
         }
 
+        function startFullTest() {
+            // Full Test: 전체 단어를 대상으로 모든 단어를 한 번에 학습
+            selectedSectionRange = null; // 전체 선택
+            learningMode = 'all';
+
+            // 출제비율을 100%로 설정
+            const difficultySlider = document.getElementById('difficulty-slider');
+            if (difficultySlider) {
+                difficultySlider.value = '100';
+                const difficultyPercent = document.getElementById('difficulty-percent');
+                if (difficultyPercent) {
+                    difficultyPercent.textContent = '100';
+                }
+            }
+
+            console.log('🎮 Full Test 시작 - 모든 단어 학습 (출제비율 100%)');
+
+            closeGameModeModal();
+
+            // 게임 시작
+            startGame(false);
+        }
+
         function selectSection(start, end, btnElement) {
             selectedSectionRange = { start, end };
             // start와 end는 문맥을 포함한 단어 인덱스 범위
@@ -10289,7 +10312,10 @@
             <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <div style="font-size: 14px; font-weight: bold;">학습할 단계를 선택하세요</div>
-                    <button id="reset-section-btn" style="padding: 6px 12px; background-color: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#dc2626'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='#ef4444'; this.style.transform='scale(1)'" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1.05)'" onclick="resetSectionProgress()">초기화</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="full-test-btn" style="padding: 6px 12px; background-color: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#2563eb'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='#3b82f6'; this.style.transform='scale(1)'" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1.05)'" onclick="startFullTest()">Full Test</button>
+                        <button id="reset-section-btn" style="padding: 6px 12px; background-color: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='#dc2626'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='#ef4444'; this.style.transform='scale(1)'" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1.05)'" onclick="resetSectionProgress()">초기화</button>
+                    </div>
                 </div>
                 <div id="section-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; padding: 12px 12px;">
                     <!-- 동적으로 생성됨 -->
