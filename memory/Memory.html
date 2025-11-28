@@ -7251,14 +7251,14 @@
             ttcLabel.style.color = 'var(--text-primary)';
 
             // 기본값 설정 (미체크)
-            ttcLabel.textContent = "TTV 삭제 표시 안 함";
+            ttcLabel.textContent = "이미 알고 있는 것 제거 안 함";
 
             // 체크박스 변경 이벤트
             ttcCheckbox.addEventListener('change', (e) => {
                 if (e.target.checked) {
-                    ttcLabel.textContent = "TTV 삭제 표시(정답 입력시 TTV를 제거할 수 있습니다)";
+                    ttcLabel.textContent = "이미 알고 있는 것(장기기억)은 시험문제에서 제거할 수 있습니다.최초 시험문제를 필터할 때 사용하세요. 정답을 맞추면 체크박스가 체크되어 표시됩니다. 체크한 항목은 향후 시험문제에서 삭제되며, 확실하게 아는 것이 아니라고 생각되시면 체크를 해제하시면 시험문제에서 삭제되지 않습니다. 모르는 것만 시험문제로 남겨두고 이용하세요~" ;
                 } else {
-                    ttcLabel.textContent = "TTV 삭제 표시 안 함";
+                    ttcLabel.textContent = "이미 알고 있는 것 제거 안 함";
                 }
 
                 // Italic 체크박스들의 checked 상태 동기화 + 이미 정답인 것들 표시
@@ -9133,10 +9133,7 @@
                     }
                 }
             } else {
-                // 힌트 사용 후 입력필드로 포커스 복원
-                if (selectedInput) {
-                    selectedInput.focus();
-                }
+                // 힌트 사용 후 포커스 유지 안 함 (모바일에서 키보드 안 나타남)
             }
 
             console.log('💡 힌트 표시:', revealedWord, '(', nextRevealed, '/', correctWord.length, ')');
