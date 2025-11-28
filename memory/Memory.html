@@ -3,7 +3,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Markdown Bold 에디터</title>
     <!-- Favicon -->
@@ -34,24 +34,45 @@
             --error: #f5222d;
         }
 
-        html, body {
+        html {
             width: 100%;
             height: 100%;
             background: linear-gradient(135deg, #f8f5ff 0%, #faf7ff 100%);
             font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             color: var(--text-primary);
-            overflow-x: hidden; /* 좌우 스크롤 방지 */
+            overflow-x: hidden;
+            /* 모바일 키보드가 나올 때도 높이 유지 */
+            min-height: 100dvh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f8f5ff 0%, #faf7ff 100%);
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            /* 모바일 키보드가 나올 때도 높이 유지 */
+            min-height: 100dvh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
         }
 
         .container {
             width: 100%;
-            height: 100dvh; /* 동적 viewport 높이 (iOS Safari 대응) */
+            height: calc(100dvh - 50px); /* 헤더(50px) 제외한 높이 */
             display: flex;
             flex-direction: column;
             padding: 6px 16px 16px 16px;
-            overflow-y: auto;
-            overflow-x: hidden; /* 좌우 스크롤 방지 */
-            -webkit-overflow-scrolling: touch;
+            overflow: hidden;
             box-sizing: border-box; /* padding 포함한 너비 계산 */
         }
 
@@ -1455,10 +1476,8 @@
         .game-container {
             width: 100%;
             margin: 0;
-            padding: 0px;
-            box-sizing: border-box; /* padding 포함한 너비 계산 */
-            /* header 고정 후 나머지 영역 스크롤 */
-            margin-top: 50px; /* fixed header 높이만큼 여백 */
+            padding: 6px 16px 16px 16px;
+            box-sizing: border-box;
             overflow-y: auto;
             overflow-x: hidden;
             scrollbar-width: thin;
@@ -2869,6 +2888,24 @@
         </div>
     </div>
 
+    <!-- Game Info Header (Fixed outside container) -->
+    <header class="game-info-row">
+        <div class="info-card">
+            <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
+        </div>
+        <div class="info-card">
+            <div class="info-value"><span id="game-points">0</span>P</div>
+        </div>
+        <div class="header-buttons">
+            <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트 차감) ctrl+H">
+                <span class="material-icons">lightbulb</span>
+            </button>
+            <button class="submit-btn" id="submit-btn">
+                <span class="material-icons">send</span>
+            </button>
+        </div>
+    </header>
+
     <div class="container">
         <div class="content-area">
             <!-- Welcome Screen -->
@@ -2959,24 +2996,6 @@
 
             <!-- Game Section -->
             <section id="game-section">
-                <!-- Game Info Header -->
-                <header class="game-info-row">
-                    <div class="info-card">
-                        <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-value"><span id="game-points">0</span>P</div>
-                    </div>
-                    <div class="header-buttons">
-                        <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트 차감) ctrl+H">
-                            <span class="material-icons">lightbulb</span>
-                        </button>
-                        <button class="submit-btn" id="submit-btn">
-                            <span class="material-icons">send</span>
-                        </button>
-                    </div>
-                </header>
-
                 <div class="game-container">
                     <!-- Progress Bar -->
                     <div class="progress-bar">
