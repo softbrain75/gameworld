@@ -228,7 +228,7 @@
         }
 
         .menu-sections-wrapper::-webkit-scrollbar {
-            width: 6px;
+            width: 2px;
         }
 
         .menu-sections-wrapper::-webkit-scrollbar-track {
@@ -947,6 +947,21 @@
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden; /* 좌우 스크롤 방지 */
+            scrollbar-width: thin;
+            scrollbar-color: var(--outline-variant) transparent;
+        }
+
+        #list-section::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        #list-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #list-section::-webkit-scrollbar-thumb {
+            background: var(--outline-variant);
+            border-radius: 1px;
         }
 
         #list-section.active {
@@ -1357,7 +1372,7 @@
         }
 
         #editor::-webkit-scrollbar {
-            width: 6px;
+            width: 2px;
         }
 
         #editor::-webkit-scrollbar-track {
@@ -1442,6 +1457,25 @@
             margin: 0;
             padding: 0px;
             box-sizing: border-box; /* padding 포함한 너비 계산 */
+            /* header 고정 후 나머지 영역 스크롤 */
+            margin-top: 50px; /* fixed header 높이만큼 여백 */
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: var(--outline-variant) transparent;
+        }
+
+        .game-container::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .game-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .game-container::-webkit-scrollbar-thumb {
+            background: var(--outline-variant);
+            border-radius: 1px;
         }
 
         .header-top {
@@ -1520,13 +1554,13 @@
         .playing-screen {
             display: none;
             width: 100%;
-            padding-top: 60px;
+            padding-top: 0px;
         }
 
         .gameover-screen {
             display: none;
             width: 100%;
-            padding-top: 10px;
+            padding-top:0px;
         }        
         .playing-screen.active, .gameover-screen.active {
             display: block;
@@ -1582,11 +1616,14 @@
             top: 0;
             left: 0;
             right: 0;
-            background: var(--surface);
+            background: linear-gradient(135deg, #f8f5ff 0%, #faf7ff 100%);
             border-bottom: 1px solid var(--outline-variant);
             z-index: 100;
             box-sizing: border-box;
             height: 50px;
+            /* 모바일에서 키보드가 나올 때도 상단에 유지 */
+            position: fixed !important;
+            top: 0 !important;
         }
 
         .game-info .header-buttons {
@@ -2091,7 +2128,7 @@
         }
 
         .original-text-content::-webkit-scrollbar {
-            width: 6px;
+            width: 2px;
         }
 
         .original-text-content::-webkit-scrollbar-track {
@@ -2922,25 +2959,25 @@
 
             <!-- Game Section -->
             <section id="game-section">
-                <div class="game-container">
-                    <!-- Game Info Row -->
-                    <div class="game-info-row">
-                        <div class="info-card">
-                            <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
-                        </div>
-                        <div class="info-card">
-                            <div class="info-value"><span id="game-points">0</span>P</div>
-                        </div>
-                        <div class="header-buttons">
-                            <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트 차감) ctrl+H">
-                                <span class="material-icons">lightbulb</span>
-                            </button>
-                            <button class="submit-btn" id="submit-btn">
-                                <span class="material-icons">send</span>
-                            </button>
-                        </div>
+                <!-- Game Info Header -->
+                <header class="game-info-row">
+                    <div class="info-card">
+                        <div class="info-value"><span id="correct-count">0</span>/<span id="total-blanks">0</span></div>
                     </div>
+                    <div class="info-card">
+                        <div class="info-value"><span id="game-points">0</span>P</div>
+                    </div>
+                    <div class="header-buttons">
+                        <button class="hint-btn" id="hint-btn" title="힌트 보기 (100 포인트 차감) ctrl+H">
+                            <span class="material-icons">lightbulb</span>
+                        </button>
+                        <button class="submit-btn" id="submit-btn">
+                            <span class="material-icons">send</span>
+                        </button>
+                    </div>
+                </header>
 
+                <div class="game-container">
                     <!-- Progress Bar -->
                     <div class="progress-bar">
                         <div class="progress-fill" id="progress-fill"></div>
@@ -3000,7 +3037,7 @@
                             </div>
 
                             <div class="button-group">
-                                <button class="retry-btn btn-base btn-primary" style="width: 50%;">다시 하기</button>
+                                <button class="retry-btn btn-base btn-primary" id="retry-btn" style="width: 50%;">다시 하기</button>
                                 <button class="wrong-retry-btn btn-base btn-secondary" id="wrong-retry-btn" style="display: none; width: 50%;">틀린 것만 다시</button>
                             </div>
 
@@ -3689,7 +3726,6 @@
                             }
                             return;
                         }
-                        filePath = fileToEdit.file_path;
                     }
                 } else {
                     // 2. create 모드: 새 파일 생성
@@ -3708,7 +3744,6 @@
                 const metaData = {
                     id: fileId,
                     title: fileName,
-                    file_path: filePath,
                     updated_at: new Date().toISOString(),
                     user_id: user.id,
                     view_at: new Date().toISOString(),
@@ -3801,7 +3836,6 @@
                                 id: fileId,
                                 user_id: user.id,
                                 title: fileName,
-                                file_path: filePath,
                                 contents: content,  // ✅ contents 필드에 MD 내용 저장
                                 is_public: isPublic,
                                 view_count: 0,
@@ -3981,14 +4015,14 @@
 
                 // 2. Supabase contents 필드에서 시도 (캐시에 없으면)
                 // ✅ 변경: Storage 대신 contents 필드에서 직접 로드
-                if (!content && filePath && typeof supabase !== 'undefined') {
+                if (!content && typeof supabase !== 'undefined') {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (user) {
                         const { data, error } = await supabase
                             .from('study_materials')
                             .select('contents')
                             .eq('user_id', user.id)
-                            .like('file_path', `%${fileName}%`)
+                            .eq('file_name', fileName)
                             .single();
 
                         if (!error && data && data.contents) {
@@ -4883,7 +4917,6 @@
                             localStorage.setItem(metaKey, JSON.stringify({
                                 id: file.id,
                                 title: file.title,
-                                file_path: file.file_path,
                                 updated_at: file.updated_at,
                                 view_at: file.view_at,
                                 user_id: file.user_id,
@@ -5465,14 +5498,6 @@
                         return;
                     }
 
-                    // Download file from Storage
-                    const storagePath = fileData.file_path;
-
-                    if (!storagePath) {
-                        alert('파일 경로가 없습니다.');
-                        loadingOverlay.classList.remove('active');
-                        return;
-                    }
                     // ✅ 변경: Storage 대신 contents 필드에서 직접 로드
                     const { data: dbData, error: dbError } = await supabase
                         .from('study_materials')
@@ -5494,7 +5519,6 @@
                     localStorage.setItem(`supabase_file_meta_${fileId}`, JSON.stringify({
                         id: fileId,
                         title: fileName,
-                        file_path: fileData.file_path,
                         updated_at: fileData.updated_at,
                         user_id: fileData.user_id,
                         view_at: new Date().toISOString(),
@@ -6182,19 +6206,7 @@
                         return;
                     }
                     console.log('✅ import 권한 확인됨 - 다른 사람의 파일이므로 import 가능');
-
-                    // Storage에서 파일 내용 다운로드
-                    const { data: storageData, error: storageError } = await supabase
-                        .storage
-                        .from('study_materials')
-                        .download(originalFile.file_path);
-
-                    if (storageError) {
-                        throw new Error('파일 내용을 다운로드할 수 없습니다.');
-                    }
-
-                    const content = await storageData.text();
-
+                    
                     // 새 파일 이름 생성 (원본 파일명에 "_복사본" 추가)
                     const newFileName = `${originalFile.title}_복사본`;
 
@@ -6220,7 +6232,6 @@
                             id: newFileId,
                             user_id: window.currentUser.id,
                             title: newFileName,
-                            file_path: newFilePath,
                             view_count: 0,
                             is_public: false,
                             is_shared: false,
@@ -6881,11 +6892,8 @@
 
         // Render table with proper formatting
         function renderTable(tableLines, startWordIndex, startBlankOrder, activeTTVIndices, learningMode, selectedSectionRange) {
-            console.log(`🎯 renderTable() 호출됨 - startWordIndex=${startWordIndex}, startBlankOrder=${startBlankOrder}, tableLines=${tableLines.length}줄`);
-
             let wordIndex = startWordIndex;
             let blankOrder = startBlankOrder;
-            let tableInputCount = 0;  // 테이블 내 생성된 input 개수 추적
 
             const table = document.createElement('table');
             table.style.width = '100%';
@@ -6936,46 +6944,11 @@
 
                                 // 입력 필드 (블랭크인 경우)
                                 if (blanks.includes(wordIndex)) {
-                                    const container = document.createElement('span');
-                                    container.className = 'word-blank-container';
-                                    container.style.display = 'inline-block';
-                                    container.style.margin = '0 4px';
-
-                                    // TTV 단어가 활성화되었는지 확인
-                                    const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
-
-                                    const inputEl = document.createElement('input');
-                                    inputEl.type = 'text';
-                                    inputEl.className = 'word-input';
-                                    inputEl.dataset.index = wordIndex;
-                                    inputEl.dataset.order = blankOrder;
-                                    inputEl.dataset.answer = altText;
-                                    inputEl.placeholder = '';
-                                    inputEl.autocomplete = 'off';
-                                    inputEl.setAttribute('autocomplete', 'off');
-                                    inputEl.setAttribute('autocorrect', 'off');
-                                    inputEl.setAttribute('autocapitalize', 'off');
-                                    inputEl.spellcheck = 'false';
-
-                                    // 비활성 TTV는 입력 불가, 거의 투명하게 처리
-                                    if (!isActiveTTV && learningMode === 'section') {
-                                        inputEl.disabled = true;
-                                        inputEl.style.setProperty('color', 'rgba(0, 0, 0, 0.1)', 'important');
-                                        inputEl.style.setProperty('background-color', 'transparent', 'important');
-                                        inputEl.style.setProperty('border-color', 'transparent', 'important');
-                                        inputEl.style.cursor = 'not-allowed';
-                                        console.log('✅ 비활성 테이블 이미지 TTV 처리됨:', wordIndex);
-                                    }
-
-                                    setInputWidth(inputEl, altText);
-                                    blankOrder++;
-                                    tableInputCount++;
-
-                                    console.log(`  📝 테이블 input 생성 (이미지): wordIndex=${wordIndex}, order=${blankOrder-1}, answer="${altText}"`);
-
-                                    container.appendChild(inputEl);
-                                    setupHintShortcutForInput(inputEl);
-                                    td.appendChild(container);
+                                    const result = createTableBlankInput(altText, wordIndex, blankOrder, activeTTVIndices, learningMode, true);
+                                    result.container.style.display = 'inline-block';
+                                    result.container.style.margin = '0 4px';
+                                    td.appendChild(result.container);
+                                    blankOrder = result.blankOrder;
                                 }
 
                                 wordIndex++;
@@ -6989,90 +6962,19 @@
                                 wordEl.style.margin = '0 4px';
 
                                 if (blanks.includes(wordIndex)) {
-                                    const container = document.createElement('span');
-                                    container.className = 'word-blank-container';
-
-                                    // TTV 단어가 활성화되었는지 확인
-                                    const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
-
-                                    const inputEl = document.createElement('input');
-                                    inputEl.type = 'text';
-                                    inputEl.className = 'word-input';
-                                    inputEl.dataset.index = wordIndex;
-                                    inputEl.dataset.order = blankOrder;
-                                    inputEl.dataset.answer = word;
-                                    inputEl.placeholder = '';
-                                    inputEl.autocomplete = 'off';
-                                    inputEl.setAttribute('autocomplete', 'off');
-                                    inputEl.setAttribute('autocorrect', 'off');
-                                    inputEl.setAttribute('autocapitalize', 'off');
-                                    inputEl.spellcheck = 'false';
-
-                                    // 비활성 TTV는 입력 불가, 거의 투명하게 처리
-                                    if (!isActiveTTV && learningMode === 'section') {
-                                        inputEl.disabled = true;
-                                        inputEl.style.setProperty('color', 'rgba(0, 0, 0, 0.1)', 'important');
-                                        inputEl.style.setProperty('background-color', 'transparent', 'important');
-                                        inputEl.style.setProperty('border-color', 'transparent', 'important');
-                                        inputEl.style.cursor = 'not-allowed';
-                                        console.log('✅ 비활성 테이블 굵은 TTV 처리됨:', wordIndex);
-                                    }
-
-                                    // 단어 길이에 따라 입력 필드 너비 조정
-                                    const wordLength = word.length;
-                                    const isNumeric = /^\d+$/.test(word);
-                                    setInputWidth(inputEl, word);
-
-                                    blankOrder++;
-                                    tableInputCount++;
-
-                                    console.log(`  📝 테이블 input 생성 (bold): wordIndex=${wordIndex}, order=${blankOrder-1}, answer="${word}"`);
-
-                                    // Italic 체크박스 추가 (초기에는 숨김)
-                                    const checkbox = document.createElement('input');
-                                    checkbox.type = 'checkbox';
-                                    checkbox.className = 'italic-checkbox';
-                                    checkbox.title = 'Italic으로 표시';
-                                    checkbox.style.display = 'none'; // 초기에는 숨김
-                                    checkbox.setAttribute('data-blank-index', wordIndex);
-                                    checkbox.addEventListener('change', (e) => {
-                                        const idx = parseInt(inputEl.dataset.index);
-                                        const wordValue = lyrics[idx];
-                                        if (e.target.checked) {
-                                            inputEl.classList.add('italic-marked');
-                                            if (!italicWords.includes(idx)) {
-                                                italicWords.push(idx);
-                                                // 배열을 정렬된 상태로 유지 (인덱스 순서)
-                                                italicWords.sort((a, b) => a - b);
-                                            }
-                                            if (!italicWordValues.includes(wordValue)) {
-                                                italicWordValues.push(wordValue);
-                                            }
-                                            showToast('✓ 체크하신 TTC는 시험 종료후 원본에서 italic으로 표시되고, 향후 시험에 나오지 않습니다');
-                                        } else {
-                                            inputEl.classList.remove('italic-marked');
-                                            italicWords = italicWords.filter(i => i !== idx);
-                                            italicWordValues = italicWordValues.filter(w => w !== wordValue);
-                                        }
-                                        console.log('✅ 표 Bold - Italic 체크:', { idx, word: wordValue, italicWords, italicWordValues });
-                                    });
-
-                                    container.appendChild(inputEl);
-                                    setupHintShortcutForInput(inputEl);
-                                    container.appendChild(checkbox);
-                                    wordEl.appendChild(container);
+                                    const result = createTableBlankInput(word, wordIndex, blankOrder, activeTTVIndices, learningMode, false);
+                                    wordEl.appendChild(result.container);
+                                    blankOrder = result.blankOrder;
                                 } else {
                                     const wordSpan = document.createElement('span');
                                     wordSpan.className = 'word-visible';
                                     wordSpan.textContent = word;
 
-                                    // 섹션 모드에서 비활성 TTV 텍스트 스타일 (italic)
-                                    // TTV 단어이면서 비활성일 때만 opacity 적용
+                                    // 섹션 모드에서 비활성 TTV 텍스트 스타일
                                     const isTTVWord = boldWords.includes(wordIndex);
                                     const isActiveTTV = isTTVWord && activeTTVIndices.has(wordIndex);
                                     if (isTTVWord && !isActiveTTV && learningMode === 'section') {
                                         wordSpan.style.opacity = '0.1';
-                                        console.log('✅ 비활성 테이블 italic 텍스트(span) 처리됨:', wordIndex);
                                     }
 
                                     wordEl.appendChild(wordSpan);
@@ -7120,89 +7022,19 @@
                                         wordEl.style.margin = '0 4px';
 
                                         if (blanks.includes(wordIndex)) {
-                                            const container = document.createElement('span');
-                                            container.className = 'word-blank-container';
-
-                                            // TTV 단어가 활성화되었는지 확인
-                                            const isActiveTTV = boldWords.includes(wordIndex) && activeTTVIndices.has(wordIndex);
-
-                                            const inputEl = document.createElement('input');
-                                            inputEl.type = 'text';
-                                            inputEl.className = 'word-input';
-                                            inputEl.dataset.index = wordIndex;
-                                            inputEl.dataset.order = blankOrder;
-                                            inputEl.dataset.answer = word;
-                                            inputEl.placeholder = '';
-                                            inputEl.autocomplete = 'off';
-                                            inputEl.setAttribute('autocomplete', 'off');
-                                            inputEl.setAttribute('autocorrect', 'off');
-                                            inputEl.setAttribute('autocapitalize', 'off');
-                                            inputEl.spellcheck = 'false';
-
-                                            // 비활성 TTV는 입력 불가, 거의 투명하게 처리
-                                            if (!isActiveTTV && learningMode === 'section') {
-                                                inputEl.disabled = true;
-                                                inputEl.style.setProperty('color', 'rgba(0, 0, 0, 0.1)', 'important');
-                                                inputEl.style.setProperty('background-color', 'transparent', 'important');
-                                                inputEl.style.setProperty('border-color', 'transparent', 'important');
-                                                inputEl.style.cursor = 'not-allowed';
-                                                console.log('✅ 비활성 테이블 일반 TTV 처리됨:', wordIndex);
-                                            }
-
-                                            // 단어 길이에 따라 입력 필드 너비 조정
-                                            const wordLength = word.length;
-                                            const isNumeric = /^\d+$/.test(word);
-                                            setInputWidth(inputEl, word);
-
-                                            blankOrder++;
-                                            tableInputCount++;
-
-                                            console.log(`  📝 테이블 input 생성 (일반): wordIndex=${wordIndex}, order=${blankOrder-1}, answer="${word}"`);
-
-                                            // Italic 체크박스 추가 (초기에는 숨김)
-                                            const checkbox = document.createElement('input');
-                                            checkbox.type = 'checkbox';
-                                            checkbox.className = 'italic-checkbox';
-                                            checkbox.title = 'Italic으로 표시';
-                                            checkbox.style.display = 'none'; // 초기에는 숨김
-                                            checkbox.setAttribute('data-blank-index', wordIndex);
-                                            checkbox.addEventListener('change', (e) => {
-                                                const idx = parseInt(inputEl.dataset.index);
-                                                const wordValue = lyrics[idx];
-                                                if (e.target.checked) {
-                                                    inputEl.classList.add('italic-marked');
-                                                    if (!italicWords.includes(idx)) {
-                                                        italicWords.push(idx);
-                                                        italicWords.sort((a, b) => a - b);
-                                                    }
-                                                    if (!italicWordValues.includes(wordValue)) {
-                                                        italicWordValues.push(wordValue);
-                                                    }
-                                                    showToast('✓ 체크하신 TTC는 시험 종료후 원본에서 italic으로 표시되고, 향후 시험에 나오지 않습니다');
-                                                } else {
-                                                    inputEl.classList.remove('italic-marked');
-                                                    italicWords = italicWords.filter(i => i !== idx);
-                                                    italicWordValues = italicWordValues.filter(w => w !== wordValue);
-                                                }
-                                                console.log('✅ 표 비Bold - Italic 체크:', { idx, word: wordValue, italicWords, italicWordValues });
-                                            });
-
-                                            container.appendChild(inputEl);
-                                            setupHintShortcutForInput(inputEl);
-                                            container.appendChild(checkbox);
-                                            wordEl.appendChild(container);
+                                            const result = createTableBlankInput(word, wordIndex, blankOrder, activeTTVIndices, learningMode, false);
+                                            wordEl.appendChild(result.container);
+                                            blankOrder = result.blankOrder;
                                         } else {
                                             const wordSpan = document.createElement('span');
                                             wordSpan.className = 'word-visible';
                                             wordSpan.textContent = word;
 
                                             // 섹션 모드에서 비활성 TTV 텍스트 스타일
-                                            // TTV 단어이면서 비활성일 때만 opacity 적용
                                             const isTTVWord = boldWords.includes(wordIndex);
                                             const isActiveTTV = isTTVWord && activeTTVIndices.has(wordIndex);
                                             if (isTTVWord && !isActiveTTV && learningMode === 'section') {
                                                 wordSpan.style.opacity = '0.1';
-                                                console.log('✅ 비활성 테이블 텍스트(span) 처리됨:', wordIndex);
                                             }
 
                                             wordEl.appendChild(wordSpan);
@@ -7222,8 +7054,6 @@
 
                 table.appendChild(row);
             });
-
-            console.log(`✅ renderTable() 완료 - 생성된 input=${tableInputCount}개, 다음 wordIndex=${wordIndex}, 다음 blankOrder=${blankOrder}`);
 
             return {
                 element: table,
@@ -7936,6 +7766,95 @@
                     const inTable = this.closest('table') !== null;
                     const location = inTable ? '테이블' : '일반';
                     console.log(`🎯 input focus [${location}] index=${this.dataset.index}: value="${this.value}"`);
+
+                    // 한글 IME 초기화를 위해 실제 키 이벤트 발생 (ㄱ → backspace → ㄱ → backspace)
+                    setTimeout(() => {
+                        let delay = 10;
+
+                        // 첫 번째: ㄱ 입력
+                        setTimeout(() => {
+                            const keydownEvent = new KeyboardEvent('keydown', {
+                                key: 'ㄱ',
+                                code: 'KeyR',
+                                keyCode: 82,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            this.dispatchEvent(keydownEvent);
+                            this.value = 'ㄱ';
+                            const inputEvent = new InputEvent('input', {
+                                data: 'ㄱ',
+                                inputType: 'insertText',
+                                bubbles: true,
+                                cancelable: false
+                            });
+                            this.dispatchEvent(inputEvent);
+                        }, delay);
+
+                        delay += 10;
+
+                        // 첫 번째: backspace
+                        setTimeout(() => {
+                            const backspaceEvent = new KeyboardEvent('keydown', {
+                                key: 'Backspace',
+                                code: 'Backspace',
+                                keyCode: 8,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            this.dispatchEvent(backspaceEvent);
+                            this.value = '';
+                            const deleteInputEvent = new InputEvent('input', {
+                                inputType: 'deleteContentBackward',
+                                bubbles: true,
+                                cancelable: false
+                            });
+                            this.dispatchEvent(deleteInputEvent);
+                        }, delay);
+
+                        delay += 10;
+
+                        // 두 번째: ㄱ 입력
+                        setTimeout(() => {
+                            const keydownEvent = new KeyboardEvent('keydown', {
+                                key: 'ㄱ',
+                                code: 'KeyR',
+                                keyCode: 82,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            this.dispatchEvent(keydownEvent);
+                            this.value = 'ㄱ';
+                            const inputEvent = new InputEvent('input', {
+                                data: 'ㄱ',
+                                inputType: 'insertText',
+                                bubbles: true,
+                                cancelable: false
+                            });
+                            this.dispatchEvent(inputEvent);
+                        }, delay);
+
+                        delay += 10;
+
+                        // 두 번째: backspace
+                        setTimeout(() => {
+                            const backspaceEvent = new KeyboardEvent('keydown', {
+                                key: 'Backspace',
+                                code: 'Backspace',
+                                keyCode: 8,
+                                bubbles: true,
+                                cancelable: true
+                            });
+                            this.dispatchEvent(backspaceEvent);
+                            this.value = '';
+                            const deleteInputEvent = new InputEvent('input', {
+                                inputType: 'deleteContentBackward',
+                                bubbles: true,
+                                cancelable: false
+                            });
+                            this.dispatchEvent(deleteInputEvent);
+                        }, delay);
+                    }, 10);
                 });
 
                 input.addEventListener('blur', function() {
@@ -8494,40 +8413,6 @@
                 const cacheKey = `markdown_${currentGameFileName}`;
                 localStorage.setItem(cacheKey, updatedMarkdown);
                 console.log('💾 localStorage 캐시에 즉시 저장됨:', cacheKey);
-
-                // Supabase Storage에 업로드 (백그라운드 진행, await 하지 않음)
-                if (typeof supabase !== 'undefined') {
-                    try {
-                        // 파일의 경로를 조회 (동기 대신 비동기로 진행)
-                        supabase
-                            .from('study_materials')
-                            .select('file_path')
-                            .eq('id', fileId)
-                            .single()
-                            .then(({ data: fileData }) => {
-                                if (fileData && fileData.file_path) {
-                                    // Storage에 업데이트 (백그라운드)
-                                    supabase
-                                        .storage
-                                        .from('study_materials')
-                                        .upload(fileData.file_path, new Blob([updatedMarkdown], { type: 'text/plain' }), {
-                                            upsert: true
-                                        })
-                                        .then(({ error: uploadError }) => {
-                                            if (uploadError) {
-                                                console.error('Supabase 파일 업데이트 오류 (백그라운드):', uploadError);
-                                            } else {
-                                                console.log('✅ Supabase 파일 업데이트됨 (백그라운드):', currentGameFileName);
-                                            }
-                                        })
-                                        .catch(err => console.error('Storage 업로드 중 오류 (백그라운드):', err));
-                                }
-                            })
-                            .catch(err => console.error('파일 경로 조회 중 오류 (백그라운드):', err));
-                    } catch (error) {
-                        console.error('Supabase 파일 업데이트 초기화 중 오류:', error);
-                    }
-                }
             }
         }
 
@@ -8826,6 +8711,11 @@
             } else if (screenType === 'gameover') {
                 playingScreen.classList.remove('active');
                 gameoverScreen.classList.add('active');
+                // 다시 하기 버튼에 포커스
+                const retryBtn = document.getElementById('retry-btn');
+                if (retryBtn) {
+                    retryBtn.focus();
+                }
                 if (hintBtn) hintBtn.style.display = 'none';
                 if (submitBtn) submitBtn.style.display = 'none';
                 // 결과 화면에서 헤더 숨기기
@@ -8844,6 +8734,71 @@
                         }
                     }, 50);
                 }
+
+                // 2초 후 정오표의 첫번째 word-input + 20px로 스크롤
+                setTimeout(() => {
+                    // 정오표 display에서 word-input 찾기
+                    const originalTextDisplay = document.getElementById('original-text-display');
+                    let wordInputs = null;
+
+                    if (originalTextDisplay) {
+                        wordInputs = originalTextDisplay.querySelectorAll('.word-input');
+                        console.log(`🔍 [정오표] 찾은 word-input 개수: ${wordInputs.length}`);
+                    }
+
+                    // 정오표가 없으면 게임 섹션 전체에서 찾기
+                    if (!wordInputs || wordInputs.length === 0) {
+                        const gameSection = document.querySelector('#game-section');
+                        wordInputs = gameSection ?
+                            gameSection.querySelectorAll('.word-input') :
+                            document.querySelectorAll('.word-input');
+                        console.log(`🔍 [전체] 찾은 word-input 개수: ${wordInputs.length}`);
+                    }
+
+                    if (wordInputs && wordInputs.length > 0) {
+                        const firstInput = wordInputs[0];
+                        console.log(`📍 첫번째 word-input text: "${firstInput.value}"`);
+                        console.log(`📍 첫번째 word-input index: ${firstInput.dataset.index}`);
+
+                        // 게임 섹션 또는 window를 기준으로 부드러운 스크롤
+                        const gameSection = document.querySelector('#game-section');
+                        if (gameSection) {
+                            const rect = firstInput.getBoundingClientRect();
+                            const containerRect = gameSection.getBoundingClientRect();
+                            const targetScrollTop = gameSection.scrollTop + rect.top - containerRect.top - 20;
+
+                            // 부드러운 스크롤 애니메이션
+                            const startScrollTop = gameSection.scrollTop;
+                            const distance = targetScrollTop - startScrollTop;
+                            const duration = 1000; // 1초
+                            const startTime = Date.now();
+
+                            const animateScroll = () => {
+                                const elapsed = Date.now() - startTime;
+                                const progress = Math.min(elapsed / duration, 1);
+
+                                // easeInOutCubic 이징 함수
+                                const easeProgress = progress < 0.5
+                                    ? 4 * progress * progress * progress
+                                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+                                gameSection.scrollTop = startScrollTop + distance * easeProgress;
+
+                                if (progress < 1) {
+                                    requestAnimationFrame(animateScroll);
+                                }
+                            };
+
+                            requestAnimationFrame(animateScroll);
+                        } else {
+                            firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        console.log('📍 첫번째 word-input으로 스크롤 완료 (+20px)');
+                    } else {
+                        console.log('❌ word-input을 찾을 수 없습니다');
+                    }
+                }, 2000);
+
                 // 게임 오버 시에도 로그인 사용자만 가져오기 버튼 표시
                 if (window.currentUser && currentGameFileId) {
                     importBtn.style.display = 'flex';
