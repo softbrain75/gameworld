@@ -3787,27 +3787,6 @@
                     filePath = `${userId}/${fileId}.md`;
                 }
 
-                // 로컬 캐시에 즉시 저장
-                // 게임 로드와 편집 로드에서 사용하는 캐시 키와 통일
-                const cacheKey = `markdown_${fileName}`;
-                localStorage.setItem(cacheKey, content);
-                console.log('💾 localStorage 캐시에 즉시 저장됨:', cacheKey);
-
-                // 메타데이터 저장 (신규 파일도 포함)
-                // owner 확인이 필요하므로 user_id는 필수
-                const metaData = {
-                    id: fileId,
-                    title: fileName,
-                    updated_at: new Date().toISOString(),
-                    user_id: user.id,
-                    view_at: new Date().toISOString(),
-                    cached_at: new Date().toISOString()
-                };
-                const metaKey = `supabase_file_meta_${fileId}`;
-                localStorage.setItem(metaKey, JSON.stringify(metaData));
-                console.log('💾 메타데이터 캐시에 저장됨:', metaKey, metaData);
-                console.log('📋 저장된 메타데이터 확인:', JSON.parse(localStorage.getItem(metaKey)));
-
                 // ✅ 변경: Storage 대신 contents 필드에 직접 저장
                 console.log('💾 파일 내용을 contents 필드에 저장할 준비:', filePath);
 
@@ -4082,8 +4061,6 @@
                         if (!error && data && data.contents) {
                             content = data.contents;
                             console.log('✅ Supabase contents에서 불러옴:', fileName);
-                            // Supabase에서 불러온 내용을 캐시에 저장
-                            localStorage.setItem(`markdown_${fileName}`, content);
                         }
                     }
                 }
@@ -5030,17 +5007,7 @@
                         // Supabase 파일을 로컬 캐시에 저장 및 전역 변수에 저장
                         window.myFilesData = data; // 검색 기능을 위한 전역 변수 저장
                         data.forEach(file => {
-                            const cacheKey = `supabase_file_${file.id}`;
-                            const metaKey = `supabase_file_meta_${file.id}`;
-                            // 메타데이터만 저장 (실제 파일 내용은 playGame에서 저장)
-                            localStorage.setItem(metaKey, JSON.stringify({
-                                id: file.id,
-                                title: file.title,
-                                updated_at: file.updated_at,
-                                view_at: file.view_at,
-                                user_id: file.user_id,
-                                cached_at: new Date().toISOString()
-                            }));
+                            // localStorage 저장 제거
                         });
 
                         // 처음 10개만 표시
@@ -5633,18 +5600,6 @@
 
                     const content = dbData.contents;
 
-                    // 3. 로컬 캐시에 저장 (파일 내용 + 메타데이터)
-                    localStorage.setItem(cacheKey, content);
-                    localStorage.setItem(`supabase_file_meta_${fileId}`, JSON.stringify({
-                        id: fileId,
-                        title: fileName,
-                        updated_at: fileData.updated_at,
-                        user_id: fileData.user_id,
-                        view_at: new Date().toISOString(),
-                        cached_at: new Date().toISOString()
-                    }));
-                    console.log('💾 파일을 로컬 캐시에 저장:', fileName);
-
                     // 4. Supabase에서 view_at 업데이트
                     const { error: updateError } = await supabase
                         .from('study_materials')
@@ -5781,9 +5736,6 @@
 
                         content = contentsData.contents;
                         console.log('✅ Supabase contents에서 파일 로드:', fileData.title);
-
-                        // contents에서 가져온 내용을 캐시에 저장
-                        localStorage.setItem(cacheKey, content);
                     }
 
                     // editor에 내용 로드하고 edit 모드로 전환
@@ -8519,11 +8471,7 @@
                     console.error('로컬 파일 업데이트 오류:', error);
                 }
             } else {
-                // Supabase 파일: 로컬 캐시 즉시 저장 후, Storage 업로드는 백그라운드 진행
-                // 로컬 캐시에 즉시 저장 (게임 로드와 동일한 키 사용)
-                const cacheKey = `markdown_${currentGameFileName}`;
-                localStorage.setItem(cacheKey, updatedMarkdown);
-                console.log('💾 localStorage 캐시에 즉시 저장됨:', cacheKey);
+                // Supabase 파일: Database에만 저장
             }
         }
 
