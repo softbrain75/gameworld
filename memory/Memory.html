@@ -9318,8 +9318,8 @@
                                 .from('study_materials')
                                 .insert([{
                                     title: `${sharedFile.title} (공유)`,
-                                    content: sharedFile.content,
-                                    owner_id: user.id,
+                                    contents: sharedFile.contents,
+                                    user_id: user.id,
                                     is_shared: false,
                                     created_at: new Date().toISOString()
                                 }]);
@@ -9334,15 +9334,13 @@
                         } else {
                             // 비로그인 상태: 로컬 파일에 저장
                             console.log('💾 로컬 파일에 저장 중...');
-                            const localFiles = JSON.parse(localStorage.getItem('localFiles') || '[]');
+                            const localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
                             localFiles.push({
-                                id: 'local_' + Date.now(),
-                                title: `${sharedFile.title} (공유)`,
-                                content: sharedFile.content,
-                                created_at: new Date().toISOString(),
-                                is_local: true
+                                name: `${sharedFile.title} (공유)`,
+                                content: sharedFile.contents,
+                                created_at: new Date().toISOString()
                             });
-                            localStorage.setItem('localFiles', JSON.stringify(localFiles));
+                            localStorage.setItem('local_md_files', JSON.stringify(localFiles));
                             alert('로컬 파일에 저장되었습니다!');
                             console.log('✅ 로컬 파일에 저장 완료');
                         }
