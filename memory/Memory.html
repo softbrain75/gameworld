@@ -6329,22 +6329,11 @@
                     // 새 파일 이름 생성 (원본 파일명에 "_복사본" 추가)
                     const newFileName = `${originalFile.title}_복사본`;
 
-                    // Storage 경로 생성 (saveFile과 동일한 패턴: userID/UUID.md)
+                    // 새 파일 ID 생성
                     const newFileId = crypto.randomUUID();
-                    const userId = window.currentUser.id.replace(/-/g, '');
-                    const newFilePath = `${userId}/${newFileId}.md`;
 
-                    // 1. Storage에 파일 업로드
-                    const { error: uploadError } = await supabase
-                        .storage
-                        .from('study_materials')
-                        .upload(newFilePath, new Blob([originalFile.contents], { type: 'text/markdown' }));
-
-                    if (uploadError) {
-                        throw new Error('파일 업로드에 실패했습니다.');
-                    }
-
-                    // 2. Database에 메타데이터 저장
+                    // Database에 메타데이터 저장
+                    const now = new Date().toISOString();
                     const { error: dbError } = await supabase
                         .from('study_materials')
                         .insert([{
@@ -6355,7 +6344,9 @@
                             view_count: 0,
                             is_public: false,
                             is_shared: false,
-                            created_at: new Date().toISOString()
+                            created_at: now,
+                            updated_at: now,
+                            view_at: now
                         }]);
 
                     if (dbError) {
