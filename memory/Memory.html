@@ -4658,37 +4658,27 @@
                 headerButtons.style.display = 'none';
             }
 
-            // 초기 화면에서 포인트 가져오기 (Supabase 초기화 대기)
+            // 초기 화면에서 포인트 가져오기
             function updateInitialPoints() {
                 try {
                     if (typeof getCurrentPoints === 'function') {
                         const currentPoints = getCurrentPoints();
-                        console.log(`🔍 getCurrentPoints 호출 결과: ${currentPoints}`);
-
-                        // 0이면 아직 Supabase가 초기화되지 않은 상태 - 재시도
-                        if (currentPoints === 0) {
-                            console.log(`⏳ Supabase가 아직 초기화 중입니다. 재시도 중...`);
-                            setTimeout(updateInitialPoints, 1000);
-                            return;
-                        }
+                        console.log(`🔍 초기 포인트 조회: ${currentPoints}`);
 
                         const gamePointsElement = document.getElementById('game-points');
                         if (gamePointsElement) {
                             const formattedPoints = currentPoints.toLocaleString('ko-KR');
                             gamePointsElement.textContent = formattedPoints;
-                            console.log(`💰 초기 포인트 업데이트 성공: ${formattedPoints}`);
                         }
                     } else {
-                        console.log(`⚠️ getCurrentPoints 함수를 찾을 수 없습니다. 재시도 중...`);
-                        setTimeout(updateInitialPoints, 1000);
+                        console.log(`⚠️ getCurrentPoints 함수를 찾을 수 없습니다.`);
                     }
                 } catch (error) {
                     console.error(`❌ 포인트 로드 오류:`, error);
-                    setTimeout(updateInitialPoints, 1000);
                 }
             }
 
-            // 2초 후 포인트 업데이트 (supabase 초기화 충분한 시간 확보)
+            // 2초 후 포인트 업데이트
             setTimeout(updateInitialPoints, 2000);
 
             const hamburgerBtn = document.getElementById('hamburger-btn-mobile');
