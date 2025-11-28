@@ -9330,6 +9330,9 @@
                             } else {
                                 alert('마이 파일에 저장되었습니다!');
                                 console.log('✅ 마이 파일에 저장 완료');
+                                // 파일 목록 새로고침
+                                await window.loadMyFiles();
+                                window.loadPublicFiles();
                             }
                         } else {
                             // 비로그인 상태: 로컬 파일에 저장
@@ -9343,6 +9346,8 @@
                             localStorage.setItem('local_md_files', JSON.stringify(localFiles));
                             alert('로컬 파일에 저장되었습니다!');
                             console.log('✅ 로컬 파일에 저장 완료');
+                            // 파일 목록 새로고침
+                            loadLocalFiles();
                         }
                     } else {
                         // 닫기 클릭: 그냥 파일 열기 (저장 안 함)
