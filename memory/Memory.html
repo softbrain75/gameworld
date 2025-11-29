@@ -156,6 +156,30 @@
             overflow: hidden;
         }
 
+        /* 스크롤 가능한 메뉴 콘텐츠 wrapper */
+        .menu-content-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            min-height: 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--outline-variant) transparent;
+        }
+
+        .menu-content-wrapper::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .menu-content-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .menu-content-wrapper::-webkit-scrollbar-thumb {
+            background: var(--outline-variant);
+            border-radius: 3px;
+        }
+
         .side-menu.open {
             width: 260px; /* 열렸을 때 전체 너비 */
         }
@@ -223,46 +247,18 @@
 
         /* Menu Actions */
         .menu-actions {
-            padding: 4px 8px 16px 8px; /* 좌우 패딩 고정 */
+            padding: 4px 8px 4px 8px; /* 좌우 패딩 고정 */
             display: flex;
             flex-direction: column;
             gap: 0;
             border-bottom: none; /* 닫혔을 때 border 제거 */
             margin-bottom: 8px;
             transition: border-bottom 0.3s ease;
-            flex-shrink: 0; /* 스크롤되지 않도록 고정 */
         }
 
-        /* 스크롤 가능한 영역 */
-        .menu-sections-wrapper {
-            flex: 1;
-            overflow-y: scroll;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            min-height: 0;
-        }
-
-        /* 스크롤바 스타일 */
-        .menu-sections-wrapper {
-            scrollbar-width: thin;
-            scrollbar-color: var(--outline-variant) transparent;
-        }
-
-        .menu-sections-wrapper::-webkit-scrollbar {
-            width: 2px;
-        }
-
-        .menu-sections-wrapper::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .menu-sections-wrapper::-webkit-scrollbar-thumb {
-            background: var(--outline-variant);
-            border-radius: 3px;
-        }
 
         .side-menu.open .menu-actions {
-            padding: 4px 8px 16px 8px; /* 동일한 패딩 유지 */
+            padding: 4px 8px 8px 8px; /* 동일한 패딩 유지 */
             border-bottom: 1px solid var(--outline-variant); /* 열렸을 때 border 추가 */
         }
 
@@ -306,7 +302,6 @@
             display: none; /* 닫혔을 때 완전히 숨김 */
             padding: 8px 12px;
             border-bottom: 1px solid var(--outline-variant);
-            margin-bottom: 8px;
         }
 
         .side-menu.open .menu-section {
@@ -477,7 +472,6 @@
             padding: 8px 8px 16px 8px; /* 좌우 패딩 고정 */
             border-top: none; /* 닫혔을 때 border 제거 */
             transition: border-top 0.3s ease;
-            flex-shrink: 0; /* 스크롤되지 않도록 고정 */
         }
 
         .side-menu.open .menu-bottom {
@@ -561,6 +555,7 @@
                 align-items: center;
                 padding: 4px 8px;
                 margin-bottom: 8px;
+                flex-shrink: 0;
             }
 
             /* Adjust container for mobile (no top margin needed) */
@@ -2909,6 +2904,26 @@
             <button class="submit-btn" id="submit-btn">
                 <span class="material-icons">send</span>
             </button>
+            <!-- Gameover screen buttons -->
+            <button class="share-btn" id="ttvedit-btn-header" title="TTV편집" style="display: none;">
+                <span class="material-symbols-outlined">edit_document</span>
+            </button>
+            <button class="share-btn" id="import-btn-header" title="파일 가져오기" style="display: none;">
+                <span class="material-icons">download</span>
+            </button>
+            <button class="share-btn" id="share-btn-header" title="파일 공유" style="display: none;">
+                <span class="material-symbols-outlined">inbox_text_share</span>
+            </button>
+            <button class="share-btn" id="test-share-btn-header" title="시험 형태로 공유" style="display: none;">
+                <span class="material-symbols-outlined">export_notes</span>
+            </button>
+            <!-- Gameover action buttons -->
+            <button class="share-btn" id="retry-btn-header" title="다시 하기" style="display: none;">
+                <span class="material-symbols-outlined">assignment</span>
+            </button>
+            <button class="share-btn" id="wrong-retry-btn-header" title="틀린 것만 다시" style="display: none;">
+                <span class="material-symbols-outlined">restore_page</span>
+            </button>
         </div>
     </header>
 
@@ -3051,16 +3066,6 @@
                             <div class="final-score-container">
                                 <div class="final-score" id="final-score">0점</div>
                                 <div class="final-points" id="final-points">+0 포인트</div>
-                            </div>
-
-                            <div class="total-points-container">
-                                <span class="total-points-label">총 포인트:</span>
-                                <span class="total-points-value" id="total-points-value">0</span>
-                            </div>
-
-                            <div class="button-group">
-                                <button class="retry-btn btn-base btn-primary" id="retry-btn" style="width: 50%;">다시 하기</button>
-                                <button class="wrong-retry-btn btn-base btn-secondary" id="wrong-retry-btn" style="display: none; width: 50%;">틀린 것만 다시</button>
                             </div>
 
                             <!-- 정오표 표시 -->
@@ -3315,10 +3320,22 @@
 
             // Update game title
             const gameTitle = document.getElementById('game-title');
+            const gameoverTitle = document.getElementById('gameover-title');
+            const titleButtons = document.querySelector('.title-buttons');
+            
             if (mode === 'game' && fileName) {
                 gameTitle.textContent = fileName;
+                if (gameoverTitle) gameoverTitle.textContent = fileName;
+                // Game 모드에서만 title-buttons 표시
+                if (titleButtons) {
+                    titleButtons.style.display = 'flex';
+                }
             } else if (mode === 'list') {
                 gameTitle.textContent = 'Memories';
+                // List 모드에서는 title-buttons 숨김
+                if (titleButtons) {
+                    titleButtons.style.display = 'none';
+                }
                 // List mode - file lists are loaded from side menu
             } else if (mode === 'create') {
                 currentEditFile = null;
@@ -5646,6 +5663,8 @@
 
                     if (lyrics.length > 0) {
                         correctAnswers = []; // Reset correct answers
+                        gameSubmitted = false; // Reset submit state (새 게임 시작)
+                        pendingFinalScore = 0; // Reset pending score
                         showGameModeModal();
                     }
                 } catch (error) {
@@ -6311,6 +6330,226 @@
                 }
             });
 
+            // ===== Gameover header buttons =====
+            // Gameover screen - TTV Edit button
+            document.getElementById('ttvedit-btn-header').addEventListener('click', () => {
+                console.log('📝 TTV편집 버튼 클릭됨 (헤더):', currentGameFileId);
+                editFile(currentGameFileId);
+            });
+
+            // Gameover screen - Share button
+            document.getElementById('share-btn-header').addEventListener('click', async () => {
+                console.log('📤 공유 버튼 클릭됨 (헤더)');
+                
+                if (!currentGameFileId) {
+                    alert('공유할 파일이 없습니다.');
+                    return;
+                }
+
+                try {
+                    if (typeof currentGameFileId === 'string' && currentGameFileId.startsWith('local_')) {
+                        console.log('✅ 로컬 파일이므로 공유 권한 확인 불필요');
+                    } else {
+                        const { data: fileData, error: fileError } = await supabase
+                            .from('study_materials')
+                            .select('user_id')
+                            .eq('id', currentGameFileId)
+                            .single();
+
+                        if (fileError || !fileData) {
+                            alert('파일 정보를 확인할 수 없습니다.');
+                            return;
+                        }
+
+                        const { data: { user: currentUser } } = await supabase.auth.getUser();
+                        if (!currentUser || fileData.user_id !== currentUser.id) {
+                            alert('이 파일에 대한 권한이 없습니다.');
+                            return;
+                        }
+                    }
+
+                    const shareToken = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+                        .replace(/[xy]/g, function(c) {
+                            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        })
+                        .substring(0, 8);
+
+                    const { error } = await supabase
+                        .from('study_materials')
+                        .update({
+                            share_token: shareToken,
+                            is_shared: true,
+                            shared_at: new Date().toISOString()
+                        })
+                        .eq('id', currentGameFileId);
+
+                    if (error) {
+                        alert('공유 설정에 실패했습니다.');
+                        return;
+                    }
+
+                    const shareUrl = `${window.location.origin}${window.location.pathname}?share=${shareToken}`;
+                    await navigator.clipboard.writeText(shareUrl);
+                    alert(`✅ 공유 링크가 클립보드에 복사되었습니다!\n\n${shareUrl}`);
+                } catch (error) {
+                    alert('공유 중 오류가 발생했습니다.');
+                }
+            });
+
+            // Gameover screen - Test Share button
+            document.getElementById('test-share-btn-header').addEventListener('click', async () => {
+                console.log('📝 테스트 공유 버튼 클릭됨 (헤더)');
+
+                if (!currentGameFileId) {
+                    alert('공유할 파일이 없습니다.');
+                    return;
+                }
+
+                try {
+                    if (typeof currentGameFileId === 'string' && currentGameFileId.startsWith('local_')) {
+                        console.log('✅ 로컬 파일이므로 공유 권한 확인 불필요');
+                    } else {
+                        const { data: fileData, error: fileError } = await supabase
+                            .from('study_materials')
+                            .select('user_id')
+                            .eq('id', currentGameFileId)
+                            .single();
+
+                        if (fileError || !fileData) {
+                            alert('파일 정보를 확인할 수 없습니다.');
+                            return;
+                        }
+
+                        const { data: { user: currentUser } } = await supabase.auth.getUser();
+                        if (!currentUser || fileData.user_id !== currentUser.id) {
+                            alert('이 파일에 대한 권한이 없습니다.');
+                            return;
+                        }
+                    }
+
+                    const testToken = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+                        .replace(/[xy]/g, function(c) {
+                            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        })
+                        .substring(0, 8);
+
+                    const { error } = await supabase
+                        .from('study_materials')
+                        .update({
+                            test_token: testToken,
+                            created_at: new Date().toISOString()
+                        })
+                        .eq('id', currentGameFileId);
+
+                    if (error) {
+                        alert('테스트 공유 설정에 실패했습니다.');
+                        return;
+                    }
+
+                    const testUrl = `${window.location.origin}${window.location.pathname}?test=${testToken}`;
+                    await navigator.clipboard.writeText(testUrl);
+                    alert(`✅ 테스트 공유 링크가 클립보드에 복사되었습니다!\n\n${testUrl}`);
+                } catch (error) {
+                    alert('테스트 공유 중 오류가 발생했습니다.');
+                }
+            });
+
+            // Gameover screen - Import button
+            document.getElementById('import-btn-header').addEventListener('click', async () => {
+                console.log('📥 가져오기 버튼 클릭됨 (헤더)');
+
+                if (!currentGameFileId) {
+                    alert('가져올 파일이 없습니다.');
+                    return;
+                }
+
+                if (!window.currentUser) {
+                    alert('로그인이 필요합니다. 먼저 로그인해주세요.');
+                    return;
+                }
+
+                try {
+                    if (typeof currentGameFileId === 'string' && currentGameFileId.startsWith('local_')) {
+                        alert('로컬 파일은 가져올 수 없습니다.');
+                        return;
+                    }
+
+                    const { data: originalFile, error: fileError } = await supabase
+                        .from('study_materials')
+                        .select('*')
+                        .eq('id', currentGameFileId)
+                        .single();
+
+                    if (fileError || !originalFile) {
+                        throw new Error('파일 정보를 찾을 수 없습니다.');
+                    }
+
+                    if (originalFile.user_id === window.currentUser.id) {
+                        alert('이 파일에 대한 권한이 없습니다.');
+                        return;
+                    }
+
+                    const newFileName = `${originalFile.title}_복사본`;
+                    const newFileId = crypto.randomUUID();
+                    const now = new Date().toISOString();
+
+                    const { error: dbError } = await supabase
+                        .from('study_materials')
+                        .insert([{
+                            id: newFileId,
+                            user_id: window.currentUser.id,
+                            title: newFileName,
+                            contents: originalFile.contents,
+                            view_count: 0,
+                            is_public: false,
+                            is_shared: false,
+                            created_at: now,
+                            updated_at: now,
+                            view_at: now
+                        }]);
+
+                    if (dbError) {
+                        if (dbError.code === '23505' || dbError.message.includes('unique')) {
+                            throw new Error('같은 이름의 파일이 마이 파일에 이미 존재합니다.');
+                        } else {
+                            throw new Error(`파일 정보 저장에 실패했습니다: ${dbError.message}`);
+                        }
+                    }
+
+                    alert(`✅ 파일을 가져왔습니다!\n파일명: ${newFileName}`);
+                    loadMyFiles();
+                } catch (error) {
+                    alert('파일 가져오기에 실패했습니다: ' + error.message);
+                }
+            });
+
+            // ===== Gameover action buttons (다시하기/틀린것만다시) =====
+            // Retry button - 전체 다시 하기
+            document.getElementById('retry-btn-header').addEventListener('click', () => {
+                console.log('🔄 다시 하기 버튼 클릭됨 (header)');
+                // "다시 하기" 시에는 파일을 다시 로드해서 최신 상태를 반영
+                // (italic으로 변환된 단어들을 반영하기 위해)
+                if (currentGameFileId) {
+                    playGame(currentGameFileId, currentGameFileName);
+                } else {
+                    const localFiles = JSON.parse(localStorage.getItem('local_md_files') || '[]');
+                    const fileIndex = localFiles.findIndex(f => f.name === currentGameFileName);
+                    if (fileIndex > -1) {
+                        playLocalGame(fileIndex, currentGameFileName);
+                    }
+                }
+            });
+
+            // Wrong Retry button - 틀린 것만 다시
+            document.getElementById('wrong-retry-btn-header').addEventListener('click', () => {
+                console.log('🔄 틀린 것만 다시 버튼 클릭됨 (header)');
+                console.log('현재 blanks:', blanks);
+                console.log('현재 correctAnswers:', correctAnswers);
+                startGame(true);
+            });
+
             // Save settings
             document.getElementById('save-settings-btn').addEventListener('click', () => {
                 const selectedLearningMode = document.querySelector('input[name="learning-mode-setting"]:checked').value;
@@ -6545,7 +6784,6 @@
 
             // Initialize menu data
             loadLocalFiles();
-            loadHighFrequencyWords();
 
             // Initialize test name modal listeners
             initTestNameModalListeners();
@@ -6582,13 +6820,14 @@
         let originalTotalBlanks = 0; // 원래 전체 문제 개수 (틀린 것만 다시 할 때도 유지)
         let hintCount = 3;
         let startTime = 0;
-        let highFrequencyWords = new Set();
 
         // Hint tracking: { inputElementId: { revealedCount: 0 } }
         let hintProgress = {};
         let lastSelectedInput = null; // 마지막으로 선택된 입력필드 추적
         let answersShown = false; // show-file-btn 정답 표시 상태 추적
         let originalValues = []; // show-file-btn 원본 값 저장
+        let gameSubmitted = false; // 게임 제출 후 상태 추적 (정답 표시됨 → endGame 대기 중)
+        let pendingFinalScore = 0; // endGame 호출 대기 중인 최종 점수
 
         // Difficulty settings
         const difficultySettings = {
@@ -6596,23 +6835,6 @@
             medium: { percentage: 0.5, hints: 3 },
             hard: { percentage: 0.7, hints: 1 }
         };
-
-        // Load high frequency words
-        async function loadHighFrequencyWords() {
-            try {
-                const response = await fetch('data/high_frequency_words.md');
-                const text = await response.text();
-                const lines = text.split('\n');
-                lines.forEach(line => {
-                    if (line.trim().startsWith('#') || line.trim() === '') return;
-                    const words = line.split(',').map(w => w.trim()).filter(w => w.length > 0);
-                    words.forEach(word => highFrequencyWords.add(word));
-                });
-                console.log(`✅ 고빈도 단어 ${highFrequencyWords.size}개 로드 완료`);
-            } catch (error) {
-                console.error('❌ 고빈도 단어 리스트 로드 실패:', error);
-            }
-        }
 
         // Parse markdown text
         function parseLyrics(mdText) {
@@ -6737,6 +6959,16 @@
             italicWordValues = []; // Italic 단어 초기화 (값)
             answersShown = false; // 정답 표시 상태 초기화
             originalValues = []; // 원본 값 초기화
+            gameSubmitted = false; // 게임 제출 상태 초기화
+            pendingFinalScore = 0; // 대기 중인 점수 초기화
+            
+            // Submit 버튼을 다시 "제출" 버튼으로 변경
+            let submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<span class="material-icons">send</span>';
+                submitBtn.title = 'submit';
+                submitBtn.style.backgroundColor = ''; // 기본 스타일 복원
+            }
 
             // 게임 시작 시 show-file-btn 상태 확인 (파일별로 독립적 관리)
             checkShowFileButtonUsed();
@@ -6809,35 +7041,18 @@
                 const numBlanks = Math.ceil(wordsToConsider * blankPercentage);
                 hintCount = 3;
 
-                const lowFreqIndices = [];
-                const highFreqIndices = [];
-
-                lyrics.forEach((word, index) => {
+                // 무작위로 선택
+                const randomIndices = [];
+                for (let i = 0; i < lyrics.length; i++) {
                     // 섹션 모드일 때는 섹션 범위 내 단어만 고려
-                    if (sectionIndices && !sectionIndices.has(index)) {
-                        return;
+                    if (sectionIndices && !sectionIndices.has(i)) {
+                        continue;
                     }
-                    if (highFrequencyWords.has(word)) {
-                        highFreqIndices.push(index);
-                    } else {
-                        lowFreqIndices.push(index);
-                    }
-                });
-
-                const indices = new Set();
-                const shuffledLowFreq = lowFreqIndices.sort(() => Math.random() - 0.5);
-                for (let i = 0; i < Math.min(numBlanks, shuffledLowFreq.length); i++) {
-                    indices.add(shuffledLowFreq[i]);
+                    randomIndices.push(i);
                 }
 
-                if (indices.size < numBlanks) {
-                    const shuffledHighFreq = highFreqIndices.sort(() => Math.random() - 0.5);
-                    for (let i = 0; i < shuffledHighFreq.length && indices.size < numBlanks; i++) {
-                        indices.add(shuffledHighFreq[i]);
-                    }
-                }
-
-                blanks = Array.from(indices).sort((a, b) => a - b);
+                const shuffledIndices = randomIndices.sort(() => Math.random() - 0.5);
+                blanks = shuffledIndices.slice(0, numBlanks).sort((a, b) => a - b);
 
                 console.log('🎲 무작위 모드:', { randomDifficulty, blankPercentage, numBlanks, sectionMode: !!sectionIndices, blanks });
             }
@@ -6860,7 +7075,7 @@
 
             // Show game controls (Hint + Submit button) when game starts
             const hintBtn = document.getElementById('hint-btn');
-            const submitBtn = document.getElementById('submit-btn');
+            submitBtn = document.getElementById('submit-btn');
             if (hintBtn && submitBtn) {
                 hintBtn.style.display = 'flex';
                 submitBtn.style.display = 'flex';
@@ -6974,6 +7189,7 @@
 
                     // 셀 내용 파싱 (![alt](url), **bold** 및 *italic* 포함)
                     let remaining = cell.trim();
+                    let cellWordCount = 0;
                     while (remaining.length > 0) {
                         const imageMatch = remaining.match(/^\s*!\[([^\]]+)\]\(([^)]+)\)/);
                         const boldMatch = remaining.match(/^\s*\*\*([^*]+)\*\*/);
@@ -7010,6 +7226,7 @@
                         } else if (boldMatch) {
                             const word = boldMatch[1].trim();
                             if (word && wordIndex < lyrics.length) {
+                                console.log(`[표] Bold 단어: "${word}" @ wordIndex=${wordIndex}, lyrics[${wordIndex}]="${lyrics[wordIndex]}", blank=${blanks.includes(wordIndex)}`);
                                 const wordEl = document.createElement('span');
                                 wordEl.style.display = 'inline-block';
                                 wordEl.style.margin = '0 4px';
@@ -7035,12 +7252,14 @@
 
                                 td.appendChild(wordEl);
                                 wordIndex++;
+                                cellWordCount++;
                             }
                             remaining = remaining.substring(boldMatch[0].length);
                         } else if (italicMatch) {
                             // Italic 단어 (blank에 포함되지 않음 - 표시만 함)
                             const word = italicMatch[1].trim();
                             if (word && wordIndex < lyrics.length) {
+                                console.log(`[표] Italic 단어: "${word}" @ wordIndex=${wordIndex}, lyrics[${wordIndex}]="${lyrics[wordIndex]}", blank=${blanks.includes(wordIndex)}`);
                                 const wordEl = document.createElement('span');
                                 wordEl.style.display = 'inline-block';
                                 wordEl.style.margin = '0 4px';
@@ -7062,6 +7281,7 @@
 
                                 td.appendChild(wordEl);
                                 wordIndex++;
+                                cellWordCount++;
                             }
                             remaining = remaining.substring(italicMatch[0].length);
                         } else {
@@ -7695,13 +7915,26 @@
                 const checkAnswer = () => {
                     const userInput = input.value;
                     const correctWord = lyrics[blankIndex];
+                    
+                    // 제출된 필드인지 확인 (data-submitted='true')
+                    // 제출된 필드는 항상 오답으로 처리 (사용자 입력 무효)
+                    const isSubmitted = input.getAttribute('data-submitted') === 'true';
 
                     // 글자 단위 색상 표시 함수
                     function updateCharacterColors() {
                         if (userInput === '') {
                             console.log(`  🎨 updateCharacterColors: 빈 값 처리 - wrong 클래스 추가`);
                         } else {
-                            console.log(`  🎨 updateCharacterColors: userInput="${userInput}", correctWord="${correctWord}"`);
+                            console.log(`  🎨 updateCharacterColors: userInput="${userInput}", correctWord="${correctWord}", isSubmitted=${isSubmitted}`);
+                        }
+
+                        // 제출된 필드: 항상 오답 처리
+                        if (isSubmitted) {
+                            console.log(`  🔒 제출된 필드 - 항상 오답으로 처리됨 (index=${blankIndex})`);
+                            input.classList.remove('correct', 'partial-correct');
+                            input.classList.add('wrong');
+                            input.style.backgroundImage = 'none';
+                            return; // 더 이상 진행하지 않음
                         }
 
                         if (userInput === '') {
@@ -7959,6 +8192,11 @@
                 const blankIndex = blanks[index];
                 const correctAnswer = lyrics[blankIndex];
                 const userAnswer = input.value;
+                
+                // 제출 후 입력필드에 마크 추가 (data-submitted='true')
+                // 이후 사용자 입력은 항상 오답으로 처리됨
+                input.setAttribute('data-submitted', 'true');
+                
                 if (userAnswer === correctAnswer) {
                     totalCorrect++;
                     input.classList.remove('wrong');
@@ -7999,10 +8237,13 @@
                 } else {
                     input.classList.add('wrong');
                     input.classList.remove('correct', 'hint-used');
+                    // 틀린 답은 원래 사용자 입력값으로 유지 (그 입력값이 정답이 되는 것을 막음)
+                    // readonly 설정으로 더 이상 수정 불가능
                     const answerSpan = document.createElement('span');
                     answerSpan.className = 'answer-display';
                     answerSpan.textContent = `(정답: ${correctAnswer})`;
                     input.parentElement.appendChild(answerSpan);
+                    console.log(`  ❌ 틀림 - blankIndex: ${blankIndex}, 사용자 입력: "${userAnswer}", 정답: "${correctAnswer}", 입력필드를 readonly로 설정`);
                 }
             });
 
@@ -8015,7 +8256,34 @@
             // blanks.length를 사용하여 정확한 점수 계산 (입력 필드 개수가 아닌 실제 문제 개수 기준)
             const finalScore = blanks.length > 0 ? Math.round((totalCorrect / blanks.length) * 100) : 0;
             console.log('🎯 최종 점수:', finalScore, '점 (totalCorrect:', totalCorrect, '/', blanks.length, ')');
-            endGame(finalScore);
+            
+            // 상태 저장: endGame은 아직 호출하지 않음 (사용자가 결과 보기 버튼 클릭할 때까지 대기)
+            gameSubmitted = true;
+            pendingFinalScore = finalScore;
+            console.log('🎬 게임 제출됨 - 정답 표시됨. 사용자가 결과 보기 버튼을 눌러야 gameover 화면으로 이동');
+            
+            // Submit 버튼을 "결과 보기" 버튼으로 변경
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<span class="material-icons">done</span>';
+                submitBtn.title = '결과 보기';
+                // 버튼 스타일 변경 (optional - 시각적 피드백)
+                submitBtn.style.backgroundColor = 'var(--success-color, #10b981)';
+            }
+
+            // 가장 첫 번째 틀린 필드로 스크롤 이동
+            const firstWrongInput = Array.from(inputs).find(input => input.classList.contains('wrong'));
+            if (firstWrongInput) {
+                setTimeout(() => {
+                    firstWrongInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    console.log('📍 첫 번째 틀린 필드로 스크롤 이동됨');
+                }, 300); // UI 업데이트 후에 스크롤
+                
+                // 첫 번째 틀린 필드를 이미 보았으므로 currentWrongIndex를 0으로 초기화
+                // 다음 "결과 보기" 클릭 시 두 번째 틀린 것(2/5)으로 이동하게 됨
+                currentWrongIndex = 0;
+                console.log('📍 currentWrongIndex를 0으로 초기화 - 다음 클릭 시 2/5부터 시작');
+            }
         }
 
 
@@ -8268,20 +8536,42 @@
                     totalPointsElement.textContent = totalPoints.toLocaleString('ko-KR');
                     console.log('✅ 총 포인트 표시됨:', totalPoints.toLocaleString('ko-KR'));
                 } else {
-                    console.error('❌ total-points-value 요소를 찾을 수 없음');
+                    console.warn('⚠️ total-points-value 요소를 찾을 수 없음 (무시됨)');
+                    // total-points-container가 제거되었으므로 무시
                 }
             }
 
             if (incorrectCount > 0) {
                 console.log('⚠️ 부분 정답 - 틀린 개수:', incorrectCount);
-                document.getElementById('wrong-retry-btn').style.display = 'inline-block';
+                // wrong-retry-btn이 존재하면 표시 (존재하지 않으면 무시)
+                const wrongRetryBtn = document.getElementById('wrong-retry-btn');
+                if (wrongRetryBtn) {
+                    wrongRetryBtn.style.display = 'inline-block';
+                }
+                const wrongRetryBtnHeader = document.getElementById('wrong-retry-btn-header');
+                if (wrongRetryBtnHeader) {
+                    wrongRetryBtnHeader.style.display = 'flex';
+                }
                 // 부분 정답일 때는 포인트 표시 안 함
                 document.getElementById('final-points').style.display = 'none';
                 // 부분 정답일 때도 총 포인트 표시
-                updateTotalPointsDisplay();
+                console.log('📊 updateTotalPointsDisplay() 호출 시작');
+                try {
+                    updateTotalPointsDisplay();
+                    console.log('✅ updateTotalPointsDisplay() 완료');
+                } catch (error) {
+                    console.error('❌ updateTotalPointsDisplay() 오류:', error);
+                }
             } else {
                 console.log('✅ 완벽한 정답!');
-                document.getElementById('wrong-retry-btn').style.display = 'none';
+                const wrongRetryBtn = document.getElementById('wrong-retry-btn');
+                if (wrongRetryBtn) {
+                    wrongRetryBtn.style.display = 'none';
+                }
+                const wrongRetryBtnHeader = document.getElementById('wrong-retry-btn-header');
+                if (wrongRetryBtnHeader) {
+                    wrongRetryBtnHeader.style.display = 'none';
+                }
 
                 // 모든 문제를 다 맞은 경우: 보너스 포인트 추가 + 축하 애니메이션
                 // 보너스 = 원래 전체 문제 개수 * 100
@@ -8320,7 +8610,14 @@
             }
 
             // Display original text with highlights
-            displayOriginalText();
+            console.log('🎨 displayOriginalText() 호출 시작');
+            try {
+                displayOriginalText();
+                console.log('✅ displayOriginalText() 완료');
+            } catch (error) {
+                console.error('❌ displayOriginalText() 오류:', error);
+                console.error('❌ 에러 스택:', error.stack);
+            }
 
             // 조회수 증가 (게임 완료 시에만, 공개 파일만)
             if (currentGameFileId && typeof supabase !== 'undefined') {
@@ -8383,7 +8680,24 @@
                 console.log('❌ updateMarkdownWithItalic() 호출 안 됨 - italicWords.length:', italicWords.length, 'gameMode:', gameMode, '조건:', 'length>0?', italicWords.length > 0, 'gameMode===bold?', gameMode === 'bold');
             }
 
-            showGameScreen('gameover'); // 게임 컨트롤(Hint + Submit) 자동 숨김
+            console.log('🎮 showGameScreen("gameover") 호출 시작');
+            try {
+                showGameScreen('gameover'); // 게임 컨트롤(Hint + Submit) 자동 숨김
+                console.log('✅ showGameScreen("gameover") 호출 완료');
+                
+                // 게임 종료 화면에서 final-score 요소에 focus를 줌 (점수 확인 가능)
+                setTimeout(() => {
+                    const finalScoreEl = document.getElementById('final-score');
+                    if (finalScoreEl) {
+                        finalScoreEl.focus();
+                        finalScoreEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        console.log('📍 final-score에 포커스 및 스크롤 이동됨');
+                    }
+                }, 200);
+            } catch (error) {
+                console.error('❌ showGameScreen 호출 중 오류:', error);
+                console.error('❌ 에러 스택:', error.stack);
+            }
         }
 
         // MD 파일에서 Bold를 Italic으로 변경
@@ -8484,8 +8798,15 @@
 
         // 정오표 표시 (정확히 입력한 것만 초록색, 나머지는 붉은색)
         function displayOriginalText() {
+            // 가장 첫 번째 라인에 로그
+            console.log('START_DISPLAY_ORIGINAL_TEXT_FUNCTION');
+            
             const displayEl = document.getElementById('original-text-display');
+            console.log('displayEl:', displayEl);
             displayEl.innerHTML = '';
+            
+            // 강제 로그 - 캐시 무시
+            window.console && window.console.log('🔴🔴🔴 displayOriginalText 함수 시작됨 🔴🔴🔴');
 
             // 디버그: italicWords와 correctAnswers 로그
             console.log('🎨 displayOriginalText - italicWords:', italicWords);
@@ -8493,11 +8814,12 @@
             console.log('🎨 displayOriginalText - correctAnswers:', correctAnswers);
             console.log('🎨 displayOriginalText - blanks:', blanks);
             console.log('🎨 displayOriginalText - lyrics:', lyrics);
+            console.log('🎨 displayOriginalText - originalMarkdown 존재?', !!originalMarkdown, 'length:', originalMarkdown?.length || 0);
 
             // 원본 마크다운이 있으면 파싱해서 표 포함해서 렌더링
             if (originalMarkdown) {
                 let blankOrder = 0;
-                let wordIndex = 0;
+                let wordIndex = 0;  // 반드시 0으로 시작
 
                 // 원본 마크다운을 줄별로 처리
                 const lines = originalMarkdown.split('\n');
@@ -8512,6 +8834,12 @@
                         continue;
                     }
 
+                    // 수평 구분선 건너뛰기 (---, ***, ___)
+                    if (line.trim().match(/^(\-{3,}|\*{3,}|_{3,})$/)) {
+                        i++;
+                        continue;
+                    }
+
                     // 표 감지 (|로 시작하는 줄)
                     if (line.trim().startsWith('|')) {
                         // 표 시작
@@ -8522,19 +8850,28 @@
                         }
 
                         // 표 렌더링 (정오표 표시에서는 섹션 필터링 미적용, null 전달)
-                        console.log(`\n🎬 [게임 후] renderTable 호출 - gameState=${gameState}`);
+                        console.log(`\n🎬 [게임 후] renderTable 호출 - gameState=${gameState}, wordIndex=${wordIndex}, blankOrder=${blankOrder}`);
                         const result = renderTable(tableLines, wordIndex, blankOrder, new Set(), 'all', null);
+                        console.log(`🎬 [게임 후] renderTable 반환 - 새 wordIndex=${result.wordIndex}, 새 blankOrder=${result.blankOrder}`);
 
                         // 표의 각 셀에서 blank 단어들에 색상 적용 및 값 채우기
                         const cells = result.element.querySelectorAll('td');
-                        cells.forEach(cell => {
+                        console.log(`📋 정오표 표 셀 개수: ${cells.length}`);
+                        cells.forEach((cell, cellIdx) => {
                             const inputs = cell.querySelectorAll('.word-input');
-                            inputs.forEach(input => {
+                            console.log(`  📍 셀 ${cellIdx}: word-input 개수 = ${inputs.length}`);
+                            inputs.forEach((input, inputIdx) => {
                                 const idx = parseInt(input.dataset.index);
+                                console.log(`    ✏️ word-input[${inputIdx}]: index=${idx}, value="${lyrics[idx]}"`);
                                 if (blanks.includes(idx)) {
                                     // 정답 값을 입력 필드에 채우기
                                     input.value = lyrics[idx];
-                                    input.disabled = true;
+                                    input.disabled = false;
+                                    // 마크: 정오표 화면에서는 사용자 입력을 무시하고 정답 여부만 표시 (재평가 불가)
+                                    input.setAttribute('data-answer-sheet', 'true');
+                                    input.setAttribute('readonly', 'readonly');
+                                    input.style.cursor = 'default';
+                                    console.log(`      ✅ 채워짐: "${input.value}"`);
 
                                     if (correctAnswers.includes(idx)) {
                                         input.style.color = 'var(--correct-color, #10b981)';
@@ -8730,28 +9067,58 @@
                 }
             } else {
                 // 원본 마크다운이 없으면 lyrics 배열로만 표시
+                console.log('📝 정오표 렌더링 - originalMarkdown 없음, lyrics로 표시 시작');
                 lyrics.forEach((word, index) => {
-                    const wordSpan = document.createElement('span');
-                    wordSpan.className = 'word-item';
-                    wordSpan.textContent = word;
-
-                    // blanks에 포함된 단어인지 확인
+                    // blanks에 포함된 단어면 word-input으로 표시
                     if (blanks.includes(index)) {
-                        // correctAnswers에 포함되면 정확히 입력한 것 (초록색)
+                        const inputEl = document.createElement('input');
+                        inputEl.type = 'text';
+                        inputEl.className = 'word-input';
+                        inputEl.dataset.index = index;
+                        inputEl.dataset.order = index;
+                        inputEl.dataset.answer = word;
+                        inputEl.value = word;
+                        inputEl.disabled = false;
+                        // 마크: 정오표 화면에서는 사용자 입력을 무시하고 정답 여부만 표시 (재평가 불가)
+                        inputEl.setAttribute('data-answer-sheet', 'true');
+                        inputEl.setAttribute('readonly', 'readonly');
+                        inputEl.style.cursor = 'default';
+                        inputEl.style.marginRight = '4px';
+                        inputEl.style.marginBottom = '4px';
+                        
+                        // 정답 상태에 따른 색상 적용
                         if (correctAnswers.includes(index)) {
-                            wordSpan.classList.add('correct');
+                            inputEl.style.color = 'var(--correct-color, #10b981)';
+                            inputEl.style.borderBottomColor = 'var(--correct-color, #10b981)';
                         } else if (hintUsedAnswers.includes(index)) {
                             // 힌트 사용한 경우: 노란색
-                            wordSpan.classList.add('hint-used');
+                            inputEl.style.color = '#ad6800';
+                            inputEl.style.borderBottomColor = '#faad14';
                         } else {
-                            // correctAnswers에 포함되지 않으면 틀렸거나 입력 안 함 (붉은색)
-                            wordSpan.classList.add('wrong');
+                            // 틀리거나 입력 안 한 경우: 빨간색
+                            inputEl.style.color = 'var(--wrong-color, #ef4444)';
+                            inputEl.style.borderBottomColor = 'var(--wrong-color, #ef4444)';
                         }
+                        
+                        // Italic으로 표시된 단어
+                        if (italicWords.includes(index)) {
+                            inputEl.classList.add('italic-marked');
+                        }
+                        
+                        displayEl.appendChild(inputEl);
+                    } else {
+                        // 빈칸이 아닌 단어는 span으로 표시
+                        const wordSpan = document.createElement('span');
+                        wordSpan.className = 'word-item';
+                        wordSpan.textContent = word;
+                        wordSpan.style.marginRight = '4px';
+                        
+                        displayEl.appendChild(wordSpan);
                     }
-
-                    displayEl.appendChild(wordSpan);
+                    
                     displayEl.appendChild(document.createTextNode(' '));
                 });
+                console.log('✅ 정오표 렌더링 완료 - lyrics로 표시됨');
             }
         }
 
@@ -8760,110 +9127,79 @@
             const playingScreen = document.querySelector('#game-section .playing-screen');
             const gameoverScreen = document.querySelector('#game-section .gameover-screen');
             const hintBtn = document.getElementById('hint-btn');
-            const submitBtn = document.getElementById('submit-btn');
+            let submitBtn = document.getElementById('submit-btn');
             const importBtn = document.getElementById('import-btn');
 
             if (screenType === 'playing') {
                 playingScreen.classList.add('active');
                 gameoverScreen.classList.remove('active');
                 if (hintBtn) hintBtn.style.display = 'flex';
-                if (submitBtn) submitBtn.style.display = 'flex';
+                if (submitBtn) {
+                    submitBtn.style.display = 'flex';
+                    // Submit 버튼을 다시 "제출" 상태로 복원
+                    submitBtn.innerHTML = '<span class="material-icons">send</span>';
+                    submitBtn.title = 'submit';
+                    submitBtn.style.backgroundColor = '';
+                }
                 // 플레이 화면에서 헤더 표시
                 const gameInfoRow = document.querySelector('.game-info-row');
                 const progressBar = document.querySelector('.progress-bar');
                 if (gameInfoRow) gameInfoRow.style.display = 'flex';
                 if (progressBar) progressBar.style.display = 'block';
                 // import-btn 표시는 playGame에서 처리 (owner 확인 후 표시/숨김)
+                
+                // show-file-btn 숨김
+                const showFileBtn = document.getElementById('show-file-btn');
+                if (showFileBtn) showFileBtn.style.display = 'none';
+                
+                // 게임 제출 상태 초기화
+                gameSubmitted = false;
+                pendingFinalScore = 0;
+                
+                // Gameover 버튼들 숨김
+                const ttvEditBtnHeader = document.getElementById('ttvedit-btn-header');
+                const importBtnHeader = document.getElementById('import-btn-header');
+                const shareBtnHeader = document.getElementById('share-btn-header');
+                const testShareBtnHeader = document.getElementById('test-share-btn-header');
+                const retryBtnHeader = document.getElementById('retry-btn-header');
+                const wrongRetryBtnHeader = document.getElementById('wrong-retry-btn-header');
+                
+                if (ttvEditBtnHeader) ttvEditBtnHeader.style.display = 'none';
+                if (importBtnHeader) importBtnHeader.style.display = 'none';
+                if (shareBtnHeader) shareBtnHeader.style.display = 'none';
+                if (testShareBtnHeader) testShareBtnHeader.style.display = 'none';
+                if (retryBtnHeader) retryBtnHeader.style.display = 'none';
+                if (wrongRetryBtnHeader) wrongRetryBtnHeader.style.display = 'none';
             } else if (screenType === 'gameover') {
                 playingScreen.classList.remove('active');
                 gameoverScreen.classList.add('active');
-                // 다시 하기 버튼에 포커스
-                const retryBtn = document.getElementById('retry-btn');
-                if (retryBtn) {
-                    retryBtn.focus();
+                // 헤더의 다시하기 버튼에 포커스
+                const retryBtnHeader = document.getElementById('retry-btn-header');
+                if (retryBtnHeader) {
+                    retryBtnHeader.focus();
                 }
                 if (hintBtn) hintBtn.style.display = 'none';
                 if (submitBtn) submitBtn.style.display = 'none';
-                // 결과 화면에서 헤더 숨기기
+                
+                // Gameover 버튼들: 다시하기와 틀린것만 다시만 표시, 나머지는 모두 숨김
+                const ttvEditBtnHeader = document.getElementById('ttvedit-btn-header');
+                const importBtnHeader = document.getElementById('import-btn-header');
+                const shareBtnHeader = document.getElementById('share-btn-header');
+                const testShareBtnHeader = document.getElementById('test-share-btn-header');
+                const wrongRetryBtnHeader = document.getElementById('wrong-retry-btn-header');
+                
+                if (ttvEditBtnHeader) ttvEditBtnHeader.style.display = 'none';
+                if (importBtnHeader) importBtnHeader.style.display = 'none';
+                if (shareBtnHeader) shareBtnHeader.style.display = 'none';
+                if (testShareBtnHeader) testShareBtnHeader.style.display = 'none';
+                if (retryBtnHeader) retryBtnHeader.style.display = 'flex';
+                if (wrongRetryBtnHeader) wrongRetryBtnHeader.style.display = 'flex';
+                
+                // 결과 화면에서 헤더 표시 (gameover 버튼과 함께)
                 const gameInfoRow = document.querySelector('.game-info-row');
                 const progressBar = document.querySelector('.progress-bar');
-                if (gameInfoRow) gameInfoRow.style.display = 'none';
+                if (gameInfoRow) gameInfoRow.style.display = 'flex';
                 if (progressBar) progressBar.style.display = 'none';
-                // 게임 오버 화면을 상단으로 스크롤
-                const gameoverContent = document.querySelector('#game-section .gameover-screen');
-                if (gameoverContent) {
-                    // 약간의 지연을 줘서 DOM 업데이트 후 스크롤
-                    setTimeout(() => {
-                        const gameSection = document.querySelector('#game-section');
-                        if (gameSection) {
-                            gameSection.scrollTop = 0;
-                        }
-                    }, 50);
-                }
-
-                // 2초 후 정오표의 첫번째 word-input + 20px로 스크롤
-                setTimeout(() => {
-                    // 정오표 display에서 word-input 찾기
-                    const originalTextDisplay = document.getElementById('original-text-display');
-                    let wordInputs = null;
-
-                    if (originalTextDisplay) {
-                        wordInputs = originalTextDisplay.querySelectorAll('.word-input');
-                        console.log(`🔍 [정오표] 찾은 word-input 개수: ${wordInputs.length}`);
-                    }
-
-                    // 정오표가 없으면 게임 섹션 전체에서 찾기
-                    if (!wordInputs || wordInputs.length === 0) {
-                        const gameSection = document.querySelector('#game-section');
-                        wordInputs = gameSection ?
-                            gameSection.querySelectorAll('.word-input') :
-                            document.querySelectorAll('.word-input');
-                        console.log(`🔍 [전체] 찾은 word-input 개수: ${wordInputs.length}`);
-                    }
-
-                    if (wordInputs && wordInputs.length > 0) {
-                        const firstInput = wordInputs[0];
-                        console.log(`📍 첫번째 word-input text: "${firstInput.value}"`);
-                        console.log(`📍 첫번째 word-input index: ${firstInput.dataset.index}`);
-
-                        // 게임 섹션 또는 window를 기준으로 부드러운 스크롤
-                        const gameSection = document.querySelector('#game-section');
-                        if (gameSection) {
-                            const rect = firstInput.getBoundingClientRect();
-                            const containerRect = gameSection.getBoundingClientRect();
-                            const targetScrollTop = gameSection.scrollTop + rect.top - containerRect.top - 20;
-
-                            // 부드러운 스크롤 애니메이션
-                            const startScrollTop = gameSection.scrollTop;
-                            const distance = targetScrollTop - startScrollTop;
-                            const duration = 1000; // 1초
-                            const startTime = Date.now();
-
-                            const animateScroll = () => {
-                                const elapsed = Date.now() - startTime;
-                                const progress = Math.min(elapsed / duration, 1);
-
-                                // easeInOutCubic 이징 함수
-                                const easeProgress = progress < 0.5
-                                    ? 4 * progress * progress * progress
-                                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-
-                                gameSection.scrollTop = startScrollTop + distance * easeProgress;
-
-                                if (progress < 1) {
-                                    requestAnimationFrame(animateScroll);
-                                }
-                            };
-
-                            requestAnimationFrame(animateScroll);
-                        } else {
-                            firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                        console.log('📍 첫번째 word-input으로 스크롤 완료 (+20px)');
-                    } else {
-                        console.log('❌ word-input을 찾을 수 없습니다');
-                    }
-                }, 2000);
 
                 // 게임 오버 시에도 로그인 사용자만 가져오기 버튼 표시
                 if (window.currentUser && currentGameFileId) {
@@ -8946,6 +9282,9 @@
                 alert('먼저 정답을 입력할 필드를 선택해주세요');
                 return;
             }
+
+            // 선택된 필드로 스크롤 이동
+            selectedInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
             // 현재 포인트 확인 (100 포인트 필요)
             const currentPoints = typeof getCurrentPoints === 'function' ? getCurrentPoints() : 0;
@@ -9086,7 +9425,70 @@
         }
 
         // Game button event listeners
-        document.getElementById('submit-btn').addEventListener('click', submitGame);
+        // 틀린 필드 네비게이션 추적
+        let currentWrongIndex = -1; // 현재 보고 있는 틀린 필드의 인덱스
+        let wrongBlankIndices = []; // 실제 틀린 필드의 blanks 인덱스들
+
+        document.getElementById('submit-btn').addEventListener('click', () => {
+            // 게임 제출 상태 확인
+            if (gameSubmitted) {
+                // 이미 정답이 표시됨 → 다음 틀린 것으로 이동 또는 gameover
+                console.log('🎮 결과 보기 버튼 클릭됨 - 다음 틀린 것 찾기');
+                
+                // blanks 배열에 포함된 필드 중 오답인 것들을 찾기
+                // blanks는 실제 게임 문제로 출제된 필드의 인덱스들
+                const gameSection = document.getElementById('game-section');
+                const inputs = gameSection ? gameSection.querySelectorAll('.word-input') : document.querySelectorAll('.word-input');
+                
+                // 틀린 필드: blanks에 포함되고 'wrong' 클래스를 가진 필드
+                // 같은 인덱스가 여러 번 나타날 수 있으므로 Map으로 중복 제거
+                const wrongInputMap = new Map();
+                Array.from(inputs).forEach(input => {
+                    const blankIndex = parseInt(input.dataset.index);
+                    if (blanks.includes(blankIndex) && input.classList.contains('wrong')) {
+                        // 같은 인덱스가 없으면 추가, 있으면 무시 (첫 번째만 사용)
+                        if (!wrongInputMap.has(blankIndex)) {
+                            wrongInputMap.set(blankIndex, input);
+                        }
+                    }
+                });
+                
+                const wrongInputs = Array.from(wrongInputMap.values());
+                
+                console.log('📊 실제 문제 개수(blanks):', blanks.length, '틀린 필드 개수:', wrongInputs.length, '현재 인덱스:', currentWrongIndex);
+                console.log('📋 blanks:', blanks);
+                console.log('❌ 틀린 필드 인덱스들 (중복 제거됨):', wrongInputs.map(input => input.dataset.index));
+                
+                if (wrongInputs.length === 0) {
+                    // 틀린 것이 없으면 바로 gameover
+                    console.log('✅ 틀린 필드가 없습니다 - gameover 이동');
+                    endGame(pendingFinalScore);
+                    return;
+                }
+                
+                // 다음 틀린 필드로 이동
+                currentWrongIndex++;
+                
+                if (currentWrongIndex >= wrongInputs.length) {
+                    // 모든 틀린 필드를 확인함 → gameover 화면으로 이동
+                    console.log('✅ 모든 틀린 필드를 확인했습니다 - gameover 이동');
+                    endGame(pendingFinalScore);
+                } else {
+                    // 다음 틀린 필드로 스크롤 이동
+                    const nextWrongInput = wrongInputs[currentWrongIndex];
+                    setTimeout(() => {
+                        nextWrongInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        console.log(`📍 ${currentWrongIndex + 1}/${wrongInputs.length} - 틀린 필드로 이동됨 (인덱스: ${nextWrongInput.dataset.index})`);
+                    }, 200);
+                }
+            } else {
+                // 아직 제출하지 않음 → 정답 표시
+                console.log('📝 제출 버튼 클릭됨 - 정답 표시 중');
+                currentWrongIndex = -1; // 네비게이션 인덱스 초기화
+                wrongBlankIndices = []; // 틀린 인덱스 초기화
+                submitGame();
+            }
+        });
         document.querySelector('#game-section .retry-btn').addEventListener('click', () => {
             console.log('다시 하기 클릭');
             // "다시 하기" 시에는 파일을 다시 로드해서 최신 상태를 반영
@@ -9304,6 +9706,9 @@
                     alert('파일을 로드하는 중 오류가 발생했습니다.');
                 }
             }
+
+            // 파일 섹션 접혔다/펼쳤다 기능
+            initMenuSectionToggle();
         });
 
         // 파일 섹션 접혔다/펼쳤다 기능
@@ -9352,13 +9757,6 @@
                     console.log(`📁 ${section}: 초기 상태 - 접혀있음`);
                 }
             });
-        }
-
-        // DOM이 완전히 로드된 후 실행
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initMenuSectionToggle);
-        } else {
-            initMenuSectionToggle();
         }
 
         // ========================================
@@ -9999,6 +10397,8 @@
             </button>
         </div>
 
+        <!-- 스크롤 가능한 메뉴 콘텐츠 -->
+        <div class="menu-content-wrapper">
         <!-- 주요 액션 -->
         <div class="menu-actions">
             <button class="menu-action-btn" id="new-file-btn">
@@ -10010,9 +10410,6 @@
                 <span>파일 검색</span>
             </button>
         </div>
-
-        <!-- 스크롤 가능한 섹션 -->
-        <div class="menu-sections-wrapper">
         <!-- 로컬 파일 섹션 -->
         <div class="menu-section">
             <div class="menu-section-header" data-section="local">
@@ -10053,8 +10450,6 @@
                 <!-- 동적으로 공개 파일 추가됨 -->
             </div>
         </div>
-        </div>
-        <!-- 스크롤 가능한 섹션 닫기 -->
 
         <!-- 하단 메뉴 -->
         <div class="menu-bottom">
@@ -10075,6 +10470,8 @@
                 <span>마이페이지</span>
             </button>
         </div>
+        </div>
+        <!-- 스크롤 가능한 메뉴 콘텐츠 끝 -->
     </div>
 
     <!-- 마이페이지 팝업 -->
